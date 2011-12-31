@@ -48,3 +48,9 @@ They are:
 **dvrescue.xsd** This file can be used to validate a DVRescue XML output. It also contains definitions of the DVRescue parameters.
 
 **dvsampler** A script that downloads or creates DV files to use as samples. Requires FFmpeg.
+
+## Copyrights
+
+Copyright (c) 2019-2020, Moving Image Preservation of Puget Sound.
+ 
+Third party libraries Copyright (c) 2012-2020 MediaArea.net SARL.
