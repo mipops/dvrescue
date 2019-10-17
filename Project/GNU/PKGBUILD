@@ -1,0 +1,35 @@
+# $Id$
+# Maintainer: MediaArea.net SARL <Info@MediaArea.net>
+
+pkgname=('dvrescue')
+pkgver=0.0.0
+pkgrel=1
+pkgdesc="Supplies technical and tag information about a video or audio file"
+url="http://MediaArea.net"
+license=('Unlicense')
+source=(${pkgname}_${pkgver}.orig.tar.xz)
+md5sums=('00000000000000000000000000000000')
+arch=('i686' 'x86_64')
+makedepends=('libzen>=0.4.37' 'libmediainfo>=19.09')
+
+prepare() {
+    cd "${srcdir}"/dvrescue/Project/GNU/CLI
+    sh ./autogen
+    ./configure --prefix=/usr
+}
+
+build() {
+    cd "${srcdir}"/dvrescue/Project/GNU/CLI
+    make
+}
+
+package_dvrescue() {
+    pkgdesc="${pkgdesc} (CLI)"
+    depends=('libzen>=0.4.37' 'libmediainfo>=19.09')
+
+    cd "${srcdir}"/dvrescue/Project/GNU/CLI
+    make DESTDIR="${pkgdir}" install
+
+    install -D -m 0644 "${srcdir}"/dvrescue/LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE
+    install -D -m 0644 "${srcdir}"/dvrescue/History.txt "${pkgdir}"/usr/share/doc/${pkgname}/History.txt
+}
