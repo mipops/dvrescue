@@ -1,0 +1,77 @@
+#!/bin/bash
+SCRIPTDIR="$(dirname $(which "${0}"))"
+
+OPTIND=1
+while getopts ":s:mx" OPT ; do
+    case "${OPT}" in
+        s) START_TIME="${OPTARG}";;
+        m) MASK_ONLY="Y" ;;
+        x) ERROR_REVIEW="Y" ;;
+        *) echo "bad option -${OPTARG}" ; _usage ;;
+        :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+    esac
+done
+shift $(( ${OPTIND} - 1 ))
+
+if [[ -n "${START_TIME}" ]] ; then
+  INPUT_OPTS+=(-ss "${START_TIME}")
+fi
+
+# fill color handling
+_convert_array_to_macroblock(){
+  LUMA_AC="ffffffffffffffffffffff"
+  CHROMA_AC="ffffffffffffff"
+  COLOR_POINT="${1}"
+  echo "${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:6:6}${CHROMA_AC}${COLOR_POINT:12:6}${CHROMA_AC}"
+  # get dv color data via
+  # ffmpeg -f lavfi -i color=s=720x480:r=30000/1001:color=yellow -vframes 1 -f rawvideo -c:v dvvideo -pix_fmt yuv411p - | xxd -ps -c 80 | tail -n 1 | cut -c 9-14,121-126,141-146
+}
+
+DV_YELLOW="5206ff1216ff9016ff"
+DV_RED="d106ff7016ffda16ff"
+FILL=$(_convert_array_to_macroblock "${DV_YELLOW}")
+if [[ "${MASK_ONLY}" = "Y" ]] ; then
+  FIND="(?<=9[0-9a-f]{5}[0][0-9a-f])[0-9a-f]{152}"
+else
+  FIND="(?<=9[0-9a-f]{5}[^0][0-9a-f])[0-9a-f]{152}"
+fi
+
+# filter handling
+TILE_V="8"
+TILE_H="4"
+LESSONE="$((${TILE_V}*${TILE_H}-1))"
+FILTER="scale=iw/4:ih/4,transpose=2,tile=layout=${TILE_V}x${TILE_H}:init_padding=${LESSONE}:overlap=${LESSONE}:padding=1,transpose=1,setsar=1/1"
+
+_play_dv(){
+  ffmpeg "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
+  xxd -p -c 80 | \
+  perl -pe "s|${FIND}|${FILL}|g" | \
+  xxd -r -p | \
+  ffplay - -vf "${FILTER}"
+}
+
+while [[ "${@}" != "" ]] ; do
+  DVFILE="${1}"
+  shift
+
+  if [[ "${ERROR_REVIEW}" = "Y" ]] ; then
+    DVR_XML="${DVFILE}.dvrescue.xml"
+    if [[ ! -f "${DVR_XML}" ]] ; then
+      dvrescue "${DVFILE}" > "${DVR_XML}"
+    fi
+    xml sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:error/@type='video error concealment']" -v @n -o "," -v @pts -o "," -v @timecode -n "${DVR_XML}" | while read error_frame ; do
+      PTS="$(echo "${error_frame}" | cut -d "," -f2)"
+      TC="$(echo "${error_frame}" | cut -d "," -f3)"
+      PTS_C="$(echo "${PTS}" | sed 's|:|-|g')"
+      PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
+      TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
+      ffmpeg -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+      xxd -p -c 80 | \
+      perl -pe "s|${FIND}|${FILL}|g" | \
+      xxd -r -p | \
+      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=/Library/Fonts/Andale\ Mono.ttf:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${DVFILE}_${PTS_C}.jpg"
+    done
+  else
+    _play_dv "${DVFILE}"
+  fi
+done
