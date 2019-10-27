@@ -1,0 +1,16 @@
+#!/bin/bash
+# this script generates various samples of dv edge cases
+
+# this section focuses on changes in characteristics within a stream, replicating scenarios such as someone recording on a dv camcorder, then stopping, then changes the configuration of the camera, and then continuing to record. Oh, it happens!
+
+# sources
+
+ntsc=()
+
+ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 ntsc_4-3_2ch_48000k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 ntsc_4-3_2ch_48000k_mandelbrot_sine.dv
+ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 ntsc_169_2ch_48000k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 19/9 -t 3 -ac 2 -ar 48000 ntsc_169_2ch_48000k_mandelbrot_sine.dv
+
+# variable aspect ratio
+cat ntsc_4-3_2ch_48k_mandelbrot_sine.dv ntsc_169_2ch_48k_mandelbrot_sine.dv > ntsc_VAR_2ch_48000_mandelbrot_sine.dv
