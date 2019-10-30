@@ -1,153 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue/" targetNamespace="https://mediaarea.net/dvrescue/" elementFormDefault="qualified" version="1">
-  <xsd:element name="dvrescue" type="dvrescue_type"/>
-  <xsd:complexType name="dvrescue_type">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1">
+  <xsd:element name="dvrescue" type="dvrescueType"/>
+  <xsd:complexType name="dvrescueType">
     <xsd:sequence>
-      <xsd:element name="creatingApplication" type="creationType" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="creatingLibrary" type="creationType" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="execution_env" type="executionType" minOccurs="0" maxOccurs="1"/>
-      <xsd:element name="media" type="mediaType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="creator" type="creatorType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="media" type="mediaType" minOccurs="1" maxOccurs="1"/>
     </xsd:sequence>
-    <xsd:attribute name="version"/>
-    <xsd:attribute name="parser"/>
+    <xsd:attribute name="version" type="xsd:string"/>
   </xsd:complexType>
-  <xsd:complexType name="creationType">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attributeGroup ref="creationAttributeSet"/>
-      </xsd:extension>
-    </xsd:simpleContent>
+
+  <xsd:complexType name="creatorType">
+    <xsd:sequence>
+      <xsd:element name="program" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="version" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
   </xsd:complexType>
-  <xsd:complexType name="executionType">
-    <xsd:attribute name="os_sysname" type="xsd:string"/>
-    <xsd:attribute name="os_release" type="xsd:string"/>
-    <xsd:attribute name="os_version" type="xsd:string"/>
-    <xsd:attribute name="host" type="xsd:string"/>
-    <xsd:attribute name="arch" type="xsd:string"/>
-    <xsd:attribute name="command_line" type="xsd:string"/>
-    <xsd:attribute name="start_time" type="xsd:string"/>
-  </xsd:complexType>
+
   <xsd:complexType name="mediaType">
     <xsd:sequence>
       <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="ref"/>
-    <xsd:attribute name="size"/>
+    <xsd:attribute name="ref" type="xsd:string"/>
   </xsd:complexType>
+
   <xsd:complexType name="framesType">
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="chroma_subsampling"/>
-    <xsd:attribute name="aspect_ratio"/>
-    <xsd:attribute name="frame_size"/>
-    <xsd:attribute name="frame_rate"/>
-    <xsd:attribute name="audio_rate"/>
-    <xsd:attribute name="audio_channels"/>
+    <xsd:attribute name="size" type="xsd:integer"/>
+    <xsd:attribute name="video_rate" type="xsd:string"/>
+    <xsd:attribute name="aspect_ratio" type="xsd:string"/>
   </xsd:complexType>
+
   <xsd:complexType name="frameType">
     <xsd:sequence>
-      <xsd:element name="difSeq" type="difSeqType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="dseq" type="dseqType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="n"/>
-    <xsd:attribute name="offset"/>
-    <xsd:attribute name="pts"/>
-    <xsd:attribute name="timecode"/>
-    <xsd:attribute name="rec_datetime"/>
-    <xsd:attribute name="arb"/>
+    <xsd:attribute name="n" type="xsd:string"/>
+    <xsd:attribute name="pts" type="xsd:string"/>
+    <xsd:attribute name="tc" type="xsd:string"/>
+    <xsd:attribute name="tc_r" type="xsd:string"/>
+    <xsd:attribute name="tc_nc" type="xsd:string"/>
+    <xsd:attribute name="rdt" type="xsd:string"/>
+    <xsd:attribute name="arb" type="xsd:string"/>
+    <xsd:attribute name="arb_r" type="xsd:string"/>
+    <xsd:attribute name="arb_nc" type="xsd:string"/>
   </xsd:complexType>
-  <xsd:complexType name="difSeqType">
+
+  <xsd:complexType name="dseqType">
     <xsd:sequence>
-      <xsd:element name="block" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="error" type="errorType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="sct" type="sctType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="n"/>
+    <xsd:attribute name="n" type="xsd:string"/>
   </xsd:complexType>
-  <xsd:complexType name="errorType">
-    <xsd:simpleContent>
-      <xsd:extension base="xsd:string">
-        <xsd:attribute name="n"/>
-        <xsd:attribute name="type"/>
-      </xsd:extension>
-    </xsd:simpleContent>
+
+  <xsd:complexType name="sctType">
+    <xsd:sequence>
+      <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="t" type="xsd:string"/>
   </xsd:complexType>
-  <xsd:attributeGroup name="creationAttributeSet">
-    <xsd:attribute name="version" type="xsd:string" use="required"/>
-    <xsd:attribute name="url" type="xsd:string"/>
-    <xsd:attribute name="build_date" type="xsd:string"/>
-    <xsd:attribute name="build_time" type="xsd:string"/>
-    <xsd:attribute name="compiler_ident" type="xsd:string"/>
-  </xsd:attributeGroup>
-  <xsd:attributeGroup name="itemAttributeSet">
-    <xsd:attribute name="offset" type="xsd:nonNegativeInteger">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="name" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info2" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info3" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info4" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info5" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info6" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info7" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="info8" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="moreinfo" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation>This value is deprecated in versions after 0.7.76.</xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="size" type="xsd:nonNegativeInteger">
-      <xsd:annotation>
-        <xsd:documentation/>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="dt" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation>The attribute describes the type of data expression of the element, such as dt="binary.base64".</xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="error" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation>Specifies the identity of an implementation error associated with the data or block. The value shall be expressed as a implementation check identifer and a version of that implementation check, delimited by a colon.</xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-  </xsd:attributeGroup>
+
+  <xsd:complexType name="staType">
+    <xsd:attribute name="n" type="xsd:string"/>
+    <xsd:attribute name="t" type="xsd:string"/>
+  </xsd:complexType>
 </xsd:schema>
