@@ -18,7 +18,7 @@
 
   <xsd:complexType name="mediaType">
     <xsd:sequence>
-      <xsd:element name="frames" type="framesType" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="ref" type="xsd:string"/>
   </xsd:complexType>
@@ -27,9 +27,9 @@
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="size" type="xsd:string"/>
+    <xsd:attribute name="size" type="xsd:integer"/>
     <xsd:attribute name="video_rate" type="xsd:string"/>
-  <xsd:attribute name="aspect_ratio" type="xsd:string"/>
+    <xsd:attribute name="aspect_ratio" type="xsd:string"/>
   </xsd:complexType>
 
   <xsd:complexType name="frameType">
