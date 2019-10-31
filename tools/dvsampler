@@ -3,14 +3,53 @@
 
 # this section focuses on changes in characteristics within a stream, replicating scenarios such as someone recording on a dv camcorder, then stopping, then changes the configuration of the camera, and then continuing to record. Oh, it happens!
 
+outputdir="samples"
+
 # sources
 
-ntsc=()
+online_samples=(
+http://samples.ffmpeg.org/archive/all/dv+dvvideo+pcm_s16le++dropout.dv
+http://samples.ffmpeg.org/archive/all/dv+dvvideo+pcm_s16le++imovie_dv_file_with_dup_audio_streams_segfaults_libfaac.dv
+http://samples.ffmpeg.org/archive/all/dv+dvvideo+pcm_s16le++mplayer-ppc-dv-bugs-mpeg-ps.dv
+http://samples.ffmpeg.org/archive/all/dv+dvvideo+pcm_s16le++mplayer-ppc-dv-bugs-seek_failed.dv
+http://samples.ffmpeg.org/DV-raw/shots0000.dv
+http://samples.ffmpeg.org/DV-raw/small_test2.dv
+http://samples.ffmpeg.org/DV-raw/voxnews.dv
+http://samples.ffmpeg.org/ffmpeg-bugs/roundup/issue1407/dv_dsf_1_stype_1.dv
+http://samples.ffmpeg.org/ffmpeg-bugs/roundup/issue1582/testfile.dv
+http://samples.ffmpeg.org/ffmpeg-bugs/roundup/issue729/crash_ffplay.dv
+http://samples.ffmpeg.org/ffmpeg-bugs/trac/ticket2340/error.dv
+http://samples.ffmpeg.org/ffmpeg-bugs/trac/ticket2341/error_no_audio_detected.dv
+http://samples.ffmpeg.org/mplayer-bugs/bug1322/infiniteloop.dv
+http://samples.ffmpeg.org/V-codecs/DVSD/pond.dv
+)
 
-ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 ntsc_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 ntsc_4-3_2ch_48k_mandelbrot_sine.dv
-ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 ntsc_169_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 19/9 -t 3 -ac 2 -ar 48000 ntsc_169_2ch_48k_mandelbrot_sine.dv
+if [[ ! -d samples ]] ; then
+  mkdir samples
+fi
+for i in "${online_samples[@]}" ; do
+  if [[ ! -f "samples/$(basename "${i}")" ]] ; then
+    cd samples
+    echo "downloading $(basename "${i}")..."
+    curl -O "${i}"
+    cd -
+  fi
+done
+
+echo "generating more dv files..."
+
+ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 samples/ntsc_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 samples/ntsc_4-3_2ch_48k_mandelbrot_sine.dv
+ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 samples/ntsc_169_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 samples/ntsc_169_2ch_48k_mandelbrot_sine.dv
+
+ffmpeg -y -f lavfi -i  smptebars=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 48000 samples/pal_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 48000 samples/pal_4-3_2ch_48k_mandelbrot_sine.dv
+ffmpeg -y -f lavfi -i  smptebars=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 32000 samples/pal_4-3_2ch_32k_bars_sine.dv
+ffmpeg -y -f lavfi -i mandelbrot=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 32000 samples/pal_4-3_2ch_32k_mandelbrot_sine.dv
 
 # variable aspect ratio
-cat ntsc_4-3_2ch_48k_mandelbrot_sine.dv ntsc_169_2ch_48k_mandelbrot_sine.dv > ntsc_VAR_2ch_48000_mandelbrot_sine.dv
+cat samples/ntsc_4-3_2ch_48k_mandelbrot_sine.dv samples/ntsc_169_2ch_48k_mandelbrot_sine.dv > samples/ntsc_VAR_2ch_48k_mandelbrot_sine.dv
+
+# variable sample rate
+cat samples/pal_4-3_2ch_48k_mandelbrot_sine.dv samples/pal_4-3_2ch_32k_mandelbrot_sine.dv > samples/pal_4-3_2ch_VARk_mandelbrot_sine.dv
