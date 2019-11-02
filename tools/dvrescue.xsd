@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1">
+  <xsd:annotation>
+    <xsd:documentation xml:lang="en">
+      This is the dvrescue XML Schema. A dvrescue XML stores information about the metadata, continuity, errors, and
+      qualities of a DV data stream. More information about the DV stream can be found within
+      http://web.archive.org/web/20060927044735/http://www.smpte.org/smpte_store/standards/pdf/s314m.pdf.
+    </xsd:documentation>
+  </xsd:annotation>
   <xsd:element name="dvrescue" type="dvrescueType"/>
   <xsd:complexType name="dvrescueType">
     <xsd:sequence>
@@ -17,6 +24,11 @@
   </xsd:complexType>
 
   <xsd:complexType name="mediaType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        A media element refers to an input to dvrescue, commonly a file which includes dv data or a piped input.
+      </xsd:documentation>
+    </xsd:annotation>
     <xsd:sequence>
       <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
@@ -24,6 +36,11 @@
   </xsd:complexType>
 
   <xsd:complexType name="framesType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        As the qualities of a dv stream can change from frame to frame, the frames element groups together frames of like qualities. If a dv frame contains a specific quality that is different than that of the previous frame (such as a change from 4/3 aspect ratio to 16/9 or a change from 48000 Hz audio to 32000 Hz audio), then a new frames element will start.
+      </xsd:documentation>
+    </xsd:annotation>
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
@@ -56,7 +73,13 @@
       <xsd:element name="sct" type="sctType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="n" type="xsd:string"/>
+    <xsd:attribute name="n" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The number of the DIF sequence within the frame starting from zero. An NTSC DV25 frame will have ten DIF seuqnces (0-9) and a PAL DV25 frame will have twelve (12) DIF sequences (0-11).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="sctType">
@@ -64,12 +87,45 @@
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="t" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Documents the Section type (see table 2 of S314m). For convenience:
+          0 = Header
+          1 = Subcode
+          2 = VAUX
+          3 = Audio
+          4 = Video
+          5 = Reserved
+          6 = Reserved
+          7 = Reserved
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="staType">
     <xsd:attribute name="t" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Documents a type of non-zero STA value present in the frame (see table 26 of s314m). For convenience:
+          0 = No error, what a nice DV macroblock.
+          2 = Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).
+          4 = Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).
+          6 = A concealment method is used but not specified (guaranteed continuity).
+          7 = Error with an error code within the macro block. O_O
+         10 = Same as 2 but continuity is not guaranteed.
+         12 = Same as 4 but continuity is not guaranteed.
+         14 = Same as 6 but continuity is not guaranteed.
+         15 = Error with unknown position.
+        </xsd:documentation>
+      </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="n" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          A count of this particular type of STA value within the frame. Since STA values only apply to video DIF blocks, the maximum value for a DV25 NTSC frame is 1350 (135 video-DIF-blocks * (10 DIF-sequences / NTSC-frame)) and the maximum value for a DV25 is 1620 (135 video-DIF-blocks * (12 DIF-sequences / PAL-frame)).
+        </xsd:documentation>
+      </xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
 </xsd:schema>
