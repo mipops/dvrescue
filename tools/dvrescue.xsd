@@ -43,6 +43,9 @@
     <xsd:attribute name="tc_r" type="xsd:boolean"/>
     <xsd:attribute name="tc_nc" type="xsd:boolean"/>
     <xsd:attribute name="rdt" type="xsd:string"/>
+    <xsd:attribute name="rdt_r" type="xsd:boolean"/>
+    <xsd:attribute name="rdt_nc" type="xsd:boolean"/>
+    <xsd:attribute name="rec_start" type="xsd:boolean"/>
     <xsd:attribute name="arb" type="xsd:string"/>
     <xsd:attribute name="arb_r" type="xsd:boolean"/>
     <xsd:attribute name="arb_nc" type="xsd:boolean"/>
