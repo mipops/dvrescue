@@ -126,7 +126,7 @@
     <xsd:attribute name="n" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          A count of this particular type of STA value within the frame. Since STA values only apply to video DIF blocks, the maximum value for a DV25 NTSC frame is 1350 (135 video-DIF-blocks * (10 DIF-sequences / NTSC-frame)) and the maximum value for a DV25 is 1620 (135 video-DIF-blocks * (12 DIF-sequences / PAL-frame)).
+          A count of this particular type of STA value within the frame or dseq. Since STA values only apply to video DIF blocks, the maximum value for a DV25 NTSC frame is 1350 (135 video-DIF-blocks * (10 DIF-sequences / NTSC-frame)) and the maximum value for a DV25 is 1620 (135 video-DIF-blocks * (12 DIF-sequences / PAL-frame)).
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
