@@ -63,7 +63,7 @@ while [[ "${@}" != "" ]] ; do
       dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
     fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
-    xml sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:error/@type='video error concealment']" -v @n -o "," -v @pts -o "," -v @timecode -n "${DVR_XML}" | while read error_frame ; do
+    xml sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
       TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
