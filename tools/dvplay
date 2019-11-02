@@ -53,25 +53,29 @@ _play_dv(){
 while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
+  BASENAME="$(basename "${DVFILE}")"
+  SIDECAR_DIR="${DVFILE}_dvrescue"
+  DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
 
   if [[ "${ERROR_REVIEW}" = "Y" ]] ; then
-    DVR_XML="${DVFILE}.dvrescue.xml"
-    if [[ ! -f "${DVR_XML}" ]] ; then
+    if [[ ! -f "${DVRESCUE_XML}" ]] ; then
       echo "Assessing $(basename "${DVFILE}")..."
-      dvrescue "${DVFILE}" > "${DVR_XML}"
+      dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
     fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
     xml sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:error/@type='video error concealment']" -v @n -o "," -v @pts -o "," -v @timecode -n "${DVR_XML}" | while read error_frame ; do
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
+      TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
       PTS_C="$(echo "${PTS}" | sed 's|:|-|g')"
       PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
       TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
+      JPG_OUTPUT="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
       ffmpeg -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=/Library/Fonts/Andale\ Mono.ttf:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${DVFILE}_${PTS_C}.jpg"
+      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=/Library/Fonts/Andale\ Mono.ttf:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${JPG_OUTPUT}"
     done
   else
     _play_dv "${DVFILE}"
