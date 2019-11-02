@@ -104,7 +104,7 @@
   </xsd:complexType>
 
   <xsd:complexType name="staType">
-    <xsd:attribute name="t" type="xsd:string">
+    <xsd:attribute name="t" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Documents a type of non-zero STA value present in the frame (see table 26 of s314m). For convenience:
