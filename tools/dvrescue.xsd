@@ -27,7 +27,7 @@
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="size" type="xsd:integer"/>
+    <xsd:attribute name="size" type="xsd:string"/>
     <xsd:attribute name="video_rate" type="xsd:string"/>
     <xsd:attribute name="aspect_ratio" type="xsd:string"/>
   </xsd:complexType>
