@@ -40,12 +40,12 @@
     <xsd:attribute name="n" type="xsd:integer"/>
     <xsd:attribute name="pts" type="xsd:string"/>
     <xsd:attribute name="tc" type="xsd:string"/>
-    <xsd:attribute name="tc_r" type="xsd:string"/>
-    <xsd:attribute name="tc_nc" type="xsd:string"/>
+    <xsd:attribute name="tc_r" type="xsd:boolean"/>
+    <xsd:attribute name="tc_nc" type="xsd:boolean"/>
     <xsd:attribute name="rdt" type="xsd:string"/>
     <xsd:attribute name="arb" type="xsd:string"/>
-    <xsd:attribute name="arb_r" type="xsd:string"/>
-    <xsd:attribute name="arb_nc" type="xsd:string"/>
+    <xsd:attribute name="arb_r" type="xsd:boolean"/>
+    <xsd:attribute name="arb_nc" type="xsd:boolean"/>
   </xsd:complexType>
 
   <xsd:complexType name="dseqType">
