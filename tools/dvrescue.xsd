@@ -63,7 +63,7 @@
     <xsd:sequence>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="t" type="xsd:string"/>
+    <xsd:attribute name="t" type="xsd:integer">
   </xsd:complexType>
 
   <xsd:complexType name="staType">
