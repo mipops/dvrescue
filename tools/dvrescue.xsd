@@ -143,7 +143,7 @@
   </xsd:complexType>
 
   <xsd:complexType name="audType">
-    <xsd:attribute name="t" type="xsd:integer">
+    <xsd:attribute name="t" type="xsd:integer" default="1">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Documents the type of audio errors within the frame.
