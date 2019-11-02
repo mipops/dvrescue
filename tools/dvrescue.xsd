@@ -67,7 +67,9 @@
   </xsd:complexType>
 
   <xsd:complexType name="staType">
-    <xsd:attribute name="n" type="xsd:string"/>
-    <xsd:attribute name="t" type="xsd:string"/>
+    <xsd:attribute name="t" type="xsd:string">
+    </xsd:attribute>
+    <xsd:attribute name="n" type="xsd:integer">
+    </xsd:attribute>
   </xsd:complexType>
 </xsd:schema>
