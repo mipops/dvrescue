@@ -46,7 +46,10 @@
     </xsd:sequence>
     <xsd:attribute name="size" type="xsd:string"/>
     <xsd:attribute name="video_rate" type="xsd:string"/>
+    <xsd:attribute name="chroma_subsampling" type="xsd:string"/>
     <xsd:attribute name="aspect_ratio" type="xsd:string"/>
+    <xsd:attribute name="sample_rate" type="xsd:integer"/>
+    <xsd:attribute name="channels" type="xsd:integer"/>
   </xsd:complexType>
 
   <xsd:complexType name="frameType">
