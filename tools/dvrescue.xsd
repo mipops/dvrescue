@@ -37,7 +37,7 @@
       <xsd:element name="dseq" type="dseqType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="n" type="xsd:string"/>
+    <xsd:attribute name="n" type="xsd:integer"/>
     <xsd:attribute name="pts" type="xsd:string"/>
     <xsd:attribute name="tc" type="xsd:string"/>
     <xsd:attribute name="tc_r" type="xsd:string"/>
