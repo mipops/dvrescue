@@ -1,0 +1,75 @@
+#!/bin/bash
+# this script is only used to determine the width and height and x,y coordinate of each DIF block of video within a particular format of DV.
+
+COLOR_DIFB_DATA="5206ffffffffffffffffffffffff5206ffffffffffffffffffffffff5206ffffffffffffffffffffffff5206ffffffffffffffffffffffff1216ffffffffffffffff9016ffffffffffffffff"
+
+DVMAP_DIR="maptest"
+
+if [[ ! -d "${DVMAP_DIR}" ]] ; then
+  mkdir -p "${DVMAP_DIR}"
+fi
+
+PAL_420_BLACK_FRAME="${DVMAP_DIR}/PAL_420_black.dv"
+PAL_411_BLACK_FRAME="${DVMAP_DIR}/PAL_411_black.dv"
+NTSC_411_BLACK_FRAME="${DVMAP_DIR}/NTSC_411_black.dv"
+
+ffmpeg -v 0 -y -f lavfi -i color=color=black:s=720x576:r=25 -frames:v 1 -pix_fmt yuv420p "${PAL_420_BLACK_FRAME}"
+ffmpeg  -y -f lavfi -i color=color=black:s=720x576:r=25 -frames:v 1 -pix_fmt yuv411p "${PAL_411_BLACK_FRAME}"
+ffmpeg -v 0 -y -f lavfi -i color=color=black:s=720x480:r=30000/1001 -frames:v 1 -pix_fmt yuv411p "${NTSC_411_BLACK_FRAME}"
+
+# PAL 411
+DIF_SEQ_COUNTER=0
+DIF_BLOCK_COUNTER=0
+echo "PAL 4:1:1 DV25 Block to position map:"
+# look for 135 video DIF blocks in 12 DIF sequences for PAL DV25
+perl -e '$var = 0x960; for ( 0 .. 11 )   { printf qq[%03x\n], $var++ }' | while read ID1 ; do
+  perl -e '$var = 0x00; for ( 0 .. 134 ) { printf qq[%02x\n], $var++ }' | while read ID2 ; do
+    ID2p="$(echo "00$ID2" | tail -c 3)"
+    ID="${ID1}7${ID2p}"
+    FIND="(?<=${ID}[0-9a-f][0-9a-f])[0-9a-f]{152}"
+    cat "${PAL_411_BLACK_FRAME}" | xxd -p -c 80 | perl -pe "s|${FIND}|${COLOR_DIFB_DATA}|g" | xxd -r -p > "${PAL_411_BLACK_FRAME}_${ID}.dv"
+    cat "${PAL_411_BLACK_FRAME}_${ID}.dv" "${PAL_411_BLACK_FRAME}_${ID}.dv" "${PAL_411_BLACK_FRAME}_${ID}.dv" "${PAL_411_BLACK_FRAME}_${ID}.dv" "${PAL_411_BLACK_FRAME}_${ID}.dv" > "${PAL_411_BLACK_FRAME}_${ID}_5frames.dv"
+    CROP="$(ffmpeg -nostdin -i "${PAL_411_BLACK_FRAME}_${ID}_5frames.dv" -an -vf format=rgb24,cropdetect=limit=0:round=2 -f null - 2>&1 | grep -o "crop=[0-9:-]*" | head -n 1)"
+    echo "${DIF_SEQ_COUNTER},${DIF_BLOCK_COUNTER},${CROP}" 
+    ((DIF_BLOCK_COUNTER=DIF_BLOCK_COUNTER+1))
+  done
+  ((DIF_SEQ_COUNTER=DIF_SEQ_COUNTER+1))
+done
+exit
+# NTSC 411
+DIF_SEQ_COUNTER=0
+DIF_BLOCK_COUNTER=0
+echo "NTSC 4:1:1 DV25 Block to position map:"
+# look for 135 video DIF blocks in 10 DIF sequences for PAL DV25
+perl -e '$var = 0x960; for ( 0 .. 9 )   { printf qq[%03x\n], $var++ }' | while read ID1 ; do
+  perl -e '$var = 0x00; for ( 0 .. 134 ) { printf qq[%02x\n], $var++ }' | while read ID2 ; do
+    ID2p="$(echo "00$ID2" | tail -c 3)"
+    ID="${ID1}7${ID2p}"
+    FIND="(?<=${ID}[0-9a-f][0-9a-f])[0-9a-f]{152}"
+    cat "${NTSC_411_BLACK_FRAME}" | xxd -p -c 80 | perl -pe "s|${FIND}|${COLOR_DIFB_DATA}|g" | xxd -r -p > "${NTSC_411_BLACK_FRAME}_${ID}.dv"
+    cat "${NTSC_411_BLACK_FRAME}_${ID}.dv" "${NTSC_411_BLACK_FRAME}_${ID}.dv" "${NTSC_411_BLACK_FRAME}_${ID}.dv" "${NTSC_411_BLACK_FRAME}_${ID}.dv" "${NTSC_411_BLACK_FRAME}_${ID}.dv" > "${NTSC_411_BLACK_FRAME}_${ID}_5frames.dv"
+    CROP="$(ffmpeg -nostdin -i "${NTSC_411_BLACK_FRAME}_${ID}_5frames.dv" -an -vf format=rgb24,cropdetect=limit=0:round=2 -f null - 2>&1 | grep -o "crop=[0-9:-]*" | head -n 1)"
+    echo "${DIF_SEQ_COUNTER},${DIF_BLOCK_COUNTER},${CROP}" 
+    ((DIF_BLOCK_COUNTER=DIF_BLOCK_COUNTER+1))
+  done
+  ((DIF_SEQ_COUNTER=DIF_SEQ_COUNTER+1))
+done
+
+# PAL 420
+DIF_SEQ_COUNTER=0
+DIF_BLOCK_COUNTER=0
+echo "PAL 4:2:0 DV25 Block to position map:"
+# look for 135 video DIF blocks in 12 DIF sequences for PAL DV25
+perl -e '$var = 0x960; for ( 0 .. 11 )   { printf qq[%03x\n], $var++ }' | while read ID1 ; do
+  perl -e '$var = 0x00; for ( 0 .. 134 ) { printf qq[%02x\n], $var++ }' | while read ID2 ; do
+    ID2p="$(echo "00$ID2" | tail -c 3)"
+    ID="${ID1}7${ID2p}"
+    FIND="(?<=${ID}[0-9a-f][0-9a-f])[0-9a-f]{152}"
+    cat "${PAL_420_BLACK_FRAME}" | xxd -p -c 80 | perl -pe "s|${FIND}|${COLOR_DIFB_DATA}|g" | xxd -r -p > "${PAL_420_BLACK_FRAME}_${ID}.dv"
+    cat "${PAL_420_BLACK_FRAME}_${ID}.dv" "${PAL_420_BLACK_FRAME}_${ID}.dv" "${PAL_420_BLACK_FRAME}_${ID}.dv" "${PAL_420_BLACK_FRAME}_${ID}.dv" "${PAL_420_BLACK_FRAME}_${ID}.dv" > "${PAL_420_BLACK_FRAME}_${ID}_5frames.dv"
+    CROP="$(ffmpeg -nostdin -i "${PAL_420_BLACK_FRAME}_${ID}_5frames.dv" -an -vf format=rgb24,cropdetect=limit=0:round=2 -f null - 2>&1 | grep -o "crop=[0-9:-]*" | head -n 1)"
+    echo "${DIF_SEQ_COUNTER},${DIF_BLOCK_COUNTER},${CROP}" 
+    ((DIF_BLOCK_COUNTER=DIF_BLOCK_COUNTER+1))
+  done
+  ((DIF_SEQ_COUNTER=DIF_SEQ_COUNTER+1))
+done
