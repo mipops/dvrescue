@@ -2,6 +2,40 @@
 
 # dependencies: ffprobe, dvrescue, xmlstarlet
 
+_usage(){
+  echo "$(basename "${0}")"
+  echo
+  echo "Rewrap a DV stream. This script is part of the dvrescue project."
+  echo
+  echo "Usage:"
+  echo "$(basename "${0}") [options] -i file.dv"
+  echo
+  echo "Options:"
+  echo " -i INPUT (provide an input file to rewrap)"
+  exit
+}
+
+# command-line options to set media id and original variables
+OPTIND=1
+while getopts ":i:h" opt ; do
+  case "${opt}" in
+    i) DV_FILE="$OPTARG" ;;
+    h) _usage ;;
+    *) echo "bad option -${OPTARG}" ; _usage ;;
+    :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+  esac
+done
+shift "$((OPTIND-1))"
+
+if [[ ! -f "$DV_FILE" ]] ; then
+  if [[ -f "${1}" ]] ; then
+    DV_FILE="${1}"
+  else
+    echo "Please provide an input file to rewrap."
+    exit 1
+  fi
+fi
+
 _check_if_dv(){
   FIRST_VIDEO_CODEC="$( ffprobe -v 0 -i "${1}" -show_entries stream=codec_name -of compact=p=0:nk=1 -select_streams v:0)"
   if [[ "${FIRST_VIDEO_CODEC}" != "dvvideo" ]] ; then
