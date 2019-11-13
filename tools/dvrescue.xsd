@@ -161,7 +161,7 @@
     </xsd:restriction>
   </xsd:simpleType>
 
-  <xsd:simpleType name="channels">
+  <xsd:simpleType name="channelsType">
     <xsd:annotation>
       <xsd:documentation xml:lang="en">
             Number of audio channels, between 0-8.
