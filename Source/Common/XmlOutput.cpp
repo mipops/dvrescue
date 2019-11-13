@@ -188,7 +188,7 @@ string OutputXml(std::vector<file*>& PerFile)
 
     // XML header
     Text += "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        "<dvrescue xmlns=\"https://mediaarea.net/dvrescue\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"https://mediaarea.net/dvrescue https://raw.githubusercontent.com/mipops/dvrescue/schema-updates/tools/dvrescue.xsd\" version=\"1.0\">\n"
+        "<dvrescue xmlns=\"https://mediaarea.net/dvrescue\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"https://mediaarea.net/dvrescue https://mediaarea.net/dvrescue/dvrescue.xsd\" version=\"1.0\">\n"
         "\t<creator>\n"
         "\t\t<program>dvrescue</program>\n"
         "\t\t<version>" Program_Version "</version>\n"
