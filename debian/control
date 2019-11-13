@@ -1,0 +1,26 @@
+Source: dvrescue
+Priority: optional
+Maintainer: Jerome Martinez <Info@MediaArea.net>
+Build-Depends: debhelper (>= 5), libmediainfo-dev, libzen-dev, zlib1g-dev, pkg-config, automake, autoconf, libtool
+Standards-Version: 3.7.3
+Section: libs
+Homepage: https://MediaArea.net/DVRescue
+
+Package: dvrescue
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+
+Package: dvrescue-dbg
+Section: debug
+Architecture: any
+Priority: extra
+Depends: dvrescue (= ${binary:Version})
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ This package contains the debugging symbols.
