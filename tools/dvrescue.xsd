@@ -54,6 +54,12 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           String representing the interlacement pattern of the frame.
+          Options are:
+          T: top, 
+          TT: top field only, 
+          B: bottom, 
+          BB: bottom field only,
+          P: progressive
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
