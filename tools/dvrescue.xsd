@@ -82,7 +82,7 @@
     <xsd:attribute name="video_rate" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Frame rate in numerator/denominator notation.
+          Frame rate in fractional notation.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -96,7 +96,7 @@
     <xsd:attribute name="aspect_ratio" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Frame aspect ratio represented in numerator/denominator notation.
+          Frame aspect ratio represented in fractional notation.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
