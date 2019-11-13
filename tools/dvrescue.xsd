@@ -141,16 +141,83 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="tc" type="xsd:string"/>
-    <xsd:attribute name="tc_r" type="xsd:boolean"/>
-    <xsd:attribute name="tc_nc" type="xsd:boolean"/>
-    <xsd:attribute name="rdt" type="xsd:string"/>
-    <xsd:attribute name="rdt_r" type="xsd:boolean"/>
-    <xsd:attribute name="rdt_nc" type="xsd:boolean"/>
-    <xsd:attribute name="rec_start" type="xsd:boolean"/>
-    <xsd:attribute name="arb" type="xsd:string"/>
-    <xsd:attribute name="arb_r" type="xsd:boolean"/>
-    <xsd:attribute name="arb_nc" type="xsd:boolean"/>
+    <xsd:attribute name="tc" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Timecode.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="tc_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if timecode is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="tc_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if timecode is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="rdt" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Recorded Date Time.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="rdt_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if recorded date time is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="rdt_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if recorded date time is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="rec_start" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Recording start.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="rec_end" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+              Recording end.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="arb" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Arbitrary data.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="arb_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if arbitrary data is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="arb_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if arbitrary data is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="dseqType">
