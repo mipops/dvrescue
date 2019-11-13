@@ -36,6 +36,8 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
     case MediaInfo_Parser_DvDif:
         switch (EventID)
         {
+        case MediaInfo_Event_DvDif_Analysis_Frame: if (EventVersion == 1 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Analysis_Frame_1)) UserHandler->AddFrame((MediaInfo_Event_DvDif_Analysis_Frame_1*)Event_Generic); break;
+        case MediaInfo_Event_DvDif_Change: if (EventVersion == 0 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Change_0)) UserHandler->AddChange((MediaInfo_Event_DvDif_Change_0*)Event_Generic); break;
         }
         break;
     }
@@ -48,6 +50,8 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
 //---------------------------------------------------------------------------
 file::file(const String& FileName)
 {
+    FrameNumber = 0;
+
     MI.Option(__T("File_Event_CallBackFunction"), __T("CallBack=memory://") + Ztring::ToZtring((size_t)&Event_CallBackFunction) + __T(";UserHandler=memory://") + Ztring::ToZtring((size_t)this));
     MI.Option(__T("File_DvDif_Analysis"), __T("1"));
     MI.Open(FileName);
@@ -63,4 +67,77 @@ file::file(const String& FileName)
 //---------------------------------------------------------------------------
 file::~file()
 {
+    for (auto& Frame : PerFrame)
+    {
+        delete[] Frame->Errors;
+        delete[] Frame->Video_STA_Errors;
+        delete[] Frame->Audio_Data_Errors;
+        delete Frame;
+    }
+    for (auto& Change : PerChange)
+    {
+        delete Change;
+    }
+}
+
+//***************************************************************************
+// Helpers
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
+{
+    FrameNumber++; // Event FrameCount is currently wrong
+
+    // Check if there is a change we support
+    if (!PerChange.empty())
+    {
+        const auto Current = PerChange.back();
+        if (Current->Width == FrameData->Width
+            && Current->Height == FrameData->Height
+            && Current->VideoChromaSubsampling == FrameData->VideoChromaSubsampling
+            && Current->VideoScanType == FrameData->VideoScanType
+            && Current->VideoRatio_N == FrameData->VideoRatio_N
+            && Current->VideoRatio_D == FrameData->VideoRatio_D
+            && Current->VideoRate_N == FrameData->VideoRate_N
+            && Current->VideoRate_D == FrameData->VideoRate_D
+            && Current->AudioRate_N == FrameData->AudioRate_N
+            && Current->AudioRate_D == FrameData->AudioRate_D
+            && Current->AudioChannels == FrameData->AudioChannels
+            && Current->AudioBitDepth == FrameData->AudioBitDepth)
+        {
+            return;
+        }
+    }
+
+    MediaInfo_Event_DvDif_Change_0* ToPush = new MediaInfo_Event_DvDif_Change_0();
+    std::memcpy(ToPush, FrameData, sizeof(MediaInfo_Event_DvDif_Change_0));
+    ToPush->FrameNumber = FrameNumber - 1; // Event FrameCount is currently wrong
+    PerChange.push_back(ToPush);
+}
+
+//---------------------------------------------------------------------------
+void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+{
+    MediaInfo_Event_DvDif_Analysis_Frame_1* ToPush = new MediaInfo_Event_DvDif_Analysis_Frame_1();
+    std::memcpy(ToPush, FrameData, sizeof(MediaInfo_Event_DvDif_Analysis_Frame_1));
+    if (FrameData->Errors)
+    {
+        size_t SizeToCopy = std::strlen(FrameData->Errors) + 1;
+        ToPush->Errors = new char[SizeToCopy];
+        std::memcpy(ToPush->Errors, FrameData->Errors, SizeToCopy);
+    }
+    if (FrameData->Video_STA_Errors)
+    {
+        size_t SizeToCopy = FrameData->Video_STA_Errors_Count * sizeof(size_t);
+        ToPush->Video_STA_Errors = new size_t[SizeToCopy];
+        std::memcpy(ToPush->Video_STA_Errors, FrameData->Video_STA_Errors, SizeToCopy);
+    }
+    if (FrameData->Audio_Data_Errors)
+    {
+        size_t SizeToCopy = FrameData->Audio_Data_Errors_Count * sizeof(size_t);
+        ToPush->Audio_Data_Errors = new size_t[SizeToCopy];
+        std::memcpy(ToPush->Audio_Data_Errors, FrameData->Audio_Data_Errors, SizeToCopy);
+    }
+    PerFrame.push_back(ToPush);
 }

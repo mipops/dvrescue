@@ -31,8 +31,14 @@ class file
 {
 public:
     MediaInfo MI;
+    std::vector<MediaInfo_Event_DvDif_Change_0*> PerChange;
+    std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*> PerFrame;
+    size_t FrameNumber;
     double FrameRate;
 
     file(const String& FileName);
     ~file();
+
+    void AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData);
+    void AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
 };
