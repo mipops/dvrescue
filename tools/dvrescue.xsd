@@ -50,11 +50,17 @@
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="scanType" type="xsd:string"/>
+    <xsd:attribute name="scan_type" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          String representing the interlacement pattern of the frame.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="count" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Frame number at beginning of captured sequence.
+          Frame number within the current frames sequence.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
