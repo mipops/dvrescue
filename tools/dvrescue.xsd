@@ -16,6 +16,7 @@
     <xsd:attribute name="version" type="xsd:string"/>
   </xsd:complexType>
 
+  <xsd:element name="creator" type="creatorType"/>
   <xsd:complexType name="creatorType">
     <xsd:sequence>
       <xsd:element name="program" type="xsd:string" minOccurs="1" maxOccurs="1"/>
@@ -23,6 +24,7 @@
     </xsd:sequence>
   </xsd:complexType>
 
+  <xsd:element name="media" type="mediaType"/>
   <xsd:complexType name="mediaType">
     <xsd:annotation>
       <xsd:documentation xml:lang="en">
@@ -84,52 +86,95 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="size" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Dimensions of frame represented as width x height in pixels.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="video_rate" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Frame rate in fractional notation.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="chroma_subsampling" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Chroma subsampling value represented in three part ratio notation.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="aspect_ratio" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Frame aspect ratio represented in fractional notation.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="audio_rate" type="xsd:integer">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Frame audio rate represented in full integer notation.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="channels" type="xsd:integer">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Number of channels, between 1-8.
-          DV25: 1-2
-          DV50: 1-4
-          DV100: 1-8
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
+    <xsd:attribute name="size" type="sizeType"/>
+    <xsd:attribute name="video_rate" type="video_rateType"/>
+    <xsd:attribute name="chroma_subsampling" type="chroma_subsamplingType"/>
+    <xsd:attribute name="aspect_ratio" type="aspect_ratioType"/>
+    <xsd:attribute name="audio_rate" type="audio_rateType"/>
+    <xsd:attribute name="channels" type="channelsType"/>
   </xsd:complexType>
+
+  <xsd:simpleType name="sizeType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Dimensions of frame represented as width x height in pixels.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="720x480"/>
+      <xsd:enumeration value="720x576"/>
+      <xsd:enumeration value="1280x1080"/>
+      <xsd:enumeration value="1440x1080"/>
+      <xsd:enumeration value="960x720"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="video_rateType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Frame rate.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="25"/>
+      <xsd:enumeration value="50"/>
+      <xsd:enumeration value="30000/1001"/>
+      <xsd:enumeration value="60000/1001"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="chroma_subsamplingType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Chroma subsampling value represented in three part ratio notation.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="4:1:1"/>
+      <xsd:enumeration value="4:2:0"/>
+      <xsd:enumeration value="4:2:2"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="aspect_ratioType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+            Frame aspect ratio represented in fractional notation.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="4/3"/>
+      <xsd:enumeration value="16/9"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="audio_rateType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Frame audio rate represented in full integer notation.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:integer">
+      <xsd:enumeration value="32000"/>
+      <xsd:enumeration value="44100"/>
+      <xsd:enumeration value="48000"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="channelsType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+            Number of audio channels, between 0-8.
+            DV25: 0-2
+            DV50: 0-4
+            DV100: 0-8
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="8"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
   <xsd:complexType name="frameType">
     <xsd:annotation>
