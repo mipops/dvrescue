@@ -123,9 +123,9 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Number of channels, between 1-8.
-          DV25: 1 or 2
+          DV25: 1-2
           DV50: 1-4
-          DV100 1-8
+          DV100: 1-8
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
