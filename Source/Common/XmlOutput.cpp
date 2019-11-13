@@ -209,7 +209,8 @@ string OutputXml(std::vector<file*>& PerFile)
         for (const auto& Frame : File->PerFrame)
         {
             decltype(FrameNumber_Max) FrameNumber = &Frame - &*File->PerFrame.begin();
-            auto ShowFrame = ShowFrames || Frame->Video_STA_Errors || Frame->Audio_Data_Errors || FrameNumber == FrameNumber_Max;
+            auto ShowFrame = ShowFrames || Frame->Video_STA_Errors || Frame->Audio_Data_Errors || FrameNumber == FrameNumber_Max
+                || ((Frame->TimeCode >> 30) & 0x1) || ((Frame->RecordedDateTime1 >> 30) & 0x1) || (Frame->Arb & (1 << 6)); // Non consecutive
 
             if (ShowFrames)
             {
