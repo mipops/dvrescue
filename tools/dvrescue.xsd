@@ -32,7 +32,13 @@
     <xsd:sequence>
       <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="ref" type="xsd:string"/>
+    <xsd:attribute name="ref" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Reference to the original file path (relative).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="framesType">
@@ -44,26 +50,97 @@
     <xsd:sequence>
       <xsd:element name="frame" type="frameType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="count" type="xsd:integer"/>
-    <xsd:attribute name="pts" type="xsd:string"/>
-    <xsd:attribute name="end_pts" type="xsd:string"/>
-    <xsd:attribute name="size" type="xsd:string"/>
-    <xsd:attribute name="video_rate" type="xsd:string"/>
-    <xsd:attribute name="chroma_subsampling" type="xsd:string"/>
     <xsd:attribute name="scanType" type="xsd:string"/>
-    <xsd:attribute name="aspect_ratio" type="xsd:string"/>
-    <xsd:attribute name="audio_rate" type="xsd:integer"/>
-    <xsd:attribute name="channels" type="xsd:integer"/>
+    <xsd:attribute name="count" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Frame number at beginning of captured sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="pts" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Presentation timestamp for start of sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="end_pts" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Presentation timestamp for end of sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="size" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Dimensions of frame represented as width x height in pixels.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="video_rate" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Frame rate in numerator/denominator notation.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="chroma_subsampling" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Chroma subsampling value represented in three part ratio notation.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="aspect_ratio" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Frame aspect ratio represented in numerator/denominator notation.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="audio_rate" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Frame audio rate represented in full integer notation.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="channels" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Number of channels. Options are 1 (25  Mb/s  structure) or 2 (50  Mb/s  structure).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="frameType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        A frame element holds notable information about frames that have been identified to include errors.
+      </xsd:documentation>
+    </xsd:annotation>
     <xsd:sequence>
       <xsd:element name="dseq" type="dseqType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="aud" type="audType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
-    <xsd:attribute name="n" type="xsd:integer"/>
-    <xsd:attribute name="pts" type="xsd:string"/>
+    <xsd:attribute name="n" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The number of the DIF sequence within the frame starting from zero.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="pts" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Presentation timestamp for frame element.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="tc" type="xsd:string"/>
     <xsd:attribute name="tc_r" type="xsd:boolean"/>
     <xsd:attribute name="tc_nc" type="xsd:boolean"/>
@@ -85,7 +162,7 @@
     <xsd:attribute name="n" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          The number of the DIF sequence within the frame starting from zero. An NTSC DV25 frame will have ten DIF seuqnces (0-9) and a PAL DV25 frame will have twelve (12) DIF sequences (0-11).
+          The number of the DIF sequence within the frame starting from zero. An NTSC DV25 frame will have ten DIF sequences (0-9) and a PAL DV25 frame will have twelve (12) DIF sequences (0-11).
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -158,7 +235,7 @@
     <xsd:attribute name="n" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          A count of this particular type of audio error within the frame or dseq. The maximum value for a DV25 NTSC frame is 90 (9 audio-DIF-blocks * (10 DIF-sequences / NTSC-frame)) and the maximum value for a DV25 is 108 (9 audio-DIF-blocks * (12 DIF-sequences / PAL-frame)).
+          A count of this particular type of audio error within the frame or DIF sequence number (dseq). The maximum value for a DV25 NTSC frame is 90 (9 audio-DIF-blocks * (10 DIF-sequences / NTSC-frame)) and the maximum value for a DV25 is 108 (9 audio-DIF-blocks * (12 DIF-sequences / PAL-frame)).
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
