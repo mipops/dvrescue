@@ -89,6 +89,7 @@ _get_ranges "${DVRESCUE_XML}"
 
 OPT_INPUT+=(-y)
 OPT_INPUT+=(-nostdin)
+OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
 OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
