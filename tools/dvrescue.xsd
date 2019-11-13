@@ -171,15 +171,8 @@
       </xsd:documentation>
     </xsd:annotation>
     <xsd:restriction base="xsd:integer">
-      <xsd:enumeration value="0"/>
-      <xsd:enumeration value="1"/>
-      <xsd:enumeration value="2"/>
-      <xsd:enumeration value="3"/>
-      <xsd:enumeration value="4"/>
-      <xsd:enumeration value="5"/>
-      <xsd:enumeration value="6"/>
-      <xsd:enumeration value="7"/>
-      <xsd:enumeration value="8"/>
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="8"/>
     </xsd:restriction>
   </xsd:simpleType>
 
