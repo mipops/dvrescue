@@ -22,7 +22,7 @@ Within this repository are additional tools used to supplement DVRescue.
 
 They are:
 
-**dvloupe** A script that repots on a single frame with color coding and related data.
+**dvloupe** A script that reports on a single frame with color coding and related data.
 
 **dvmap** A script that makes the arrays used in dvloupe. (Not very useful on its own)
 
