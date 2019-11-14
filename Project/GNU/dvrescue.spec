@@ -67,7 +67,7 @@ popd
 %defattr(-,root,root,-)
 %doc LICENSE
 %doc History.txt
-%{_bindir}/dvrescue
+%{_bindir}/*
 
 %changelog
 * Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 0.0.0-0
