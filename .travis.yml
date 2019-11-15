@@ -11,7 +11,7 @@ matrix:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then sudo apt-get update -qq ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then sudo apt-get install -y pkg-config ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then sudo apt-get install -y pkg-config libxml2-utils ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then git -C .. clone https://github.com/MediaArea/ZenLib.git ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then pushd ../ZenLib/Project/GNU/Library && sh autogen.sh && ./configure --prefix=/usr/local && make && sudo make install && popd ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]] ; then git -C .. clone https://github.com/MediaArea/MediaInfoLib.git ; fi
@@ -21,4 +21,4 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then git -C .. clone https://github.com/MediaArea/MediaInfoLib.git ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then pushd ../MediaInfoLib/Project/GNU/Library && sh autogen.sh && ./configure --prefix=/usr/local && make && sudo make install && popd ; fi
 
-script: cd Project/GNU/CLI/ && sh autogen.sh && ./configure && make
+script: cd Project/GNU/CLI/ && sh autogen.sh && ./configure && make && make check
