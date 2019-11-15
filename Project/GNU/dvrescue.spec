@@ -4,7 +4,7 @@
 
 # norootforbuild
 
-%global dvrescue_version		0.0.0
+%global dvrescue_version		0.19.11
 %global libmediainfo_version	19.09
 %global libzen_version			0.4.37
 
@@ -70,5 +70,5 @@ popd
 %{_bindir}/dvrescue
 
 %changelog
-* Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 0.0.0-0
+* Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 0.19.11-0
 - See History.txt for more info and real dates
