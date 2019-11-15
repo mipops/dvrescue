@@ -21,13 +21,13 @@ return_value Help(const char* Name, bool Full)
     "Usage: \"" << Name << " [-Options...] FileName1 [Filename2...]\"\n";
     if (!Full)
     {
-        cout << "\"" << Name << " --Help\" for displaying more information.\n";
+        cout << "\"" << Name << " --help\" for displaying more information.\n";
         return ReturnValue_OK;
     }
     cout << "\n"
     "Options:\n"
-    "--Help, -h         Display this help and exit.\n"
-    "--Version          Display DVRescue version and exit.\n"
+    "--help, -h         Display this help and exit.\n"
+    "--version          Display DVRescue version and exit.\n"
     ;
     
     return ReturnValue_OK;

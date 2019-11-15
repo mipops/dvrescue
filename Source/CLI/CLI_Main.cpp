@@ -20,6 +20,8 @@ int main(int argc, const char* argv[])
     Core C;
     if (auto ReturnValue = Parse(C, argc, argv))
         return ReturnValue;
+    if (C.Inputs.empty())
+        return ReturnValue_OK;
 
     // Process
     C.Process();

@@ -28,7 +28,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     {
              if (strcmp(argv_ansi[i], "--help") == 0 || strcmp(argv_ansi[i], "-h") == 0)
         {
-            if (auto Value = Help(argv_ansi[0]))
+            if (auto Value = Help(argv_ansi[0], true))
                 return Value;
             ClearInput = true;
         }
@@ -46,6 +46,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     {
         if (auto Value = Help(argv_ansi[0]))
             return Value;
+        return ReturnValue_ERROR;
     }
 
     if (ClearInput)
