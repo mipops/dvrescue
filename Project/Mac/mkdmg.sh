@@ -59,6 +59,11 @@ if [ "$KIND" = "CLI" ]; then
     mkdir -p "${FILES}-Root/usr/local/bin"
     mkdir -p "${FILES}-Root/usr/local/share/man/man1"
     cp "../GNU/CLI/${APPNAME_lower}" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/dvloupe" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/dvmap" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/dvpackager" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/dvplay" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/dvsampler" "${FILES}-Root/usr/local/bin"
     cp "../../Source/CLI/dvrescue.1" "${FILES}-Root/usr/local/share/man/man1"
     codesign -f -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/${APPNAME_lower}"
 

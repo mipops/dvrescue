@@ -14,6 +14,13 @@ INCLUDES = -I../../../Source \
            -I../../../../ZenLib/Source
 AM_CXXFLAGS = -std=c++11
 
+bin_SCRIPTS = \
+    ../../../tools/dvloupe \
+    ../../../tools/dvmap \
+    ../../../tools/dvpackager \
+    ../../../tools/dvplay \
+    ../../../tools/dvsampler
+
 # man1_MANS = ../../../Source/CLI/dvrescue.1
 
 AM_TESTS_FD_REDIRECT = 9>&2
