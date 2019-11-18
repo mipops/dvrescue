@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Icon</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.MediaArea.dvrescue.mac</string>
+	<string>net.mediaarea.dvrescue.mac</string>
 	<key>CFBundleName</key>
 	<string>DVRescue</string>
 	<key>CFBundlePackageType</key>

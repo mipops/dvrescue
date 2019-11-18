@@ -13,7 +13,7 @@ Version:		%dvrescue_version
 Release:		1
 Summary:		Data migration from DV tapes into digital files suitable for long-term preservation
 Group:			Productivity/Multimedia/Other
-License:		Unlicense
+License:		BSD-3-Clause
 URL:			https://MediaArea.net/DVRescue
 Packager:		Jerome Martinez <Info@MediaArea.net>
 Source0:		dvrescue_%{version}.tar.gz

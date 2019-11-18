@@ -21,7 +21,7 @@ BEGIN
             VALUE "FileDescription", ""
             VALUE "FileVersion", "0,19,11,0"
             VALUE "InternalName", "dvrescue"
-            VALUE "LegalCopyright", "MediaArea.net"
+            VALUE "LegalCopyright", "MIPoPS"
             VALUE "OriginalFilename", "dvrescue.exe"
             VALUE "ProductName", "DVRescue"
             VALUE "ProductVersion", "0,19,11,0"
