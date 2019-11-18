@@ -67,7 +67,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="DVRescue.rc">
+    <ResourceCompile Include="..\..\..\Source\CLI\DVRescue.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

@@ -166,7 +166,7 @@
     <ClInclude Include="..\..\..\Source\Common\XmlOutput.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="DVRescue.rc" />
+    <ResourceCompile Include="..\..\..\Source\CLI\DVRescue.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\MediaInfoLib\Project\MSVC2017\Library\MediaInfoLib.vcxproj">
