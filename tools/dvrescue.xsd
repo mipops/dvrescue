@@ -282,7 +282,6 @@
 
   <xsd:complexType name="dseqType">
     <xsd:sequence>
-      <xsd:element name="sct" type="sctType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="aud" type="audType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
@@ -290,28 +289,6 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           The number of the DIF sequence within the frame starting from zero. An NTSC DV25 frame will have ten DIF sequences (0-9) and a PAL DV25 frame will have twelve (12) DIF sequences (0-11).
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-  </xsd:complexType>
-
-  <xsd:complexType name="sctType">
-    <xsd:sequence>
-      <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="aud" type="staType" minOccurs="0" maxOccurs="unbounded"/>
-    </xsd:sequence>
-    <xsd:attribute name="t" type="xsd:integer">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Documents the Section type (see table 2 of S314m). For convenience:
-          0 = Header
-          1 = Subcode
-          2 = VAUX
-          3 = Audio
-          4 = Video
-          5 = Reserved
-          6 = Reserved
-          7 = Reserved
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
