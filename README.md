@@ -2,6 +2,8 @@
 
 Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation.
 
+DVRescue was presented at the Association of Moving Image Archivists 2019 conference. Slides from the presentation are available [here](https://docs.google.com/presentation/d/1JFYHaKMZWHd8LFOVWmGuxdLNgFOiSXcoSxCMB-TXCvA/edit?usp=sharing).
+
 ## How to download
 
 Daily snapshots of the compiled project are generously hosted by MediaArea at the following link: https://mediaarea.net/download/snapshots/binary/dvrescue/
