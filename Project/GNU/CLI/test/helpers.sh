@@ -83,7 +83,7 @@ check_failure() {
 }
 
 check_xml() {
-     echo "${cmd_stdout}" | xmllint --path "${script_path}/../../../../tools/" --noout 2> /dev/null
+     echo "${cmd_stdout}" | xmllint --path "${script_path}/../../../../tools/" --noout - 2> /dev/null
     check_success
 
     return "${?}"
