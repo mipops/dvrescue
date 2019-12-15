@@ -27,6 +27,21 @@ _convert_array_to_macroblock(){
   # ffmpeg -f lavfi -i color=s=720x480:r=30000/1001:color=yellow -vframes 1 -f rawvideo -c:v dvvideo -pix_fmt yuv411p - | xxd -ps -c 80 | tail -n 1 | cut -c 9-14,121-126,141-146
 }
 
+# font selection
+if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
+  DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
+  DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+else
+  _report -wt "$(basename "${0}") can't find a preferred font to use :("
+fi
+
 DV_YELLOW="5206ff1216ff9016ff"
 DV_RED="d106ff7016ffda16ff"
 FILL=$(_convert_array_to_macroblock "${DV_YELLOW}")
@@ -75,7 +90,7 @@ while [[ "${@}" != "" ]] ; do
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=/Library/Fonts/Andale\ Mono.ttf:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${JPG_OUTPUT}"
+      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${JPG_OUTPUT}"
     done
   else
     _play_dv "${DVFILE}"
