@@ -5,6 +5,20 @@
 
 outputdir="samples"
 
+if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
+  DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
+  DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
+  DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+else
+  _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+fi
+
 # sources
 
 online_samples=(
@@ -37,19 +51,15 @@ for i in "${online_samples[@]}" ; do
 done
 
 echo "generating more dv files..."
+DRAWTEXT_OPTS="fontfile=${DEFAULTFONT}:x=(w-text_w)/2:y=(h-text_h)/2:fontsize=36:fontcolor=white:box=1:boxcolor=gray@0.6:boxborderw=12:shadowx=2:shadowy=2:expansion=none"
 
-ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 samples/ntsc_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 3 -ac 2 -ar 48000 samples/ntsc_4-3_2ch_48k_mandelbrot_sine.dv
-ffmpeg -y -f lavfi -i  smptebars=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 samples/ntsc_169_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 3 -ac 2 -ar 48000 samples/ntsc_169_2ch_48k_mandelbrot_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 4\3  2Ch 48kHz'" samples/dv25_ntsc_411_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 16\9 2Ch 48kHz'" samples/dv25_ntsc_411_169_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 48kHz'" samples/dv25_pal__411_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 32000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 32kHz'" samples/dv25_pal__411_4-3_2ch_32k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv420p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:2\:0 4\3  2Ch 48kHz'" samples/dv25_pal__420_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 NTSC 4\:2\:2 4\3  2Ch 48kHz'" samples/dv50_ntsc_422_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 0.2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 PAL  4\:2\:2 4\3  2Ch 48kHz'" samples/dv50_pal__422_4-3_2ch_48k_bars_sine.dv
 
-ffmpeg -y -f lavfi -i  smptebars=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 48000 samples/pal_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 48000 samples/pal_4-3_2ch_48k_mandelbrot_sine.dv
-ffmpeg -y -f lavfi -i  smptebars=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 32000 samples/pal_4-3_2ch_32k_bars_sine.dv
-ffmpeg -y -f lavfi -i mandelbrot=r=25:s=720x576 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3 -t 3 -ac 2 -ar 32000 samples/pal_4-3_2ch_32k_mandelbrot_sine.dv
+cat samples/dv*k_bars_sine.dv > samples/mix.dv
 
-# variable aspect ratio
-cat samples/ntsc_4-3_2ch_48k_mandelbrot_sine.dv samples/ntsc_169_2ch_48k_mandelbrot_sine.dv > samples/ntsc_VAR_2ch_48k_mandelbrot_sine.dv
-
-# variable sample rate
-cat samples/pal_4-3_2ch_48k_mandelbrot_sine.dv samples/pal_4-3_2ch_32k_mandelbrot_sine.dv > samples/pal_4-3_2ch_VARk_mandelbrot_sine.dv
