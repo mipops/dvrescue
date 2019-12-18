@@ -19,7 +19,7 @@
           font-style: italic;
         }
         img {
-          width: 200px;
+          width: 300px;
           height: inherit;
         }
         td {
@@ -33,6 +33,12 @@
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
+        }
+        .frameError {
+          border: 2px solid red;
+        }
+        .frameOK {
+          width: 302px;
         }
       </style>
     </head>
@@ -71,14 +77,23 @@
             </table>
           </section>
           <section class="frames">
-            <!-- Ins/outs should either have frames cut or be hidden from this view -->
             <xsl:for-each select="dv:frame">
-              <div>
-                <img>
-                  <xsl:attribute name="src"><xsl:value-of select="@tc"/>.jpg</xsl:attribute>
-                </img>
-              <p>TC <xsl:value-of select="@tc"/></p>
-              </div>
+              <xsl:choose>
+                <xsl:when test="dv:dseq/dv:sta">
+                  <div class="frameError">
+                    <img>
+                      <xsl:attribute name="src"><xsl:value-of select="@tc"/>.jpg</xsl:attribute>
+                    </img>
+                    <p>TC <xsl:value-of select="@tc"/></p>
+                    <p>Error #<xsl:value-of select="dv:dseq/dv:sta/@t"/></p>
+                  </div>
+                </xsl:when>
+                <xsl:otherwise>
+                  <div class="frameOK">Frame OK<br/>
+                    <p>TC <xsl:value-of select="@tc"/></p>
+                  </div>
+                </xsl:otherwise>
+              </xsl:choose>
             </xsl:for-each>
           </section>
         </xsl:for-each>
