@@ -23,7 +23,8 @@
           height: inherit;
         }
         td {
-          padding: 2em;
+          padding-left: 2em;
+          padding-right: 2em;
         }
         dt {
           font-weight: 800;
@@ -36,9 +37,11 @@
         }
         .frameError {
           border: 2px solid red;
+          max-width: 300px;
         }
         .frameOK {
-          width: 302px;
+          border 2px solid black;
+          width: 300px;
         }
       </style>
     </head>
@@ -84,8 +87,17 @@
                     <img>
                       <xsl:attribute name="src"><xsl:value-of select="@tc"/>.jpg</xsl:attribute>
                     </img>
-                    <p>TC <xsl:value-of select="@tc"/></p>
+                    <p><xsl:value-of select="@tc"/></p>
                     <p>Error #<xsl:value-of select="dv:dseq/dv:sta/@t"/></p>
+                    <xsl:if test="dv:dseq/dv:sta/@t=0"><p>No error, what a nice DV macroblock.</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=2"><p>Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=4"><p>Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=6"><p>A concealment method is used but not specified (guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=7"><p>Error with an error code within the macro block.</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=10"><p>Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=12"><p>Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=14"><p>A concealment method is used but not specified (no guaranteed continuity).</p></xsl:if>
+                    <xsl:if test="dv:dseq/dv:sta/@t=15"><p>Error with unknown position.</p></xsl:if>
                   </div>
                 </xsl:when>
                 <xsl:otherwise>
