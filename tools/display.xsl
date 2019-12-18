@@ -8,7 +8,7 @@
       <style type="text/css">
         body {
           font-family: "PT Sans", Helvetica, Arial, sans-serif;
-          max-width: 1200px;
+          max-width: 1500px;
           display: grid;
           justify-content: center;
           justify-items: center;
@@ -40,8 +40,11 @@
           max-width: 300px;
         }
         .frameOK {
-          border 2px solid black;
+          border: 2px solid black;
           width: 300px;
+        }
+        .frameOK p {
+          padding: 3.33em;
         }
       </style>
     </head>
@@ -101,8 +104,7 @@
                   </div>
                 </xsl:when>
                 <xsl:otherwise>
-                  <div class="frameOK">Frame OK<br/>
-                    <p>TC <xsl:value-of select="@tc"/></p>
+                  <div class="frameOK"><p>Frame OK</p><p>TC <xsl:value-of select="@tc"/></p>
                   </div>
                 </xsl:otherwise>
               </xsl:choose>
