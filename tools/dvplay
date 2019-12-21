@@ -90,7 +90,7 @@ while [[ "${@}" != "" ]] ; do
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -y -i - -vf "transpose=1,pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4  :text='PTS=${PTS_E} TC=${TC_E}',transpose=2" "${JPG_OUTPUT}"
+      ffmpeg -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E}'" "${JPG_OUTPUT}"
     done
   else
     _play_dv "${DVFILE}"
