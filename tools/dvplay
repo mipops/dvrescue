@@ -65,6 +65,14 @@ _play_dv(){
   ffplay - -vf "${FILTER}"
 }
 
+_make_dvrescue_xml(){
+  if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+    echo "Assessing $(basename "${DVFILE}")..."
+    _mkdir2 "${SIDECAR_DIR}"
+    dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
+  fi
+}
+
 while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
@@ -73,13 +81,7 @@ while [[ "${@}" != "" ]] ; do
   DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
 
   if [[ "${ERROR_REVIEW}" = "Y" ]] ; then
-    if [[ ! -f "${DVRESCUE_XML}" ]] ; then
-      echo "Assessing $(basename "${DVFILE}")..."
-      if [[ ! -d "${SIDECAR_DIR}" ]] ; then
-        mkdir "${SIDECAR_DIR}"
-      fi
-      dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
-    fi
+    _make_dvrescue_xml
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
     TOTAL_FRAMES="$(xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
     xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
