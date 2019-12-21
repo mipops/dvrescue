@@ -75,10 +75,13 @@ while [[ "${@}" != "" ]] ; do
   if [[ "${ERROR_REVIEW}" = "Y" ]] ; then
     if [[ ! -f "${DVRESCUE_XML}" ]] ; then
       echo "Assessing $(basename "${DVFILE}")..."
+      if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+        mkdir "${SIDECAR_DIR}"
+      fi
       dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
     fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
-    xml sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
+    xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
       TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"

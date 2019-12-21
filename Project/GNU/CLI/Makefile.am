@@ -24,3 +24,12 @@ bin_SCRIPTS = \
 # man1_MANS = ../../../Source/CLI/dvrescue.1
 
 AM_TESTS_FD_REDIRECT = 9>&2
+
+TESTS = test/simple.sh test/framediscontinuity.sh
+
+TESTING_DIR = test/TestingFiles
+
+clone_testing_files: $(TESTING_DIR)
+
+$(TESTING_DIR):
+    git clone https://github.com/MediaArea/dvrescue-sample-data.git test/TestingFiles
