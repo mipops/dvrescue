@@ -60,6 +60,9 @@ while [[ "${@}" != "" ]] ; do
   if [[ "${ERROR_REVIEW}" = "Y" ]] ; then
     if [[ ! -f "${DVRESCUE_XML}" ]] ; then
       echo "Assessing $(basename "${DVFILE}")..."
+      if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+        mkdir "${SIDECAR_DIR}"
+      fi
       dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
     fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
