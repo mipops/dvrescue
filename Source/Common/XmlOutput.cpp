@@ -296,13 +296,10 @@ string OutputXml(std::vector<file*>& PerFile)
                 Text += ">\n";
             }
 
-            if (!ShowFrame)
+            if (PerChange_Next != File->PerChange.end() && (*PerChange_Next)->FrameNumber == FrameNumber + 1)
             {
-                if (PerChange_Next != File->PerChange.end() && (*PerChange_Next)->FrameNumber == FrameNumber + 1)
-                {
-                    ShowFrame = true;
-                    ShowFrames = true; // For next frame
-                }
+                ShowFrame = true;
+                ShowFrames = true; // For next frame
             }
 
             if (ShowFrame)
