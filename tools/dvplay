@@ -81,7 +81,9 @@ while [[ "${@}" != "" ]] ; do
       dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
     fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
+    TOTAL_FRAMES="$(xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
     xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
+      N="$(echo "${error_frame}" | cut -d "," -f1)"
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
       TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
@@ -93,7 +95,7 @@ while [[ "${@}" != "" ]] ; do
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E}'" "${JPG_OUTPUT}"
+      ffmpeg -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
     done
   else
     _play_dv "${DVFILE}"
