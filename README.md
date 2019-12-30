@@ -6,9 +6,22 @@ DVRescue was presented at the Association of Moving Image Archivists 2019 confer
 
 ## How to download
 
-Daily snapshots of the compiled project are generously hosted by MediaArea at the following link: https://mediaarea.net/download/snapshots/binary/dvrescue/
+DVRescue is available for all major operating systems (macOS, Windows, and Linux). Installers can be downloaded here: https://mediaarea.net/DVRescue  
 
-Daily builds are provided for all major operating systems (macOS, Windows, and Linux).
+### Daily snapshots
+
+Daily snapshots of the compiled project are available here: https://mediaarea.net/download/snapshots/binary/dvrescue/
+
+### Homebrew
+
+The latest stable releases of DVRescue and associated tools can also be downloaded via [Homebrew](https://brew.sh), a package manager for Mac (or Linux), using the following commands:
+
+```
+brew tap mediaarea/homebrew-mediaarea
+brew install dvrescue
+```
+
+This Homebrew formula will install the following tools: `dvloupe dvmap dvpackager dvplay dvrescue` and `dvsampler`.
 
 ## How to use
 
