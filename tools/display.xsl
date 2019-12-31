@@ -88,9 +88,12 @@
                 <xsl:when test="dv:dseq/dv:sta">
                   <div class="frameError">
                     <img>
-                      <xsl:attribute name="src"><xsl:value-of select="@tc"/>.jpg</xsl:attribute>
+                      <xsl:attribute name="src"><xsl:value-of select="concat(../../@ref,'_dvrescue/', translate(@tc,':','-'))"/>.jpg</xsl:attribute>
                     </img>
-                    <p><xsl:value-of select="@tc"/></p>
+                    <p class="tc"><xsl:value-of select="@tc"/></p>
+                    <p>Arbitrary data: <xsl:value-of select="@arb"/></p>
+                    <xsl:if test="@arb_r"><p>Arbitrary data is repeating.</p></xsl:if>
+                    <xsl:if test="@arb_nc"><p>Arbitrary data is non-consecutive.</p></xsl:if>
                     <p>Error #<xsl:value-of select="dv:dseq/dv:sta/@t"/></p>
                     <xsl:if test="dv:dseq/dv:sta/@t=0"><p>No error, what a nice DV macroblock.</p></xsl:if>
                     <xsl:if test="dv:dseq/dv:sta/@t=2"><p>Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</p></xsl:if>
@@ -116,4 +119,15 @@
     </body>
   </html>
   </xsl:template>
+  <xsl:template match="@imgPath">
+                          <!-- @tc = 01:10:14:03 -->
+                      <!-- error.dv_01-10-14-03.jpg -->
+                      <!-- ../@ref + _ +  @tc.sub(":","-") -->
+                      <!-- <xsl:value-of select="translate('@tc',':','-')"/> -->
+
+
+<!--     <xsl:variable name="ref" select="@ref"/>
+    <xsl:variable name="tc" select=""/>
+    <xsl:value-of select="concat(@ref,'_', translate('@tc',':','-'))"/> -->
+</xsl:template>
 </xsl:stylesheet>
