@@ -106,10 +106,6 @@
                     <xsl:if test="dv:dseq/dv:sta/@t=15"><p>Error with unknown position.</p></xsl:if>
                   </div>
                 </xsl:when>
-                <xsl:otherwise>
-                  <div class="frameOK"><p>Frame OK</p><p>TC <xsl:value-of select="@tc"/></p>
-                  </div>
-                </xsl:otherwise>
               </xsl:choose>
             </xsl:for-each>
           </section>
@@ -119,15 +115,4 @@
     </body>
   </html>
   </xsl:template>
-  <xsl:template match="@imgPath">
-                          <!-- @tc = 01:10:14:03 -->
-                      <!-- error.dv_01-10-14-03.jpg -->
-                      <!-- ../@ref + _ +  @tc.sub(":","-") -->
-                      <!-- <xsl:value-of select="translate('@tc',':','-')"/> -->
-
-
-<!--     <xsl:variable name="ref" select="@ref"/>
-    <xsl:variable name="tc" select=""/>
-    <xsl:value-of select="concat(@ref,'_', translate('@tc',':','-'))"/> -->
-</xsl:template>
 </xsl:stylesheet>
