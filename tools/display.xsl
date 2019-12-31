@@ -189,15 +189,20 @@
     <xsl:if test="@t">
       <p class="errorNum">Error #<xsl:value-of select="@t"/>
         <span class="tooltip">
-          <xsl:if test="@t=0">No error, what a nice DV macroblock.</xsl:if>
-          <xsl:if test="@t=2">Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=4">Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=6">A concealment method is used but not specified (guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=7">Error with an error code within the macro block.</xsl:if>
-          <xsl:if test="@t=10">Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=12">Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=14">A concealment method is used but not specified (no guaranteed continuity).</xsl:if>
-          <xsl:if test="@t=15">Error with unknown position.</xsl:if>
+          <xsl:choose>
+            <xsl:when test="@t=0">No error, what a nice DV macroblock.</xsl:when>
+            <xsl:when test="@t=2">Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=4">Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=6">A concealment method is used but not specified (guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=7">Error with an error code within the macro block.</xsl:when>
+            <xsl:when test="@t=10">Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=12">Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=14">A concealment method is used but not specified (no guaranteed continuity).</xsl:when>
+            <xsl:when test="@t=15">Error with unknown position.</xsl:when>
+            <xsl:otherwise>
+              Unknown error
+            </xsl:otherwise>
+          </xsl:choose>
         </span>
       </p>
     </xsl:if>
@@ -209,9 +214,11 @@
     </p>
   </xsl:template>
   <xsl:template match="dv:aud" name="audType">
-        <p><strong>[ AUD </strong>
-    <xsl:if test="@n"><strong>Count </strong> <xsl:value-of select="@n"/></xsl:if>
-    <xsl:if test="@n_even"><strong> | Even </strong> <xsl:value-of select="@n_even"/><strong> | Odd </strong> <xsl:value-of select="number(@n) - number(@n_even)"/>
-    </xsl:if><strong> ]</strong></p>
+    <p>
+      <strong>[ AUD </strong>
+      <xsl:if test="@n"><strong>Count </strong> <xsl:value-of select="@n"/></xsl:if>
+      <xsl:if test="@n_even"><strong> | Even </strong> <xsl:value-of select="@n_even"/><strong> | Odd </strong> <xsl:value-of select="number(@n) - number(@n_even)"/>
+      </xsl:if><strong> ]</strong>
+    </p>
   </xsl:template>
 </xsl:stylesheet>
