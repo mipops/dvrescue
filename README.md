@@ -21,7 +21,7 @@ brew tap mediaarea/homebrew-mediaarea
 brew install dvrescue
 ```
 
-This Homebrew formula will install the following tools: `dvloupe dvmap dvpackager dvplay dvrescue` and `dvsampler`.
+This Homebrew formula will install the following tools: `dvloupe dvmap dvpackager dvplay dvrescue dvsampler`.
 
 ## How to use
 
