@@ -106,18 +106,22 @@
   </html>
   </xsl:template>
   <xsl:template match="dv:sta" name="staType">
-    <p>Error #<xsl:value-of select="@t"/></p>
-    <xsl:if test="@t=0"><p>No error, what a nice DV macroblock.</p></xsl:if>
-    <xsl:if test="@t=2"><p>Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=4"><p>Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=6"><p>A concealment method is used but not specified (guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=7"><p>Error with an error code within the macro block.</p></xsl:if>
-    <xsl:if test="@t=10"><p>Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=12"><p>Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=14"><p>A concealment method is used but not specified (no guaranteed continuity).</p></xsl:if>
-    <xsl:if test="@t=15"><p>Error with unknown position.</p></xsl:if>
-    <p>STA Count: <xsl:value-of select="@n"/></p>
-    <p>Even STA Count: <xsl:value-of select="@n_even"/></p>
-    <p>Odd STA Count: <xsl:value-of select="number(@n) - number(@n_even)"/></p>
+    <xsl:if test="@t">
+      <p>Error #<xsl:value-of select="@t"/></p>
+      <xsl:if test="@t=0"><p>No error, what a nice DV macroblock.</p></xsl:if>
+      <xsl:if test="@t=2"><p>Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=4"><p>Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=6"><p>A concealment method is used but not specified (guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=7"><p>Error with an error code within the macro block.</p></xsl:if>
+      <xsl:if test="@t=10"><p>Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=12"><p>Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=14"><p>A concealment method is used but not specified (no guaranteed continuity).</p></xsl:if>
+      <xsl:if test="@t=15"><p>Error with unknown position.</p></xsl:if>
+      <xsl:if test="@n"><p>STA Count: <xsl:value-of select="@n"/></p></xsl:if>
+    </xsl:if>
+    <xsl:if test="@n_even">
+      <p>Even STA Count: <xsl:value-of select="@n_even"/></p>
+      <p>Odd STA Count: <xsl:value-of select="number(@n) - number(@n_even)"/></p>
+    </xsl:if>
   </xsl:template>
 </xsl:stylesheet>
