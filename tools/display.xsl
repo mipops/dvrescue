@@ -19,7 +19,7 @@
           font-style: italic;
         }
         img {
-          width: 300px;
+          width: 400px;
           height: inherit;
         }
         td {
@@ -37,14 +37,7 @@
         }
         .frameError {
           border: 2px solid red;
-          max-width: 300px;
-        }
-        .frameOK {
-          border: 2px solid black;
-          width: 300px;
-        }
-        .frameOK p {
-          padding: 3.33em;
+          max-width: 400px;
         }
       </style>
     </head>
@@ -56,26 +49,25 @@
         </header>
         <xsl:for-each select="dv:frames">
           <section class="metadata">
-            <!-- These need to only appear if present -->
             <table>
               <thead><tr><th colspan="2">Frames metadata</th></tr></thead>
               <tbody>
                 <tr>
                   <td>
                     <dl>
-                      <dt>Count</dt><dd><xsl:value-of select="@count"/></dd>
-                      <dt>Start timestamp</dt><dd><xsl:value-of select="@pts"/></dd>
-                      <dt>End timestamp</dt><dd><xsl:value-of select="@end_pts"/></dd>
-                      <dt>Size</dt><dd><xsl:value-of select="@size"/></dd>
-                      <dt>Video rate</dt><dd><xsl:value-of select="@video_rate"/></dd>
+                      <xsl:if test="@count"><dt>Count</dt><dd><xsl:value-of select="@count"/></dd></xsl:if>
+                      <xsl:if test="@pts"><dt>Start timestamp</dt><dd><xsl:value-of select="@pts"/></dd></xsl:if>
+                      <xsl:if test="@end_pts"><dt>End timestamp</dt><dd><xsl:value-of select="@end_pts"/></dd></xsl:if>
+                      <xsl:if test="@size"><dt>Size</dt><dd><xsl:value-of select="@size"/></dd></xsl:if>
+                      <xsl:if test="@video_rate"><dt>Video rate</dt><dd><xsl:value-of select="@video_rate"/></dd></xsl:if>
                     </dl>
                   </td>
                   <td>
                     <dl>
-                      <dt>Aspect ratio</dt><dd><xsl:value-of select="@aspect_ratio"/></dd>
-                      <dt>Chroma subsampling</dt><dd><xsl:value-of select="@chroma_subsampling"/></dd>
-                      <dt>Audio rate</dt><dd><xsl:value-of select="@audio_rate"/></dd>
-                      <dt>Channels</dt><dd><xsl:value-of select="@channels"/></dd>
+                      <xsl:if test="@aspect_ratio"><dt>Aspect ratio</dt><dd><xsl:value-of select="@aspect_ratio"/></dd></xsl:if>
+                      <xsl:if test="@chroma_subsampling"><dt>Chroma subsampling</dt><dd><xsl:value-of select="@chroma_subsampling"/></dd></xsl:if>
+                      <xsl:if test="@audio_rate"><dt>Audio rate</dt><dd><xsl:value-of select="@audio_rate"/></dd></xsl:if>
+                      <xsl:if test="@channels"><dt>Channels</dt><dd><xsl:value-of select="@channels"/></dd></xsl:if>
                     </dl>
                   </td>
                 </tr>
