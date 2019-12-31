@@ -8,7 +8,6 @@
       <style type="text/css">
         body {
           font-family: "PT Sans", Helvetica, Arial, sans-serif;
-          max-width: 1500px;
           display: grid;
           justify-content: center;
           justify-items: center;
@@ -19,7 +18,7 @@
           font-style: italic;
         }
         img {
-          width: 400px;
+          max-width: 400px;
           height: inherit;
         }
         td {
@@ -36,8 +35,40 @@
           justify-content: center;
         }
         .frameError {
-          border: 2px solid red;
+          border: 0.2em solid black;
+          margin: 0.1em;
           max-width: 400px;
+        }
+        .frameError p {
+          padding-left: 0.5em;
+          padding-right: 0.5em;
+          margin: 0.5em;
+        }
+        .tc {
+          background-color: black;
+          color: white;
+          font-weight: bold;
+          font-size: 1.5em;
+          text-align: center;
+          padding: 0;
+          margin: 0 !important;
+        }
+        .errorNum {
+          text-decoration: underline wavy;
+        }
+        .errorNum:hover .tooltip {
+          display: block;
+        }
+        .tooltip {
+          display: none;
+          background-color: black;
+          color: white;
+          font-weight: bold;
+          margin-left: 1em;
+          border-radius: 5px;
+          padding: 0.3em;
+          position: absolute;
+          z-index: 1000;
         }
       </style>
     </head>
@@ -68,6 +99,13 @@
                       <xsl:if test="@chroma_subsampling"><dt>Chroma subsampling</dt><dd><xsl:value-of select="@chroma_subsampling"/></dd></xsl:if>
                       <xsl:if test="@audio_rate"><dt>Audio rate</dt><dd><xsl:value-of select="@audio_rate"/></dd></xsl:if>
                       <xsl:if test="@channels"><dt>Channels</dt><dd><xsl:value-of select="@channels"/></dd></xsl:if>
+                      <xsl:if test="@rdt">
+                        <dt>Recorded Date Time</dt>
+                        <dd><xsl:value-of select="@rdt"/>
+                        <xsl:if test="@rdt_r"> (repeating) </xsl:if>
+                        <xsl:if test="@rdt_nc"> (non-consecutive) </xsl:if>
+                        </dd>
+                      </xsl:if>
                     </dl>
                   </td>
                 </tr>
@@ -80,15 +118,17 @@
                 <xsl:when test="dv:dseq/dv:sta">
                   <div class="frameError">
                     <img>
-                      <xsl:attribute name="src"><xsl:value-of select="concat(../../@ref,'_dvrescue/', translate(@tc,':','-'))"/>.jpg</xsl:attribute>
+                      <xsl:attribute name="src"><xsl:value-of select="translate(@tc,':','-')"/>.jpg</xsl:attribute>
                     </img>
-                    <p class="tc"><xsl:value-of select="@tc"/></p>
-                    <p>Arbitrary data: <xsl:value-of select="@arb"/></p>
-                    <xsl:if test="@arb_r"><p>Arbitrary data is repeating.</p></xsl:if>
-                    <xsl:if test="@arb_nc"><p>Arbitrary data is non-consecutive.</p></xsl:if>
-
-                    <xsl:for-each select="dv:dseq">
-                      <p>DIF sequence number: <xsl:value-of select="@n"/></p>
+                    <xsl:if test="@tc"><p class="tc"><xsl:value-of select="@tc"/></p></xsl:if>
+                    <xsl:if test="@arb">
+                      <p>Arbitrary data: <xsl:value-of select="@arb"/>
+                      <xsl:if test="@arb_r"> (repeating)</xsl:if>
+                      <xsl:if test="@arb_nc"> (non-consecutive)</xsl:if>
+                      </p>
+                    </xsl:if>
+                    <xsl:for-each select="dv:dseq/dv:sta">
+                      <p>DIF sequence number: <xsl:value-of select="../@n"/></p>
                       <xsl:call-template name="staType"/>
                     </xsl:for-each>
                     <xsl:for-each select="dv:sta">
@@ -107,21 +147,23 @@
   </xsl:template>
   <xsl:template match="dv:sta" name="staType">
     <xsl:if test="@t">
-      <p>Error #<xsl:value-of select="@t"/></p>
-      <xsl:if test="@t=0"><p>No error, what a nice DV macroblock.</p></xsl:if>
-      <xsl:if test="@t=2"><p>Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=4"><p>Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=6"><p>A concealment method is used but not specified (guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=7"><p>Error with an error code within the macro block.</p></xsl:if>
-      <xsl:if test="@t=10"><p>Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=12"><p>Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=14"><p>A concealment method is used but not specified (no guaranteed continuity).</p></xsl:if>
-      <xsl:if test="@t=15"><p>Error with unknown position.</p></xsl:if>
-      <xsl:if test="@n"><p>STA Count: <xsl:value-of select="@n"/></p></xsl:if>
+      <p class="errorNum">Error #<xsl:value-of select="@t"/>
+        <span class="tooltip">
+          <xsl:if test="@t=0">No error, what a nice DV macroblock.</xsl:if>
+          <xsl:if test="@t=2">Replaced a macroblock with the one of the same position of the previous frame (guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=4">Replaced a macroblock with the one of the same position of the next frame (guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=6">A concealment method is used but not specified (guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=7">Error with an error code within the macro block.</xsl:if>
+          <xsl:if test="@t=10">Replaced a macroblock with the one of the same position of the previous frame (no guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=12">Replaced a macroblock with the one of the same position of the next frame (no guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=14">A concealment method is used but not specified (no guaranteed continuity).</xsl:if>
+          <xsl:if test="@t=15">Error with unknown position.</xsl:if>
+        </span>
+      </p>
     </xsl:if>
-    <xsl:if test="@n_even">
-      <p>Even STA Count: <xsl:value-of select="@n_even"/></p>
-      <p>Odd STA Count: <xsl:value-of select="number(@n) - number(@n_even)"/></p>
-    </xsl:if>
+    <p><strong>[ STA </strong>
+    <xsl:if test="@n"><strong>Count </strong> <xsl:value-of select="@n"/></xsl:if>
+    <xsl:if test="@n_even"><strong> | Even </strong> <xsl:value-of select="@n_even"/><strong> | Odd </strong> <xsl:value-of select="number(@n) - number(@n_even)"/>
+    </xsl:if><strong> ]</strong></p>
   </xsl:template>
 </xsl:stylesheet>
