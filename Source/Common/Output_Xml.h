@@ -7,9 +7,9 @@
 //---------------------------------------------------------------------------
 #pragma once
 #include <vector>
-#include <string>
+#include <ostream>
 using namespace std;
 class file;
 //---------------------------------------------------------------------------
 
-string OutputXml(vector<file*>& PerFile);
+return_value Output_Xml(ostream& Out, vector<file*>& PerFile, ostream* Err = nullptr);

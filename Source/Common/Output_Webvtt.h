@@ -6,13 +6,10 @@
 
 //---------------------------------------------------------------------------
 #pragma once
-#include "Common/Config.h"
-class Core;
+#include <vector>
+#include <ostream>
+using namespace std;
+class file;
 //---------------------------------------------------------------------------
 
-//***************************************************************************
-// Command line parser
-//***************************************************************************
-
-return_value Parse(Core &C, int argc, const char* argv[]);
-void Clean(Core& C);
+return_value Output_Webvtt(ostream& Out, vector<file*>& PerFile, ostream* Err = nullptr);

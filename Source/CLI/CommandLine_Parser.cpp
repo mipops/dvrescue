@@ -14,47 +14,112 @@ struct IUnknown; // Workaround for "combaseapi.h(229): error C2187: syntax error
 #else
 #include <ZenLib/Ztring.h>
 #endif
+#include <fstream>
+using namespace std;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
 // Command line parser
 //***************************************************************************
 
+//---------------------------------------------------------------------------
 return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNameSpace::Char* argv[])
 {
+    return_value ReturnValue = ReturnValue_OK;
     bool ClearInput = false;
 
     for (int i = 1; i < argc; i++)
     {
-             if (strcmp(argv_ansi[i], "--help") == 0 || strcmp(argv_ansi[i], "-h") == 0)
+             if (!strcmp(argv_ansi[i], "--help") || !strcmp(argv_ansi[i], "-h"))
         {
-            if (auto Value = Help(argv_ansi[0], true))
+            if (!C.Out)
+                return ReturnValue_ERROR;
+            if (auto Value = Help(*C.Out, argv_ansi[0], true))
                 return Value;
             ClearInput = true;
         }
-        else if (strcmp(argv_ansi[i], "--version") == 0)
+        else if (!strcmp(argv_ansi[i], "--version"))
         {
-            if (auto Value = NameVersion())
+            if (!C.Out)
+                return ReturnValue_ERROR;
+            if (auto Value = NameVersion(*C.Out))
                 return Value;
             ClearInput = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--webvtt-output") || !strcmp(argv_ansi[i], "-s"))
+        {
+            if (++i >= argc)
+            {
+                if (!C.Err)
+                    *C.Err << "Error: missing WebVTT output file name after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (!File->is_open())
+            {
+                if (C.Err)
+                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
+                delete File;
+                return ReturnValue_ERROR;
+            }
+            else
+                C.WebvttFile = File;
+        }
+        else if (!strcmp(argv_ansi[i], "--xml-output") || !strcmp(argv_ansi[i], "-x"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing XML output file name after " << argv_ansi[i-1] << ".\n";
+                return ReturnValue_ERROR;
+            }
+            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (!File->is_open())
+            {
+                if (!C.Err)
+                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
+                delete File;
+                return ReturnValue_ERROR;
+            }
+            else
+                C.XmlFile = File;
         }
         else
+        {
+            if (C.WebvttFile || C.XmlFile)
+            {
+                if (C.Err)
+                    *C.Err << "Error: in order to avoid mistakes, provide output file names after input file names.\n";
+                return ReturnValue_ERROR;
+            }
             C.Inputs.push_back(argv[i]);
+        }
     }
 
     if (!ClearInput && C.Inputs.empty())
     {
-        if (auto Value = Help(argv_ansi[0]))
+        if (!C.Out)
+            return ReturnValue_ERROR;
+        if (auto Value = Help(*C.Out, argv_ansi[0]))
             return Value;
+        return ReturnValue_ERROR;
+    }
+
+    if (C.WebvttFile && C.Inputs.size() >= 2)
+    {
+        if (C.Err)
+            *C.Err << "Error: WebVTT output is possible only with one input file.\n";
         return ReturnValue_ERROR;
     }
 
     if (ClearInput)
         C.Inputs.clear();
 
-    return ReturnValue_OK;
+    return ReturnValue;
 }
 
+//---------------------------------------------------------------------------
 return_value Parse(Core &C, int argc, const char* argv_ansi[])
 {
     //Get command line args in main()
@@ -91,4 +156,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[])
 #endif //UNICODE
 
     return ReturnValue;
+}
+
+//---------------------------------------------------------------------------
+void Clean(Core& C)
+{
+    // We previously set some output file pointers, deleting them
+    if (C.WebvttFile != C.Out)
+        delete C.WebvttFile;
+    if (C.XmlFile != C.Out)
+        delete C.XmlFile;
 }

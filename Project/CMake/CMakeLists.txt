@@ -14,8 +14,10 @@ set(dvrescue_SRCS
   ${dvrescue_SOURCES_PATH}/CLI/CommandLine_Parser.cpp
   ${dvrescue_SOURCES_PATH}/CLI/DVRescue.rc
   ${dvrescue_SOURCES_PATH}/Common/Core.cpp
+  ${dvrescue_SOURCES_PATH}/Common/Output.cpp
+  ${dvrescue_SOURCES_PATH}/Common/Output_Webvtt.cpp
+  ${dvrescue_SOURCES_PATH}/Common/Output_Xml.cpp
   ${dvrescue_SOURCES_PATH}/Common/ProcessFile.cpp
-  ${dvrescue_SOURCES_PATH}/Common/XmlOutput.cpp
 )
 
 set(dvrescue_TOOLS

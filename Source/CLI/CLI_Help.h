@@ -7,14 +7,16 @@
 //---------------------------------------------------------------------------
 #pragma once
 #include "Common/Config.h"
+#include <ostream>
+using namespace std;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
 // Help
 //***************************************************************************
 
-return_value    Help(const char* Name, bool Full = false);
-return_value    NameVersion();
+return_value    Help(ostream& Out, const char* Name, bool Full = false);
+return_value    NameVersion(ostream& Out);
 
 //***************************************************************************
 // Info
