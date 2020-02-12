@@ -45,7 +45,7 @@ _check_if_dv(){
 }
 
 _get_ranges(){
-  xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames" -v "d:frame[1]/@pts" -o "-" -v "d:frame[last()]/@pts" -o "-" -v "d:frame[1]/@tc" -n "${DVRESCUE_XML}"
+  xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames" -v "@pts" -o "-" -v "@end_pts" -o "-" -v "d:frame[1]/@tc" -n "${DVRESCUE_XML}"
 }
 
 _convert_hhmmssmmm2s(){
