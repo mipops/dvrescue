@@ -45,7 +45,7 @@ _check_if_dv(){
 }
 
 _get_ranges(){
-  xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames" -v "d:frame[1]/@pts" -o "-" -v "d:frame[last()]/@pts" -o "-" -v "d:frame[1]/@tc" -n "${DVRESCUE_XML}"
+  xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames" -v "@pts" -o "-" -v "@end_pts" -o "-" -v "d:frame[1]/@tc" -n "${DVRESCUE_XML}"
 }
 
 _convert_hhmmssmmm2s(){
@@ -100,7 +100,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
 #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
 
 _get_ranges "${DVRESCUE_XML}" | while read range ; do
-  unset START_TIME END_TIME
+  unset START_TIME END_TIME METADATA
   PTS_START="$(echo "${range}" | cut -d"-" -f1)"
   PTS_START_FILENAME_SAFE="$(echo "${PTS_START}" | sed 's|:|-|g')"
   PTS_END="$(echo "${range}" | cut -d"-" -f2)"
@@ -108,7 +108,7 @@ _get_ranges "${DVRESCUE_XML}" | while read range ; do
   TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
 
   START_TIME+=(-ss "${PTS_START}")
-  OPT_OUTPUT+=(-metadata "timecode=${TC}")
+  METADATA+=(-metadata "timecode=${TC}")
   #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
   OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.${EXTENSION}"
 
@@ -117,5 +117,5 @@ _get_ranges "${DVRESCUE_XML}" | while read range ; do
     echo "DURATION IS $DURATION"
     END_TIME+=(-t "${DURATION}")
   fi
-  ffmpeg "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -c:v copy -f rawvideo - | ffmpeg "${OPT_INPUT[@]}" -i - "${OPT_OUTPUT[@]}" "${END_TIME[@]}" "${OUTPUT_FILE}"
+  ffmpeg "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -c:v copy -f rawvideo - | ffmpeg "${OPT_INPUT[@]}" -i - "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${END_TIME[@]}" "${OUTPUT_FILE}"
 done
