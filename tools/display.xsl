@@ -67,6 +67,10 @@
           display: grid;
           grid-template-columns: repeat(2, auto);
         }
+        .red {
+          border: 0.1em solid red;
+          color: red;
+        }
         .errorNum {
           text-decoration: underline wavy;
         }
@@ -154,27 +158,11 @@
                     <xsl:if test="@arb_nc"> (non-consecutive)</xsl:if>
                   </p>
                 </xsl:if>
-                <xsl:for-each select="dv:sta">
-                  <p class="green"><strong>Frame Status</strong>
+                <xsl:for-each select="dv:sta">  
                     <xsl:call-template name="staType"/>
-                  </p>
                 </xsl:for-each>
                 <xsl:for-each select="dv:aud">
-                  <p class="green"><strong>Frame Audio</strong>
                     <xsl:call-template name="audType"/>
-                  </p>
-                </xsl:for-each>
-                <xsl:for-each select="dv:dseq/dv:sta">
-                  <div class="green">
-                    <p><strong>DIF sequence </strong><xsl:value-of select="../@n"/></p>
-                    <xsl:call-template name="staType"/>
-                  </div>
-                </xsl:for-each>
-                <xsl:for-each select="dv:dseq/dv:aud">
-                  <div class="green">
-                    <p><strong>DIF sequence </strong><xsl:value-of select="../@n"/></p>
-                    <xsl:call-template name="audType"/>
-                  </div>
                 </xsl:for-each>
               </div>
             </xsl:for-each>
@@ -206,19 +194,14 @@
         </span>
       </p>
     </xsl:if>
-    <p>
-      <strong>[ STA </strong>
-      <xsl:if test="@n"><strong>Count </strong> <xsl:value-of select="@n"/></xsl:if>
-      <xsl:if test="@n_even"><strong> | Even </strong> <xsl:value-of select="@n_even"/><strong> | Odd </strong> <xsl:value-of select="number(@n) - number(@n_even)"/>
-      </xsl:if><strong> ]</strong>
-    </p>
+    <xsl:if test="(number(@n) - number(@n_even)) > 1">
+      <p class="red"><strong>Error within playback device</strong></p>
+    </xsl:if>
   </xsl:template>
   <xsl:template match="dv:aud" name="audType">
-    <p>
-      <strong>[ AUD </strong>
-      <xsl:if test="@n"><strong>Count </strong> <xsl:value-of select="@n"/></xsl:if>
-      <xsl:if test="@n_even"><strong> | Even </strong> <xsl:value-of select="@n_even"/><strong> | Odd </strong> <xsl:value-of select="number(@n) - number(@n_even)"/>
-      </xsl:if><strong> ]</strong>
-    </p>
+      <p class="green"><strong>Frame Audio</strong></p>
+      <xsl:if test="(number(@n) - number(@n_even)) > 1">
+        <p class="red"><strong>Error within playback device</strong></p>
+      </xsl:if>
   </xsl:template>
 </xsl:stylesheet>
