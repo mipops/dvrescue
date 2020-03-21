@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dependencies: ffprobe, dvrescue, xmlstarlet
+# dependencies: dvrescue, xmlstarlet
 
 _usage(){
   echo "$(basename "${0}")"
@@ -15,6 +15,14 @@ _usage(){
   exit
 }
 
+_maketemp(){
+    mktemp -q "/tmp/$(basename "${0}").XXXXXX"
+    if [ "${?}" -ne 0 ]; then
+        echo "${0}: Can't create temp file, exiting..."
+        _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
+        exit 1
+    fi
+}
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":i:h" opt ; do
@@ -35,14 +43,6 @@ if [[ ! -f "$DV_FILE" ]] ; then
     exit 1
   fi
 fi
-
-_check_if_dv(){
-  FIRST_VIDEO_CODEC="$( ffprobe -v 0 -i "${1}" -show_entries stream=codec_name -of compact=p=0:nk=1 -select_streams v:0)"
-  if [[ "${FIRST_VIDEO_CODEC}" != "dvvideo" ]] ; then
-    echo "This first video codec of ${BASENAME} is not DV, but is ${FIRST_VIDEO_CODEC}."
-    exit 1
-  fi
-}
 
 _get_ranges(){
   xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames" -v "@pts" -o "-" -v "@end_pts" -o "-" -v "d:frame[1]/@tc" -n "${DVRESCUE_XML}"
@@ -71,18 +71,24 @@ EXTENSION="mov"
 DVFILE="${1}"
 BASENAME="$(basename "${DVFILE}")"
 SIDECAR_DIR="${DVFILE}_dvrescue"
+DVRESCUE_XML_TEMP="$(_maketemp)"
 DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-_check_if_dv "${DVFILE}"
-
-# check if the sidecar directory is there
-if [[ ! -d "${SIDECAR_DIR}" ]] ; then
-  mkdir -p "${SIDECAR_DIR}"
-fi
 
 # check if the dvrescue xml is already made
 if [[ ! -f "${DVRESCUE_XML}" ]] ; then
   echo "Making a dvrescue xml file for ${BASENAME}..."
-  dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
+  dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
+  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
+  if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
+    echo "This first video codec of ${BASENAME} is not DV."
+    exit 1
+  else
+    # check if the sidecar directory is there
+    if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+      mkdir -p "${SIDECAR_DIR}"
+    fi
+    mv -v "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
+  fi
 fi
 
 _get_ranges "${DVRESCUE_XML}"
@@ -95,7 +101,6 @@ OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
 OPT_OUTPUT+=(-f "$FORMAT")
 
-#LAVF_VERSION="$(ffprobe -v 0 -show_entries library_version=ident | grep "Lavf" | grep -v "Lavfi" | cut -d "=" -f2)"
 #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
 #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
 
