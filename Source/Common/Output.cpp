@@ -6,6 +6,7 @@
 
 //---------------------------------------------------------------------------
 #include "Common/Output.h"
+#include <cmath>
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -48,28 +49,40 @@ void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames)
 }
 
 //---------------------------------------------------------------------------
-void seconds_to_timestamp(string& Data, double Seconds_Float)
+void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComma)
 {
-    if (Seconds_Float >= 360000)
+    if (Seconds_Float >= 360000 || CountAfterComma < 0 || CountAfterComma > 9)
         return; // Not supported
-    Data.append("00:00:00.000", 12);
-    auto Value = &Data.back() - 11;
-    auto Seconds = int(Seconds_Float);
-    Seconds_Float -= Seconds;
-    Seconds_Float *= 1000;
-    auto MilliSeconds = int(Seconds_Float);
-    Seconds_Float -= MilliSeconds;
-    if (Seconds_Float >= 0.5)
-        MilliSeconds++;
+    int Powered;
+    if (CountAfterComma)
+    {
+        auto Powered_Float = pow(10, CountAfterComma);
+        Powered = int(Powered_Float);
+        Seconds_Float *= Powered_Float;
+    }
+    auto Seconds_Multiplied = int(lround(Seconds_Float));
+    auto Seconds = Seconds_Multiplied;
+    int AfterComma;
+    if (CountAfterComma)
+    {
+        Seconds /= Powered;
+        AfterComma = Seconds_Multiplied % Powered;
+    }
+    Data.append("00:00:00");
+    auto Value = &Data.back() - 7;
     Value[0] += Seconds / 36000; Seconds %= 36000;
     Value[1] += Seconds / 3600; Seconds %= 3600;
     Value[3] += Seconds / 600; Seconds %= 600;
     Value[4] += Seconds / 60; Seconds %= 60;
     Value[6] += Seconds / 10; Seconds %= 10;
     Value[7] += Seconds;
-    Value[9] += MilliSeconds / 100; MilliSeconds %= 100;
-    Value[10] += MilliSeconds / 10; MilliSeconds %= 10;
-    Value[11] += MilliSeconds;
+    if (CountAfterComma)
+    {
+        auto AfterCommaString = to_string(AfterComma);
+        AfterCommaString.insert(0, CountAfterComma - AfterCommaString.size(), '0');
+        Data += '.';
+        Data += AfterCommaString;
+    }
 }
 
 //---------------------------------------------------------------------------
