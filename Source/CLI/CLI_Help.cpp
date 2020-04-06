@@ -6,7 +6,7 @@
 
 //---------------------------------------------------------------------------
 #include "CLI/CLI_Help.h"
-#include <iostream>
+#include <ostream>
 using namespace std;
 //---------------------------------------------------------------------------
 
@@ -15,28 +15,41 @@ using namespace std;
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-return_value Help(const char* Name, bool Full)
+return_value Help(ostream& Out, const char* Name, bool Full)
 {
-    cout <<
-    "Usage: \"" << Name << " [-Options...] FileName1 [Filename2...]\"\n";
+    Out <<
+    "Usage: \"" << Name << " FileName1 [Filename2...] [Options...]\"\n";
     if (!Full)
     {
-        cout << "\"" << Name << " --help\" for displaying more information.\n";
+        Out << "\"" << Name << " --help\" for displaying more information.\n"
+            << endl;
         return ReturnValue_OK;
     }
-    cout << "\n"
-    "Options:\n"
-    "--help, -h         Display this help and exit.\n"
-    "--version          Display DVRescue version and exit.\n"
-    ;
+    Out << "\n"
+        "Options:\n"
+        "    --help, -h\n"
+        "        Display this help and exit.\n"
+        "\n"
+        "    --version\n"
+        "        Display DVRescue version and exit.\n"
+        "\n"
+        "    --webvtt-output value | -s value\n"
+        "        Store WebVTT output to value (file name).\n"
+        "\n"
+        "    --xml-output value | -x value\n"
+        "        Store XML output to value (file name).\n"
+        "\n"
+        "If no output file name is provided, XML output is displayed on console output."
+        "\n"
+        << endl;
     
     return ReturnValue_OK;
 }
 
 //---------------------------------------------------------------------------
-return_value NameVersion()
+return_value NameVersion(ostream& Out)
 {
-    cout <<
+    Out <<
     NameVersion_Text() << ".\n"
     ;
 

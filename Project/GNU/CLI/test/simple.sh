@@ -36,16 +36,4 @@ if ! contains "Options:" "${cmd_stdout}" ; then
     error "simple/help" "invalid help string ${cmd_stdout}"
 fi
 
-# check xml output
-run_dvrescue dvrescue
-check_success
-if [ "${?}" -ne 0 ] ; then
-    error "simple/xml" "command failed"
-fi
-
-check_xml
-if [ "${?}" -ne 0 ] ; then
-    error "simple/xml" "invalid xml"
-fi
-
 exit ${status}

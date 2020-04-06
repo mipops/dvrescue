@@ -16,20 +16,21 @@
 
 int main(int argc, const char* argv[])
 {
-    // Configure core
+    // Configure
     Core C;
+    C.Out = &cout;
+    C.Err = &cerr;
     if (auto ReturnValue = Parse(C, argc, argv))
         return ReturnValue;
     if (C.Inputs.empty())
         return ReturnValue_OK;
 
     // Process
-    C.Process();
+    auto ReturnValue = C.Process();
 
-    // Output
-    cout << C.OutputXml();
-    
-    return ReturnValue_OK;
+    // Exit
+    Clean(C);
+    return ReturnValue;
 }
 //---------------------------------------------------------------------------
 

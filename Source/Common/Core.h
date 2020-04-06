@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------
 #pragma once
 #include "Common/ProcessFile.h"
+#include <ostream>
 #include <vector>
 using namespace MediaInfoNameSpace;
 using namespace std;
@@ -25,13 +26,14 @@ public:
 
     // Input
     vector<String>  Inputs;
+    ostream*        WebvttFile = nullptr;
+    ostream*        XmlFile = nullptr;
+    ostream*        Out = nullptr;
+    ostream*        Err = nullptr;
 
     // Process
-    void            Process();
+    return_value    Process();
     float           State();
-
-    // Output
-    string          OutputXml();
 
 protected:
     vector<file*>   PerFile;
