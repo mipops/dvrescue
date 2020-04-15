@@ -65,14 +65,6 @@ _convert_hhmmssmmm2s(){
   awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
 }
 
-_duration_from_pts_range(){
-  START="${1}"
-  END="${2}"
-  START_SEC="$(_convert_hhmmssmmm2s "${START}")"
-  END_SEC="$(_convert_hhmmssmmm2s "${END}")"
-  awk "BEGIN {print $END_SEC - $START_SEC}"
-}
-
 # later give some options
 FORMAT="mov"
 EXTENSION="mov"
@@ -124,8 +116,6 @@ _get_ranges "${DVRESCUE_XML}" | while IFS="|" read PTS_START PTS_END TC RECDATE;
   OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
 
   if [[ -n "${PTS_END}" ]] ; then
-    DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
-    echo "DURATION IS $DURATION"
     END_TIME+=(-to "${PTS_END}")
   fi
   ffmpeg "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
