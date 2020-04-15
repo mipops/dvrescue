@@ -86,7 +86,7 @@ extern const char* const chroma_subsampling[chroma_subsampling_size];
 //***************************************************************************
 
 void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames);
-void seconds_to_timestamp(string& Data, double Seconds_Float);
+void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComma = 3);
 void date_to_string(string& Data, int Years, int Months, int Days);
 char uint4_to_hex4(int Value);
 
