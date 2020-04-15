@@ -28,13 +28,14 @@ MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":i:fsdth" opt ; do
+while getopts ":i:fsdtuh" opt ; do
   case "${opt}" in
     i) DV_FILE="$OPTARG" ;;
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    u) UNPACKAGER="Y" ;;
     h) _usage ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
     *) echo "bad option -${OPTARG}" ; _usage ;;
@@ -42,6 +43,15 @@ while getopts ":i:fsdth" opt ; do
 done
 shift "$((OPTIND-1))"
 MATCH_FRAMES="${MATCH_FRAMES%?}"
+
+if [[ "${UNPACKAGER}" == "Y" ]] ; then
+    OUTPUTNAME="unpackaged_$(uuidgen).dv"
+    echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
+    for i in "${@}" ; do
+        ffmpeg -nostdin -v 0 -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
+    done
+    exit
+fi
 
 if [[ ! -f "$DV_FILE" ]] ; then
   if [[ -f "${1}" ]] ; then
