@@ -36,8 +36,8 @@ while getopts ":i:fsdth" opt ; do
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
     h) _usage ;;
-    *) echo "bad option -${OPTARG}" ; _usage ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+    *) echo "bad option -${OPTARG}" ; _usage ;;
   esac
 done
 shift "$((OPTIND-1))"
