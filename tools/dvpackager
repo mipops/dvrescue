@@ -3,17 +3,53 @@
 # dependencies: dvrescue, xmlstarlet
 
 _usage(){
-  echo "$(basename "${0}")"
-  echo
-  echo "Rewrap a DV stream. This script is part of the dvrescue project."
-  echo
-  echo "Usage:"
-  echo "$(basename "${0}") [options] -i file.dv"
-  echo
-  echo "Options:"
-  echo " -i INPUT (provide an input file to rewrap)"
-  exit
+  cat <<EOF
+dvpackager
+
+Rewrap a DV stream. This script is part of the dvrescue project.
+
+Usage:
+dvpackager [options] -i file.dv
+
+Options:
+ -i INPUT (provide an input file to rewrap)
+
+ By default, dvpackager will split the output files so that each time
+ significant technical characteristics of the dv stream change (such as aspect
+ ratio, frame rate, audio channel count, or audio sample rate) a new output file
+ will be written. The following flags adjust the way dvpackager will split the
+ output.
+
+ -f       (forces dvpackager to ignore changes in significant technical
+           characteristics of the dv stream when splitting the output)
+ -s       (split the output file at recording start markers)
+ -d       (split the output file at non-consecutive recording timestamps)
+ -t       (split the output file at non-consecutive timecode values)
+
+ For example, the following command:
+
+ dvpackager -t -i INPUT.dv
+
+ will read INPUT.dv and rewrap those dv frames into an output file while making
+ one new output file whenever there is a change in significant technical
+ characteristics or a non-consecutive timecode value within INPUT.dv.
+
+ dvpacakager also has an 'unpackage' mode
+
+ -u       (export the dv stream from each provided file into a single dv stream)
+
+ For example, the following command:
+
+ dvapackager -u INPUT_1.mov INPUT_2.mov INPUT_3.mov
+
+ will create one dv stream that contains all the DV of each input file.
+
+EOF
 }
+if [ "${#}" = 0 ] ; then
+  _usage
+  exit 0
+fi
 
 _maketemp(){
     mktemp -q "/tmp/$(basename "${0}").XXXXXX"
@@ -36,9 +72,9 @@ while getopts ":i:fsdtuh" opt ; do
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
     u) UNPACKAGER="Y" ;;
-    h) _usage ;;
-    :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
-    *) echo "bad option -${OPTARG}" ; _usage ;;
+    h) _usage ; exit 0 ;;
+    :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
+    *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
   esac
 done
 shift "$((OPTIND-1))"
