@@ -89,8 +89,8 @@ void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComm
 void date_to_string(string& Data, int Years, int Months, int Days)
 {
     Data.append("2000-00-00");
-    auto Value = &Data.back() - 11;
-    if (Years >= 75) // Arbitrary decided
+    auto Value = &Data.back() - 9;
+    if (Years >= 70) // Arbitrary decided
     {
         Value[0] = '1';
         Value[1] = '9';
