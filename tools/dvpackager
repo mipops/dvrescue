@@ -25,6 +25,8 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -v       (shows ffmpeg stderr output, otherwise this is hidden)
+
  For example, the following command:
 
  dvpackager -t INPUT.dv
@@ -65,6 +67,7 @@ _get_ranges(){
 }
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
+FFMPEG_VERBOSE=(-v 0)
 
 # command-line options to set media id and original variables
 OPTIND=1
@@ -74,6 +77,7 @@ while getopts ":fsdtvuh" opt ; do
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
     :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
@@ -87,7 +91,7 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
     echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
     for i in "${@}" ; do
-        ffmpeg -nostdin -v 0 -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
+        ffmpeg -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
 fi
@@ -145,5 +149,5 @@ _get_ranges "${DVRESCUE_XML}" | while IFS="|" read PTS_START PTS_END TC RECDATE;
   if [[ -n "${PTS_END}" ]] ; then
     END_TIME+=(-to "${PTS_END}")
   fi
-  ffmpeg "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+  ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
 done
