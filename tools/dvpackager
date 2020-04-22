@@ -103,14 +103,6 @@ _get_ranges(){
      awk  -F "|" 'BEGIN{OFS="|";}{if(pts){print pts,$1,tc,rdt};pts=$1;tc=$2;rdt=$3;end_pts=$4}END{print pts,end_pts,tc,rdt}'
 }
 
-_convert_hhmmssmmm2s(){
-  TS="${1}"
-  H="$(echo "${TS}" | cut -d ":" -f1)"
-  M="$(echo "${TS}" | cut -d ":" -f2)"
-  S="$(echo "${TS}" | cut -d ":" -f3)"
-  awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
-}
-
 # later give some options
 FORMAT="mov"
 EXTENSION="mov"
