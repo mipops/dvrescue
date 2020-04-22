@@ -99,33 +99,7 @@ fi
 # later give some options
 FORMAT="mov"
 EXTENSION="mov"
-
-DVFILE="${1}"
-BASENAME="$(basename "${DVFILE}")"
-SIDECAR_DIR="${DVFILE}_dvrescue"
-DVRESCUE_XML_TEMP="$(_maketemp)"
-DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-
-# check if the dvrescue xml is already made
-if [[ ! -f "${DVRESCUE_XML}" ]] ; then
-  echo "Making a dvrescue xml file for ${BASENAME}..."
-  dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
-  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
-  if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
-    echo "This first video codec of ${BASENAME} is not DV."
-    exit 1
-  else
-    # check if the sidecar directory is there
-    if [[ ! -d "${SIDECAR_DIR}" ]] ; then
-      mkdir -p "${SIDECAR_DIR}"
-    fi
-    mv -v "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
-  fi
-fi
-
-_get_ranges "${DVRESCUE_XML}"
-
-OPT_INPUT+=(-y)
+OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
@@ -133,21 +107,56 @@ OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
 OPT_OUTPUT+=(-f "$FORMAT")
 
-#DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
-#MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-
-_get_ranges "${DVRESCUE_XML}" | while IFS="|" read PTS_START PTS_END TC RECDATE; do
-  unset START_TIME END_TIME METADATA
-  PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
-  TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
-
-  START_TIME+=(-ss "${PTS_START}")
-  METADATA+=(-metadata "timecode=${TC}")
-  #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
-  OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
-
-  if [[ -n "${PTS_END}" ]] ; then
-    END_TIME+=(-to "${PTS_END}")
-  fi
+while [[ "${@}" != "" ]] ; do
+    DVFILE="${1}"
+    BASENAME="$(basename "${DVFILE}")"
+    SIDECAR_DIR="${DVFILE}_dvrescue"
+    DVRESCUE_XML_TEMP="$(_maketemp)"
+    DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+    shift
+    if [[ -f "${DVFILE}" ]] ; then
+        echo -n "Packaging ${BASENAME}"
+        # check if the dvrescue xml is already made
+        if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+            echo -n ", making dvrescue xml file"
+            dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
+            xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
+            if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
+                echo ". This first video codec of ${BASENAME} is not DV, skipping."
+                continue
+            else
+                # check if the sidecar directory is there
+                if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+                    mkdir -p "${SIDECAR_DIR}"
+                fi
+                mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
+            fi
+        fi
+        echo
+        echo
+        echo "Start       |End         |Timecode   |Recording Time"
+        _get_ranges "${DVRESCUE_XML}"
+        echo
+        #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
+        #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
+        _get_ranges "${DVRESCUE_XML}" | \
+        while IFS="|" read PTS_START PTS_END TC RECDATE; do
+            unset START_TIME END_TIME METADATA
+            PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
+            TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
+            START_TIME+=(-ss "${PTS_START}")
+            if [[ -n "${TC}" ]] ; then
+                METADATA+=(-metadata "timecode=${TC}")
+            fi
+            #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
+            # to do, update output name pattern
+            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
+            if [[ -n "${PTS_END}" ]] ; then
+                END_TIME+=(-to "${PTS_END}")
+            fi
   ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+        done
+    else
+        echo "$(basename "${DVFILE}" is not a file, skipping.)"
+    fi
 done
