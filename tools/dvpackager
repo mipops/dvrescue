@@ -9,10 +9,9 @@ dvpackager
 Rewrap a DV stream. This script is part of the dvrescue project.
 
 Usage:
-dvpackager [options] -i file.dv
+dvpackager [options] file.dv [file2.dv file3.dv file4.dv]
 
 Options:
- -i INPUT (provide an input file to rewrap)
 
  By default, dvpackager will split the output files so that each time
  significant technical characteristics of the dv stream change (such as aspect
@@ -28,7 +27,7 @@ Options:
 
  For example, the following command:
 
- dvpackager -t -i INPUT.dv
+ dvpackager -t INPUT.dv
 
  will read INPUT.dv and rewrap those dv frames into an output file while making
  one new output file whenever there is a change in significant technical
@@ -69,9 +68,8 @@ MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":i:fsdtuh" opt ; do
+while getopts ":fsdtvuh" opt ; do
   case "${opt}" in
-    i) DV_FILE="$OPTARG" ;;
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
@@ -92,15 +90,6 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
         ffmpeg -nostdin -v 0 -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
-fi
-
-if [[ ! -f "$DV_FILE" ]] ; then
-  if [[ -f "${1}" ]] ; then
-    DV_FILE="${1}"
-  else
-    echo "Please provide an input file to rewrap."
-    exit 1
-  fi
 fi
 
 # later give some options
