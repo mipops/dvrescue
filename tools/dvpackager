@@ -9,10 +9,9 @@ dvpackager
 Rewrap a DV stream. This script is part of the dvrescue project.
 
 Usage:
-dvpackager [options] -i file.dv
+dvpackager [options] file.dv [file2.dv file3.dv file4.dv]
 
 Options:
- -i INPUT (provide an input file to rewrap)
 
  By default, dvpackager will split the output files so that each time
  significant technical characteristics of the dv stream change (such as aspect
@@ -26,9 +25,11 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -v       (shows ffmpeg stderr output, otherwise this is hidden)
+
  For example, the following command:
 
- dvpackager -t -i INPUT.dv
+ dvpackager -t INPUT.dv
 
  will read INPUT.dv and rewrap those dv frames into an output file while making
  one new output file whenever there is a change in significant technical
@@ -60,17 +61,23 @@ _maketemp(){
     fi
 }
 
+_get_ranges(){
+  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${MATCH_FRAMES}" -v "@pts" -o "|" -v "@tc" -o "|" -v "@rdt" -o "|" -v "parent::d:frames/@end_pts" -n "${DVRESCUE_XML}" |\
+     awk  -F "|" 'BEGIN{OFS="|";}{if(pts){print pts,$1,tc,rdt};pts=$1;tc=$2;rdt=$3;end_pts=$4}END{print pts,end_pts,tc,rdt}'
+}
+
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
+FFMPEG_VERBOSE=(-v 0)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":i:fsdtuh" opt ; do
+while getopts ":fsdtvuh" opt ; do
   case "${opt}" in
-    i) DV_FILE="$OPTARG" ;;
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
     :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
@@ -84,63 +91,15 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
     echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
     for i in "${@}" ; do
-        ffmpeg -nostdin -v 0 -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
+        ffmpeg -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
 fi
 
-if [[ ! -f "$DV_FILE" ]] ; then
-  if [[ -f "${1}" ]] ; then
-    DV_FILE="${1}"
-  else
-    echo "Please provide an input file to rewrap."
-    exit 1
-  fi
-fi
-
-_get_ranges(){
-  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${MATCH_FRAMES}" -v "@pts" -o "|" -v "@tc" -o "|" -v "@rdt" -o "|" -v "parent::d:frames/@end_pts" -n "${DVRESCUE_XML}" |\
-     awk  -F "|" 'BEGIN{OFS="|";}{if(pts){print pts,$1,tc,rdt};pts=$1;tc=$2;rdt=$3;end_pts=$4}END{print pts,end_pts,tc,rdt}'
-}
-
-_convert_hhmmssmmm2s(){
-  TS="${1}"
-  H="$(echo "${TS}" | cut -d ":" -f1)"
-  M="$(echo "${TS}" | cut -d ":" -f2)"
-  S="$(echo "${TS}" | cut -d ":" -f3)"
-  awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
-}
-
 # later give some options
 FORMAT="mov"
 EXTENSION="mov"
-
-DVFILE="${1}"
-BASENAME="$(basename "${DVFILE}")"
-SIDECAR_DIR="${DVFILE}_dvrescue"
-DVRESCUE_XML_TEMP="$(_maketemp)"
-DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-
-# check if the dvrescue xml is already made
-if [[ ! -f "${DVRESCUE_XML}" ]] ; then
-  echo "Making a dvrescue xml file for ${BASENAME}..."
-  dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
-  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
-  if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
-    echo "This first video codec of ${BASENAME} is not DV."
-    exit 1
-  else
-    # check if the sidecar directory is there
-    if [[ ! -d "${SIDECAR_DIR}" ]] ; then
-      mkdir -p "${SIDECAR_DIR}"
-    fi
-    mv -v "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
-  fi
-fi
-
-_get_ranges "${DVRESCUE_XML}"
-
-OPT_INPUT+=(-y)
+OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
@@ -148,21 +107,56 @@ OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
 OPT_OUTPUT+=(-f "$FORMAT")
 
-#DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
-#MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-
-_get_ranges "${DVRESCUE_XML}" | while IFS="|" read PTS_START PTS_END TC RECDATE; do
-  unset START_TIME END_TIME METADATA
-  PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
-  TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
-
-  START_TIME+=(-ss "${PTS_START}")
-  METADATA+=(-metadata "timecode=${TC}")
-  #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
-  OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
-
-  if [[ -n "${PTS_END}" ]] ; then
-    END_TIME+=(-to "${PTS_END}")
-  fi
-  ffmpeg "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+while [[ "${@}" != "" ]] ; do
+    DVFILE="${1}"
+    BASENAME="$(basename "${DVFILE}")"
+    SIDECAR_DIR="${DVFILE}_dvrescue"
+    DVRESCUE_XML_TEMP="$(_maketemp)"
+    DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+    shift
+    if [[ -f "${DVFILE}" ]] ; then
+        echo -n "Packaging ${BASENAME}"
+        # check if the dvrescue xml is already made
+        if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+            echo -n ", making dvrescue xml file"
+            dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
+            xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
+            if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
+                echo ". This first video codec of ${BASENAME} is not DV, skipping."
+                continue
+            else
+                # check if the sidecar directory is there
+                if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+                    mkdir -p "${SIDECAR_DIR}"
+                fi
+                mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
+            fi
+        fi
+        echo
+        echo
+        echo "Start       |End         |Timecode   |Recording Time"
+        _get_ranges "${DVRESCUE_XML}"
+        echo
+        #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
+        #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
+        _get_ranges "${DVRESCUE_XML}" | \
+        while IFS="|" read PTS_START PTS_END TC RECDATE; do
+            unset START_TIME END_TIME METADATA
+            PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
+            TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
+            START_TIME+=(-ss "${PTS_START}")
+            if [[ -n "${TC}" ]] ; then
+                METADATA+=(-metadata "timecode=${TC}")
+            fi
+            #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
+            # to do, update output name pattern
+            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
+            if [[ -n "${PTS_END}" ]] ; then
+                END_TIME+=(-to "${PTS_END}")
+            fi
+  ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+        done
+    else
+        echo "$(basename "${DVFILE}" is not a file, skipping.)"
+    fi
 done
