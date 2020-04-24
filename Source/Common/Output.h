@@ -29,10 +29,10 @@ struct frame_arb
 {
 public:
     frame_arb(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) Value) : _Value(Value) {}
-    inline int Value() { return _Value & 0xF; }
-    inline bool HasValue() { return _Value & (1 << 4); }
-    inline bool Repeat() { return _Value & (1 << 5); }
-    inline bool NonConsecutive() { return _Value & (1 << 6); }
+    inline int Value() { return _Value & 0xF; }                                    //  0- 3
+    inline bool HasValue() { return _Value & (1 << 4); }                           //  4
+    inline bool NonConsecutive() { return _Value & (1 << 6); }                     //  6
+    inline bool Repeat() { return _Value & (1 << 7); }                             //  7
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) _Value;
@@ -46,8 +46,8 @@ public:
     inline int Frames() { return _Value & 0x3F; }                                  //  0- 6
     inline bool DropFrame() { return _Value & (1 << 7); }                          //  7
     inline int TimeInSeconds() { return (_Value >> 8) & 0x1FFFF; }                 //  8-24
-    inline bool Repeat() { return _Value & (1 << 30); }                            // 30
-    inline bool NonConsecutive() { return _Value & (1 << 31); }                    // 31
+    inline bool NonConsecutive() { return _Value & (1 << 30); }                    // 30
+    inline bool Repeat() { return _Value & (1 << 31); }                            // 31
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::TimeCode) _Value;
@@ -63,8 +63,8 @@ public:
     inline int Years() { return (_Value1 >> 17) & 0x7F; }                           // 1 17-24
     inline bool End() { return _Value1 & (1 << 28); }                               // 1 28
     inline bool Start() { return _Value1 & (1 << 29); }                             // 1 29
-    inline bool Repeat() { return _Value1 & (1 << 30); }                            // 1 30
-    inline bool NonConsecutive() { return _Value1 & (1 << 31); }                    // 1 31
+    inline bool NonConsecutive() { return _Value1 & (1 << 30); }                    // 1 30
+    inline bool Repeat() { return _Value1 & (1 << 31); }                            // 1 31
     inline int Frames() { return _Value2 & 0x7F; }                                  // 2  0- 7
     inline int Days() { return (_Value2 >> 8) & 0x1F; }                             // 2  8-12
     inline int Months() { return (_Value2 >> 12) & 0x0F; }                          // 2 12-15
