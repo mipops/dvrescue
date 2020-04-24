@@ -50,7 +50,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             if (++i >= argc)
             {
-                if (!C.Err)
+                if (C.Err)
                     *C.Err << "Error: missing WebVTT output file name after " << argv_ansi[i-1] << ".\n";
                 ReturnValue = ReturnValue_ERROR;
                 continue;
@@ -77,7 +77,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             auto File = new ofstream(argv_ansi[i], ios_base::trunc);
             if (!File->is_open())
             {
-                if (!C.Err)
+                if (C.Err)
                     *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
                 delete File;
                 return ReturnValue_ERROR;
