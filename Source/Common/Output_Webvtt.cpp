@@ -93,7 +93,7 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
         auto FrameNumber_Max = File->PerFrame.size() - 1;
         auto PerChange_Next = File->PerChange.begin();
         string TimeStamp_String;
-        seconds_to_timestamp(TimeStamp_String, 0);
+        seconds_to_timestamp(TimeStamp_String, 0, 3, true);
         string TimeStamp2_String;
         for (const auto& Frame : File->PerFrame)
         {
@@ -105,7 +105,7 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
                 Text += '\n';
 
                 auto TimeStamp2 = (FrameNumber + 1) / File->FrameRate;
-                seconds_to_timestamp(TimeStamp2_String, TimeStamp2);
+                seconds_to_timestamp(TimeStamp2_String, TimeStamp2, 3, true);
 
                 Text += TimeStamp_String;
                 Text += " --> ";
