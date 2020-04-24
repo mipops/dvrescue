@@ -49,7 +49,7 @@ void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames)
 }
 
 //---------------------------------------------------------------------------
-void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComma)
+void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComma, bool trunc)
 {
     if (Seconds_Float >= 360000 || CountAfterComma < 0 || CountAfterComma > 9)
         return; // Not supported
@@ -60,7 +60,7 @@ void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComm
         Powered = int(Powered_Float);
         Seconds_Float *= Powered_Float;
     }
-    auto Seconds_Multiplied = int(lround(Seconds_Float));
+    auto Seconds_Multiplied = int(trunc?floor(Seconds_Float):lround(Seconds_Float));
     auto Seconds = Seconds_Multiplied;
     int AfterComma;
     if (CountAfterComma)
