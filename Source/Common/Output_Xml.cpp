@@ -136,13 +136,13 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 {
                     auto TimeStamp_Begin = FrameNumber / File->FrameRate;
                     Text += " pts=\"";
-                    seconds_to_timestamp(Text, TimeStamp_Begin);
+                    seconds_to_timestamp(Text, TimeStamp_Begin, 6);
                     Text += '\"';
                 }
                 {
                     auto TimeStamp_End = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) / File->FrameRate;
                     Text += " end_pts=\"";
-                    seconds_to_timestamp(Text, TimeStamp_End);
+                    seconds_to_timestamp(Text, TimeStamp_End, 6);
                     Text += '\"';
                 }
                 if (Change->Width && Change->Height)
@@ -219,7 +219,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 }
                 {
                     Text += " pts=\"";
-                    seconds_to_timestamp(Text, TimeStamp);
+                    seconds_to_timestamp(Text, TimeStamp, 6);
                     Text += '\"';
                 }
 
