@@ -60,7 +60,7 @@ void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComm
         Powered = int(Powered_Float);
         Seconds_Float *= Powered_Float;
     }
-    auto Seconds_Multiplied = int(trunc?floor(Seconds_Float):lround(Seconds_Float));
+    auto Seconds_Multiplied = (unsigned long long)(trunc?floor(Seconds_Float):lround(Seconds_Float));
     auto Seconds = Seconds_Multiplied;
     int AfterComma;
     if (CountAfterComma)
@@ -68,14 +68,22 @@ void seconds_to_timestamp(string& Data, double Seconds_Float, int CountAfterComm
         Seconds /= Powered;
         AfterComma = Seconds_Multiplied % Powered;
     }
+    auto HundredsOfHours = Seconds / 360000;
+    if (HundredsOfHours)
+    {
+        auto HundredsOfHoursString = to_string(HundredsOfHours);
+        Data.append(HundredsOfHoursString);
+        Seconds %= 360000;
+    }
+    auto S = int(Seconds); // It is guaranted to be less than 360000 so fits in an int
     Data.append("00:00:00");
     auto Value = &Data.back() - 7;
-    Value[0] += Seconds / 36000; Seconds %= 36000;
-    Value[1] += Seconds / 3600; Seconds %= 3600;
-    Value[3] += Seconds / 600; Seconds %= 600;
-    Value[4] += Seconds / 60; Seconds %= 60;
-    Value[6] += Seconds / 10; Seconds %= 10;
-    Value[7] += Seconds;
+    Value[0] += S / 36000; S %= 36000;
+    Value[1] += S / 3600; S %= 3600;
+    Value[3] += S / 600; S %= 600;
+    Value[4] += S / 60; S %= 60;
+    Value[6] += S / 10; S %= 10;
+    Value[7] += S;
     if (CountAfterComma)
     {
         auto AfterCommaString = to_string(AfterComma);
