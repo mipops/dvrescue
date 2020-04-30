@@ -5,6 +5,12 @@ cmake_minimum_required(VERSION 2.8.11)
 find_package(ZenLib REQUIRED)
 find_package(MediaInfoLib REQUIRED)
 
+if(APPLE)
+  option(BUILD_AVFCTL "Build avfctl tool (macOS only)" ON)
+else()
+  set(BUILD_AVFCTL OFF)
+endif()
+
 set(dvrescue_ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set(dvrescue_SOURCES_PATH ${dvrescue_ROOT_PATH}/Source)
 
@@ -27,6 +33,15 @@ set(dvrescue_TOOLS
   ${dvrescue_ROOT_PATH}/tools/dvplay
   ${dvrescue_ROOT_PATH}/tools/dvsampler
 )
+
+if(BUILD_AVFCTL)
+  add_custom_command(OUTPUT ${dvrescue_ROOT_PATH}/tools/avfctl/avfctl
+                     COMMAND make
+                     WORKING_DIRECTORY ${dvrescue_ROOT_PATH}/tools/avfctl
+  )
+  add_custom_target(avfctl ALL DEPENDS ${dvrescue_ROOT_PATH}/tools/avfctl/avfctl)
+  list(APPEND dvrescue_TOOLS ${dvrescue_ROOT_PATH}/tools/avfctl/avfctl)
+endif()
 
 add_executable(dvrescue ${dvrescue_SRCS})
 target_include_directories(dvrescue PRIVATE ${dvrescue_SOURCES_PATH})

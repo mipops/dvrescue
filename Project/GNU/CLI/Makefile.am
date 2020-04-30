@@ -23,6 +23,15 @@ bin_SCRIPTS = \
     ../../../tools/dvplay \
     ../../../tools/dvsampler
 
+if BUILD_AVFCTL
+    AVFCTL = ../../../tools/avfctl/avfctl
+    $(AVFCTL):
+	$(MAKE) -C ../../../tools/avfctl
+    all: $(AVFCTL)
+
+    bin_SCRIPTS += ../../../tools/avfctl/avfctl
+endif
+
 # man1_MANS = ../../../Source/CLI/dvrescue.1
 
 AM_TESTS_FD_REDIRECT = 9>&2

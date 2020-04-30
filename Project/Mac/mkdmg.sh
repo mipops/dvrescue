@@ -64,6 +64,7 @@ if [ "$KIND" = "CLI" ]; then
     cp "../../tools/dvpackager" "${FILES}-Root/usr/local/bin"
     cp "../../tools/dvplay" "${FILES}-Root/usr/local/bin"
     cp "../../tools/dvsampler" "${FILES}-Root/usr/local/bin"
+    cp "../../tools/avfctl/avfctl" "${FILES}-Root/usr/local/bin"
     cp "../../Source/CLI/dvrescue.1" "${FILES}-Root/usr/local/share/man/man1"
     codesign -f -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/${APPNAME_lower}"
 

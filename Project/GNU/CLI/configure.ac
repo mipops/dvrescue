@@ -11,6 +11,7 @@ dnl -------------------------------------------------------------------------
 dnl sets build, host, target variables and the same with _alias
 dnl
 AC_CANONICAL_BUILD
+AC_CANONICAL_HOST
 
 dnl -------------------------------------------------------------------------
 dnl Name and version
@@ -24,6 +25,7 @@ CFLAGS="$CFLAGS"
 CXXFLAGS="$CXXFLAGS"
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_OBJC
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 
@@ -41,6 +43,7 @@ AC_ARG_ENABLE(arch-ppc,         AC_HELP_STRING([--with-arch-ppc],           [Cre
 AC_ARG_ENABLE(arch-i386,        AC_HELP_STRING([--with-arch-i386],          [Create Mac i386 Universal binary]),          , enable_arch_i386=no)
 AC_ARG_ENABLE(arch-x86_64,      AC_HELP_STRING([--enable-arch-x86_64],      [Create Mac x86_64 architecture]),            , enable_arch_x86_64=no)
 AC_ARG_ENABLE(staticlibs,   AC_HELP_STRING([--enable-staticlibs],   [Use static libmediainfo and libzen]),      , enable_staticlibs=no)
+AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Build avfctl tool (macOS only)]),            , enable_avfctl=yes)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -70,6 +73,17 @@ dnl #########################################################################
 dnl ### Parsing options
 dnl #########################################################################
 
+dnl -------------------------------------------------------------------------
+dnl avfctl
+dnl
+host_mac=no
+case "${host_os}" in
+    darwin*)
+        host_mac=yes
+        ;;
+esac
+
+AM_CONDITIONAL([BUILD_AVFCTL], [test "$host_mac" = "yes" -a "$enable_avfctl" = "yes"])
 
 dnl #########################################################################
 dnl ### MediaInfo flags
