@@ -70,7 +70,7 @@ _get_ranges(){
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
-DRYRUN="N"
+REPORT_ONLY="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
@@ -80,7 +80,7 @@ while getopts ":fsdtnvuh" opt ; do
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
-    n) DRYRUN="Y" ;;
+    n) REPORT_ONLY="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
@@ -119,7 +119,7 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     shift
     if [[ -f "${DVFILE}" ]] ; then
-        if [[ "${DRYRUN}" = "Y" ]] ; then
+        if [[ "${REPORT_ONLY}" = "Y" ]] ; then
             echo -n "Analyzing ${BASENAME}"
         else
         echo -n "Packaging ${BASENAME}"
@@ -147,7 +147,7 @@ while [[ "${@}" != "" ]] ; do
         echo
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-        if [[ "$DRYRUN" != "Y" ]] ; then
+        if [[ "$REPORT_ONLY" != "Y" ]] ; then
         _get_ranges "${DVRESCUE_XML}" | \
         while IFS="|" read PTS_START PTS_END TC RECDATE; do
             unset START_TIME END_TIME METADATA
