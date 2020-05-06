@@ -83,6 +83,17 @@ _get_ranges(){
         awk  -F "|" 'BEGIN{OFS="|";}{if(end_pts){print $1,R};pts=$1;end_pts=$2;R=$0}END{print end_pts,R}'
 }
 
+_ranges_2_table(){
+    RANGES="${1}"
+    echo
+    echo "|     # | Seq | PTS Range                         | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC JUMP | Rec Time Jump | IsFirst |"
+    echo "${RANGES}" | awk -F "|" '{END_PTS=$1; PTS=$2; SEQ_END_PTS=$3; TC=$4; RDT=$5; SIZE=$6; VIDEO_RATE=$7; CH_SUB=$8; AR=$9; AUDIO_RATE=$10; CH=$11; REC_ST=$12; RDT_NC=$13; TC_NC=$14; SEQ_NO=$15; FRAME_NO_IN_SEQ=$16; \
+        if(FRAME_NO_IN_SEQ == "0") FIRST="1" ; else FIRST="";}\
+        {printf "| %5i | %3i | %15s - %15s | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s | %7s |\n", \
+        NR, SEQ_NO, PTS, END_PTS, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, FIRST }'
+    echo
+}
+
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
@@ -155,11 +166,7 @@ while [[ "${@}" != "" ]] ; do
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
             fi
         fi
-        echo
-        echo
-        echo "Start       |End         |Timecode   |Recording Time"
-        _get_ranges "${DVRESCUE_XML}"
-        echo
+        _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
