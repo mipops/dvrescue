@@ -86,7 +86,7 @@ _get_ranges(){
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "|     # | Seq | PTS Range                         | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC JUMP | Rec Time Jump | IsFirst |"
+    echo "|     # | Seq | PTS Range                         | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC Jump | Rec Time Jump | IsFirst |"
     echo "${RANGES}" | awk -F "|" '{END_PTS=$1; PTS=$2; SEQ_END_PTS=$3; TC=$4; RDT=$5; SIZE=$6; VIDEO_RATE=$7; CH_SUB=$8; AR=$9; AUDIO_RATE=$10; CH=$11; REC_ST=$12; RDT_NC=$13; TC_NC=$14; SEQ_NO=$15; FRAME_NO_IN_SEQ=$16; \
         if(FRAME_NO_IN_SEQ == "0") FIRST="1" ; else FIRST="";}\
         {printf "| %5i | %3i | %15s - %15s | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s | %7s |\n", \
