@@ -25,6 +25,8 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -n       (do not repackage, simply generate a dvrescue xml if one doesn't
+           already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
 
  For example, the following command:
@@ -62,21 +64,49 @@ _maketemp(){
 }
 
 _get_ranges(){
-  xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${MATCH_FRAMES}" -v "@pts" -o "|" -v "@tc" -o "|" -v "@rdt" -o "|" -v "parent::d:frames/@end_pts" -n "${DVRESCUE_XML}" |\
-     awk  -F "|" 'BEGIN{OFS="|";}{if(pts){print pts,$1,tc,rdt};pts=$1;tc=$2;rdt=$3;end_pts=$4}END{print pts,end_pts,tc,rdt}'
+    xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${MATCH_FRAMES}" \
+        -v "@pts" -o "|" \
+        -v "parent::d:frames/@end_pts" -o "|" \
+        -v "@tc" -o "|" \
+        -v "@rdt" -o "|" \
+        -v "parent::d:frames/@size" -o "|" \
+        -v "parent::d:frames/@video_rate" -o "|" \
+        -v "parent::d:frames/@chroma_subsampling" -o "|" \
+        -v "parent::d:frames/@aspect_ratio" -o "|" \
+        -v "parent::d:frames/@audio_rate" -o "|" \
+        -v "parent::d:frames/@channels" -o "|" \
+        -v "@rec_start" -o "|" \
+        -v "@rdt_nc" -o "|" \
+        -v "@tc_nc" -o "|" \
+        -v "count(../preceding-sibling::d:frames)" -o "|" \
+        -v "count(preceding-sibling::d:frame)" -n "${DVRESCUE_XML}" |\
+        awk  -F "|" 'BEGIN{OFS="|";}{if(end_pts){print $1,R};pts=$1;end_pts=$2;R=$0}END{print end_pts,R}'
+}
+
+_ranges_2_table(){
+    RANGES="${1}"
+    echo
+    echo "|     # | Seq | PTS Range                         | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC Jump | Rec Time Jump | IsFirst |"
+    echo "${RANGES}" | awk -F "|" '{END_PTS=$1; PTS=$2; SEQ_END_PTS=$3; TC=$4; RDT=$5; SIZE=$6; VIDEO_RATE=$7; CH_SUB=$8; AR=$9; AUDIO_RATE=$10; CH=$11; REC_ST=$12; RDT_NC=$13; TC_NC=$14; SEQ_NO=$15; FRAME_NO_IN_SEQ=$16; \
+        if(FRAME_NO_IN_SEQ == "0") FIRST="1" ; else FIRST="";}\
+        {printf "| %5i | %3i | %15s - %15s | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s | %7s |\n", \
+        NR, SEQ_NO, PTS, END_PTS, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, FIRST }'
+    echo
 }
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
+REPORT_ONLY="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdtvuh" opt ; do
+while getopts ":fsdtnvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    n) REPORT_ONLY="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
@@ -115,7 +145,11 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     shift
     if [[ -f "${DVFILE}" ]] ; then
-        echo -n "Packaging ${BASENAME}"
+        if [[ "${REPORT_ONLY}" = "Y" ]] ; then
+            echo -n "Analyzing ${BASENAME}"
+        else
+            echo -n "Packaging ${BASENAME}"
+        fi
         # check if the dvrescue xml is already made
         if [[ ! -f "${DVRESCUE_XML}" ]] ; then
             echo -n ", making dvrescue xml file"
@@ -132,30 +166,28 @@ while [[ "${@}" != "" ]] ; do
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
             fi
         fi
-        echo
-        echo
-        echo "Start       |End         |Timecode   |Recording Time"
-        _get_ranges "${DVRESCUE_XML}"
-        echo
+        _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-        _get_ranges "${DVRESCUE_XML}" | \
-        while IFS="|" read PTS_START PTS_END TC RECDATE; do
-            unset START_TIME END_TIME METADATA
-            PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
-            TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
-            START_TIME+=(-ss "${PTS_START}")
-            if [[ -n "${TC}" ]] ; then
-                METADATA+=(-metadata "timecode=${TC}")
-            fi
-            #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
-            # to do, update output name pattern
-            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
-            if [[ -n "${PTS_END}" ]] ; then
-                END_TIME+=(-to "${PTS_END}")
-            fi
-  ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
-        done
+        if [[ "$REPORT_ONLY" != "Y" ]] ; then
+            _get_ranges "${DVRESCUE_XML}" | \
+            while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ ; do
+                unset START_TIME END_TIME METADATA
+                PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
+                TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
+                START_TIME+=(-ss "${PTS_START}")
+                if [[ -n "${TC}" ]] ; then
+                    METADATA+=(-metadata "timecode=${TC}")
+                fi
+                #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
+                # to do, update output name pattern
+                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${SEQ_NO}_${TC_FILENAME_SAFE}.${EXTENSION}"
+                if [[ -n "${PTS_END}" ]] ; then
+                    END_TIME+=(-to "${PTS_END}")
+                fi
+                ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+            done
+        fi
     else
         echo "$(basename "${DVFILE}" is not a file, skipping.)"
     fi
