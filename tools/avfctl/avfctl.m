@@ -165,10 +165,14 @@
 
         // create receiver delegate
         NSUInteger datalen = 1000; // some dummy value, subject to realloc during first frame
-        [[NSFileManager defaultManager] createFileAtPath:theFileName contents:nil attributes:nil];
 
         _receiver = [[AVFCtlReceiver alloc] initWithDevice:_device];
-        _receiver.output_file = [NSFileHandle fileHandleForWritingAtPath:theFileName];
+         if ([theFileName isEqualToString: @"-"]) {
+            _receiver.output_file = [NSFileHandle fileHandleWithStandardOutput];
+        } else {
+            [[NSFileManager defaultManager] createFileAtPath:theFileName contents:nil attributes:nil];
+            _receiver.output_file = [NSFileHandle fileHandleForWritingAtPath:theFileName];
+        }
         _receiver.output_data = [NSMutableData dataWithLength:datalen];
 
         //NSLog(@"Output file: %@", _receiver.output_file);

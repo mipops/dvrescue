@@ -6,6 +6,39 @@
 
 #import <avfctl.h>
 
+void help(BOOL full)
+{
+    NSString* version = @"0.19.11";
+    NSMutableString *output = [[NSMutableString alloc] init];
+
+    [output appendString:@"avfctl - control and capture from DV tape players via AVFoundation\n"];
+    [output appendFormat:@"version %@\n\n", version];
+    [output appendString:@"Usage: avfctl [Options...] [OutputFile]\n\n"];
+
+    if (full) {
+        [output appendString:@"Options:\n"];
+        [output appendString:@"-h\n"];
+        [output appendString:@"Show this help and exit.\n\n"];
+        [output appendString:@"-list_devices\n"];
+        [output appendString:@"List devices at startup showing detected devices and their indices.\n\n"];
+        [output appendString:@"-device <arg>\n"];
+        [output appendString:@"Use this device to send commands to. <arg> is required and is the index of the device as shown in -list_devices.\n"];
+        [output appendString:@"If not specified, device with the index \"0\" is used by default.\n\n"];
+        [output appendString:@"-cmd <arg>\n"];
+        [output appendString:@"- play: Set speed to 1.0 and mode to play.\n"];
+        [output appendString:@"- stop: Set speed to 0.0 and mode to no-play.\n"];
+        [output appendString:@"- rew: Set speed to -2.0 and mode to no-play.\n"];
+        [output appendString:@"- ff: Set speed to 2.0 and mode to no-play.\n"];
+        [output appendString:@"- capture: Set speed to 1.0 and mode to play and capture all raw-data and save to [OutputFile].\n"];
+        [output appendString:@"  If [OutputFile] is not specified, data are writted to ./out.dv.\n"];
+        [output appendString:@"  If [OutputFile] is \"-\", data are writted to standard output.\n"];
+    } else {
+        [output appendString:@"\"dvrescue -h\" for displaying more information.\n"];
+    }
+
+    [[NSFileHandle fileHandleWithStandardError] writeData:[output dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
 int get_device_idx(NSString *str)
 {
        NSScanner *scan = [NSScanner scannerWithString:str];
@@ -19,9 +52,42 @@ int get_device_idx(NSString *str)
 
 int main(int argc, char *argv[])
 {
-    int device_idx = -1;
-    NSUserDefaults *args = [NSUserDefaults standardUserDefaults];
+    int device_idx = 0;
+    NSString *output_filename = @"out.dv";
     AVCaptureDevice *device = nil;
+
+    NSMutableDictionary *args = [[NSMutableDictionary alloc] init];
+
+    NSArray *arguments = [[NSProcessInfo processInfo] arguments];
+    for (int pos = 0; pos < [arguments count]; pos++) {
+        if ([[arguments objectAtIndex:pos] isEqualTo: @"-list_devices"]) {
+            [args setObject: @YES forKey: @"list_devices"];
+        } else if ([[arguments objectAtIndex:pos] isEqualTo: @"-device"]) {
+            if (++pos < [arguments count]) {
+                device_idx = get_device_idx([arguments objectAtIndex:pos]);
+            } else {
+                NSLog(@"No device given.");
+                return 1;
+            }
+        } else if ([[arguments objectAtIndex:pos] isEqualTo: @"-cmd"]) {
+            if (++pos < [arguments count]) {
+                [args setObject: [arguments objectAtIndex:pos] forKey: @"cmd"];
+            } else {
+                NSLog(@"No command given.");
+                return 1;
+            }
+        } else if ([[arguments objectAtIndex:pos] isEqualTo: @"-h"]) {
+            help(YES);
+            return 0;
+        } else if (pos == [arguments count] - 1) { // Last argument is the output filename
+            output_filename = [arguments objectAtIndex:pos];
+        }
+    }
+
+    if ([args count] == 0) {
+        help(NO);
+        return 1;
+    }
 
     NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed];
 
@@ -32,26 +98,17 @@ int main(int argc, char *argv[])
     }
 
     // list devices upfront if requested
-    if ([args objectForKey:@"list_devices"]) {
+    if ([[args objectForKey:@"list_devices"] isEqualTo: @YES]) {
         NSLog(@"Devices:");
         for (AVCaptureDevice *device in devices) {
             NSLog(@"[%ld] %s", [devices indexOfObject:device], [[device localizedName] UTF8String]);
         }
     }
 
-    // get device index given at cmd line
-    if ([args objectForKey:@"device"]) {
-        device_idx = get_device_idx([args stringForKey:@"device"]);
-        if (device_idx < 0 || device_idx >= [devices count]) {
-            // error out if no valid device number could be identified from cmd line
-            NSLog(@"Invalid device index given.");
-            return 1;
-        }
-    }
-
-    // error out if no device could be identified from cmd line
-    if (device_idx < 0) {
-        NSLog(@"No device index given.");
+    // check device index
+    if (device_idx < 0 || device_idx >= [devices count]) {
+        // error out if no valid device number could be identified from cmd line
+        NSLog(@"Invalid device index given.");
         return 1;
     }
 
@@ -69,13 +126,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-
     // create AVFCTL with device
     AVFCtl *avfctl = [[AVFCtl alloc] initWithDevice: device];
 
     // execute command
     if ([args objectForKey:@"cmd"]) {
-        NSString *cmd = [args stringForKey:@"cmd"];
+        NSString *cmd = [args objectForKey:@"cmd"];
 
         if ([cmd isEqualToString:@"PLAY"] ||
             [cmd isEqualToString:@"play"]) {
@@ -96,7 +152,7 @@ int main(int argc, char *argv[])
         } else if ([cmd isEqualToString:@"CAPTURE"] ||
                    [cmd isEqualToString:@"capture"]) {
             // do CAPTURE
-            [avfctl createCaptureSessionWithOutputFileName:@"out.dv"];
+            [avfctl createCaptureSessionWithOutputFileName:output_filename];
             [avfctl startCaptureSession];
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:1.0f];
 
@@ -108,9 +164,8 @@ int main(int argc, char *argv[])
 
             [avfctl stopCaptureSession]; // redundant for internal errors in the session
         } else {
-            NSLog(@"No command given.");
+            NSLog(@"Invalid command given.");
         }
-
     }
     return 0;
 }
