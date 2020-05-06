@@ -25,6 +25,8 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -n       (do not repackage, simply generate a dvrescue xml if one doesn't
+           already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
 
  For example, the following command:
@@ -68,15 +70,17 @@ _get_ranges(){
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
+DRYRUN="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdtvuh" opt ; do
+while getopts ":fsdtnvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    n) DRYRUN="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
@@ -115,7 +119,11 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     shift
     if [[ -f "${DVFILE}" ]] ; then
+        if [[ "${DRYRUN}" = "Y" ]] ; then
+            echo -n "Analyzing ${BASENAME}"
+        else
         echo -n "Packaging ${BASENAME}"
+        fi
         # check if the dvrescue xml is already made
         if [[ ! -f "${DVRESCUE_XML}" ]] ; then
             echo -n ", making dvrescue xml file"
@@ -139,6 +147,7 @@ while [[ "${@}" != "" ]] ; do
         echo
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
+        if [[ "$DRYRUN" != "Y" ]] ; then
         _get_ranges "${DVRESCUE_XML}" | \
         while IFS="|" read PTS_START PTS_END TC RECDATE; do
             unset START_TIME END_TIME METADATA
@@ -156,6 +165,7 @@ while [[ "${@}" != "" ]] ; do
             fi
   ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
         done
+        fi
     else
         echo "$(basename "${DVFILE}" is not a file, skipping.)"
     fi
