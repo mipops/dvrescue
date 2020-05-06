@@ -174,7 +174,7 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
                 # to do, update output name pattern
-                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}_$(uuidgen).${EXTENSION}"
+                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${SEQ_NO}_${TC_FILENAME_SAFE}.${EXTENSION}"
                 if [[ -n "${PTS_END}" ]] ; then
                     END_TIME+=(-to "${PTS_END}")
                 fi
