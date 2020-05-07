@@ -20,18 +20,18 @@ void help(BOOL full)
         [output appendString:@"-h\n"];
         [output appendString:@"Show this help and exit.\n\n"];
         [output appendString:@"-list_devices\n"];
-        [output appendString:@"List devices at startup showing detected devices and their indices.\n\n"];
+        [output appendString:@"List detected devices and their indices.\n\n"];
         [output appendString:@"-device <arg>\n"];
-        [output appendString:@"Use this device to send commands to. <arg> is required and is the index of the device as shown in -list_devices.\n"];
+        [output appendString:@"Specify the device to send commands to. <arg> is required and is the index of the device as shown in -list_devices.\n"];
         [output appendString:@"If not specified, device with the index \"0\" is used by default.\n\n"];
         [output appendString:@"-cmd <arg>\n"];
-        [output appendString:@"- play: Set speed to 1.0 and mode to play.\n"];
-        [output appendString:@"- stop: Set speed to 0.0 and mode to no-play.\n"];
-        [output appendString:@"- rew: Set speed to -2.0 and mode to no-play.\n"];
-        [output appendString:@"- ff: Set speed to 2.0 and mode to no-play.\n"];
-        [output appendString:@"- capture: Set speed to 1.0 and mode to play and capture all raw-data and save to [OutputFile].\n"];
-        [output appendString:@"  If [OutputFile] is not specified, data are writted to ./out.dv.\n"];
-        [output appendString:@"  If [OutputFile] is \"-\", data are writted to standard output.\n"];
+        [output appendString:@"  play      Set speed to 1.0 and mode to play.\n"];
+        [output appendString:@"  stop      Set speed to 0.0 and mode to no-play.\n"];
+        [output appendString:@"  rew       Set speed to -2.0 and mode to no-play.\n"];
+        [output appendString:@"  ff        Set speed to 2.0 and mode to no-play.\n"];
+        [output appendString:@"  capture   Set speed to 1.0 and mode to play and capture all raw-data and save to [OutputFile].\n\n"];
+        [output appendString:@"If [OutputFile] is not specified, data will be written to ./out.dv.\n"];
+        [output appendString:@"If [OutputFile] is \"-\", data will be written to standard output.\n"];
     } else {
         [output appendString:@"\"dvrescue -h\" for displaying more information.\n"];
     }
