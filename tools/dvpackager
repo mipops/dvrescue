@@ -25,6 +25,8 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -e <ext> (specify the extension of the container to use. Tested with:
+           mkv, mov. Defaults to mkv.)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -43,7 +45,7 @@ Options:
 
  For example, the following command:
 
- dvapackager -u INPUT_1.mov INPUT_2.mov INPUT_3.mov
+ dvpackager -u INPUT_1.mkv INPUT_2.mkv INPUT_3.mkv
 
  will create one dv stream that contains all the DV of each input file.
 
@@ -97,15 +99,17 @@ _ranges_2_table(){
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
+EXT="mkv"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdtnvuh" opt ; do
+while getopts ":fsdte:nvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    e) EXT="${OPTARG}" ;;
     n) REPORT_ONLY="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
@@ -126,15 +130,27 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     exit
 fi
 
-# later give some options
-FORMAT="mov"
-EXTENSION="mov"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
 OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
+case "${EXT}" in
+    "mov")
+        FORMAT="mov"
+        EXTENSION="mov"
+        ;;
+    "mkv")
+        FORMAT="matroska"
+        EXTENSION="mkv"
+        ;;
+    *)
+        _report -w "Error: ${EXT} is an invalid extension option."
+        _usage
+        exit 1
+        ;;
+esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 while [[ "${@}" != "" ]] ; do
