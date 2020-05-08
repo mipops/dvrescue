@@ -226,7 +226,7 @@ while [[ "${@}" != "" ]] ; do
                     END_TIME+=(-to "${PTS_END}")
                 fi
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}")
+                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}" -shortest)
                 else
                     unset SUB_INPUT
                 fi
