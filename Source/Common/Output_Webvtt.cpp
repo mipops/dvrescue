@@ -17,7 +17,7 @@ using namespace ZenLib;
 // Helpers
 //***************************************************************************
 
-void Xml_Sta_Element(string& Text, size_t o, int Sta, size_t n, size_t n_even = size_t(-1))
+void Xml_Sta_Element(string& Text, int Sta, size_t n, size_t n_even = size_t(-1))
 {
     if (!n)
         return;
@@ -34,13 +34,13 @@ void Xml_Sta_Element(string& Text, size_t o, int Sta, size_t n, size_t n_even = 
     Text += ", ";
 }
 
-void Xml_Sta_Elements(string& Text, size_t o, const size_t* const Stas, const size_t* const Stas_even = nullptr)
+void Xml_Sta_Elements(string& Text, const size_t* const Stas, const size_t* const Stas_even = nullptr)
 {
     for (auto Sta = 0; Sta < Sta_Size; Sta++)
     {
         auto n = Stas[Sta];
         auto n_even = Stas_even == nullptr ? size_t(-1) : Stas_even[Sta];
-        Xml_Sta_Element(Text, o, Sta, n, n_even);
+        Xml_Sta_Element(Text, Sta, n, n_even);
     }
 }
 
@@ -91,7 +91,6 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
 
         // By Frame - For each line
         auto FrameNumber_Max = File->PerFrame.size() - 1;
-        auto PerChange_Next = File->PerChange.begin();
         string TimeStamp_String;
         seconds_to_timestamp(TimeStamp_String, 0, 3, true);
         string TimeStamp2_String;
@@ -192,29 +191,27 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
                 Text += '\n';
 
                 // Errors
-                if (Frame->Video_STA_Errors || Frame->Audio_Data_Errors)
+                if ((Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size))
                 {
-                    // Split
-                    if (Frame->Video_STA_Errors_Count == DseqSta_Size || Frame->Audio_Data_Errors_Count == Dseq_Size)
-                    {
-                        // Compute
-                        computed_errors ComputedErrors;
-                        ComputedErrors.Compute(*Frame);
+                    // Compute
+                    computed_errors ComputedErrors;
+                    ComputedErrors.Compute(*Frame);
 
-                        // Display
-                        auto Size_Before = Text.size();
-                        Xml_Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
-                        Xml_Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
-                        auto Size_After = Text.size();
-                        if (Size_After > Size_Before + 51)
-                        {
-                            Text.resize(Size_Before + 48);
-                            Text.append(3, '.');
-                        }
+                    // Display
+                    auto Size_Before = Text.size();
+                    Xml_Sta_Elements(Text, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
+                    Xml_Aud_Element(Text, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
+                    auto Size_After = Text.size();
+                    if (Size_After > Size_Before + 51)
+                    {
+                        Text.resize(Size_Before + 48);
+                        Text.append(3, '.');
                     }
+                    if (Size_After == Size_Before)
+                        Text += ' '; // Actually no error
                 }
                 else
-                    Text.append(1, ' ');
+                    Text += ' ';
                 Text += '\n';
 
                 // Animation

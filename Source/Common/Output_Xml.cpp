@@ -288,34 +288,35 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 }
 
                 // Errors
-                if (Frame->Video_STA_Errors || Frame->Audio_Data_Errors)
+                if ((Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size))
                 {
                     Text += ">\n";
 
-                    // Split
-                    if (Frame->Video_STA_Errors_Count == DseqSta_Size || Frame->Audio_Data_Errors_Count == Dseq_Size)
+                    // Compute
+                    computed_errors ComputedErrors;
+
+                    auto Size_Before = Text.size();
+                    for (int Dseq = 0; Dseq < Dseq_Size; Dseq++)
                     {
-                        // Compute
-                        computed_errors ComputedErrors;
-
-                        for (int Dseq = 0; Dseq < Dseq_Size; Dseq++)
+                        if (ComputedErrors.Compute(*Frame, Dseq))
                         {
-                            if (ComputedErrors.Compute(*Frame, Dseq))
-                            {
-                                // Display
-                                Dseq_Begin(Text, 4, Dseq);
-                                Sta_Elements(Text, 5, ComputedErrors.PerDseq.Video_Sta_TotalPerSta);
-                                Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total);
-                                Dseq_End(Text, 4);
-                            }
+                            // Display
+                            Dseq_Begin(Text, 4, Dseq);
+                            Sta_Elements(Text, 5, ComputedErrors.PerDseq.Video_Sta_TotalPerSta);
+                            Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total);
+                            Dseq_End(Text, 4);
                         }
-
-                        // Display
-                        Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
-                        Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
                     }
 
-                    Text += "\t\t\t</frame>\n";
+                    // Display
+                    Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
+                    Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
+
+                    auto Size_After = Text.size();
+                    if (Size_After == Size_Before)
+                        Text.insert(Text.size() - 2, 1, '/'); // Actually no error, self close the frame
+                    else
+                        Text += "\t\t\t</frame>\n";
                 }
                 else
                     Text += "/>\n";
