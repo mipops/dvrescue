@@ -25,6 +25,11 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -e <ext> (specify the extension of the container to use. Tested with:
+           mkv, mov. Defaults to mkv.)
+ -S [Y|N] (set to 'Y' enables technical subtitle track to show timecode,
+           recording time, and dv error data)
+
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -43,7 +48,7 @@ Options:
 
  For example, the following command:
 
- dvapackager -u INPUT_1.mov INPUT_2.mov INPUT_3.mov
+ dvpackager -u INPUT_1.mkv INPUT_2.mkv INPUT_3.mkv
 
  will create one dv stream that contains all the DV of each input file.
 
@@ -97,16 +102,20 @@ _ranges_2_table(){
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
+EXT="mkv"
+SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdtnvuh" opt ; do
+while getopts ":fsdte:S:nvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
     d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    e) EXT="${OPTARG}" ;;
     n) REPORT_ONLY="Y" ;;
+    S) SUBS="${OPTARG}" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
@@ -126,15 +135,39 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     exit
 fi
 
-# later give some options
-FORMAT="mov"
-EXTENSION="mov"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
 OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
+case "${EXT}" in
+    "mov")
+        FORMAT="mov"
+        EXTENSION="mov"
+        if [[ "${SUBS}" = "Y" ]] ; then
+            OPT_OUTPUT+=(-map 1)
+            OPT_OUTPUT+=(-c:s mov_text)
+            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+        fi
+        ;;
+    "mkv")
+        FORMAT="matroska"
+        EXTENSION="mkv"
+        if [[ "${SUBS}" = "Y" ]] ; then
+            OPT_OUTPUT+=(-map 1)
+            OPT_OUTPUT+=(-c:s copy)
+            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+        fi
+        ;;
+    *)
+        _report -w "Error: ${EXT} is an invalid extension option."
+        _usage
+        exit 1
+        ;;
+esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 while [[ "${@}" != "" ]] ; do
@@ -143,6 +176,8 @@ while [[ "${@}" != "" ]] ; do
     SIDECAR_DIR="${DVFILE}_dvrescue"
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+    DVRESCUE_TECHSUBS_TEMP="$(_maketemp)"
+    DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
     shift
     if [[ -f "${DVFILE}" ]] ; then
         if [[ "${REPORT_ONLY}" = "Y" ]] ; then
@@ -153,7 +188,11 @@ while [[ "${@}" != "" ]] ; do
         # check if the dvrescue xml is already made
         if [[ ! -f "${DVRESCUE_XML}" ]] ; then
             echo -n ", making dvrescue xml file"
-            dvrescue "${DVFILE}" > "${DVRESCUE_XML_TEMP}"
+            if [[ "${SUBS}" = "Y" ]] ; then
+                dvrescue "${DVFILE}" --webvtt-output "${DVRESCUE_TECHSUBS_TEMP}" --xml-output "${DVRESCUE_XML_TEMP}"
+            else
+                dvrescue "${DVFILE}" --xml-output "${DVRESCUE_XML_TEMP}"
+            fi
             xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
             if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
                 echo ". This first video codec of ${BASENAME} is not DV, skipping."
@@ -164,6 +203,7 @@ while [[ "${@}" != "" ]] ; do
                     mkdir -p "${SIDECAR_DIR}"
                 fi
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
+                mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
             fi
         fi
         _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
@@ -185,7 +225,12 @@ while [[ "${@}" != "" ]] ; do
                 if [[ -n "${PTS_END}" ]] ; then
                     END_TIME+=(-to "${PTS_END}")
                 fi
-                ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${OPT_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                if [[ "${SUBS}" = "Y" ]] ; then
+                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}" -shortest)
+                else
+                    unset SUB_INPUT
+                fi
+                ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             done
         fi
     else
