@@ -14,10 +14,17 @@ using namespace ZenLib;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
+// Info
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+static const char* const Writer_Name = "WebVTT";
+
+//***************************************************************************
 // Helpers
 //***************************************************************************
 
-void Xml_Sta_Element(string& Text, int Sta, size_t n, size_t n_even = size_t(-1))
+static void Xml_Sta_Element(string& Text, int Sta, size_t n, size_t n_even = size_t(-1))
 {
     if (!n)
         return;
@@ -34,7 +41,7 @@ void Xml_Sta_Element(string& Text, int Sta, size_t n, size_t n_even = size_t(-1)
     Text += ", ";
 }
 
-void Xml_Sta_Elements(string& Text, const size_t* const Stas, const size_t* const Stas_even = nullptr)
+static void Xml_Sta_Elements(string& Text, const size_t* const Stas, const size_t* const Stas_even = nullptr)
 {
     for (auto Sta = 0; Sta < Sta_Size; Sta++)
     {
@@ -44,7 +51,7 @@ void Xml_Sta_Elements(string& Text, const size_t* const Stas, const size_t* cons
     }
 }
 
-void Xml_Aud_Element(string& Text, size_t o, size_t n, size_t n_even = size_t(-1))
+static void Xml_Aud_Element(string& Text, size_t o, size_t n, size_t n_even = size_t(-1))
 {
     if (!n)
         return;
@@ -256,11 +263,8 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
                 Text += '\n';
 
                 // Write content to output
-                if (Text.size() >= 1024 * 1024)
-                {
-                    if (auto ToReturn = Write(Out, Text, Err, "WebVTT"))
-                        return ToReturn;
-                }
+                if (auto ToReturn = WriteIfBig(Out, Text, Err, Writer_Name))
+                    return ToReturn;
             }
 
             FrameNumber++;
@@ -268,5 +272,5 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
     }
 
     // Write content to output
-    return Write(Out, Text, Err, "WebVTT");
+    return Write(Out, Text, Err, Writer_Name);
 }
