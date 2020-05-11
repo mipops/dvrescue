@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------
 #include "Common/Core.h"
 #include "Common/ProcessFile.h"
+#include "Common/Output_Captions_Decode.h"
+#include "Common/Output_Captions_Scc.h"
 #include "Common/Output_Xml.h"
 #include "Common/Output_Webvtt.h"
 #include "ZenLib/Ztring.h"
@@ -21,6 +23,7 @@ using namespace ZenLib;
 Core::Core()
 {
     MediaInfo::Option_Static(__T("ParseSpeed"), __T("1.000"));
+    MediaInfo::Option_Static(__T("Demux"), __T("container"));
 }
 
 Core::~Core()
@@ -58,6 +61,27 @@ return_value Core::Process()
     {
         if (auto ToReturn2 = Output_Webvtt(*WebvttFile, PerFile, Err))
             ToReturn = ToReturn2;
+    }
+
+    // Closed Captions
+    if (!CaptionsFileNames.empty())
+    {
+        // SCC
+        auto SccFileName = CaptionsFileNames.find(Caption_Scc);
+        if (SccFileName != CaptionsFileNames.end())
+        {
+            if (auto ToReturn2 = Output_Captions_Scc(SccFileName->second, OffsetTimeCode, PerFile, Err))
+                ToReturn = ToReturn2;
+        }
+
+        // Decode (Screen or SRT)
+        auto ScreenFileName = CaptionsFileNames.find(Caption_Screen);
+        auto SrtFileName = CaptionsFileNames.find(Caption_Srt);
+        if (ScreenFileName != CaptionsFileNames.end() || SrtFileName != CaptionsFileNames.end())
+        {
+            if (auto ToReturn2 = Output_Captions_Decode(ScreenFileName != CaptionsFileNames.end() ? ScreenFileName->second : string(), SrtFileName != CaptionsFileNames.end() ? SrtFileName->second : string(), PerFile, Err))
+                ToReturn = ToReturn2;
+        }
     }
 
     return ToReturn;

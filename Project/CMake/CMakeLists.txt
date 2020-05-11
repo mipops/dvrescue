@@ -24,6 +24,12 @@ set(dvrescue_SRCS
   ${dvrescue_SOURCES_PATH}/Common/Output_Webvtt.cpp
   ${dvrescue_SOURCES_PATH}/Common/Output_Xml.cpp
   ${dvrescue_SOURCES_PATH}/Common/ProcessFile.cpp
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/ccdecoder/ccdecoder_internal.c
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/ccdecoder/ccdecoder_line21.c
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/ccdecoder/ccdecoder_line21field.c
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/ccdecoder/ccdecoder_onscreen.c
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/ccdecoder/ccdecoder_subrip.c
+  ${dvrescue_SOURCES_PATH}/Source/ThirdParty/TimeCode/TimeCode.cpp
 )
 
 set(dvrescue_TOOLS
@@ -43,9 +49,18 @@ if(BUILD_AVFCTL)
   list(APPEND dvrescue_TOOLS ${dvrescue_ROOT_PATH}/tools/avfctl/avfctl)
 endif()
 
-add_executable(dvrescue ${dvrescue_SRCS})
-target_include_directories(dvrescue PRIVATE ${dvrescue_SOURCES_PATH})
-target_link_libraries(dvrescue ${ZenLib_LIBRARY} ${MediaInfoLib_LIBRARY})
+add_executable(dvrescue
+  ${dvrescue_SRCS}
+)
+target_include_directories(dvrescue
+  PRIVATE ${dvrescue_SOURCES_PATH}
+  PRIVATE ${dvrescue_SOURCES_PATH}/ThirdParty/ccdecoder
+  PRIVATE ${dvrescue_SOURCES_PATH}/ThirdParty/TimeCode
+)
+target_link_libraries(dvrescue
+  ${ZenLib_LIBRARY}
+  ${MediaInfoLib_LIBRARY}
+)
 
 install(TARGETS dvrescue DESTINATION bin)
 if(UNIX)

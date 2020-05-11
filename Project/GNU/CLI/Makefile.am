@@ -7,11 +7,21 @@ dvrescue_SOURCES = \
     ../../../Source/CLI/CommandLine_Parser.cpp \
     ../../../Source/Common/Core.cpp \
     ../../../Source/Common/Output.cpp \
+    ../../../Source/Common/Output_Captions_Decode.cpp \
+    ../../../Source/Common/Output_Captions_Scc.cpp \
     ../../../Source/Common/Output_Xml.cpp \
     ../../../Source/Common/Output_Webvtt.cpp \
-    ../../../Source/Common/ProcessFile.cpp
+    ../../../Source/Common/ProcessFile.cpp \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_internal.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21field.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_onscreen.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_subrip.c \
+    ../../../Source/ThirdParty/TimeCode/TimeCode.cpp
 
 INCLUDES = -I../../../Source \
+           -I../../../Source/ThirdParty/ccdecoder \
+           -I../../../Source/ThirdParty/TimeCode \
            -I../../../../MediaInfoLib/Source \
            -I../../../../ZenLib/Source
 AM_CXXFLAGS = -std=c++11
