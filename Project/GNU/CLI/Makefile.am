@@ -46,11 +46,11 @@ endif
 
 AM_TESTS_FD_REDIRECT = 9>&2
 
-TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/framediscontinuity.sh
+TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/captions.sh test/framediscontinuity.sh
 
 TESTING_DIR = test/TestingFiles
 
 clone_testing_files: $(TESTING_DIR)
 
 $(TESTING_DIR):
-    git clone https://github.com/MediaArea/dvrescue-sample-data.git test/TestingFiles
+	git clone https://github.com/MediaArea/dvrescue-sample-data.git test/TestingFiles

@@ -23,4 +23,4 @@ before_install:
   - git -C .. clone --depth=1 https://github.com/MediaArea/MediaInfoLib.git
   - pushd ../MediaInfoLib/Project/GNU/Library && sh autogen.sh && ./configure --prefix=/usr/local && make && sudo make install && popd
 
-script: cd Project/GNU/CLI/ && sh autogen.sh && ./configure && make && make check
+script: cd Project/GNU/CLI/ && sh autogen.sh && ./configure && make && make clone_testing_files && make check
