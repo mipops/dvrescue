@@ -31,6 +31,14 @@ BuildRequires:	libzen-devel >= %libzen_version
 BuildRequires:  gdb
 %endif
 
+%if 0%{?mageia}
+%ifarch x86_64
+BuildRequires:  lib64openssl-devel
+%else
+BuildRequires:  libopenssl-devel
+%endif
+%endif
+
 %description
 Data migration from DV tapes into digital files suitable for long-term preservation
 
