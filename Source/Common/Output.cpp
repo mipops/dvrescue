@@ -202,13 +202,15 @@ bool computed_errors::Compute(const MediaInfo_Event_DvDif_Analysis_Frame_1& Fram
 // Writing
 //***************************************************************************
 
-return_value Write(ostream& Out, string& ToWrite, ostream* Err, const char* const OutName)
+return_value Write(ostream& Out, string& ToWrite, ostream* Err, const char* const OutName, size_t ToWrite_Size)
 {
     if (ToWrite.empty())
         return ReturnValue_OK;
 
-    Out.write(ToWrite.c_str(), ToWrite.size());
-    ToWrite.clear();
+    if (!ToWrite_Size || ToWrite_Size > ToWrite.size())
+        ToWrite_Size = ToWrite.size();
+    Out.write(ToWrite.c_str(), ToWrite_Size);
+    ToWrite.erase(0, ToWrite_Size);
     if (!Out.good())
     {
         if (Err)

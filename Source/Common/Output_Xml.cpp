@@ -13,6 +13,13 @@ using namespace ZenLib;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
+// Info
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+static const char* const Writer_Name = "XML";
+
+//***************************************************************************
 // Helpers
 //***************************************************************************
 
@@ -334,11 +341,8 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                     Text += "/>\n";
 
                 // Write content to output
-                if (Text.size() >= 1024 * 1024)
-                {
-                    if (auto ToReturn = Write(Out, Text, Err, "XML"))
-                        return ToReturn;
-                }
+                if (auto ToReturn = WriteIfBig(Out, Text, Err, Writer_Name))
+                    return ToReturn;
             }
         }
 
@@ -351,5 +355,5 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
     Text += "</dvrescue>\n";
 
     // Write content to output
-    return Write(Out, Text, Err, "XML");
+    return Write(Out, Text, Err, Writer_Name);
 }

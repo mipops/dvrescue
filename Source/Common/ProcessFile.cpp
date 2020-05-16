@@ -38,6 +38,7 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
         {
         case MediaInfo_Event_DvDif_Analysis_Frame: if (EventVersion == 1 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Analysis_Frame_1)) UserHandler->AddFrame((MediaInfo_Event_DvDif_Analysis_Frame_1*)Event_Generic); break;
         case MediaInfo_Event_DvDif_Change: if (EventVersion == 0 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Change_0)) UserHandler->AddChange((MediaInfo_Event_DvDif_Change_0*)Event_Generic); break;
+        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrame((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
         }
         break;
     }
@@ -143,4 +144,43 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
         ToPush->Audio_Data_Errors = Audio_Data_Errors;
     }
     PerFrame.push_back(ToPush);
+}
+
+//---------------------------------------------------------------------------
+void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
+{
+    if (!FrameData->StreamIDs_Size)
+        return;
+    auto Dseq = FrameData->StreamIDs[FrameData->StreamIDs_Size-1];
+    if ((Dseq & 0xFFFF00) != ((0x2 << 16) | (0x65 << 8))) // identifier with SCT = 0x2, PackType = 0x65, and Dseq
+        return;
+    Dseq &= 0xFF; // Extract Dseq
+    if (Dseq >= 16)
+        return;
+    if (FrameData->Content_Size != 4)
+        return;
+    
+    // Store
+    for (int i = 0; i < 2; i++)
+    {
+        // Filter unneeded content
+        if (FrameData->Content[i * 2] == 0x80 && FrameData->Content[i * 2 + 1] == 0x80)
+            return; // Don't store empty content
+        if (Dseq && PerFrame_Captions_PerSeq_PerField.size() == 1)
+        {
+            auto& PerSeq0 = PerFrame_Captions_PerSeq_PerField[0];
+            auto& FieldData0 = PerSeq0.FieldData[i];
+            if (!FieldData0.empty() && FieldData0.back().StartFrameNumber + FieldData0.back().Captions.size() - 1 == FrameNumber && !FieldData0.back().Captions.back().compare(FrameData->Content + i * 2))
+                continue; // Content is same, not stored
+        }
+
+        // Store
+        if (Dseq >= PerFrame_Captions_PerSeq_PerField.size())
+            PerFrame_Captions_PerSeq_PerField.resize(Dseq + 1);
+        auto& PerSeq = PerFrame_Captions_PerSeq_PerField[Dseq];
+        auto& FieldData = PerSeq.FieldData[i];
+        if (FieldData.empty() || FieldData.back().StartFrameNumber + FieldData.back().Captions.size() != FrameNumber)
+            FieldData.emplace_back(FrameNumber);
+        FieldData.back().Captions.emplace_back(FrameData->Content + i * 2);
+    }
 }

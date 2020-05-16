@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -103,7 +103,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -120,7 +120,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -139,7 +139,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -155,9 +155,17 @@
     <ClCompile Include="..\..\..\Source\CLI\CommandLine_Parser.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Core.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Output_Captions_Scc.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Output_Captions_Decode.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output_Webvtt.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output_Xml.cpp" />
     <ClCompile Include="..\..\..\Source\Common\ProcessFile.cpp" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_internal.c" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21.c" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21field.c" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_onscreen.c" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_subrip.c" />
+    <ClCompile Include="..\..\..\Source\ThirdParty\timeCode\TimeCode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\CLI\CLI_Help.h" />
@@ -165,9 +173,18 @@
     <ClInclude Include="..\..\..\Source\Common\Config.h" />
     <ClInclude Include="..\..\..\Source\Common\Core.h" />
     <ClInclude Include="..\..\..\Source\Common\Output.h" />
+    <ClInclude Include="..\..\..\Source\Common\Output_Captions_Scc.h" />
+    <ClInclude Include="..\..\..\Source\Common\Output_Captions_Decode.h" />
     <ClInclude Include="..\..\..\Source\Common\Output_Webvtt.h" />
     <ClInclude Include="..\..\..\Source\Common\Output_Xml.h" />
     <ClInclude Include="..\..\..\Source\Common\ProcessFile.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_common.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_internal.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21field.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_onscreen.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_subrip.h" />
+    <ClInclude Include="..\..\..\Source\ThirdParty\timeCode\TimeCode.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\Source\CLI\DVRescue.rc" />

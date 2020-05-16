@@ -7,11 +7,26 @@
 //---------------------------------------------------------------------------
 #pragma once
 #include "Common/ProcessFile.h"
+#include <map>
 #include <ostream>
+#include <string>
 #include <vector>
 using namespace MediaInfoNameSpace;
 using namespace std;
+class TimeCode;
 //---------------------------------------------------------------------------
+
+//***************************************************************************
+// Enums
+//***************************************************************************
+
+enum caption_kind
+{
+    Caption_Scc,
+    Caption_Screen,
+    Caption_Srt,
+    Caption_Unknown,
+};
 
 //***************************************************************************
 // Class core
@@ -26,6 +41,8 @@ public:
 
     // Input
     vector<String>  Inputs;
+    map<caption_kind, string> CaptionsFileNames; // We don't directly open an ostream because file name may change if cc are not same and/or 2nd field and/or no cc
+    TimeCode*       OffsetTimeCode = nullptr;
     ostream*        WebvttFile = nullptr;
     ostream*        XmlFile = nullptr;
     ostream*        Out = nullptr;

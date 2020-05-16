@@ -125,4 +125,11 @@ public:
 // Writing
 //***************************************************************************
 
-return_value Write(ostream& Out, string& ToWrite, ostream* Err = nullptr, const char* const OutName = nullptr);
+return_value Write(ostream& Out, string& ToWrite, ostream* Err = nullptr, const char* const OutName = nullptr, size_t ToWrite_Size = 0);
+inline return_value WriteIfBig(ostream& Out, string& ToWrite, ostream* Err = nullptr, const char* const OutName = nullptr)
+{
+    static const size_t BlockSize = 0x10000;
+    if (ToWrite.size() < BlockSize)
+        return ReturnValue_OK;
+    return Write(Out, ToWrite, Err, OutName, BlockSize);
+}

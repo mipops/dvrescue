@@ -7,11 +7,21 @@ dvrescue_SOURCES = \
     ../../../Source/CLI/CommandLine_Parser.cpp \
     ../../../Source/Common/Core.cpp \
     ../../../Source/Common/Output.cpp \
+    ../../../Source/Common/Output_Captions_Decode.cpp \
+    ../../../Source/Common/Output_Captions_Scc.cpp \
     ../../../Source/Common/Output_Xml.cpp \
     ../../../Source/Common/Output_Webvtt.cpp \
-    ../../../Source/Common/ProcessFile.cpp
+    ../../../Source/Common/ProcessFile.cpp \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_internal.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21field.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_onscreen.c \
+    ../../../Source/ThirdParty/ccdecoder/ccdecoder_subrip.c \
+    ../../../Source/ThirdParty/TimeCode/TimeCode.cpp
 
 INCLUDES = -I../../../Source \
+           -I../../../Source/ThirdParty/ccdecoder \
+           -I../../../Source/ThirdParty/TimeCode \
            -I../../../../MediaInfoLib/Source \
            -I../../../../ZenLib/Source
 AM_CXXFLAGS = -std=c++11
@@ -36,11 +46,11 @@ endif
 
 AM_TESTS_FD_REDIRECT = 9>&2
 
-TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/framediscontinuity.sh
+TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/captions.sh test/framediscontinuity.sh
 
 TESTING_DIR = test/TestingFiles
 
 clone_testing_files: $(TESTING_DIR)
 
 $(TESTING_DIR):
-    git clone https://github.com/MediaArea/dvrescue-sample-data.git test/TestingFiles
+	git clone https://github.com/MediaArea/dvrescue-sample-data.git test/TestingFiles

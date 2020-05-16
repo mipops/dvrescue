@@ -16,6 +16,9 @@
 
 int main(int argc, const char* argv[])
 {
+    // Environment
+    setlocale(LC_ALL, "");
+
     // Configure
     Core C;
     C.Out = &cout;
