@@ -217,6 +217,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                     Text += to_string(Change->AudioChannels);
                     Text += '\"';
                 }
+                if (Change->Captions_Flags & 0x1)
+                {
+                    Text += " captions=\"y\"";
+                }
                 Text += ">\n";
             }
 
@@ -304,6 +308,12 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 if (Arb.NonConsecutive())
                 {
                     Text += " arb_nc=\"1\"";
+                }
+
+                // Captions
+                if (Frame->Captions_Errors & 1)
+                {
+                    Text += " caption-parity=\"mismatch\"";
                 }
 
                 // Errors

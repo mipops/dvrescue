@@ -105,7 +105,8 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
             && Current->AudioRate_N == FrameData->AudioRate_N
             && Current->AudioRate_D == FrameData->AudioRate_D
             && Current->AudioChannels == FrameData->AudioChannels
-            && Current->AudioBitDepth == FrameData->AudioBitDepth)
+            && Current->AudioBitDepth == FrameData->AudioBitDepth
+            && Current->Captions_Flags == FrameData->Captions_Flags)
         {
             return;
         }
