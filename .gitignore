@@ -20,6 +20,7 @@ tools/maptest
 *.ddp
 *.pdb
 *.pdp
+*.o
 bin
 obj
 Debug
@@ -35,3 +36,22 @@ Thumbs.db
 Win32
 x64
 My Project
+tools/avfctl/avfctl
+Project/GNU/CLI/.deps/
+Project/GNU/CLI/aclocal.m4
+Project/GNU/CLI/autom4te.cache/*
+Project/GNU/CLI/compile
+Project/GNU/CLI/config.guess
+Project/GNU/CLI/config.log
+Project/GNU/CLI/config.status
+Project/GNU/CLI/config.sub
+Project/GNU/CLI/configure
+Project/GNU/CLI/depcomp
+Project/GNU/CLI/dvrescue
+Project/GNU/CLI/install-sh
+Project/GNU/CLI/libtool
+Project/GNU/CLI/ltmain.sh
+Project/GNU/CLI/Makefile
+Project/GNU/CLI/Makefile.in
+Project/GNU/CLI/missing
+Project/GNU/CLI/test-driver
