@@ -33,7 +33,7 @@ void help(BOOL full)
         [output appendString:@"If [OutputFile] is not specified, data will be written to ./out.dv.\n"];
         [output appendString:@"If [OutputFile] is \"-\", data will be written to standard output.\n"];
     } else {
-        [output appendString:@"\"dvrescue -h\" for displaying more information.\n"];
+        [output appendString:@"\"avfctl -h\" for displaying more information.\n"];
     }
 
     [[NSFileHandle fileHandleWithStandardError] writeData:[output dataUsingEncoding:NSUTF8StringEncoding]];
