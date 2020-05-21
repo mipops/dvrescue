@@ -42,7 +42,7 @@ Options:
  one new output file whenever there is a change in significant technical
  characteristics or a non-consecutive timecode value within INPUT.dv.
 
- dvpacakager also has an 'unpackage' mode
+ dvpackager also has an 'unpackage' mode
 
  -u       (export the dv stream from each provided file into a single dv stream)
 
