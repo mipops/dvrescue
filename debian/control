@@ -9,7 +9,7 @@ Homepage: https://MediaArea.net/DVRescue
 Package: dvrescue
 Section: utils
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, xmlstarlet
 Description: Data migration from DV tapes into digital files suitable for long-term preservation
  .
  Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
