@@ -28,8 +28,8 @@ Options:
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov. Defaults to mkv.)
  -S [Y|N] (set to 'Y' enables technical subtitle track to show timecode,
-           recording time, and dv error data)
-
+           recording time, and dv error data and a caption track if
+           there are captions to represent in the source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -99,6 +99,22 @@ _ranges_2_table(){
     echo
 }
 
+_convert_hhmmssmmm2s(){
+    TS="${1}"
+    H="$(echo "${TS}" | cut -d ":" -f1)"
+    M="$(echo "${TS}" | cut -d ":" -f2)"
+    S="$(echo "${TS}" | cut -d ":" -f3)"
+    awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
+}
+
+_duration_from_pts_range(){
+    START="${1}"
+    END="${2}"
+    START_SEC="$(_convert_hhmmssmmm2s "${START}")"
+    END_SEC="$(_convert_hhmmssmmm2s "${END}")"
+    awk "BEGIN {print $END_SEC - $START_SEC}"
+}
+
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
@@ -145,22 +161,10 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        if [[ "${SUBS}" = "Y" ]] ; then
-            OPT_OUTPUT+=(-map 1)
-            OPT_OUTPUT+=(-c:s mov_text)
-            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-        fi
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        if [[ "${SUBS}" = "Y" ]] ; then
-            OPT_OUTPUT+=(-map 1)
-            OPT_OUTPUT+=(-c:s copy)
-            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-        fi
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -171,13 +175,17 @@ esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 while [[ "${@}" != "" ]] ; do
+    unset OUTPUTOPTS
     DVFILE="${1}"
     BASENAME="$(basename "${DVFILE}")"
     SIDECAR_DIR="${DVFILE}_dvrescue"
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    DVRESCUE_TECHSUBS_TEMP="$(_maketemp)"
+    DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
     DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
+    DVRESCUE_SCC_TEMP="$(_maketemp).scc"
+    DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
+    DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
     shift
     if [[ -f "${DVFILE}" ]] ; then
         if [[ "${REPORT_ONLY}" = "Y" ]] ; then
@@ -189,10 +197,11 @@ while [[ "${@}" != "" ]] ; do
         if [[ ! -f "${DVRESCUE_XML}" ]] ; then
             echo -n ", making dvrescue xml file"
             if [[ "${SUBS}" = "Y" ]] ; then
-                dvrescue "${DVFILE}" --webvtt-output "${DVRESCUE_TECHSUBS_TEMP}" --xml-output "${DVRESCUE_XML_TEMP}"
-            else
-                dvrescue "${DVFILE}" --xml-output "${DVRESCUE_XML_TEMP}"
+                OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
+                OUTPUTOPTS+=(--cc-format scc)
+                OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
             fi
+            dvrescue "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
             xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
             if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
                 echo ". This first video codec of ${BASENAME} is not DV, skipping."
@@ -203,13 +212,50 @@ while [[ "${@}" != "" ]] ; do
                     mkdir -p "${SIDECAR_DIR}"
                 fi
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
-                mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+                if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
+                    mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+                fi
+                if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
+                    mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
+                    ffmpeg -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
+                fi
             fi
         fi
         _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
+
+            case "${EXT}" in
+                "mov")
+                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+                        OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+                    fi
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
+                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                    fi
+                    ;;
+                "mkv")
+                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-c:s copy)
+                        OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+                        OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+                    fi
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-c:s copy)
+                        OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
+                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                    fi
+                    ;;
+            esac
             _get_ranges "${DVRESCUE_XML}" | \
             while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ ; do
                 unset START_TIME END_TIME METADATA
@@ -222,13 +268,18 @@ while [[ "${@}" != "" ]] ; do
                 #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
                 # to do, update output name pattern
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${SEQ_NO}_${TC_FILENAME_SAFE}.${EXTENSION}"
-                if [[ -n "${PTS_END}" ]] ; then
-                    END_TIME+=(-to "${PTS_END}")
-                fi
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}" -shortest)
+                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}")
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        SUB_INPUT+=(-ss "${PTS_START}" -i "${DVRESCUE_SCC_VTT}")
+                    fi
                 else
                     unset SUB_INPUT
+                fi
+                if [[ -n "${PTS_END}" ]] ; then
+                    END_TIME+=(-to "${PTS_END}")
+                    DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
+                    SUB_INPUT+=(-t "${DURATION}")
                 fi
                 ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             done
