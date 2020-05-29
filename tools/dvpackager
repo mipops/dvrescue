@@ -69,7 +69,12 @@ _maketemp(){
 }
 
 _get_ranges(){
-    xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${MATCH_FRAMES}" \
+    if [[ -n "${1}" ]] ; then
+        RANGE_MATCH="${1}"
+    else
+        RANGE_MATCH="${MATCH_FRAMES}"
+    fi
+    xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
         -v "@pts" -o "|" \
         -v "parent::d:frames/@end_pts" -o "|" \
         -v "@tc" -o "|" \
@@ -226,7 +231,7 @@ while [[ "${@}" != "" ]] ; do
                 fi
             fi
         fi
-        _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
+        _ranges_2_table "$(_get_ranges)"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
@@ -261,7 +266,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
             esac
-            _get_ranges "${DVRESCUE_XML}" | \
+            _get_ranges | \
             while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ START_OFFSET FILESIZE END_OFFSET ; do
                 unset START_TIME END_TIME METADATA
                 PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
