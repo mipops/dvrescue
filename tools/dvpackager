@@ -175,6 +175,7 @@ esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 while [[ "${@}" != "" ]] ; do
+    unset OUTPUTOPTS
     DVFILE="${1}"
     BASENAME="$(basename "${DVFILE}")"
     SIDECAR_DIR="${DVFILE}_dvrescue"
@@ -193,10 +194,9 @@ while [[ "${@}" != "" ]] ; do
         if [[ ! -f "${DVRESCUE_XML}" ]] ; then
             echo -n ", making dvrescue xml file"
             if [[ "${SUBS}" = "Y" ]] ; then
-                dvrescue "${DVFILE}" --webvtt-output "${DVRESCUE_TECHSUBS_TEMP}" --xml-output "${DVRESCUE_XML_TEMP}"
-            else
-                dvrescue "${DVFILE}" --xml-output "${DVRESCUE_XML_TEMP}"
+                OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
             fi
+            dvrescue "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
             xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
             if [[ -z "$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}")" ]] ; then
                 echo ". This first video codec of ${BASENAME} is not DV, skipping."
