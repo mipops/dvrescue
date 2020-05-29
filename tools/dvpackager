@@ -99,6 +99,22 @@ _ranges_2_table(){
     echo
 }
 
+_convert_hhmmssmmm2s(){
+    TS="${1}"
+    H="$(echo "${TS}" | cut -d ":" -f1)"
+    M="$(echo "${TS}" | cut -d ":" -f2)"
+    S="$(echo "${TS}" | cut -d ":" -f3)"
+    awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
+}
+
+_duration_from_pts_range(){
+    START="${1}"
+    END="${2}"
+    START_SEC="$(_convert_hhmmssmmm2s "${START}")"
+    END_SEC="$(_convert_hhmmssmmm2s "${END}")"
+    awk "BEGIN {print $END_SEC - $START_SEC}"
+}
+
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
@@ -222,13 +238,14 @@ while [[ "${@}" != "" ]] ; do
                 #OPT_OUTPUT+=(-metadata "encoder=${MUXER}")
                 # to do, update output name pattern
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${SEQ_NO}_${TC_FILENAME_SAFE}.${EXTENSION}"
-                if [[ -n "${PTS_END}" ]] ; then
-                    END_TIME+=(-to "${PTS_END}")
-                fi
                 if [[ "${SUBS}" = "Y" ]] ; then
                     SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}" -shortest)
                 else
                     unset SUB_INPUT
+                fi
+                if [[ -n "${PTS_END}" ]] ; then
+                    END_TIME+=(-to "${PTS_END}")
+                    DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
                 fi
                 ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             done
