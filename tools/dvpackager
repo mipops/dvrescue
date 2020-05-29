@@ -161,22 +161,10 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        if [[ "${SUBS}" = "Y" ]] ; then
-            OPT_OUTPUT+=(-map 1)
-            OPT_OUTPUT+=(-c:s mov_text)
-            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-        fi
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        if [[ "${SUBS}" = "Y" ]] ; then
-            OPT_OUTPUT+=(-map 1)
-            OPT_OUTPUT+=(-c:s copy)
-            OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-            OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-        fi
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -219,13 +207,34 @@ while [[ "${@}" != "" ]] ; do
                     mkdir -p "${SIDECAR_DIR}"
                 fi
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
-                mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+                if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
+                    mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+                fi
             fi
         fi
         _ranges_2_table "$(_get_ranges "${DVRESCUE_XML}")"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
+
+            case "${EXT}" in
+                "mov")
+                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+                        OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+                    fi
+                    ;;
+                "mkv")
+                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-c:s copy)
+                        OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
+                        OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+                    fi
+                    ;;
+            esac
             _get_ranges "${DVRESCUE_XML}" | \
             while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ ; do
                 unset START_TIME END_TIME METADATA
