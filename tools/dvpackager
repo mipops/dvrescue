@@ -180,7 +180,7 @@ while [[ "${@}" != "" ]] ; do
     SIDECAR_DIR="${DVFILE}_dvrescue"
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    DVRESCUE_TECHSUBS_TEMP="$(_maketemp)"
+    DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
     DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
     shift
     if [[ -f "${DVFILE}" ]] ; then
