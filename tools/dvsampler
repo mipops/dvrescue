@@ -36,6 +36,7 @@ http://samples.ffmpeg.org/ffmpeg-bugs/trac/ticket2340/error.dv
 http://samples.ffmpeg.org/ffmpeg-bugs/trac/ticket2341/error_no_audio_detected.dv
 http://samples.ffmpeg.org/mplayer-bugs/bug1322/infiniteloop.dv
 http://samples.ffmpeg.org/V-codecs/DVSD/pond.dv
+https://makeinstallnotwar.org/video/Demo_DV_720x480_CC.mov
 )
 
 if [[ ! -d samples ]] ; then
