@@ -66,6 +66,7 @@ if [ "$KIND" = "CLI" ]; then
     cp "../../tools/dvsampler" "${FILES}-Root/usr/local/bin"
     cp "../../tools/avfctl/avfctl" "${FILES}-Root/usr/local/bin"
     cp "../../Source/CLI/dvrescue.1" "${FILES}-Root/usr/local/share/man/man1"
+    cp "Logo_White.icns" "${FILES}/.background"
     codesign -f --deep --options=runtime -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/${APPNAME_lower}"
     codesign -f --deep --options=runtime -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/avfctl"
 
