@@ -27,7 +27,7 @@ Options:
 
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov. Defaults to mkv.)
- -S [Y|N] (set to 'Y' enables technical subtitle track to show timecode,
+ -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
@@ -123,7 +123,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:S:nvuh" opt ; do
+while getopts ":fsdte:Snvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
     s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -131,7 +131,7 @@ while getopts ":fsdte:S:nvuh" opt ; do
     t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
     e) EXT="${OPTARG}" ;;
     n) REPORT_ONLY="Y" ;;
-    S) SUBS="${OPTARG}" ;;
+    S) SUBS="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
