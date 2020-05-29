@@ -1,10 +1,10 @@
-# Copyright (c) 2019-2019 Info@MediaArea.net
+# Copyright (c) 2019-2020 Info@MediaArea.net
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 
 # norootforbuild
 
-%global dvrescue_version		0.19.11
+%global dvrescue_version		0.20.05
 %global libmediainfo_version	19.09
 %global libzen_version			0.4.37
 
@@ -80,5 +80,5 @@ popd
 %{_bindir}/*
 
 %changelog
-* Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 0.19.11-0
+* Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 0.20.05-0
 - See History.txt for more info and real dates
