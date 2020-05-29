@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1.1">
   <xsd:annotation>
     <xsd:documentation xml:lang="en">
       This is the dvrescue XML Schema. A dvrescue XML stores information about the metadata, continuity, errors, and
@@ -99,6 +99,7 @@
     <xsd:attribute name="aspect_ratio" type="aspect_ratioType"/>
     <xsd:attribute name="audio_rate" type="audio_rateType"/>
     <xsd:attribute name="channels" type="channelsType"/>
+    <xsd:attribute name="captions" type="captionsType" default="n"/>
   </xsd:complexType>
 
   <xsd:simpleType name="sizeType">
@@ -180,6 +181,18 @@
     <xsd:restriction base="xsd:integer">
       <xsd:minInclusive value="0"/>
       <xsd:maxInclusive value="8"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="captionsType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Values of 'y' and 'n' indicate whether there is or is not the presence of EIA-608 closed captioning packs with the VAUX section of the DV frames.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="y"/>
+      <xsd:enumeration value="n"/>
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -282,6 +295,13 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           Boolean that indicates if arbitrary data is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="caption-parity" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          A value of 'mismatch' indicates that a EIA-608 closed captioning pack is present within the VAUX section of the frame, but that at least one of the contained captioning values fails its parity check.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
