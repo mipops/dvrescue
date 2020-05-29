@@ -1,3 +1,19 @@
+Version 0.20.05, 2020-05-29
++ Initial draft of dvrescue.xsd
++ Version 1.1 of dvrescue.xsd
++ Add dvplay
++ Add dvsampler
++ Add dvpackager
++ Add dvloupe
++ Swtich to BSD 3 license
++ Add technical subtitle output to dvrescue as webvtt format
++ Add scc and srt output for dv embedded captions
++ Add options to dvpackager to split output of packaged dv
++ Add avfctl dv capture utility
++ Add captioning data to dvrescue xml
++ Optimization for noting boundaries between technically distinct 
+  sequences of dv frames within a stream
+
 Version 0.19.11, 2019-11-13
 Initial release with report of frame format change and STA & Audio
 errors per Dseq
