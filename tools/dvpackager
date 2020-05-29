@@ -28,8 +28,8 @@ Options:
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov. Defaults to mkv.)
  -S [Y|N] (set to 'Y' enables technical subtitle track to show timecode,
-           recording time, and dv error data)
-
+           recording time, and dv error data and a caption track if
+           there are captions to represent in the source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -183,6 +183,9 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
     DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
+    DVRESCUE_SCC_TEMP="$(_maketemp).scc"
+    DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
+    DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
     shift
     if [[ -f "${DVFILE}" ]] ; then
         if [[ "${REPORT_ONLY}" = "Y" ]] ; then
@@ -195,6 +198,8 @@ while [[ "${@}" != "" ]] ; do
             echo -n ", making dvrescue xml file"
             if [[ "${SUBS}" = "Y" ]] ; then
                 OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
+                OUTPUTOPTS+=(--cc-format scc)
+                OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
             fi
             dvrescue "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
             xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@ref" -n "${DVRESCUE_XML_TEMP}"
@@ -209,6 +214,10 @@ while [[ "${@}" != "" ]] ; do
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
                 if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
                     mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+                fi
+                if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
+                    mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
+                    ffmpeg -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
                 fi
             fi
         fi
@@ -225,6 +234,12 @@ while [[ "${@}" != "" ]] ; do
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
+                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                    fi
                     ;;
                 "mkv")
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
@@ -232,6 +247,12 @@ while [[ "${@}" != "" ]] ; do
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
+                    fi
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-c:s copy)
+                        OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
+                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
                     fi
                     ;;
             esac
@@ -248,13 +269,17 @@ while [[ "${@}" != "" ]] ; do
                 # to do, update output name pattern
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${SEQ_NO}_${TC_FILENAME_SAFE}.${EXTENSION}"
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}" -shortest)
+                    SUB_INPUT=(-ss "${PTS_START}" -i "${DVRESCUE_TECHSUBS}")
+                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                        SUB_INPUT+=(-ss "${PTS_START}" -i "${DVRESCUE_SCC_VTT}")
+                    fi
                 else
                     unset SUB_INPUT
                 fi
                 if [[ -n "${PTS_END}" ]] ; then
                     END_TIME+=(-to "${PTS_END}")
                     DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
+                    SUB_INPUT+=(-t "${DURATION}")
                 fi
                 ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             done
