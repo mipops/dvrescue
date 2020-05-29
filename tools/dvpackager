@@ -27,7 +27,7 @@ Options:
 
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov. Defaults to mkv.)
- -S [Y|N] (set to 'Y' enables technical subtitle track to show timecode,
+ -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
@@ -84,8 +84,10 @@ _get_ranges(){
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
         -v "count(../preceding-sibling::d:frames)" -o "|" \
-        -v "count(preceding-sibling::d:frame)" -n "${DVRESCUE_XML}" |\
-        awk  -F "|" 'BEGIN{OFS="|";}{if(end_pts){print $1,R};pts=$1;end_pts=$2;R=$0}END{print end_pts,R}'
+        -v "count(preceding-sibling::d:frame)" -o "|" \
+        -v "parent::d:frames/@pkt_pos" -o "|" \
+        -v "$FILESIZE" -n "${DVRESCUE_XML}" |\
+        awk  -F "|" 'BEGIN{OFS="|";}{if(end_pts){print $1,R,$16};pts=$1;end_pts=$2;pkt_pos=$16;R=$0}END{print end_pts,R,$17}'
 }
 
 _ranges_2_table(){
@@ -120,18 +122,19 @@ FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
 EXT="mkv"
 SUBS="N"
+FRAMES_SPLIT_ONLY="Y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:S:nvuh" opt ; do
+while getopts ":fsdte:Snvuh" opt ; do
   case "${opt}" in
     f) MATCH_FRAMES="" ;;
-    s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
-    d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
-    t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+    s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ; FRAMES_SPLIT_ONLY="N" ;;
+    d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ; FRAMES_SPLIT_ONLY="N" ;;
+    t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ; FRAMES_SPLIT_ONLY="N" ;;
     e) EXT="${OPTARG}" ;;
     n) REPORT_ONLY="Y" ;;
-    S) SUBS="${OPTARG}" ;;
+    S) SUBS="Y" ;;
     v) unset FFMPEG_VERBOSE ;;
     u) UNPACKAGER="Y" ;;
     h) _usage ; exit 0 ;;
@@ -178,6 +181,8 @@ while [[ "${@}" != "" ]] ; do
     unset OUTPUTOPTS
     DVFILE="${1}"
     BASENAME="$(basename "${DVFILE}")"
+    SOURCE_EXT="${BASENAME##*.}"
+    FILESIZE="$(ls -l "${DVFILE}" | awk '{print $5}')"
     SIDECAR_DIR="${DVFILE}_dvrescue"
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
@@ -257,7 +262,7 @@ while [[ "${@}" != "" ]] ; do
                     ;;
             esac
             _get_ranges "${DVRESCUE_XML}" | \
-            while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ ; do
+            while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ START_OFFSET FILESIZE END_OFFSET ; do
                 unset START_TIME END_TIME METADATA
                 PTS_START_FILENAME_SAFE="${PTS_START//:/-}"
                 TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
@@ -281,7 +286,12 @@ while [[ "${@}" != "" ]] ; do
                     DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
                     SUB_INPUT+=(-t "${DURATION}")
                 fi
-                ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                if [[ "${SOURCE_EXT}" == "dv" ]] && [[ "${FRAMES_SPLIT_ONLY}" = "Y" ]] ; then
+                    BYTE_LENGTH="$(echo "${END_OFFSET}" - "${START_OFFSET}" | bc)"
+                    tail -c +"${START_OFFSET}" "${DVFILE}" | head -c "${BYTE_LENGTH}" | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                else
+                    ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - "${SUB_INPUT[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                fi
             done
         fi
     else
