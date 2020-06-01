@@ -44,4 +44,5 @@
 - (void) createCaptureSessionWithOutputFileName:(NSString*) theFileName;
 - (void) startCaptureSession;
 - (void) stopCaptureSession;
+- (void) waitForSessionEnd;
 @end

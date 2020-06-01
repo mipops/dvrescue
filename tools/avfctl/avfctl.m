@@ -209,4 +209,13 @@
     [_session stopRunning];
 }
 
+- (void) waitForSessionEnd
+{
+    // block as long as the capture session is running
+    // terminates if playback mode changes to NotPlaying
+    while ([_device transportControlsSpeed] != 0.0f) {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5f]];
+    }
+}
+
 @end
