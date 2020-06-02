@@ -36,11 +36,11 @@ Options:
 
  For example, the following command:
 
- dvpackager -t INPUT.dv
+ dvpackager -s INPUT.dv
 
  will read INPUT.dv and rewrap those dv frames into an output file while making
  one new output file whenever there is a change in significant technical
- characteristics or a non-consecutive timecode value within INPUT.dv.
+ characteristics or frames with recording-start flags.
 
  dvpackager also has an 'unpackage' mode
 
