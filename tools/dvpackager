@@ -36,11 +36,11 @@ Options:
 
  For example, the following command:
 
- dvpackager -t INPUT.dv
+ dvpackager -s INPUT.dv
 
  will read INPUT.dv and rewrap those dv frames into an output file while making
  one new output file whenever there is a change in significant technical
- characteristics or a non-consecutive timecode value within INPUT.dv.
+ characteristics or frames with recording-start flags.
 
  dvpackager also has an 'unpackage' mode
 
@@ -280,6 +280,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
             esac
+            SEQ_COUNT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -T -t -v "count(/d:dvrescue/d:media/d:frames)" "${DVRESCUE_XML}")"
             _get_ranges | \
             while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ START_OFFSET FILESIZE END_OFFSET ; do
                 unset START_TIME END_TIME METADATA
@@ -308,7 +309,7 @@ while [[ "${@}" != "" ]] ; do
                     DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
                     SUB_INPUT+=(-t "${DURATION}")
                 fi
-                if [[ "${FRAMES_SPLIT_ONLY}" = "Y" ]] ; then
+                if [[ "${FRAMES_SPLIT_ONLY}" = "Y" ]] && [[ "${SEQ_COUNT}" = "1" ]]; then
                     CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                     _make_chapter_metadata_file > "${CHAPTER_FFMETADATA}"
                     CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
@@ -326,6 +327,6 @@ while [[ "${@}" != "" ]] ; do
             done
         fi
     else
-        echo "$(basename "${DVFILE}" is not a file, skipping.)"
+        echo "$(basename "${DVFILE}") is not a file, skipping."
     fi
 done
