@@ -326,6 +326,6 @@ while [[ "${@}" != "" ]] ; do
             done
         fi
     else
-        echo "$(basename "${DVFILE}" is not a file, skipping.)"
+        echo "$(basename "${DVFILE}") is not a file, skipping."
     fi
 done
