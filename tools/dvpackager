@@ -280,6 +280,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
             esac
+            SEQ_COUNT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -T -t -v "count(/d:dvrescue/d:media/d:frames)" "${DVRESCUE_XML}")"
             _get_ranges | \
             while IFS="|" read PTS_END PTS_START FRAMES_PTS_END TC RECDATE SIZE VIDEO_RATE CHROMA ASPECT AUDIO_RATE CHANNELS REC_START RDT_NC TC_NC SEQ_NO FRAME_IN_SEQ START_OFFSET FILESIZE END_OFFSET ; do
                 unset START_TIME END_TIME METADATA
@@ -308,7 +309,7 @@ while [[ "${@}" != "" ]] ; do
                     DURATION="$(_duration_from_pts_range "${PTS_START}" "${PTS_END}")"
                     SUB_INPUT+=(-t "${DURATION}")
                 fi
-                if [[ "${FRAMES_SPLIT_ONLY}" = "Y" ]] ; then
+                if [[ "${FRAMES_SPLIT_ONLY}" = "Y" ]] && [[ "${SEQ_COUNT}" = "1" ]]; then
                     CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                     _make_chapter_metadata_file > "${CHAPTER_FFMETADATA}"
                     CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
