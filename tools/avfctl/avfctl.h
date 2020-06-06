@@ -35,13 +35,17 @@
 @property AVCaptureDeviceTransportControlsPlaybackMode old_mode;
 @property AVCaptureDeviceTransportControlsSpeed old_speed;
 
+@property BOOL status_mode;
+
 - (id) initWithDevice:(AVCaptureDevice*) theDevice;
 - (void) dealloc;
 
 - (NSString*) getDeviceName;
+- (NSString*) getStatus;
 
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
 - (void) createCaptureSessionWithOutputFileName:(NSString*) theFileName;
 - (void) startCaptureSession;
 - (void) stopCaptureSession;
+- (void) waitForSessionEnd;
 @end

@@ -57,6 +57,8 @@
         _old_mode  = [_device transportControlsPlaybackMode];
         _old_speed = [_device transportControlsSpeed];
 
+        _status_mode = NO;
+
         NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew;
         NSString *keyPath = nil;
 
@@ -90,7 +92,7 @@
             AVCaptureDeviceTransportControlsPlaybackMode mode =
                 [change[NSKeyValueChangeNewKey] integerValue];
 
-            if (_old_mode != mode) {
+            if (_old_mode != mode && !_status_mode) {
                 NSLog(@"Mode changed: %ld -> %ld", _old_mode, mode);
                 if (mode == AVCaptureDeviceTransportControlsNotPlayingMode &&
                     [_session isRunning]) {
@@ -103,7 +105,7 @@
             AVCaptureDeviceTransportControlsSpeed speed =
                 [change[NSKeyValueChangeNewKey] floatValue];
 
-            if (_old_speed != speed) {
+            if (_old_speed != speed && !_status_mode) {
                 NSLog(@"Speed changed: %f -> %f", _old_speed, speed);
                 _old_speed = speed;
             }
@@ -119,6 +121,26 @@
 - (NSString*) getDeviceName
 {
     return [_device localizedName];
+}
+
+- (NSString*) getStatus
+{
+    NSString *status;
+
+    float speed = [_device transportControlsSpeed];
+    if (speed == 0.0f) {
+        status = @"stopped";
+    } else if (speed == 1.0f) {
+        status = @"playing";
+    } else if (speed > 1.0f) {
+        status = @"fast-forwarding";
+    } else if (speed < 0.0f) {
+        status = @"rewinding";
+    } else {
+        status = @"unknown";
+    }
+
+    return status;
 }
 
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
@@ -207,6 +229,15 @@
 - (void) stopCaptureSession
 {
     [_session stopRunning];
+}
+
+- (void) waitForSessionEnd
+{
+    // block as long as the capture session is running
+    // terminates if playback mode changes to NotPlaying
+    while ([_device transportControlsSpeed] != 0.0f) {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5f]];
+    }
 }
 
 @end
