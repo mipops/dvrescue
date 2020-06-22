@@ -41,6 +41,20 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="format" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Format of the file, for example DV, AVI, MPEG-4.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="size" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        File size, in bytes.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="framesType">
@@ -62,13 +76,6 @@
           B: bottom, 
           BB: bottom field only,
           P: progressive
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="pos" type="xsd:integer">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Position (byte offset) of the first frame of the current frames sequence.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -211,6 +218,13 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           The number of the DIF sequence within the frame starting from zero.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="pos" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Position (byte offset) of the frame.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
