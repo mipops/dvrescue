@@ -79,13 +79,6 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="pos" type="xsd:integer">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          Position (byte offset) of the first frame of the current frames sequence.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:attribute>
     <xsd:attribute name="count" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -225,6 +218,13 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           The number of the DIF sequence within the frame starting from zero.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="pos" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Position (byte offset) of the frame.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>

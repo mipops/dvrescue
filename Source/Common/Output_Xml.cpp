@@ -166,13 +166,6 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                     Text += to_string(FrameCount);
                     Text += '\"';
                 }
-                if (Frame->StreamOffset!=MediaInfo_int64u(-1))
-                {
-                    
-                    Text += " pkt_pos=\"";
-                    Text += to_string(Frame->StreamOffset);
-                    Text += '\"';
-                }
                 {
                     auto TimeStamp_Begin = FrameNumber / File->FrameRate;
                     Text += " pts=\"";
@@ -259,6 +252,13 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 {
                     Text += " n=\"";
                     Text += to_string(FrameNumber);
+                    Text += '\"';
+                }
+                if (Frame->StreamOffset != MediaInfo_int64u(-1))
+                {
+
+                    Text += " pos=\"";
+                    Text += to_string(Frame->StreamOffset);
                     Text += '\"';
                 }
                 {
