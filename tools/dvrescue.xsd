@@ -41,6 +41,20 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="format" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Format of the file, for example DV, AVI, MPEG-4.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="size" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        File size, in bytes.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="framesType">

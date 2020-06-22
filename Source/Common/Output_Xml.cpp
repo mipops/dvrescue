@@ -110,11 +110,11 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
     for (const auto& File : PerFile)
     {
         // Media header
-        auto FileName = Ztring(File->MI.Get(Stream_General, 0, __T("CompleteName"))).To_UTF8();
+        auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
         if (FileName.empty())
             continue; // Show the file only if it exists
         Text += "\t<media ref=\"";
-        Text += FileName;
+        Text += Ztring(FileName).To_UTF8();;
         Text += '\"';
         if (File->PerFrame.empty() || File->PerChange.empty())
         {
@@ -124,6 +124,20 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 Text += " error=\"no frame received\"";
             Text += "/>\n";
             continue; // Show the file only if there is some DV content
+        }
+        auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
+        if (!Format.empty())
+        {
+            Text += " format=\"";
+            Text += Ztring(Format).To_UTF8();
+            Text += '\"';
+        }
+        auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
+        if (!FileSize.empty())
+        {
+            Text += " size=\"";
+            Text += Ztring(FileSize).To_UTF8();
+            Text += '\"';
         }
         Text += ">\n";
 
