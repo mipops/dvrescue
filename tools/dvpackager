@@ -153,11 +153,11 @@ _make_chapter_metadata_file(){
          START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
          END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
          if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
-         echo "[CHAPTER]"
-         echo "TIMEBASE=1/100000"
-         echo "START=${START_CHAPTER_OFFSET}"
-         echo "END=${END_CHAPTER_OFFSET}"
-         echo "title=${TC} - ${RDT}"
+             echo "[CHAPTER]"
+             echo "TIMEBASE=1/100000"
+             echo "START=${START_CHAPTER_OFFSET}"
+             echo "END=${END_CHAPTER_OFFSET}"
+             echo "title=${TC} - ${RDT}"
          fi
     done
 }
@@ -337,11 +337,11 @@ while [[ "${@}" != "" ]] ; do
                     unset SUB_INPUT
                 fi
 
-                    CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
-                    _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
-                    CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
-                    CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
-                    ((INPUT_COUNT++))
+                CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
+                _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+                CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
+                CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
