@@ -1,8 +1,8 @@
 #include <winresrc.h>
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,20,05,0
- PRODUCTVERSION 0,20,05,0
+ FILEVERSION 0,20,06,0
+ PRODUCTVERSION 0,20,06,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -19,12 +19,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "MediaArea.net"
             VALUE "FileDescription", ""
-            VALUE "FileVersion", "0,20,05,0"
+            VALUE "FileVersion", "0,20,06,0"
             VALUE "InternalName", "dvrescue"
             VALUE "LegalCopyright", "MIPoPS"
             VALUE "OriginalFilename", "dvrescue.exe"
             VALUE "ProductName", "DVRescue"
-            VALUE "ProductVersion", "0,20,05,0"
+            VALUE "ProductVersion", "0,20,06,0"
         END
     END
     BLOCK "VarFileInfo"
