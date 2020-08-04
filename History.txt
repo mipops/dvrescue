@@ -1,3 +1,8 @@
+Version 0.20.06, 2020-07-01
++ Refactoring of dvpackager
++ More media attributes
++ Add -foreground and -status options to avfctl
+
 Version 0.20.05, 2020-05-29
 + Initial draft of dvrescue.xsd
 + Version 1.1 of dvrescue.xsd

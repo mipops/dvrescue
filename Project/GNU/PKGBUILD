@@ -2,7 +2,7 @@
 # Maintainer: MediaArea.net SARL <Info@MediaArea.net>
 
 pkgname=('dvrescue')
-pkgver=0.20.05
+pkgver=0.20.06
 pkgrel=1
 pkgdesc="Supplies technical and tag information about a video or audio file"
 url="http://MediaArea.net"
