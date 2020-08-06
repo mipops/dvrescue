@@ -1,0 +1,152 @@
+#!/bin/bash
+# dvgraph, make a cool graph about a dv stream
+
+_usage(){
+    echo dvgraph
+    echo
+    echo "usage:"
+    echo "dvgraph [options] dvrescue-xml"
+    echo
+    echo " -v [y\n] Output a graph of video errors (default is y)"
+    echo " -a [y\n] Output a graph of audio errors (default is y)"
+    echo " -d [y\n] Output a graph of errors reported by dif sequence (default is n)"
+    exit
+}
+
+SCRIPTDIR="$(dirname "$(which "${0}")")"
+
+VIDEO_GRAPH="y"
+AUDIO_GRAPH="y"
+DIFSEQ_GRAPH="n"
+
+OPTIND=1
+while getopts ":v:a:d:" OPT ; do
+    case "${OPT}" in
+        v) VIDEO_GRAPH="${OPTARG}";;
+        a) AUDIO_GRAPH="${OPTARG}" ;;
+        d) DIFSEQ_GRAPH="${OPTARG}" ;;
+        *) echo "bad option -${OPTARG}" ; _usage ;;
+        :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+    esac
+done
+shift $(( ${OPTIND} - 1 ))
+
+DVRESCUE_XML="${1}"
+OUTPUT_JPG="${1}.jpg"
+TMP_CSV="/tmp/tmp.csv"
+COMPONENTS="0"
+IMAGE_HEIGHT="0"
+
+FRAME_TOTAL="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media/d:frames/@count)" "${DVRESCUE_XML}")"
+VIDEO_ERROR_MAX=1800
+AUDIO_ERROR_MAX=108
+
+if [[ "${VIDEO_GRAPH}" = "y" ]] ; then
+    COMPONENTS="$((COMPONENTS+1))"
+    IMAGE_HEIGHT="$((IMAGE_HEIGHT+180))"
+    GNUPLOT+=(
+        set yrange [-${VIDEO_ERROR_MAX}/2:${VIDEO_ERROR_MAX}/2]
+        plot '"${TMP_CSV}"' using 2:\($4-$3\) with boxes lc rgb 'red', '${TMP_CSV}' using 2:4 with boxes lc rgb 'green'
+    )
+fi
+
+if [[ "${VIDEO_GRAPH}" = "y" ]] ; then
+    COMPONENTS="$((COMPONENTS+1))"
+    IMAGE_HEIGHT="$((IMAGE_HEIGHT+180))"
+    GNUPLOT+=(
+        set yrange [-${AUDIO_ERROR_MAX}/2:${AUDIO_ERROR_MAX}/2]
+        plot '"${TMP_CSV}"' using 2:\($8-$7\) with boxes, '${TMP_CSV}' using 2:8 with boxes
+    )
+fi
+
+if [[ "${DIFSEQ_GRAPH}" = "y" ]] ; then
+    COMPONENTS="$((COMPONENTS+12))"
+    IMAGE_HEIGHT="$((IMAGE_HEIGHT+800))"
+    GNUPLOT+="\
+        set yrange [0:150]
+        plot '${TMP_CSV}' using 2:9 with boxes lt 1
+        set tmargin 0
+        set format x2 ''
+        plot '${TMP_CSV}' using 2:10 with boxes lt 2
+        plot '${TMP_CSV}' using 2:11 with boxes lt 3
+        plot '${TMP_CSV}' using 2:12 with boxes lt 4
+        plot '${TMP_CSV}' using 2:13 with boxes lt 5
+        plot '${TMP_CSV}' using 2:14 with boxes lt 6
+        plot '${TMP_CSV}' using 2:15 with boxes lt 7
+        plot '${TMP_CSV}' using 2:16 with boxes lt 8
+        plot '${TMP_CSV}' using 2:17 with boxes lt 9
+        plot '${TMP_CSV}' using 2:18 with boxes lt 10
+        plot '${TMP_CSV}' using 2:19 with boxes lt 11
+        plot '${TMP_CSV}' using 2:20 with boxes lt 12"
+fi
+
+_dvrescue_xml2csv(){
+    xmlstarlet select -N "d=https://mediaarea.net/dvrescue" -t -m /d:dvrescue/d:media/d:frames/d:frame \
+        -v "count(../preceding::d:frames)" -o "," \
+        -v @n -o "," \
+        -v "d:sta[@t='10']/@n" -o "," \
+        -v "d:sta[@t='10']/@n_even" -o "," \
+        -v "d:sta[@t!='10']/@n" -o "," \
+        -v "d:sta[@t!='10']/@n_even" -o "," \
+        -v "d:aud/@n" -o "," \
+        -v "d:aud/@n_even" -o "," \
+        -v "d:dseq[@n='0']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='1']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='2']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='3']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='4']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='5']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='6']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='7']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='8']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='9']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='10']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='11']/d:sta[@t='10']/@n" -o "," \
+        -v "d:dseq[@n='0']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='1']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='2']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='3']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='4']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='5']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='6']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='7']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='8']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='9']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='10']/d:sta[@t!='10']/@n" -o "," \
+        -v "d:dseq[@n='11']/d:sta[@t!='10']/@n" -o "," \
+        -n "${DVRESCUE_XML}"
+}
+
+
+
+_dvrescue_xml2csv "${DVRESCUE_XML}" > "${TMP_CSV}"
+
+echo "set terminal jpeg size 1920, 1080
+set datafile separator ','
+set output '${OUTPUT_JPG}'
+set term jpeg font 'times,12'
+set multiplot layout 2,1 title 'DVRescue graph for $(basename "${DVRESCUE_XML}")'
+set x2tics border out nomirror
+set xtics border out nomirror in scale 1.5,.7 format ''
+set ytics border out nomirror font 'times,10'
+set grid y
+set grid x
+set grid mxtics
+set lmargin 20
+set rmargin 10
+set xrange [0:${FRAME_TOTAL}]
+set palette model RGB defined (-0.8'#ff0000',-0.6'#ffa500',-0.4'#a0ff20',-0.2'#00ff00',0'#006400',0.2'#00ff00',0.4'#a0ff20',.6'#ffa500',0.8'#ff0000') maxcolors 128
+set style fill solid
+set style data boxes
+set style fill solid
+set bmargin 0
+set yrange [-${VIDEO_ERROR_MAX}/2:${VIDEO_ERROR_MAX}/2]
+plot '${TMP_CSV}' using 2:(\$4-\$3):1 with boxes lc rgb 'red' title 'Video Errors - Copied (odd dif seq)', \
+     '${TMP_CSV}' using 2:4:1 with boxes lc rgb 'green' title 'Video Errors - Copied (even dif seq)', \
+     '${TMP_CSV}' using 2:(\$6-\$5):1 with boxes lc rgb 'blue' title 'Video Errors - Other (odd dif seq)', \
+     '${TMP_CSV}' using 2:6:1 with boxes lc rgb 'purple' title 'Video Errors - Other (even dif seq)'
+set yrange [-${AUDIO_ERROR_MAX}/2:${AUDIO_ERROR_MAX}/2]
+plot '${TMP_CSV}' using 2:(\$8-\$7):1 with boxes title 'Audio Errors (odd dif seq)', '${TMP_CSV}' using 2:8:1 with boxes title 'Audio Errors  (even dif seq)'
+" | gnuplot
+
+echo "The result is at ${OUTPUT_JPG}"
