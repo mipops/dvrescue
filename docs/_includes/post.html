@@ -1,0 +1,27 @@
+<div class="content" id="home">
+  <div id="sidebar-button">
+    <img alt="sidebar button" src="{{ site.baseurl }}/images/sidebar-button.png">
+  </div>
+  <div id="post-info">
+    <div id="info-container">
+      <h1 id="title">{{ page.title }}</h1>
+      {% if page.namevar %}
+      <div id="also">
+      <strong>Also known as:</strong>
+      <ul>
+        {% for var in page.namevar %} <li>{{ var }}</li> {% endfor %}
+      </ul>
+      </div>
+      {% endif %}
+
+  {% for tag in page.tags %}
+    <a class="tag" href="{{ site.baseurl }}/tags.html#{{ tag | slugify }}"> {{ tag }} </a>
+  {% endfor %}
+
+    </div>
+  </div>
+<br/>
+  <div class="post">
+    {{ content }}
+  </div>
+</div>
