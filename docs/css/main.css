@@ -203,9 +203,12 @@ a:hover {
   clear: both;
 }
 
+.post h1 {
+  padding-bottom: 1em;
+}
+
 .post h2 {
   margin-top: 1.25em;
-  margin-left: -0.5em;
   margin-bottom: 1.25em;
 }
 
