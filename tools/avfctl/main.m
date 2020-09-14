@@ -54,6 +54,64 @@ int get_device_idx(NSString *str)
            return -1;
 }
 
+NSString *get_device_name(AVCaptureDevice *device)
+{
+    NSMutableString *toReturn = [NSMutableString stringWithString:[device localizedName]];
+    NSString *vendor = @"";
+    NSString *model = @"";
+    CFMutableDictionaryRef properties = NULL;
+    io_iterator_t iterator;
+    io_object_t service;
+    io_name_t location;
+    kern_return_t result;
+
+    NSString *uniqueID = [device uniqueID];
+    if ([uniqueID length] > 2 && [uniqueID hasPrefix:@"0x"])
+        uniqueID = [uniqueID substringFromIndex:2];
+
+    result = IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceNameMatching("IOFireWireDevice"), &iterator);
+    if (result==KERN_SUCCESS)
+    {
+        while ((service=IOIteratorNext(iterator))!=0) {
+            result = IORegistryEntryGetLocationInPlane(service, kIOServicePlane, location);
+            if (result==KERN_SUCCESS && strcmp(location, [uniqueID UTF8String])==0) {
+                result = IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0);
+                if (result==KERN_SUCCESS && properties!=NULL) {
+                    NSDictionary* dictionary = (__bridge NSDictionary*)properties;
+
+                    id probedVendor = dictionary[@"FireWire Vendor Name"];
+                    if ([probedVendor isKindOfClass:[NSString class]] && [probedVendor length] > 0)
+                        vendor = probedVendor;
+
+                    id probedModel = dictionary[@"FireWire Product Name"];
+                    if ([probedModel isKindOfClass:[NSString class]] && [probedModel length] > 0)
+                        model = probedModel;
+                }
+
+                IOObjectRelease(service);
+                break;
+            }
+
+            IOObjectRelease(service);
+        }
+
+        IOObjectRelease(iterator);
+    }
+
+    if ([model length] > 0)
+    {
+        if ([vendor length] > 0)
+            [toReturn appendFormat:@" (%@ %@)", vendor, model];
+        else
+            [toReturn appendFormat:@" (%@)", model];
+    }
+
+    if (properties!=NULL)
+        CFRelease(properties);
+
+    return toReturn;
+}
+
 int main(int argc, char *argv[])
 {
     int device_idx = 0;
@@ -111,7 +169,7 @@ int main(int argc, char *argv[])
     if ([[args objectForKey:@"list_devices"] isEqualTo: @YES]) {
         NSLog(@"Devices:");
         for (AVCaptureDevice *device in devices) {
-            NSLog(@"[%ld] %s", [devices indexOfObject:device], [[device localizedName] UTF8String]);
+            NSLog(@"[%ld] %@", [devices indexOfObject:device], get_device_name(device));
         }
     }
 
@@ -130,9 +188,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    NSString *deviceName = get_device_name(device);
+
     // check if device supports transport control
     if (![device transportControlsSupported]) {
-        NSLog(@"Transport Controls not supported for device [%d] %s.", device_idx, [[device localizedName] UTF8String]);
+        NSLog(@"Transport Controls not supported for device [%d] %@.", device_idx, deviceName);
         return 1;
     }
 
@@ -146,7 +206,7 @@ int main(int argc, char *argv[])
         [avfctl createCaptureSessionWithOutputFileName:@"/dev/null"];
         // give time for the driver to retrieves status from the device
         [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
-        NSLog(@"Device [%d] %@ status: %@", device_idx, [device localizedName], [avfctl getStatus]);
+        NSLog(@"Device [%d] %@ status: %@", device_idx, deviceName, [avfctl getStatus]);
     }
 
     // execute command
