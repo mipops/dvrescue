@@ -24,6 +24,9 @@ body {
   overflow: hidden;
 }
 
+img {
+  max-width: 400px;
+}
 a {
   color: rgb(146,66,59);
   text-decoration: none;
