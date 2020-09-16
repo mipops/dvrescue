@@ -74,6 +74,24 @@ private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::RecordedDateTime2) _Value2;
 };
 
+struct coherency_flags
+{
+public:
+    coherency_flags(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) Value) : _Value(Value) {}
+    inline bool no_pack_sub() { return ((_Value >> 0) & 0x1); }                     // 0
+    inline bool no_pack_vid() { return ((_Value >> 1) & 0x1); }                     // 1
+    inline bool no_pack_aud() { return ((_Value >> 2) & 0x1); }                     // 2
+    inline bool full_conceal_vid() { return ((_Value >> 3) & 0x1); }                // 3
+    inline bool full_conceal_aud() { return ((_Value >> 4) & 0x1); }                // 4
+    inline bool no_sourceorcontrol_vid() { return ((_Value >> 5) & 0x1); }          // 5
+    inline bool no_sourceorcontrol_aud() { return ((_Value >> 6) & 0x1); }          // 6
+    inline bool no_pack() { return no_pack_sub() && no_pack_vid() && no_pack_aud() ; }
+    inline bool full_conceal() { return full_conceal_vid() && full_conceal_aud(); }
+
+private:
+    decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) _Value;
+};
+
 //***************************************************************************
 // Arrays
 //***************************************************************************
