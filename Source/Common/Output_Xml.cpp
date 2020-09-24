@@ -337,8 +337,55 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                     Text += " caption-parity=\"mismatch\"";
                 }
 
+                // Coherency
+                coherency_flags Coherency(Frame->Coherency_Flags);
+                if (Coherency.no_pack())
+                {
+                    Text += " no_pack=\"1\"";
+                }
+                else
+                {
+                    if (Coherency.no_pack_vid())
+                    {
+                        Text += " no_pack_vid=\"1\"";
+                    }
+                    else
+                    {
+                        if (Coherency.no_sourceorcontrol_vid())
+                        {
+                            Text += " no_sourceorcontrol_vid=\"1\"";
+                        }
+                    }
+                    if (Coherency.no_pack_aud())
+                    {
+                        Text += " no_pack_aud=\"1\"";
+                    }
+                    else
+                    {
+                        if (Coherency.no_sourceorcontrol_aud())
+                        {
+                            Text += " no_sourceorcontrol_aud=\"1\"";
+                        }
+                    }
+                }
+                if (Coherency.full_conceal())
+                {
+                    Text += " full_conceal=\"1\"";
+                }
+                else
+                {
+                    if (Coherency.full_conceal_vid())
+                    {
+                        Text += " full_conceal_vid=\"1\"";
+                    }
+                    if (Coherency.full_conceal_aud())
+                    {
+                        Text += " full_conceal_aud=\"1\"";
+                    }
+                }
+
                 // Errors
-                if ((Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size))
+                if (!Coherency.full_conceal() && ((Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size)))
                 {
                     Text += ">\n";
 
@@ -352,15 +399,19 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                         {
                             // Display
                             Dseq_Begin(Text, 4, Dseq);
-                            Sta_Elements(Text, 5, ComputedErrors.PerDseq.Video_Sta_TotalPerSta);
-                            Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total);
+                            if (!Coherency.full_conceal_vid())
+                                Sta_Elements(Text, 5, ComputedErrors.PerDseq.Video_Sta_TotalPerSta);
+                            if (!Coherency.full_conceal_aud())
+                                Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total);
                             Dseq_End(Text, 4);
                         }
                     }
 
                     // Display
-                    Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
-                    Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
+                    if (!Coherency.full_conceal_vid())
+                        Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
+                    if (!Coherency.full_conceal_aud())
+                        Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
 
                     auto Size_After = Text.size();
                     if (Size_After == Size_Before)

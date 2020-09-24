@@ -319,6 +319,41 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="no_pack" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no pack is present in subcode/video/audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="no_pack_vid" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no pack is present in video but at least 1 pack is present is subcode or audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="no_pack_aud" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no pack is present in audio but at least 1 pack is present is subcode or video.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="no_sourceorcontrol_vid" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no video source and no video source control pack is present in video but at least 1 pack is present is video.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="no_sourceorcontrol_audio" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no audio source and no video source control pack is present in video but at least 1 pack is present is audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="dseqType">
