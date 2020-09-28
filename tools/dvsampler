@@ -40,7 +40,7 @@ elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
 elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
   DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
 else
-  _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+  _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/mipops/dvrescue/issues"
 fi
 
 # sources
