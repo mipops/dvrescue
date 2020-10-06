@@ -2,12 +2,13 @@
 SCRIPTDIR="$(dirname $(which "${0}"))"
 
 OPTIND=1
-while getopts ":s:mxg" OPT ; do
+while getopts ":s:mxgo:" OPT ; do
     case "${OPT}" in
         s) START_TIME="${OPTARG}";;
         m) MASK_ONLY="Y" ;;
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
+        o) USER_OUTPUT="${OPTARG}";;
         *) echo "bad option -${OPTARG}" ; _usage ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
     esac
@@ -102,7 +103,14 @@ while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
   BASENAME="$(basename "${DVFILE}")"
-  SIDECAR_DIR="${DVFILE}_dvrescue"
+  if [[ -n "${USER_OUTPUT}" ]] && [[ -d "${USER_OUTPUT}" ]] ; then
+    SIDECAR_DIR="${USER_OUTPUT}/${BASENAME}_dvrescue"
+  elif [[ -n "${USER_OUTPUT}" ]] ; then
+    echo "User selected output is not a valid directory. Exiting"
+    exit 1
+  else
+    SIDECAR_DIR="${DVFILE}_dvrescue"
+  fi
   DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
 
   if [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
