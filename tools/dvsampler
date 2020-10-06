@@ -3,6 +3,30 @@
 
 # this section focuses on changes in characteristics within a stream, replicating scenarios such as someone recording on a dv camcorder, then stopping, then changes the configuration of the camera, and then continuing to record. Oh, it happens!
 
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    OPTIND=1
+    while getopts "qdwstn" opt ; do
+        case "${opt}" in
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+}
+
 outputdir="samples"
 
 if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
@@ -16,7 +40,7 @@ elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
 elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
   DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
 else
-  _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/amiaopensource/vrecord/issues"
+  _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/mipops/dvrescue/issues"
 fi
 
 # sources
