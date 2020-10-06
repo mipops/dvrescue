@@ -326,6 +326,13 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="no_pack_sub" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no pack is present in subcode but at least 1 pack is present is video or audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="no_pack_vid" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -336,21 +343,42 @@
     <xsd:attribute name="no_pack_aud" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if no pack is present in audio but at least 1 pack is present is subcode or video.
+          Boolean that indicates if no pack is present in audio but at least 1 pack is present in subcode or video.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="no_sourceorcontrol_vid" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if no video source and no video source control pack is present in video but at least 1 pack is present is video.
+          Boolean that indicates if no video source and no video source control pack is present in video but at least 1 pack is present in video.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="no_sourceorcontrol_audio" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if no audio source and no video source control pack is present in video but at least 1 pack is present is audio.
+          Boolean that indicates if no audio source and no video source control pack is present in video but at least 1 pack is present in audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="full_conceal" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates that all video information in frame consists of error concealment, and all audio information consists of audio error codes.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="full_conceal_vid" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates that all video information in frame consists of error concealment.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="full_conceal_aud" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates that all audio information in frame consists of error codes.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
