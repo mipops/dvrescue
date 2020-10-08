@@ -1,13 +1,34 @@
 #!/bin/bash
 SCRIPTDIR="$(dirname $(which "${0}"))"
 
+_usage(){
+    cat <<EOF
+    "$(basename "${0}")"
+
+    Visually display and/or generate xml and sidecars of errors in DV file.
+    In visual display, error concealment data  in frames will be displayed
+    as yellow. This script is part of the dvrescue project.
+    Usage:
+    "$(basename "${0}") [options] file.dv"
+
+    Options:
+    -s TIME    (choose a custom start time (in seconds) within file)
+    -m         (Inverse of standard display)
+    -x         (create output xml and jpgs)
+    -g         (create gif from error jpgs)
+    -o OUTPUT  (select a custom location for output files)
+    -h         (Displays this help)
+EOF
+}
+
 OPTIND=1
-while getopts ":s:mxgo:" OPT ; do
+while getopts ":s:mxgho:" OPT ; do
     case "${OPT}" in
         s) START_TIME="${OPTARG}";;
         m) MASK_ONLY="Y" ;;
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
+        h) _usage ;;
         o) USER_OUTPUT="${OPTARG}";;
         *) echo "bad option -${OPTARG}" ; _usage ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
