@@ -162,6 +162,10 @@ _make_chapter_metadata_file(){
     done
 }
 
+_get_iso8601(){
+    date +%FT%T
+}
+
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations

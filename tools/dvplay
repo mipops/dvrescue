@@ -29,6 +29,10 @@ _convert_array_to_macroblock(){
   # ffmpeg -f lavfi -i color=s=720x480:r=30000/1001:color=yellow -vframes 1 -f rawvideo -c:v dvvideo -pix_fmt yuv411p - | xxd -ps -c 80 | tail -n 1 | cut -c 9-14,121-126,141-146
 }
 
+_get_iso8601(){
+    date +%FT%T
+}
+
 # report formatting function
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
@@ -65,6 +69,8 @@ elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
   DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
 elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
   DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 else
   _report -wt "$(basename "${0}") can't find a preferred font to use :("
 fi
