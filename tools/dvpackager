@@ -216,6 +216,12 @@ while getopts ":fsdte:Snvuh" opt ; do
 done
 shift "$((OPTIND-1))"
 MATCH_FRAMES="${MATCH_FRAMES%?}"
+OPT_INPUT=(-y)
+OPT_INPUT+=(-nostdin)
+OPT_INPUT+=(-hide_banner)
+OPT_OUTPUT+=(-map 0)
+OPT_OUTPUT+=(-c:v copy)
+OPT_OUTPUT+=(-c:a copy)
 
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
@@ -226,12 +232,6 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     exit
 fi
 
-OPT_INPUT=(-y)
-OPT_INPUT+=(-nostdin)
-OPT_INPUT+=(-hide_banner)
-OPT_OUTPUT+=(-map 0)
-OPT_OUTPUT+=(-c:v copy)
-OPT_OUTPUT+=(-c:a copy)
 case "${EXT}" in
     "mov")
         FORMAT="mov"
