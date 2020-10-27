@@ -3,7 +3,7 @@
 # dependencies: dvrescue, xmlstarlet
 
 _usage(){
-  cat <<EOF
+    cat <<EOF
 dvpackager
 
 Rewrap a DV stream. This script is part of the dvrescue project.
@@ -55,8 +55,8 @@ Options:
 EOF
 }
 if [ "${#}" = 0 ] ; then
-  _usage
-  exit 0
+    _usage
+    exit 0
 fi
 
 _maketemp(){
@@ -199,20 +199,20 @@ SUBS="N"
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":fsdte:Snvuh" opt ; do
-  case "${opt}" in
-    f) MATCH_FRAMES="" ;;
-    s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
-    d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
-    t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
-    e) EXT="${OPTARG}" ;;
-    n) REPORT_ONLY="Y" ;;
-    S) SUBS="Y" ;;
-    v) unset FFMPEG_VERBOSE ;;
-    u) UNPACKAGER="Y" ;;
-    h) _usage ; exit 0 ;;
-    :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
-    *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
-  esac
+    case "${opt}" in
+        f) MATCH_FRAMES="" ;;
+        s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
+        d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
+        t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+        e) EXT="${OPTARG}" ;;
+        n) REPORT_ONLY="Y" ;;
+        S) SUBS="Y" ;;
+        v) unset FFMPEG_VERBOSE ;;
+        u) UNPACKAGER="Y" ;;
+        h) _usage ; exit 0 ;;
+        :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
+        *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
+    esac
 done
 shift "$((OPTIND-1))"
 MATCH_FRAMES="${MATCH_FRAMES%?}"
@@ -301,7 +301,6 @@ while [[ "${@}" != "" ]] ; do
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
-
             case "${EXT}" in
                 "mov")
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
