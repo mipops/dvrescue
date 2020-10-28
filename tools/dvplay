@@ -170,7 +170,7 @@ while [[ "${@}" != "" ]] ; do
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
     TOTAL_FRAMES="$(xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
     COUNTER=1
-    xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
+    xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -o " " -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
       N="$(echo "${error_frame}" | cut -d "," -f1)"
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
