@@ -184,11 +184,11 @@ while [[ "${@}" != "" ]] ; do
       else
         JPG_OUTPUT="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
       fi
-      ffmpeg -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+      ffmpeg -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
+      ffmpeg -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
       ((COUNTER=COUNTER+1))
     done
     if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
