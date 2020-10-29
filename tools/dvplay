@@ -30,7 +30,7 @@ while getopts ":s:mxgho:" OPT ; do
         g) GIF_OUTPUT="Y" ;;
         h) _usage ;;
         o) USER_OUTPUT="${OPTARG}";;
-        *) echo "bad option -${OPTARG}" ; _usage ;;
+        *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
     esac
 done
