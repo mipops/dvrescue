@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# dependencies: dvrescue, xmlstarlet
+# dependencies: dvrescue, ffmpeg, xmlstarlet
 
 _usage(){
-  cat <<EOF
+    cat <<EOF
 dvpackager
 
 Rewrap a DV stream. This script is part of the dvrescue project.
@@ -34,6 +34,8 @@ Options:
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
 
+ -F <path> (provide a custom ffmpeg path)
+
  For example, the following command:
 
  dvpackager -s INPUT.dv
@@ -55,8 +57,8 @@ Options:
 EOF
 }
 if [ "${#}" = 0 ] ; then
-  _usage
-  exit 0
+    _usage
+    exit 0
 fi
 
 _maketemp(){
@@ -191,6 +193,7 @@ _report(){
 }
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
+FFMPEG_PATH="$(which ffmpeg)"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
 EXT="mkv"
@@ -198,40 +201,54 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:Snvuh" opt ; do
-  case "${opt}" in
-    f) MATCH_FRAMES="" ;;
-    s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
-    d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
-    t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
-    e) EXT="${OPTARG}" ;;
-    n) REPORT_ONLY="Y" ;;
-    S) SUBS="Y" ;;
-    v) unset FFMPEG_VERBOSE ;;
-    u) UNPACKAGER="Y" ;;
-    h) _usage ; exit 0 ;;
-    :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
-    *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
-  esac
+while getopts ":fsdte:SnvuhF:" opt ; do
+    case "${opt}" in
+        f) MATCH_FRAMES="" ;;
+        s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
+        d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
+        t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+        e) EXT="${OPTARG}" ;;
+        n) REPORT_ONLY="Y" ;;
+        S) SUBS="Y" ;;
+        v) unset FFMPEG_VERBOSE ;;
+        u) UNPACKAGER="Y" ;;
+        F) FFMPEG_PATH="${OPTARG}" ;;
+        h) _usage ; exit 0 ;;
+        :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
+        *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
+    esac
 done
 shift "$((OPTIND-1))"
 MATCH_FRAMES="${MATCH_FRAMES%?}"
-
-if [[ "${UNPACKAGER}" == "Y" ]] ; then
-    OUTPUTNAME="unpackaged_$(uuidgen).dv"
-    echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
-    for i in "${@}" ; do
-        ffmpeg -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
-    done
-    exit
-fi
-
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-map 0)
 OPT_OUTPUT+=(-c:v copy)
 OPT_OUTPUT+=(-c:a copy)
+
+if [[ ! -f "${FFMPEG_PATH}" ]] ; then
+    _report -w "Error: ffmpeg is needed but not found."
+    exit 1
+elif [[ ! -x "${FFMPEG_PATH}" ]] ; then
+    _report -w "Error: The ffmpeg needed at ${FFMPEG_PATH} is not executable."
+    exit 1
+else
+    FF_AUDIOFIX="$("${FFMPEG_PATH}" -v 0 -h demuxer=dv  | grep -c dvaudio_concealment)"
+    if [[ "${FF_AUDIOFIX}" == "1" ]] ; then
+        OPT_INPUT+=(-dvaudio_concealment pass)
+    fi
+fi
+
+if [[ "${UNPACKAGER}" == "Y" ]] ; then
+    OUTPUTNAME="unpackaged_$(uuidgen).dv"
+    echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
+    for i in "${@}" ; do
+        "${FFMPEG_PATH}" -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
+    done
+    exit
+fi
+
 case "${EXT}" in
     "mov")
         FORMAT="mov"
@@ -293,7 +310,7 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
                     mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
-                    ffmpeg -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
+                    "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
                 fi
             fi
         fi
@@ -301,7 +318,6 @@ while [[ "${@}" != "" ]] ; do
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
-
             case "${EXT}" in
                 "mov")
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
@@ -372,10 +388,10 @@ while [[ "${@}" != "" ]] ; do
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
+                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
-                    ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
+                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                         -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
