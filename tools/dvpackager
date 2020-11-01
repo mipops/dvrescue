@@ -77,9 +77,9 @@ _get_ranges(){
         RANGE_MATCH="${MATCH_FRAMES}"
     fi
     unset PTSx
-    while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
+    while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
-            echo "${PTSx}|${PTS}|${Nx}|${N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+            echo "${PTSx}|${PTS}|${Nx}|${N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}"
         fi
         PTSx="${PTS}"
         Nx="${N}"
@@ -95,7 +95,6 @@ _get_ranges(){
         RDT_NCx="${RDT_NC}"
         TC_NCx="${TC_NC}"
         FRAMES_ENDPTSx="${FRAMES_ENDPTS}"
-        COUNT_FRAMEx="${COUNT_FRAME}"
         PKT_POSx="${PKT_POS}"
     done < <(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
         -v "@pts" -o "|" \
@@ -113,7 +112,6 @@ _get_ranges(){
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
         -v "parent::d:frames/@end_pts" -o "|" \
-        -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
     echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}"
 }
@@ -121,10 +119,10 @@ _get_ranges(){
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "|     # | Byte Offset  | PTS Range                         | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC Jump | Rec Time Jump | IsFirst |"
+    echo "|     # | Byte Offset  | PTS Range                         | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC Jump | Rec Time Jump |"
     echo "${RANGES}" | awk -F "|" '{PTS=$1; END_PTS=$2; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %5i | %12i | %15s - %15s | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s | %7s |\n", \
-        NR, PKT_POS, PTS, END_PTS, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+        {printf "| %5i | %12i | %15s - %15s | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s |\n", \
+        NR, PKT_POS, PTS, END_PTS, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC }'
     echo
 }
 
