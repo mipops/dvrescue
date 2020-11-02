@@ -71,10 +71,18 @@ _maketemp(){
 }
 
 _get_ranges(){
-    if [[ -n "${1}" ]] ; then
+    if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
+        RANGE_MATCH="d:dvrescue/d:media/d:frames[1]/d:frame[1]"
+        RELATIVE_FRAMES_START="../../d:frames[last()]"
+        RELATIVE_FRAMES_END="../../d:frames[last()]"
+    elif [[ -n "${1}" ]] ; then
         RANGE_MATCH="${1}"
+        RELATIVE_FRAMES_START="parent::d:frames"
+        RELATIVE_FRAMES_END="parent::d:frames"
     else
         RANGE_MATCH="${MATCH_FRAMES}"
+        RELATIVE_FRAMES_START="parent::d:frames"
+        RELATIVE_FRAMES_END="parent::d:frames"
     fi
     unset PTSx
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
@@ -99,32 +107,44 @@ _get_ranges(){
         PKT_POSx="${PKT_POS}"
     done < <(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
         -v "@pts" -o "|" \
-        -v "parent::d:frames/@end_pts" -o "|" \
+        -v "${RELATIVE_FRAMES_END}/@end_pts" -o "|" \
         -v "@n" -o "|" \
         -v "@tc" -o "|" \
         -v "@rdt" -o "|" \
-        -v "parent::d:frames/@size" -o "|" \
-        -v "parent::d:frames/@video_rate" -o "|" \
-        -v "parent::d:frames/@chroma_subsampling" -o "|" \
-        -v "parent::d:frames/@aspect_ratio" -o "|" \
-        -v "parent::d:frames/@audio_rate" -o "|" \
-        -v "parent::d:frames/@channels" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@size" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@video_rate" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@chroma_subsampling" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@aspect_ratio" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@audio_rate" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@channels" -o "|" \
         -v "@rec_start" -o "|" \
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
-        -v "parent::d:frames/@end_pts" -o "|" \
+        -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}"
+    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
 }
 
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "|     # | Byte Offset  | PTS Range                         | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | Start Rec Flag | TC Jump | Rec Time Jump | IsFirst |"
-    echo "${RANGES}" | awk -F "|" '{PTS=$1; END_PTS=$2; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %5i | %12i | %15s - %15s | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %14s | %7s | %13s | %7s |\n", \
-        NR, PKT_POS, PTS, END_PTS, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequnce'"
+    echo "|     # | Byte Offset  | PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | St | ncTC | ncR | 1st |"
+    echo "${RANGES}" | while read RANGE_LINE ; do
+        PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
+        END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
+        COUNT_FRAMES="$(echo "${RANGE_LINE}" | cut -d "|" -f 17)"
+        if [[ "${COUNT_FRAMES}" = "0" ]] ; then
+            IS_FIRST="Y"
+        else
+            IS_FIRST=""
+        fi
+        DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
+        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$18; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$19}\
+        {printf "| %5i | %12i | %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %2s | %4s | %3s | %3s |\n", \
+        NR, PKT_POS, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+    done
     echo
 }
 
@@ -203,7 +223,7 @@ SUBS="N"
 OPTIND=1
 while getopts ":fsdte:SnvuhF:" opt ; do
     case "${opt}" in
-        f) MATCH_FRAMES="" ;;
+        f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
         d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
