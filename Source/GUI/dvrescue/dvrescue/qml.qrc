@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>DevicesModelUpdater.qml</file>
+        <file>AvfCtl.qml</file>
+        <file>AvfCtlParser.qml</file>
+        <file>DevicesModel.qml</file>
+        <file>DevicesView.qml</file>
+    </qresource>
+</RCC>
