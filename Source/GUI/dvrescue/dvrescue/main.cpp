@@ -10,6 +10,10 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    app.setOrganizationName("dvrescue");
+    app.setOrganizationDomain("dvrescue.com");
+    app.setApplicationName("dvrescue");
+
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

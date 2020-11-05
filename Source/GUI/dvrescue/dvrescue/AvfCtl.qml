@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Launcher 0.1
 
 Item {
-    property string avfctl: "plink dave -batch /Users/test/Downloads/dvrescue-git/tools/avfctl/avfctl"
+    property string avfctlCmd: "plink dave -batch /Users/test/Downloads/dvrescue-git/tools/avfctl/avfctl"
 
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
@@ -37,7 +37,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctl + " -list_devices");
+            launcher.execute(avfctlCmd + " -list_devices");
         })
 
         return promise;
