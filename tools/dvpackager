@@ -26,7 +26,9 @@ Options:
  -t       (split the output file at non-consecutive timecode values)
 
  -e <ext> (specify the extension of the container to use. Tested with:
-           mkv, mov. Defaults to mkv.)
+           mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
+           shall simply extract the dv from the file while using the
+           selected options to split the output.)
  -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
@@ -243,9 +245,7 @@ MATCH_FRAMES="${MATCH_FRAMES%?}"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
-OPT_OUTPUT+=(-map 0)
 OPT_OUTPUT+=(-c:v copy)
-OPT_OUTPUT+=(-c:a copy)
 
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -w "Error: ffmpeg is needed but not found."
@@ -273,10 +273,20 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
+        OPT_OUTPUT+=(-map 0)
+        OPT_OUTPUT+=(-c:a copy)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
+        OPT_OUTPUT+=(-map 0)
+        OPT_OUTPUT+=(-c:a copy)
+        ;;
+    "dv")
+        FORMAT="rawvideo"
+        EXTENSION="dv"
+        SUBS="N"
+        OPT_OUTPUT+=(-map 0:v:0)
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -386,7 +396,7 @@ while [[ "${@}" != "" ]] ; do
                     VFRAMES=(-frames:v "$(echo "${FRAME_END} - ${FRAME_START}" | bc)")
                 fi
                 INPUT_COUNT="1"
-                if [[ -n "${TC}" ]] ; then
+                if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
                 fi
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
@@ -401,10 +411,12 @@ while [[ "${@}" != "" ]] ; do
                     unset SUB_INPUT
                 fi
 
+                if [[ "${EXTENSION}" != "dv" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                 _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                 CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                 CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                fi
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
