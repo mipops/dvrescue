@@ -412,10 +412,10 @@ while [[ "${@}" != "" ]] ; do
                 fi
 
                 if [[ "${EXTENSION}" != "dv" ]] ; then
-                CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
-                _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
-                CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
-                CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                    CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
+                    _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+                    CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
+                    CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
                 fi
                 ((INPUT_COUNT++))
 
