@@ -52,12 +52,115 @@ Window {
     DevicesModelUpdater {
         model: devicesModel
         getDevices: function() {
-            return avfctl.queryDecks();
+            return avfctl.queryDecks((launcher) => {
+                statusLogs.logCommand(launcher);
+            }).then((result) => {
+                statusLogs.logResult(result.outputText);
+                return result;
+            });
         }
     }
 
     DevicesView {
+        id: devicesView
         model: devicesModel
         anchors.top: selectAvfctlRow.bottom
+        onPlayClicked: {
+            avfctl.play(index, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+        onStopClicked: {
+            avfctl.stop(index, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+        onMoveToStartClicked: {
+            avfctl.rew(index, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+        onMoveToEndClicked: {
+            avfctl.ff(index,  (launcher) => {
+                commandsLogs.logCommand(launcher);
+            }).then((result) => {
+                commandsLogs.logResult(result.outputText);
+                return result;
+            });
+        }
+    }
+
+    Item {
+        anchors.left: devicesView.right
+        anchors.leftMargin: 100
+        anchors.top: selectAvfctlRow.bottom
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        TabBar {
+            id: tabBar
+            width: parent.width
+
+            TabButton {
+                text: "command logs"
+            }
+            TabButton {
+                text: "status logs"
+            }
+        }
+
+        StackLayout {
+            anchors.top: tabBar.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            currentIndex: tabBar.currentIndex
+
+            ScrollView {
+                TextArea {
+                    id: commandsLogs
+                    selectByMouse: true
+
+                    function logCommand(launcher) {
+                        append(launcher.program() + ' ' + launcher.arguments().join(' '));
+                        append('\n');
+                    }
+
+                    function logResult(result) {
+                        append(result);
+                        append('\n\n');
+                    }
+                }
+            }
+
+            ScrollView {
+                TextArea {
+                    id: statusLogs
+                    selectByMouse: true
+
+                    function logCommand(launcher) {
+                        if(text.length > 50000)
+                            clear();
+
+                        append(launcher.program() + ' ' + launcher.arguments().join(' '));
+                        append('\n');
+                    }
+
+                    function logResult(result) {
+                        append(result);
+                        append('\n\n');
+                    }
+                }
+            }
+        }
     }
 }

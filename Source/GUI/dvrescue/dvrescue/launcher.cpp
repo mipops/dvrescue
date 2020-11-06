@@ -96,6 +96,16 @@ bool Launcher::waitForFinished(int msec)
     return m_process.waitForFinished(msec);
 }
 
+QString Launcher::program() const
+{
+    return m_process.program();
+}
+
+QStringList Launcher::arguments() const
+{
+    return m_process.arguments();
+}
+
 void Launcher::kill()
 {
     m_process.kill();

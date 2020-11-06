@@ -10,11 +10,11 @@ Item {
         repeat: false;
         interval: 1000
         onTriggered: {
-            getDevices().then((devices) => {
-                model.update(devices);
+            getDevices().then((result) => {
+                model.update(result.devices);
                 timer.interval = 1000;
                 timer.start();
-            }).catch((err) => {
+            }).catch((errorResult) => {
                 timer.interval = 5000;
                 timer.start();
             })

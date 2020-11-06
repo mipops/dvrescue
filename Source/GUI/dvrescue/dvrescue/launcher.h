@@ -15,6 +15,8 @@ public:
     void setWorkingDirectory(const QString &value);
 
     Q_INVOKABLE bool waitForFinished(int msec);
+    Q_INVOKABLE QString program() const;
+    Q_INVOKABLE QStringList arguments() const;
 
 signals:
     void outputChanged(const QByteArray& output);
