@@ -365,12 +365,14 @@ while [[ "${@}" != "" ]] ; do
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
                         OPT_OUTPUT+=(-map 1:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-tag:s:s:0 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
                     if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
                         OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-tag:s:s:1 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
                         OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
                     fi
