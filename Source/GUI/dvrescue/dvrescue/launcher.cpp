@@ -73,12 +73,12 @@ void Launcher::execute(const QString &cmd)
         m_thread = new QThread;
         m_process.moveToThread(m_thread);
 
-        connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+        connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
             qDebug() << "process: " << &m_process << "finishing";
             m_process.moveToThread(this->thread());
         }, Qt::DirectConnection);
 
-        connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+        connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
             qDebug() << "process: " << &m_process << "finished";
             m_thread->quit();
         }, Qt::QueuedConnection);
