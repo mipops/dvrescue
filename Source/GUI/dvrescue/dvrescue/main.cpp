@@ -14,6 +14,9 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("dvrescue.com");
     app.setApplicationName("dvrescue");
 
+    qRegisterMetaType<QProcess::ProcessState>();
+    qRegisterMetaType<QProcess::ExitStatus>();
+
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,

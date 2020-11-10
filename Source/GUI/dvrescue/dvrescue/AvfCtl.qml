@@ -136,7 +136,7 @@ Item {
 
     function queryDecks(callback) {
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;

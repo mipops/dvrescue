@@ -1,21 +1,25 @@
 #include "launcher.h"
 #include <QDebug>
+#include <QThread>
+#include <QProcess>
+#include <QGuiApplication>
 
 Launcher::Launcher(QObject *parent) : QObject(parent)
 {
+    qDebug() << "launcher created at thread: " << QThread::currentThread();
     // m_process.setProcessChannelMode(QProcess::MergedChannels);
 
     connect(&m_process, &QProcess::readyReadStandardOutput, [&] {
         QByteArray output = m_process.readAllStandardOutput();
 
-        qDebug() << "output changed: " << output;
+        qDebug() << "output changed at thead " << QThread::currentThread() << ": " << output;
         emit outputChanged(output);
     });
 
     connect(&m_process, &QProcess::readyReadStandardError, [&] {
         QByteArray output = m_process.readAllStandardError();
 
-        qDebug() << "error changed: " << output;
+        qDebug() << "error changed " << QThread::currentThread() << ": " << output;
         emit errorChanged(output);
     });
 
@@ -23,10 +27,34 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
         emit processStarted(QString("%0").arg((qlonglong) m_process.pid()));
     });
 
+    connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+        qDebug() << "emitting processFinished: " << exitCode << exitStatus;
+        emit processFinished();
+    });
+
+    /*
     connect(&m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
         if(state == QProcess::NotRunning)
             emit processFinished();
     });
+    */
+}
+
+Launcher::~Launcher()
+{
+    if(m_thread) {
+        if(m_thread->isRunning()) {
+            qDebug() << "terminating process...";
+            m_process.kill();
+
+            qDebug() << "waiting...";
+            while(!m_thread->wait(50))
+                QGuiApplication::instance()->processEvents();
+        }
+
+        m_thread->deleteLater();
+        m_thread = nullptr;
+    }
 }
 
 void Launcher::execute(const QString &cmd)
@@ -39,7 +67,38 @@ void Launcher::execute(const QString &cmd)
         m_process.setWorkingDirectory(m_workingDirectory);
     }
 
-    m_process.start(cmd);
+    if(m_useThread) {
+        qDebug() << "in a separate thread...";
+
+        m_thread = new QThread;
+        m_process.moveToThread(m_thread);
+
+        connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+            qDebug() << "process: " << &m_process << "finishing";
+            m_process.moveToThread(this->thread());
+        }, Qt::DirectConnection);
+
+        connect(&m_process, qOverload<int, QProcess::ExitStatus>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+            qDebug() << "process: " << &m_process << "finished";
+            m_thread->quit();
+        }, Qt::QueuedConnection);
+
+        connect(&m_process, &QProcess::stateChanged, this, [this](QProcess::ProcessState state) {
+            qDebug() << "process: " << &m_process << "state changed: " << state;
+        }, Qt::DirectConnection);
+
+        connect(m_thread, &QThread::started, this, [this, cmd]() {
+            qDebug() << "starting process from thread: " << QThread::currentThread();
+            m_process.start(cmd);
+        }, Qt::DirectConnection);
+
+        qDebug() << "starting thread...";
+        m_thread->start();
+    } else {
+
+        qDebug() << "starting command" << cmd;
+        m_process.start(cmd);
+    }
 }
 
 void Launcher::execute(const QString &app, const QStringList arguments)
