@@ -4,6 +4,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
+import FileUtils 1.0
 
 Window {
     width: 640
@@ -65,6 +66,10 @@ Window {
         id: devicesView
         model: devicesModel
         anchors.top: selectAvfctlRow.bottom
+        urlToPath: function(url) {
+            return FileUtils.getFilePath(url);
+        }
+
         onPlayClicked: {
             avfctl.play(index, (launcher) => {
                commandsLogs.logCommand(launcher);
@@ -95,6 +100,16 @@ Window {
             }).then((result) => {
                 commandsLogs.logResult(result.outputText);
                 return result;
+            });
+        }
+        onGrabClicked: {
+            avfctl.grab(index, filePath, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((results) => {
+               commandsLogs.logResult(result.outputText);
+               return results;
+            }).catch((e) => {
+               commandsLogs.logResult(e);
             });
         }
     }

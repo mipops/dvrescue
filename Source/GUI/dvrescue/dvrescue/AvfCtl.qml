@@ -105,6 +105,35 @@ Item {
         return promise;
     }
 
+    function grab(index, filePath, callback) {
+        console.debug('grabbing: ', index, filePath);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true });
+            var outputText = '';
+            launcher.errorChanged.connect((errorString) => {
+                outputText += errorString;
+            });
+            launcher.processFinished.connect(() => {
+                console.debug('got from avfctl: \n' + outputText);
+                try {
+                    accept({state: parser.parseStateChanged(outputText), launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(avfctlCmd + " -cmd capture " + filePath + " -device " + index);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
     function play(index, callback) {
         console.debug('playing: ', index);
 

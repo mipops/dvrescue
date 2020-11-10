@@ -1,4 +1,5 @@
-#include <Launcher.h>
+#include "fileutils.h"
+#include "launcher.h"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
@@ -16,6 +17,14 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<QProcess::ProcessState>();
     qRegisterMetaType<QProcess::ExitStatus>();
+
+    qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        FileUtils *utils = new FileUtils();
+        return utils;
+    });
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));
