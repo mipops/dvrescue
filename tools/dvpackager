@@ -33,6 +33,8 @@ Options:
            If two languages are provided with a comma delimter such as
            'eng,deu' then the first would be used for the first audio
           track and the second for the second audio track, if it exists.)
+ -L <code>(specify the language code to use for the caption tracks (if
+           any).
  -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
@@ -227,7 +229,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:l:SnvuhF:" opt ; do
+while getopts ":fsdte:l:L:SnvuhF:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -235,6 +237,7 @@ while getopts ":fsdte:l:SnvuhF:" opt ; do
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
+        L) CAPTION_LANG="${OPTARG}" ;;
         n) REPORT_ONLY="Y" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ;;
@@ -374,7 +377,11 @@ while [[ "${@}" != "" ]] ; do
                         OPT_OUTPUT+=(-c:s mov_text)
                         OPT_OUTPUT+=(-tag:s:s:1 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        fi
                     fi
                     ;;
                 "mkv")
@@ -388,7 +395,11 @@ while [[ "${@}" != "" ]] ; do
                         OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        fi
                     fi
                     ;;
             esac
