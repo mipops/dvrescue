@@ -29,6 +29,10 @@ Options:
            mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
            selected options to split the output.)
+ -l <code>(specify the language code to use for the audio tracks.
+           If two languages are provided with a comma delimter such as
+           'eng,deu' then the first would be used for the first audio
+          track and the second for the second audio track, if it exists.)
  -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
@@ -223,13 +227,14 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:SnvuhF:" opt ; do
+while getopts ":fsdte:l:SnvuhF:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
         d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
         e) EXT="${OPTARG}" ;;
+        l) LANGUAGES="${OPTARG}" ;;
         n) REPORT_ONLY="Y" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ;;
@@ -246,6 +251,13 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
+
+LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
+LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
+OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
+if [[ -n "${LANG2}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:1 language="${LANG2}")
+fi
 
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -w "Error: ffmpeg is needed but not found."
