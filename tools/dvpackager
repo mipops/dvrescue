@@ -222,6 +222,7 @@ _report(){
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
 FFMPEG_PATH="$(which ffmpeg)"
+FFPROBE_PATH="$(which ffprobe)"
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
 EXT="mkv"
@@ -451,6 +452,17 @@ while [[ "${@}" != "" ]] ; do
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                         -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                fi
+                # quick track duration check on the result
+                if [[ -f "${FFPROBE_PATH}" ]] ; then
+                    VID_DUR="$("${FFPROBE_PATH}" -v 0 "${OUTPUT_FILE}" -select_streams v:0 -show_entries stream=duration -of default=nk=1:nw=1)"
+                    AUD_DUR="$("${FFPROBE_PATH}" -v 0 "${OUTPUT_FILE}" -select_streams a:0 -show_entries stream=duration -of default=nk=1:nw=1)"
+                    DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
+                    if (( $( echo "${DUR_DIFF} >= -0.033367" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 0.03336" |bc -l) )); then
+                        :
+                    else
+                        _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                    fi
                 fi
             done
         fi
