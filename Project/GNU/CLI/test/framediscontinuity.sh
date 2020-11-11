@@ -24,7 +24,7 @@ pushd "${test}" >/dev/null 2>&1
     result=$(echo "${cmd_stdout}" | xmllint --xpath "count(/*[local-name()='dvrescue']/*[local-name()='media'][last()]/*[local-name()='frames'])" -)
 
     if [ "${result}" -ne "7" ] ; then
-        error "$test" "invalid number of nodes in output xml"
+        error "$test" "invalid number of nodes in output xml. Expected 7 and found ${result}"
     fi
 popd >/dev/null 2>&1
 rm -fr "${test}"
