@@ -26,7 +26,15 @@ Options:
  -t       (split the output file at non-consecutive timecode values)
 
  -e <ext> (specify the extension of the container to use. Tested with:
-           mkv, mov. Defaults to mkv.)
+           mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
+           shall simply extract the dv from the file while using the
+           selected options to split the output.)
+ -l <code>(specify the language code to use for the audio tracks.
+           If two languages are provided with a comma delimter such as
+           'eng,deu' then the first would be used for the first audio
+          track and the second for the second audio track, if it exists.)
+ -L <code>(specify the language code to use for the caption tracks (if
+           any).
  -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
@@ -213,7 +221,22 @@ _report(){
 }
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
-FFMPEG_PATH="$(which ffmpeg)"
+if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
+elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+else
+    BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+fi
+if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+    FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
+else
+    FFMPEG_PATH="$(which ffmpeg)"
+fi
+MEDIAINFO_PATH="$(which mediainfo)"
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
+fi
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
 EXT="mkv"
@@ -221,13 +244,15 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:SnvuhF:" opt ; do
+while getopts ":fsdte:l:L:SnvuhF:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
         d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
         e) EXT="${OPTARG}" ;;
+        l) LANGUAGES="${OPTARG}" ;;
+        L) CAPTION_LANG="${OPTARG}" ;;
         n) REPORT_ONLY="Y" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ;;
@@ -243,9 +268,14 @@ MATCH_FRAMES="${MATCH_FRAMES%?}"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
-OPT_OUTPUT+=(-map 0)
-OPT_OUTPUT+=(-c:v copy)
-OPT_OUTPUT+=(-c:a copy)
+OPT_OUTPUT+=(-c:v:0 copy)
+
+LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
+LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
+OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
+if [[ -n "${LANG2}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:1 language="${LANG2}")
+fi
 
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -w "Error: ffmpeg is needed but not found."
@@ -273,10 +303,22 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
+        OPT_OUTPUT+=(-map 0:v:0 -map 0:a)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
+        OPT_OUTPUT+=(-map 0:v:0 -map 0:a)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
+        ;;
+    "dv")
+        FORMAT="rawvideo"
+        EXTENSION="dv"
+        SUBS="N"
+        OPT_OUTPUT+=(-map 0:v:0)
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -341,30 +383,40 @@ while [[ "${@}" != "" ]] ; do
             case "${EXT}" in
                 "mov")
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
-                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-map 1:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-tag:s:s:0 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
                     if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
-                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
+                        OPT_OUTPUT+=(-tag:s:s:1 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        fi
                     fi
                     ;;
                 "mkv")
                     if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
-                        OPT_OUTPUT+=(-map 1)
+                        OPT_OUTPUT+=(-map 1:s:0)
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
                     if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
-                        OPT_OUTPUT+=(-map 2)
+                        OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
+                        fi
                     fi
                     ;;
             esac
@@ -383,11 +435,18 @@ while [[ "${@}" != "" ]] ; do
                     END_TIME+=(-to "${END_PTS}")
                 fi
                 if [[ "${FRAME_END}" != "-1" ]] ; then
-                    VFRAMES=(-frames:v "$(echo "${FRAME_END} - ${FRAME_START}" | bc)")
+                    VFRAMES=(-frames:v:0 "$(echo "${FRAME_END} - ${FRAME_START}" | bc)")
                 fi
                 INPUT_COUNT="1"
-                if [[ -n "${TC}" ]] ; then
+                if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
+                fi
+                if [[ "${RDT:0:4}" -ge 1995 ]] ; then
+                    if [[ "${EXTENSION}" = "mkv" ]] ; then
+                        METADATA+=(-metadata "DATE_RECORDED=${RDT}")
+                    elif [[ "${EXTENSION}" = "mov" ]] ; then
+                        METADATA+=(-metadata "date=${RDT}")
+                    fi
                 fi
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 if [[ "${SUBS}" = "Y" ]] ; then
@@ -401,10 +460,12 @@ while [[ "${@}" != "" ]] ; do
                     unset SUB_INPUT
                 fi
 
-                CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
-                _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
-                CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
-                CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                if [[ "${EXTENSION}" != "dv" ]] ; then
+                    CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
+                    _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+                    CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
+                    CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                fi
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
@@ -412,8 +473,19 @@ while [[ "${@}" != "" ]] ; do
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
-                        -copyts "${END_TIME[@]}" -map 0:v -c:v copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
+                        -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                fi
+                # quick track duration check on the result
+                if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                    VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                    AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                    DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
+                    if (( $( echo "${DUR_DIFF} >= -0.033367" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 0.033367" |bc -l) )); then
+                        :
+                    else
+                        _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                    fi
                 fi
             done
         fi
