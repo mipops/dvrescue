@@ -441,6 +441,13 @@ while [[ "${@}" != "" ]] ; do
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
                 fi
+                if [[ "${RDT:0:4}" -ge 1995 ]] ; then
+                    if [[ "${EXTENSION}" = "mkv" ]] ; then
+                        METADATA+=(-metadata "DATE_RECORDED=${RDT}")
+                    elif [[ "${EXTENSION}" = "mov" ]] ; then
+                        METADATA+=(-metadata "date=${RDT}")
+                    fi
+                fi
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 if [[ "${SUBS}" = "Y" ]] ; then
                     SUB_INPUT=(-ss "${PTS}" -i "${DVRESCUE_TECHSUBS}")
