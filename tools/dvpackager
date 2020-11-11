@@ -221,8 +221,20 @@ _report(){
 }
 
 MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
-FFMPEG_PATH="$(which ffmpeg)"
-FFPROBE_PATH="$(which ffprobe)"
+if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
+elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
+    BREW_PREFIX="/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink"
+else
+    BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
+fi
+if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+    FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
+    FFPROBE_PATH="${BREW_PREFIX}/bin/ffprobe-dl"
+else
+    FFMPEG_PATH="$(which ffmpeg)"
+    FFPROBE_PATH="$(which ffprobe)"
+fi
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
 EXT="mkv"
