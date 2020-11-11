@@ -230,10 +230,12 @@ else
 fi
 if [[ -d "${BREW_PREFIX}/bin" ]] ; then
     FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
-    FFPROBE_PATH="${BREW_PREFIX}/bin/ffprobe-dl"
 else
     FFMPEG_PATH="$(which ffmpeg)"
-    FFPROBE_PATH="$(which ffprobe)"
+fi
+MEDIAINFO_PATH="$(which mediainfo)"
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
 fi
 FFMPEG_VERBOSE=(-v 0)
 REPORT_ONLY="N"
@@ -468,11 +470,11 @@ while [[ "${@}" != "" ]] ; do
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${VFRAMES[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 # quick track duration check on the result
-                if [[ -f "${FFPROBE_PATH}" ]] ; then
-                    VID_DUR="$("${FFPROBE_PATH}" -v 0 "${OUTPUT_FILE}" -select_streams v:0 -show_entries stream=duration -of default=nk=1:nw=1)"
-                    AUD_DUR="$("${FFPROBE_PATH}" -v 0 "${OUTPUT_FILE}" -select_streams a:0 -show_entries stream=duration -of default=nk=1:nw=1)"
+                if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                    VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                    AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
                     DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
-                    if (( $( echo "${DUR_DIFF} >= -0.033367" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 0.03336" |bc -l) )); then
+                    if (( $( echo "${DUR_DIFF} >= -0.033367" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 0.033367" |bc -l) )); then
                         :
                     else
                         _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} and the audio track is ${AUD_DUR}. These tracks may lose sync."
