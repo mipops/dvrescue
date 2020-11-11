@@ -37,7 +37,7 @@ void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames)
     Value[4] += Seconds / 60; Seconds %= 60;
     Value[6] += Seconds / 10; Seconds %= 10;
     Value[7] += Seconds;
-    if (Frames < 100)
+    if (Frames < 0x3F) // 6-bit, sometimes set to 0x3F when unknown
     {
         if (DropFrame)
             Value[8] = ';';

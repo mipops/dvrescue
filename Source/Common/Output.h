@@ -65,8 +65,8 @@ public:
     inline bool Start() { return _Value1 & (1 << 29); }                             // 1 29
     inline bool NonConsecutive() { return _Value1 & (1 << 30); }                    // 1 30
     inline bool Repeat() { return _Value1 & (1 << 31); }                            // 1 31
-    inline int Frames() { return _Value2 & 0x7F; }                                  // 2  0- 7
-    inline int Days() { return (_Value2 >> 8) & 0x1F; }                             // 2  8-12
+    inline int Frames() { return _Value2 & 0x3F; }                                  // 2  0- 5
+    inline int Days() { return (_Value2 >> 6) & 0x1F; }                             // 2  6-10
     inline int Months() { return (_Value2 >> 12) & 0x0F; }                          // 2 12-15
 
 private:
