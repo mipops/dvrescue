@@ -48,10 +48,20 @@ Item {
         var splitted = value.split('\n');
         console.debug('splitted: ', splitted.length)
 
-        if(splitted[0].indexOf('Devices:') !== -1)
+        var indexOfDevices = -1;
+        for(var i = 0; i < splitted.length; ++i)
         {
-            splitted.shift();
-            for(var i = 0; i < splitted.length; ++i)
+            if(splitted[i].indexOf('Devices:') !== -1)
+            {
+                indexOfDevices = i;
+                break;
+            }
+        }
+
+        if(indexOfDevices !== -1)
+        {
+            ++indexOfDevices;
+            for(var i = indexOfDevices; i < splitted.length; ++i)
             {
                 var entry = splitted[i];
                 if(entry === '')
