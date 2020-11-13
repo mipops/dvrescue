@@ -481,10 +481,10 @@ while [[ "${@}" != "" ]] ; do
                     VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
                     AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
                     DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
-                    if (( $( echo "${DUR_DIFF} >= -0.033367" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 0.033367" |bc -l) )); then
+                    if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                         :
                     else
-                        _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                        _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                     fi
                 fi
             done
