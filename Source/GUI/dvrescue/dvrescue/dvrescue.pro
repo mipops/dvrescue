@@ -29,3 +29,9 @@ HEADERS += \
 
 SOURCES += \
     fileutils.cpp
+
+DISTFILES += \
+    icons/fastforward.svg \
+    icons/play.svg \
+    icons/rewind.svg \
+    icons/stop.svg

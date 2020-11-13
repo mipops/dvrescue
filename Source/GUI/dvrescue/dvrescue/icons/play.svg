@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 256 256"
+   version="1.1"
+   x="0px"
+   y="0px"
+   id="svg16"
+   sodipodi:docname="play.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   width="256"
+   height="256">
+  <metadata
+     id="metadata22">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>024-Rewind</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1145"
+     id="namedview18"
+     showgrid="false"
+     inkscape:zoom="1.6796969"
+     inkscape:cx="75.976664"
+     inkscape:cy="122.87521"
+     inkscape:window-x="1987"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg16" />
+  <title
+     id="title2">024-Rewind</title>
+  <desc
+     id="desc4">Created with Sketch.</desc>
+  <g
+     transform="matrix(20.668819,0,0,17.233614,37.331809,26.705937)"
+     style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1"
+     id="g10">
+    <g
+       style="fill:#000000"
+       transform="translate(0,-1)"
+       id="g8">
+      <path
+         inkscape:connector-curvature="0"
+         d="m 8.7141,8.2331 -7.058,4.588 c -0.713,0.463 -1.656,-0.048 -1.656,-0.899 v -4.525 -5.356 c 0,-0.883 1.008,-1.388 1.715,-0.858 l 7.058,5.294 c 0.596,0.447 0.565,1.35 -0.059,1.756 z"
+         id="path6" />
+    </g>
+  </g>
+</svg>

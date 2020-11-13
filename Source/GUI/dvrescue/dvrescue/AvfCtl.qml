@@ -126,7 +126,9 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -cmd capture " + filePath + " -device " + index);
+            var grabCommand = avfctlCmd + " -cmd capture " + filePath + " -device " + index;
+            console.debug('executing grab: ', grabCommand);
+            launcher.execute(grabCommand);
             if(callback)
                 callback(launcher)
         })

@@ -7,8 +7,9 @@ import Launcher 0.1
 import FileUtils 1.0
 
 Window {
-    width: 640
-    height: 480
+    id: root
+    width: 1280
+    height: 720
     visible: true
     title: qsTr("Hello World")
 
@@ -17,33 +18,103 @@ Window {
     }
 
     Settings {
+        id: settings;
         property alias avfctlCmd: avfctl.avfctlCmd
     }
 
-    RowLayout {
-        id: selectAvfctlRow
-        anchors.left: parent.left
-        anchors.right: parent.right
+    Dialog {
+        id: avfctlDialog
+        title: "Please, specify avfctl tool location"
+        contentWidth: 480
 
         TextField {
-            id: input
+            id: avfctlField
+            width: 480
 
-            Layout.fillWidth: true
-            onAccepted: {
-                avfctl.avfctlCmd = text
-            }
-
-            Component.onCompleted: {
-                input.text = avfctl.avfctlCmd
-            }
+            placeholderText: "avfctl tool path..."
+            selectByMouse: true
         }
 
-        Button {
-            text: "Apply"
-            onClicked: {
-                avfctl.avfctlCmd = input.text
-            }
+        standardButtons: Dialog.Cancel | Dialog.Ok
+        onAccepted: {
+            avfctl.avfctlCmd = avfctlField.text
         }
+        anchors.centerIn: parent
+    }
+
+    SpecifyPathDialog {
+        id: specifyPathDialog
+    }
+
+    SimpleTransfer {
+        width: 1280
+        height: 720
+
+        property var urlToPath: function(url) {
+            return FileUtils.getFilePath(url);
+        }
+
+        rewindMouseArea.onClicked: {
+            avfctl.rew(0, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+
+        stopMouseArea.onClicked: {
+            avfctl.stop(0, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+
+        playMouseArea.onClicked: {
+            avfctl.play(0, (launcher) => {
+               commandsLogs.logCommand(launcher);
+            }).then((result) => {
+               commandsLogs.logResult(result.outputText);
+               return result;
+            });
+        }
+
+        fastForwardMouseArea.onClicked: {
+            avfctl.ff(0,  (launcher) => {
+                commandsLogs.logCommand(launcher);
+            }).then((result) => {
+                commandsLogs.logResult(result.outputText);
+                return result;
+            });
+        }
+
+        grabMouseArea.onClicked: {
+            specifyPathDialog.callback = (fileUrl) => {
+                var filePath = urlToPath(fileUrl);
+
+                avfctl.grab(0, filePath, (launcher) => {
+                   console.debug('logging grab command')
+                   commandsLogs.logCommand(launcher);
+                }).then((result) => {
+                   commandsLogs.logResult(result.outputText);
+                   return result;
+                }).catch((e) => {
+                   commandsLogs.logResult(e);
+                });
+            }
+
+            specifyPathDialog.open();
+        }
+
+        settingsMouseArea.onClicked: {
+            avfctlField.text = avfctl.avfctlCmd
+            avfctlField.forceActiveFocus();
+            avfctlDialog.open();
+        }
+
+        deviceNameTextField.text: devicesModel.count === 0 ? '' : devicesModel.get(0).name + " (" + devicesModel.get(0).type + ")"
     }
 
     DevicesModel {
@@ -62,117 +133,112 @@ Window {
         }
     }
 
-    DevicesView {
-        id: devicesView
-        model: devicesModel
-        anchors.top: selectAvfctlRow.bottom
-        urlToPath: function(url) {
-            return FileUtils.getFilePath(url);
-        }
+    Rectangle {
+        id: debugRect
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        width: 162
+        height: 100
+        color: "#a40000"
 
-        onPlayClicked: {
-            avfctl.play(index, (launcher) => {
-               commandsLogs.logCommand(launcher);
-            }).then((result) => {
-               commandsLogs.logResult(result.outputText);
-               return result;
-            });
-        }
-        onStopClicked: {
-            avfctl.stop(index, (launcher) => {
-               commandsLogs.logCommand(launcher);
-            }).then((result) => {
-               commandsLogs.logResult(result.outputText);
-               return result;
-            });
-        }
-        onMoveToStartClicked: {
-            avfctl.rew(index, (launcher) => {
-               commandsLogs.logCommand(launcher);
-            }).then((result) => {
-               commandsLogs.logResult(result.outputText);
-               return result;
-            });
-        }
-        onMoveToEndClicked: {
-            avfctl.ff(index,  (launcher) => {
-                commandsLogs.logCommand(launcher);
-            }).then((result) => {
-                commandsLogs.logResult(result.outputText);
-                return result;
-            });
-        }
-        onGrabClicked: {
-            avfctl.grab(index, filePath, (launcher) => {
-               commandsLogs.logCommand(launcher);
-            }).then((results) => {
-               commandsLogs.logResult(result.outputText);
-               return results;
-            }).catch((e) => {
-               commandsLogs.logResult(e);
-            });
+        Text {
+            anchors.centerIn: parent
+            color: "#ffffff"
+            text: qsTr("Debug")
+            font.pixelSize: 26
+            font.family: "Tahoma"
+            minimumPixelSize: 14
+            font.weight: Font.Bold
+            minimumPointSize: 14
         }
     }
 
-    Item {
-        anchors.left: devicesView.right
-        anchors.leftMargin: 100
-        anchors.top: selectAvfctlRow.bottom
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+    MouseArea {
+        anchors.fill: debugRect
+        onClicked: {
+            debugView.visible = !debugView.visible
+        }
+    }
 
-        TabBar {
-            id: tabBar
-            width: parent.width
+    Window {
+        id: debugView
+        visible: false
+        width: root.width / 2
+        height: root.height
 
-            TabButton {
-                text: "command logs"
-            }
-            TabButton {
-                text: "status logs"
-            }
+        Component.onCompleted: {
+            x = root.width
+            y = root.y
         }
 
-        StackLayout {
-            anchors.top: tabBar.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            currentIndex: tabBar.currentIndex
+        Rectangle {
+            width: parent.width / 2
+            color: "#ccffffff"
 
-            ScrollView {
-                TextArea {
-                    id: commandsLogs
-                    selectByMouse: true
+            TabBar {
+                id: tabBar
+                width: parent.width
+                currentIndex: 0
 
-                    function logCommand(launcher) {
-                        append(launcher.program() + ' ' + launcher.arguments().join(' '));
-                        append('\n');
-                    }
-
-                    function logResult(result) {
-                        append(result);
-                        append('\n\n');
-                    }
+                TabButton {
+                    text: "command logs"
+                }
+                TabButton {
+                    text: "status logs"
                 }
             }
 
-            ScrollView {
-                TextArea {
-                    id: statusLogs
-                    selectByMouse: true
+            StackLayout {
+                anchors.top: tabBar.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                currentIndex: tabBar.currentIndex
 
-                    function logCommand(launcher) {
-                        if(text.length > 50000)
-                            clear();
+                ScrollView {
+                    TextArea {
+                        id: commandsLogs
+                        selectByMouse: true
 
-                        append(launcher.program() + ' ' + launcher.arguments().join(' '));
-                        append('\n');
+                        function logCommand(launcher) {
+                            console.debug('logging command: ', launcher.program() + ' ' + launcher.arguments().join(' '))
+
+                            append(launcher.program() + ' ' + launcher.arguments().join(' '));
+                            append('\n');
+                        }
+
+                        function logResult(result) {
+                            append(result);
+                            append('\n\n');
+                        }
+
+                        Component.onCompleted: {
+                            append("beginning commands log");
+                        }
                     }
+                }
 
-                    function logResult(result) {
-                        append(result);
-                        append('\n\n');
+                ScrollView {
+                    TextArea {
+                        id: statusLogs
+                        selectByMouse: true
+
+                        function logCommand(launcher) {
+                            if(text.length > 50000)
+                                clear();
+
+                            append(launcher.program() + ' ' + launcher.arguments().join(' '));
+                            append('\n');
+                        }
+
+                        function logResult(result) {
+                            append(result);
+                            append('\n\n');
+                        }
+
+                        Component.onCompleted: {
+                            append("beginning status log");
+                        }
                     }
                 }
             }

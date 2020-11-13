@@ -6,5 +6,13 @@
         <file>AvfCtlParser.qml</file>
         <file>DevicesModel.qml</file>
         <file>DevicesView.qml</file>
+        <file>SimpleTransfer.ui.qml</file>
+        <file>icons/fastforward.svg</file>
+        <file>icons/play.svg</file>
+        <file>icons/rewind.svg</file>
+        <file>icons/stop.svg</file>
+        <file>colorbars.jpg</file>
+        <file>dvrescue.png</file>
+        <file>SpecifyPathDialog.qml</file>
     </qresource>
 </RCC>
