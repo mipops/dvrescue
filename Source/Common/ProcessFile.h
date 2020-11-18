@@ -17,6 +17,7 @@
     #include "MediaInfo/MediaInfoList.h"
     #define MediaInfoNameSpace MediaInfoLib
 #endif
+#include "Common/Merge.h"
 #include "MediaInfo/MediaInfo_Events.h"
 #include <vector>
 using namespace MediaInfoNameSpace;
@@ -72,10 +73,18 @@ public:
     size_t FrameNumber;
     double FrameRate;
 
-    file(const String& FileName);
+    file();
     ~file();
+
+    void Parse(const String& FileName);
 
     void AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData);
     void AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
     void AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData);
+
+    // Merge
+    size_t Merge_FilePos;
+    void Merge_AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+    void Merge_Process();
+    void Merge_Finish();
 };

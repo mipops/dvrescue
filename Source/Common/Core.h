@@ -53,6 +53,5 @@ public:
     float           State();
 
 protected:
-    vector<file*>   PerFile;
     void            PerFile_Clear();
 };

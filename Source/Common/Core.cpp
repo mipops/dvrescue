@@ -12,7 +12,11 @@
 #include "Common/Output_Xml.h"
 #include "Common/Output_Webvtt.h"
 #include "ZenLib/Ztring.h"
+#include <future>
+#include <mutex>
+#include <thread>
 using namespace ZenLib;
+using namespace std;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -36,13 +40,29 @@ Core::~Core()
 //***************************************************************************
 
 //---------------------------------------------------------------------------
+vector<file*>   PerFile;
 return_value Core::Process()
 {
-    // Analyze files
+    // Analyze files (asynchronous)
     PerFile_Clear();
     PerFile.reserve(Inputs.size());
+    std::vector<std::future<size_t>> futures;
     for (const auto& Input : Inputs)
-        PerFile.push_back(new file(Input));
+    {
+        PerFile.push_back(new file());
+        futures.emplace_back(std::async(std::launch::async, [](size_t param, const String& Input) {
+            PerFile[param]->Parse(Input);
+            return param;
+            }, PerFile.size()-1, Input));
+    }
+    for (auto &future : futures) {
+       future.get();
+    }
+    if (!Merge_OutputFileName.empty())
+    {
+        PerFile[0]->Merge_Finish();
+        return ReturnValue_OK;
+    }
 
     // Set output defaults
     return_value ToReturn = ReturnValue_OK;
