@@ -154,6 +154,7 @@
     <ClCompile Include="..\..\..\Source\CLI\CLI_Main.cpp" />
     <ClCompile Include="..\..\..\Source\CLI\CommandLine_Parser.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Core.cpp" />
+    <ClCompile Include="..\..\..\Source\Common\Merge.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output_Captions_Scc.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Output_Captions_Decode.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="..\..\..\Source\CLI\CommandLine_Parser.h" />
     <ClInclude Include="..\..\..\Source\Common\Config.h" />
     <ClInclude Include="..\..\..\Source\Common\Core.h" />
+    <ClInclude Include="..\..\..\Source\Common\Merge.h" />
     <ClInclude Include="..\..\..\Source\Common\Output.h" />
     <ClInclude Include="..\..\..\Source\Common\Output_Captions_Scc.h" />
     <ClInclude Include="..\..\..\Source\Common\Output_Captions_Decode.h" />

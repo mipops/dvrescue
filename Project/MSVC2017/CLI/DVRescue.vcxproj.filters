@@ -84,6 +84,9 @@
     <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_subrip.c">
       <Filter>ThirdParty\ccdecoder</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Merge.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\CLI\CommandLine_Parser.h">
@@ -135,6 +138,9 @@
       <Filter>ThirdParty\ccdecoder</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Output_Captions_Decode.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Merge.h">
       <Filter>Header Files\Common</Filter>
     </ClInclude>
   </ItemGroup>

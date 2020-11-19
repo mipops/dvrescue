@@ -139,6 +139,40 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             C.CaptionsFileNames[CurrentCaptionKind] = move(CurrentFileName);
         }
+        else if (!strcmp(argv_ansi[i], "--merge") || !strcmp(argv_ansi[i], "-m"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing merged output file name after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_OutputFileName = move(argv_ansi[i]);
+        }
+        else if (!strcmp(argv_ansi[i], "--verbosity ") || !strcmp(argv_ansi[i], "-v"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing verbosity level after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            switch (argv_ansi[i][0])
+            {
+                case '0':
+                case '5':
+                case '9':
+                    Verbosity = argv_ansi[i][0] - '0';
+                    break;
+                default:
+                    if (C.Err)
+                        *C.Err << "Error: invalid verbosity " << argv_ansi[i] << " (must be 0, 5, or 9).\n";
+                    ReturnValue = ReturnValue_ERROR;
+                    continue;
+            }
+        }
         else if (!strcmp(argv_ansi[i], "--version"))
         {
             if (!C.Out)
@@ -188,13 +222,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         else
         {
-            if (C.WebvttFile || C.XmlFile)
+            if (C.WebvttFile || C.XmlFile || !Merge_OutputFileName.empty())
             {
                 if (C.Err)
                     *C.Err << "Error: in order to avoid mistakes, provide output file names after input file names.\n";
                 return ReturnValue_ERROR;
             }
             C.Inputs.push_back(argv[i]);
+            Merge_InputFileNames.push_back(argv_ansi[i]);
         }
     }
 

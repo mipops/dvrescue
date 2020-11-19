@@ -49,10 +49,16 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-file::file(const String& FileName)
+size_t Merge_FilePos_Total = 0;
+file::file()
 {
+    Merge_FilePos = Merge_FilePos_Total++;
     FrameNumber = 0;
+}
 
+//---------------------------------------------------------------------------
+void file::Parse(const String& FileName)
+{
     MI.Option(__T("File_Event_CallBackFunction"), __T("CallBack=memory://") + Ztring::ToZtring((size_t)&Event_CallBackFunction) + __T(";UserHandler=memory://") + Ztring::ToZtring((size_t)this));
     MI.Option(__T("File_DvDif_Analysis"), __T("1"));
     MI.Open(FileName);
@@ -145,6 +151,9 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
         ToPush->Audio_Data_Errors = Audio_Data_Errors;
     }
     PerFrame.push_back(ToPush);
+
+    if (!Merge_OutputFileName.empty())
+        Merge_AddFrame(FrameData);
 }
 
 //---------------------------------------------------------------------------

@@ -6,6 +6,7 @@ dvrescue_SOURCES = \
     ../../../Source/CLI/CLI_Main.cpp \
     ../../../Source/CLI/CommandLine_Parser.cpp \
     ../../../Source/Common/Core.cpp \
+    ../../../Source/Common/Merge.cpp \
     ../../../Source/Common/Output.cpp \
     ../../../Source/Common/Output_Captions_Decode.cpp \
     ../../../Source/Common/Output_Captions_Scc.cpp \
