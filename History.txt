@@ -1,3 +1,14 @@
+Version 0.20.11, 2020-11-19
++ Support merging multiple dv streams of same content to a better output.
++ Add track duration post-check to dvpackager
++ Fix errorenous recording timestampls
++ Fixes for dvpackager
++ Add -h outputs for all tools
++ XML Schema updates for concealment issues and missing data packs
++ Gather more device info in avfctl
++ Support custom output directories in dvplay
++ Other fixes, plus fixes that are upstream in MediaInfoLib
+
 Version 0.20.06, 2020-07-01
 + Refactoring of dvpackager
 + More media attributes
