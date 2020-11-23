@@ -4,6 +4,8 @@ Archivist-made software that supports data migration from DV tapes into digital 
 
 DVRescue was presented at the Association of Moving Image Archivists 2019 conference. Slides from the presentation are available [here](https://docs.google.com/presentation/d/1JFYHaKMZWHd8LFOVWmGuxdLNgFOiSXcoSxCMB-TXCvA/edit?usp=sharing).
 
+A status update of DVRescue was presented at the Association of Moving Image Archivists 2020 conference. The presentation video can be viewed [here](https://youtu.be/YGPIqJ4_ssI).
+
 ## How to download
 
 DVRescue is available for all major operating systems (macOS, Windows, and Linux). Installers can be downloaded here: https://mediaarea.net/DVRescue  
@@ -33,7 +35,7 @@ This Homebrew formula will install the following tools: `dvloupe dvmap dvpackage
 
 ### Additional tools
 
-Within this repository are additional tools used to supplement DVRescue.
+Within this repository are additional tools used to supplement DVRescue. For demonstrations on how to use the command line tools, please see the AMIA 2020 presentation video [here](https://youtu.be/YGPIqJ4_ssI) and related blog posts [here](https://mipops.tumblr.com/).
 
 They are:
 
@@ -48,6 +50,11 @@ They are:
 **dvrescue.xsd** This file can be used to validate a DVRescue XML output. It also contains definitions of the DVRescue parameters.
 
 **dvsampler** A script that downloads or creates DV files to use as samples. Requires FFmpeg.
+
+**dvmerge** A script that takes multiple transfers of the same tape containing errors and combines them to create one file with the best information available for each problematic frame. 
+
+**dvguidance** A collection of additional resources including documentation, video demostrations, and solutions for how the operator may improve the transfer as guided by DVRescue.
+
 
 ## Copyrights
 
