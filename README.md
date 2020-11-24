@@ -51,9 +51,9 @@ They are:
 
 **dvsampler** A script that downloads or creates DV files to use as samples. Requires FFmpeg.
 
-**dvmerge** A script that takes multiple transfers of the same tape containing errors and combines them to create one file with the best information available for each problematic frame. 
+**dvmerge** A script that takes multiple transfers of the same tape containing errors and combines them to create one file with the best information available for each problematic frame. dvmerge is part of dvrescue. See `dvrescue -h` on a recent build.
 
-**dvguidance** A collection of additional resources including documentation, video demostrations, and solutions for how the operator may improve the transfer as guided by DVRescue.
+**dvguidance** A collection of additional resources including documentation, video demostrations, and solutions for how the operator may improve the transfer as guided by DVRescue. dvguidance resources can be found [here](https://mipops.github.io/dvrescue/).
 
 
 ## Copyrights
