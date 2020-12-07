@@ -25,7 +25,7 @@ public:
         return m_useThread;
     }
 
-signals:
+Q_SIGNALS:
     void outputChanged(const QByteArray& output);
     void errorChanged(const QByteArray& output);
     void workingDirectoryChanged(const QString& dir);
@@ -34,7 +34,7 @@ signals:
 
     void useThreadChanged(bool useThread);
 
-public slots:
+public Q_SLOTS:
     void execute(const QString &cmd);
     void execute(const QString &app, const QStringList arguments);
     void write(const QByteArray& data);
@@ -47,7 +47,7 @@ public slots:
             return;
 
         m_useThread = useThread;
-        emit useThreadChanged(m_useThread);
+        Q_EMIT useThreadChanged(m_useThread);
     }
 
 private:

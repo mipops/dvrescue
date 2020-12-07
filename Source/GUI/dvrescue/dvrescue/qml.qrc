@@ -14,5 +14,7 @@
         <file>colorbars.jpg</file>
         <file>dvrescue.png</file>
         <file>SpecifyPathDialog.qml</file>
+        <file>sample.xml</file>
+        <file>SelectPathDialog.qml</file>
     </qresource>
 </RCC>

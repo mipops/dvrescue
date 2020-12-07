@@ -13,29 +13,29 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
         QByteArray output = m_process.readAllStandardOutput();
 
         qDebug() << "output changed at thead " << QThread::currentThread() << ": " << output;
-        emit outputChanged(output);
+        Q_EMIT outputChanged(output);
     });
 
     connect(&m_process, &QProcess::readyReadStandardError, [&] {
         QByteArray output = m_process.readAllStandardError();
 
         qDebug() << "error changed " << QThread::currentThread() << ": " << output;
-        emit errorChanged(output);
+        Q_EMIT errorChanged(output);
     });
 
     connect(&m_process, &QProcess::started, [&] {
-        emit processStarted(QString("%0").arg((qlonglong) m_process.pid()));
+        Q_EMIT processStarted(QString("%0").arg((qlonglong) m_process.pid()));
     });
 
     connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
         qDebug() << "emitting processFinished: " << exitCode << exitStatus;
-        emit processFinished();
+        Q_EMIT processFinished();
     });
 
     /*
     connect(&m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
         if(state == QProcess::NotRunning)
-            emit processFinished();
+            Q_EMIT processFinished();
     });
     */
 }
@@ -180,7 +180,7 @@ void Launcher::setWorkingDirectory(const QString &value)
     if(m_workingDirectory != value)
     {
         m_workingDirectory = value;
-        emit workingDirectoryChanged(value);
+        Q_EMIT workingDirectoryChanged(value);
     }
 
     qDebug() << "new working directory: " << m_workingDirectory;

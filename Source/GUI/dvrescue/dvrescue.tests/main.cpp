@@ -1,24 +1,45 @@
-#include <QObject>
-#include <QtQuickTest>
-#include <QQmlEngine>
-#include <iostream>
+#include <QApplication>
+#include <QTest>
+#include <QPair>
+#include <QCommandLineParser>
+#include <memory>
 
-class Setup : public QObject
+#include "dummytest.h"
+#include "xmlparsingtest.h"
+
+int main(int argc, char *argv[])
 {
-    Q_OBJECT
-public:
+    QApplication app(argc, argv);
+    std::map<QString, std::unique_ptr<QObject>> tests;
 
-public slots:
-    void applicationAvailable()
+    tests.emplace("xmlparsing", std::make_unique<XmlParsingTest>());
+    tests.emplace("dummy", std::make_unique<DummyTest>());
+
+    QString selectedTest;
+    auto args = app.arguments();
+    if(args.length() >= 3 && args[1] == "-t")
     {
-        qDebug() << "applicationAvailable";
+        selectedTest = args[2];
+        args.removeAt(2);
+        args.removeAt(1);
     }
-    void qmlEngineAvailable(QQmlEngine *engine)
+
+    if(!selectedTest.isEmpty())
     {
-        qDebug() << "qmlEngineAvailable";
+        auto testIt = tests.find(selectedTest);
+        if(testIt != tests.end())
+        {
+            return QTest::qExec(testIt->second.get(), args);
+        }
     }
-};
+    else
+    {
+        int result = 0;
+        for(auto & test : tests) {
+            result |= QTest::qExec(test.second.get(), args);
+        }
+        return result;
+    }
 
-QUICK_TEST_MAIN_WITH_SETUP(tests, Setup)
-
-#include "main.moc"
+    return 0;
+}

@@ -1,15 +1,21 @@
 #include "fileutils.h"
 #include "launcher.h"
-#include <QGuiApplication>
+#include <graphmodel.h>
+#include <QApplication>
 #include <QQmlApplicationEngine>
+#include <qwtquick2plot.h>
+#include <QQmlParserStatus>
 
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
+    qmlRegisterType<GraphModel>("GraphModel", 1, 0, "GraphModel");
+    qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
+    qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
 
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     app.setOrganizationName("dvrescue");
     app.setOrganizationDomain("dvrescue.com");

@@ -2,4 +2,6 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
 	dvrescue \
-	dvrescue.tests
+        dvrescue.tests \
+        dvrescue.qmltests
+

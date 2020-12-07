@@ -17,9 +17,7 @@ public:
     Q_INVOKABLE QString read(const QString& filePath);
     Q_INVOKABLE bool remove(const QString& filePath);
     Q_INVOKABLE bool copy(const QString& target, const QString& destination);
-signals:
-
-public slots:
+public Q_SLOTS:
 };
 
 #endif // FILEUTILS_H

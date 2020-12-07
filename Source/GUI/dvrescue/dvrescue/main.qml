@@ -5,6 +5,8 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
+import GraphModel 1.0
+import QwtQuick2 1.0
 
 Window {
     id: root
@@ -13,6 +15,62 @@ Window {
     visible: true
     title: qsTr("Hello World")
 
+    GraphModel {
+        id: graphModel
+    }
+
+    QwtQuick2Plot {
+        id: plot
+        z: 100
+        anchors.fill: parent
+
+        QwtQuick2PlotCurve {
+            id: curve
+            curveStyle: QwtQuick2PlotCurve.Sticks
+            color: "green"
+        }
+
+        QwtQuick2PlotCurve {
+            id: curve2
+            curveStyle: QwtQuick2PlotCurve.Sticks
+            color: "red"
+        }
+
+        RowLayout {
+            TextField {
+                id: xmlPath
+            }
+
+            Button {
+                text: "select file"
+                onClicked: {
+                    selectPathDialog.callback = (fileUrl) => {
+                        var filePath = FileUtils.getFilePath(fileUrl);
+                        xmlPath.text = filePath;
+                    }
+                    selectPathDialog.open();
+                }
+            }
+
+            Button {
+                text: "load"
+                onClicked: {
+                    graphModel.populate(xmlPath.text);
+                }
+            }
+        }
+
+        Timer {
+            id: refreshTimer
+            interval: 500
+            running: true
+            repeat: true
+            onTriggered: {
+                graphModel.update(curve, curve2);
+            }
+        }
+    }
+
     AvfCtl {
         id: avfctl
     }
@@ -20,6 +78,7 @@ Window {
     Settings {
         id: settings;
         property alias avfctlCmd: avfctl.avfctlCmd
+        property alias selectedXml: xmlPath.text
     }
 
     Dialog {
@@ -40,6 +99,10 @@ Window {
             avfctl.avfctlCmd = avfctlField.text
         }
         anchors.centerIn: parent
+    }
+
+    SelectPathDialog {
+        id: selectPathDialog
     }
 
     SpecifyPathDialog {
