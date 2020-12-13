@@ -72,6 +72,31 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 return Value;
             ClearInput = true;
         }
+        else if (!strcmp(argv_ansi[i], "--caption-presence-change"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "n"))
+            {
+                C.Options.set(Option_CaptionPresenceChange, false);
+            }
+            else if (!strcmp(argv_ansi[i], "y"))
+            {
+                C.Options.set(Option_CaptionPresenceChange, true);
+            }
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: invalid value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
         else if (!strcmp(argv_ansi[i], "--cc-format"))
         {
             if (++i >= argc)

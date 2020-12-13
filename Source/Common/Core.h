@@ -11,6 +11,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <bitset>
 using namespace MediaInfoNameSpace;
 using namespace std;
 class TimeCode;
@@ -47,6 +48,7 @@ public:
     ostream*        XmlFile = nullptr;
     ostream*        Out = nullptr;
     ostream*        Err = nullptr;
+    bitset<Option_Max> Options;
 
     // Process
     return_value    Process();
