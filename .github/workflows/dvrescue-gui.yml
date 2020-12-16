@@ -53,7 +53,13 @@ jobs:
         cd build
         qmake ..
         make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/build
         ls
+        ls ./dvrescue
+        open ./dvrescue/dvrescue.app
 
   build-macos-no-brew:
 
@@ -111,7 +117,13 @@ jobs:
         cd build
         qmake .. 
         make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/build
         ls
+        ls ./dvrescue
+        open ./dvrescue/dvrescue.app
 
   build-linux:
 
@@ -197,8 +209,13 @@ jobs:
         cd Source/GUI/dvrescue/
         qmake
         make -j4
-        ls
 
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
+        ls
+        ls ./dvrescue
+        ./dvrescue/dvrescue
 
   build-windows-mingw:
 
@@ -251,7 +268,13 @@ jobs:
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
         ls
+        ls ./dvrescue
+        ./dvrescue/release/dvrescue
 
   build-windows-vs:
 
@@ -324,4 +347,10 @@ jobs:
       run: |
         cd Source/GUI/dvrescue/
         jom -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
         ls
+        ls ./dvrescue
+        ./dvrescue/release/dvrescue
