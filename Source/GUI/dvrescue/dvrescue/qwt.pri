@@ -40,4 +40,66 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
     }
 
     INCLUDEPATH += $$QWT_ROOT/src
+
+    # copy qwt
+    if(equals(MAKEFILE_GENERATOR, MSVC.NET)|equals(MAKEFILE_GENERATOR, MSBUILD)) {
+      TRY_COPY = $$QMAKE_COPY
+    } else {
+      TRY_COPY = -$$QMAKE_COPY #makefile. or -\$\(COPY_FILE\)
+    }
+
+    macx {
+        qwtlibs.pattern = $$absolute_path($${QWT_ROOT}/lib)
+        qwtlibs.files = $$files($$qwtlibs.pattern)
+        qwtlibs.path = $$absolute_path($$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/Frameworks)
+        qwtlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_MKDIR_CMD $$shell_path($$qwtlibs.path)
+
+        for(file, qwtlibs.files) {
+            qwtlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_COPY_DIR $$shell_path($$file) $$shell_path($$qwtlibs.path)
+        }
+    } linux {
+
+        QWTLIBNAME = libqwt
+
+        qwtlibs.pattern = $$absolute_path($${QWT_ROOT}/lib)/$${QWTLIBNAME}.$$QMAKE_EXTENSION_SHLIB*
+        #message('qwtlibs.pattern: ' $$qwtlibs.pattern)
+
+        qwtlibs.files = $$files($$qwtlibs.pattern)
+        #message('qwtlibs.files: ' $$qwtlibs.files)
+
+        qwtlibs.path = $$absolute_path($$OUT_PWD$${BUILD_DIR})
+        #message('qwtlibs.path: ' $$qwtlibs.path)
+
+        for(file, qwtlibs.files) {
+            qwtlibs.commands += $$escape_expand(\\n\\t)$$TRY_COPY $$shell_path($$file) $$shell_path($$qwtlibs.path)
+        }
+        #message('qwtlibs.commands: ' $$qwtlibs.commands)
+
+        # make linker to search for qwt in current directory
+        QMAKE_RPATHDIR += .
+
+    } win32 {
+
+        CONFIG(debug, debug|release) {
+            BUILD_SUFFIX=d
+            BUILD_DIR=/debug
+        } else:CONFIG(release, debug|release) {
+            BUILD_SUFFIX=
+            BUILD_DIR=/release
+        }
+        QWTLIBNAME = qwt$${BUILD_SUFFIX}
+
+        qwtlibs.pattern = $$absolute_path($${QWT_ROOT}/lib)/$${QWTLIBNAME}.$$QMAKE_EXTENSION_SHLIB
+        qwtlibs.files = $$files($$qwtlibs.pattern)
+        qwtlibs.path = $$absolute_path($$OUT_PWD$${BUILD_DIR})
+
+        for(file, qwtlibs.files) {
+            qwtlibs.commands += $$escape_expand(\\n\\t)$$TRY_COPY $$shell_path($$file) $$shell_path($$qwtlibs.path)
+        }
+    }
+
+    isEmpty(QMAKE_POST_LINK): QMAKE_POST_LINK = $$qwtlibs.commands
+    else: QMAKE_POST_LINK = $${QMAKE_POST_LINK}$$escape_expand(\\n\\t)$$qwtlibs.commands
+
+    message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})
 }
