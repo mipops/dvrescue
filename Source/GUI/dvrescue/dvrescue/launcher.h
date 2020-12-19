@@ -52,7 +52,7 @@ public Q_SLOTS:
 
 private:
     QString m_workingDirectory;
-    QProcess m_process;
+    QProcess* m_process = { nullptr };
     QProcess::ProcessState m_processState { QProcess::NotRunning };
     QThread* m_thread = { nullptr };
     bool m_useThread = { false };
