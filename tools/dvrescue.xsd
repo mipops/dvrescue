@@ -195,11 +195,13 @@
     <xsd:annotation>
       <xsd:documentation xml:lang="en">
         Values of 'y' and 'n' indicate whether there is or is not the presence of EIA-608 closed captioning packs with the VAUX section of the DV frames.
+        'p' when some but not all frames have captions; in that case frame/@cap contains information about begin and end of the closed captioning packs presence.
       </xsd:documentation>
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="y"/>
       <xsd:enumeration value="n"/>
+      <xsd:enumeration value="p"/>
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -311,6 +313,19 @@
           Boolean that indicates if arbitrary data is non-consecutive.
         </xsd:documentation>
       </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="caption" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          When frames/@captions is 'p' (partial), contains information about closed captioning packs presence.
+          'on' at the first (in this 'frames' element) frame starting a closed captioning packs stream.
+          'off' at the first frame without captioning packs when previous frames have it.
+        </xsd:documentation>
+      </xsd:annotation>
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="on"/>
+        <xsd:enumeration value="off"/>
+      </xsd:restriction>
     </xsd:attribute>
     <xsd:attribute name="caption-parity" type="xsd:string">
       <xsd:annotation>

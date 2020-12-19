@@ -12,4 +12,4 @@ using namespace std;
 class file;
 //---------------------------------------------------------------------------
 
-return_value Output_Xml(ostream& Out, vector<file*>& PerFile, ostream* Err = nullptr);
+return_value Output_Xml(ostream& Out, vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err = nullptr);

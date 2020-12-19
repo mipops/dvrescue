@@ -72,7 +72,7 @@ return_value Core::Process()
     // XML
     if (XmlFile)
     {
-        if (auto ToReturn2 = Output_Xml(*XmlFile, PerFile, Err))
+        if (auto ToReturn2 = Output_Xml(*XmlFile, PerFile, Options, Err))
             ToReturn = ToReturn2;
     }
 

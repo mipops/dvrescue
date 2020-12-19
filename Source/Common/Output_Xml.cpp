@@ -9,6 +9,10 @@
 #include "Common/Output_Xml.h"
 #include "Common/ProcessFile.h"
 #include "ZenLib/Ztring.h"
+#include <bitset>
+#include <cstddef>
+#include <map>
+#include <queue>
 using namespace ZenLib;
 //---------------------------------------------------------------------------
 
@@ -95,7 +99,7 @@ static void Aud_Element(string& Text, size_t o, size_t n, size_t n_even = size_t
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
+return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err)
 {
     string Text;
 
@@ -145,6 +149,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
         auto FrameNumber_Max = File->PerFrame.size() - 1;
         auto PerChange_Next = File->PerChange.begin();
         auto ShowFrames = true;
+        queue<size_t> Captions_Partial[2]; // 0 = Out, 1 = In
         for (const auto& Frame : File->PerFrame)
         {
             decltype(FrameNumber_Max) FrameNumber = &Frame - &*File->PerFrame.begin();
@@ -159,6 +164,39 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
 
                 const auto Change = *PerChange_Next;
                 PerChange_Next++;
+                if (!Options[Option_CaptionPresenceChange] && PerChange_Next != File->PerChange.end())
+                {
+                    Captions_Partial[0] = {};
+                    Captions_Partial[1] = {};
+                    bool HasChanges = false;
+                    bool CaptionsOn = Change->Captions_Flags & 1;
+                    if (CaptionsOn)
+                        Captions_Partial[1].push(Change->FrameNumber);
+                    do
+                    {
+                        // We check if the caption presence change is the only change, and skip it if it is the case, while keeping info about in/out of caption change
+                        constexpr auto Size_Before = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) - sizeof(MediaInfo_Event_Generic);
+                        constexpr auto Offset_After = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags);
+                        const auto Size_After = Change->EventSize - Offset_After;
+                        if ((Size_Before && memcmp((const char*)&Change->Captions_Flags - Size_Before, (const char*)&(*PerChange_Next)->Captions_Flags - Size_Before, Size_Before))
+                            || (Size_After && memcmp((const char*)&Change->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), (const char*)&(*PerChange_Next)->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), Size_After)))
+                        {
+                            if ((Change->Captions_Flags&(~1)) == ((*PerChange_Next)->Captions_Flags&(~1))) // Any bit but bit 0
+                                break;
+                        }
+                        HasChanges = true;
+                        CaptionsOn = !CaptionsOn;
+                        if (CaptionsOn || !Captions_Partial[1].empty())
+                            Captions_Partial[CaptionsOn].push((*PerChange_Next)->FrameNumber);
+                        PerChange_Next++;
+                    }
+                    while (PerChange_Next != File->PerChange.end());
+                    if (!HasChanges)
+                    {
+                        Captions_Partial[0] = {};
+                        Captions_Partial[1] = {};
+                    }
+                }
                 Text += "\t\t<frames";
                 {
                     auto FrameCount = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) - FrameNumber;
@@ -231,7 +269,11 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                     Text += to_string(Change->AudioChannels);
                     Text += '\"';
                 }
-                if (Change->Captions_Flags & 0x1)
+                if (!Captions_Partial[0].empty() || !Captions_Partial[1].empty())
+                {
+                    Text += " captions=\"p\"";
+                }
+                else if (Change->Captions_Flags & 0x1)
                 {
                     Text += " captions=\"y\"";
                 }
@@ -242,6 +284,12 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
             {
                 ShowFrame = true;
                 ShowFrames = true; // For next frame
+            }
+
+            if ((!Captions_Partial[0].empty() && FrameNumber == Captions_Partial[0].front())
+                || (!Captions_Partial[1].empty() && FrameNumber == Captions_Partial[1].front()))
+            {
+                ShowFrame = true;
             }
 
             if (ShowFrame)
@@ -332,6 +380,24 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, ostream* Err)
                 }
 
                 // Captions
+                bool Caption_On = !Captions_Partial[1].empty() && FrameNumber == Captions_Partial[1].front();
+                bool Caption_Off = !Captions_Partial[0].empty() && FrameNumber == Captions_Partial[0].front();
+                if (Caption_On)
+                {
+                    Text += " caption=\"on\"";
+                }
+                if (Caption_Off)
+                {
+                    Text += " caption=\"off\"";
+                }
+                if (Caption_On)
+                {
+                    Captions_Partial[1].pop();
+                }
+                if (Caption_Off)
+                {
+                    Captions_Partial[0].pop();
+                }
                 if (Frame->Captions_Errors & 1)
                 {
                     Text += " caption-parity=\"mismatch\"";
