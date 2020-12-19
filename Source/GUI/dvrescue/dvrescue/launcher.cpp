@@ -24,7 +24,7 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     });
 
     connect(&m_process, &QProcess::started, [&] {
-        Q_EMIT processStarted(QString("%0").arg((qlonglong) m_process.pid()));
+        Q_EMIT processStarted(QString("%0").arg((qlonglong) m_process.processId()));
     });
 
     connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
@@ -74,11 +74,17 @@ void Launcher::execute(const QString &cmd)
         m_process.moveToThread(m_thread);
 
         connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+            Q_UNUSED(exitCode);
+            Q_UNUSED(exitStatus);
+
             qDebug() << "process: " << &m_process << "finishing";
             m_process.moveToThread(this->thread());
         }, Qt::DirectConnection);
 
         connect(&m_process, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, [this](int exitCode, QProcess::ExitStatus exitStatus) {
+            Q_UNUSED(exitCode);
+            Q_UNUSED(exitStatus);
+
             qDebug() << "process: " << &m_process << "finished";
             m_thread->quit();
         }, Qt::QueuedConnection);
@@ -103,7 +109,13 @@ void Launcher::execute(const QString &cmd)
 
         connect(m_thread, &QThread::started, this, [this, cmd]() {
             qDebug() << "starting process from thread: " << QThread::currentThread();
-            m_process.start(cmd);
+            auto appAndArguments = cmd.split(" ", Qt::SkipEmptyParts);
+            m_process.setProgram(appAndArguments[0]);
+            if(appAndArguments.size() > 1) {
+                appAndArguments.removeFirst();
+                m_process.setArguments(appAndArguments);
+            }
+            m_process.start();
         }, Qt::DirectConnection);
 
         qDebug() << "starting thread...";
@@ -111,7 +123,14 @@ void Launcher::execute(const QString &cmd)
     } else {
 
         qDebug() << "starting command" << cmd;
-        m_process.start(cmd);
+
+        auto appAndArguments = cmd.split(" ", Qt::SkipEmptyParts);
+        m_process.setProgram(appAndArguments[0]);
+        if(appAndArguments.size() > 1) {
+            appAndArguments.removeFirst();
+            m_process.setArguments(appAndArguments);
+        }
+        m_process.start();
     }
 }
 
