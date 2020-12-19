@@ -215,7 +215,7 @@ jobs:
         cd Source/GUI/dvrescue/
         ls
         ls ./dvrescue
-        ./dvrescue/dvrescue
+        ./dvrescue/dvrescue --platform minimal
 
   build-windows-mingw:
 
