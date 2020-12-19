@@ -84,7 +84,21 @@ void Launcher::execute(const QString &cmd)
         }, Qt::QueuedConnection);
 
         connect(&m_process, &QProcess::stateChanged, this, [this](QProcess::ProcessState state) {
-            qDebug() << "process: " << &m_process << "state changed: " << state;
+            Q_UNUSED(state);
+
+            qDebug() << "process: " << &m_process << "state changed: " << m_processState << "=>" << state;
+            if(m_processState == QProcess::Starting && state == QProcess::NotRunning) {
+                // process wasn't started - incorrectly typed command?
+
+                QByteArray output = "incorrectly typed command";
+
+                qDebug() << "error changed " << QThread::currentThread() << ": " << output;
+                Q_EMIT errorChanged(output);
+
+                qDebug() << "emitting processFinished: " << m_process.exitCode() << m_process.exitStatus();
+                Q_EMIT m_process.finished(m_process.exitCode(), m_process.exitStatus());
+            }
+            m_processState = state;
         }, Qt::DirectConnection);
 
         connect(m_thread, &QThread::started, this, [this, cmd]() {
