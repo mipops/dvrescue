@@ -46,7 +46,7 @@ Data migration from DV tapes into digital files suitable for long-term preservat
 
 %prep
 %setup -q -n dvrescue
-%__chmod 644 *.txt *.md LICENSE
+%__chmod 644 *.txt *.md LICENSE.txt
 
 %build
 export CFLAGS="-g $RPM_OPT_FLAGS"
@@ -75,7 +75,7 @@ popd
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE
+%doc LICENSE.txt
 %doc History.txt
 %{_bindir}/*
 

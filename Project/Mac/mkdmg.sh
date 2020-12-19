@@ -39,7 +39,7 @@ echo ========== Create the package ==========
 echo
 
 mkdir -p "${FILES}/.background"
-cp ../../LICENSE "${FILES}"
+cp ../../LICENSE.txt "${FILES}"
 
 if [ "$KIND" = "CLI" ]; then
 
