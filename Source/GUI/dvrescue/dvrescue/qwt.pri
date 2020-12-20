@@ -101,5 +101,9 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
     isEmpty(QMAKE_POST_LINK): QMAKE_POST_LINK = $$qwtlibs.commands
     else: QMAKE_POST_LINK = $${QMAKE_POST_LINK}$$escape_expand(\\n\\t)$$qwtlibs.commands
 
+    macx {
+        QMAKE_POST_LINK += && install_name_tool -change qwt.framework/Versions/6/qwt @executable_path/../Frameworks/lib/qwt.framework/Versions/6/qwt $$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/MacOS/$${TARGET}
+    }
+
     message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})
 }
