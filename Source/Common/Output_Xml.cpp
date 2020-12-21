@@ -179,11 +179,9 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                         constexpr auto Offset_After = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags);
                         const auto Size_After = Change->EventSize - Offset_After;
                         if ((Size_Before && memcmp((const char*)&Change->Captions_Flags - Size_Before, (const char*)&(*PerChange_Next)->Captions_Flags - Size_Before, Size_Before))
-                            || (Size_After && memcmp((const char*)&Change->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), (const char*)&(*PerChange_Next)->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), Size_After)))
-                        {
-                            if ((Change->Captions_Flags&(~1)) == ((*PerChange_Next)->Captions_Flags&(~1))) // Any bit but bit 0
+                            || (Size_After && memcmp((const char*)&Change->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), (const char*)&(*PerChange_Next)->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), Size_After))
+                            || ((Change->Captions_Flags&(~1)) != ((*PerChange_Next)->Captions_Flags&(~1)))) // Any bit but bit 0
                                 break;
-                        }
                         HasChanges = true;
                         CaptionsOn = !CaptionsOn;
                         if (CaptionsOn || !Captions_Partial[1].empty())
