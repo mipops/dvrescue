@@ -15,14 +15,18 @@ public:
     ~GraphModel();
 
 public Q_SLOTS:
-    void update(QwtQuick2PlotCurve *curve, QwtQuick2PlotCurve* curve2);
+    void update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve* videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve* audioCurve2);
     void populate(const QString& fileName);
+
+Q_SIGNALS:
+    void populated();
 
 private:
     XmlParser* m_parser { nullptr };
     std::unique_ptr<QThread> m_thread;
 
-    QList<QPair<int, int>> m_values;
+    QList<QPair<float, float>> m_videoValues;
+    QList<QPair<float, float>> m_audioValues;
 };
 
 #endif // GRAPHMODEL_H

@@ -17,26 +17,19 @@ Window {
 
     GraphModel {
         id: graphModel
+        onPopulated: {
+            console.debug('stopping timer')
+            refreshTimer.stop();
+            graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
+        }
     }
 
-    QwtQuick2Plot {
-        id: plot
+    Rectangle {
+        anchors.fill: parent;
         z: 100
-        anchors.fill: parent
-
-        QwtQuick2PlotCurve {
-            id: curve
-            curveStyle: QwtQuick2PlotCurve.Sticks
-            color: "green"
-        }
-
-        QwtQuick2PlotCurve {
-            id: curve2
-            curveStyle: QwtQuick2PlotCurve.Sticks
-            color: "red"
-        }
 
         RowLayout {
+            id: toolsLayout
             TextField {
                 id: xmlPath
             }
@@ -55,8 +48,51 @@ Window {
             Button {
                 text: "load"
                 onClicked: {
+                    refreshTimer.start();
                     graphModel.populate(xmlPath.text);
                 }
+            }
+        }
+
+        QwtQuick2Plot {
+            id: videoPlot
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.topMargin: 10
+            anchors.top: toolsLayout.bottom
+            height: (parent.height - toolsLayout.height) / 2 - anchors.topMargin
+
+            QwtQuick2PlotCurve {
+                id: videoCurve
+                curveStyle: QwtQuick2PlotCurve.Sticks
+                color: "green"
+            }
+
+            QwtQuick2PlotCurve {
+                id: videoCurve2
+                curveStyle: QwtQuick2PlotCurve.Sticks
+                color: "red"
+            }
+        }
+
+        QwtQuick2Plot {
+            id: audioPlot
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.topMargin: 10
+            anchors.top: videoPlot.bottom
+            height: videoPlot.height
+
+            QwtQuick2PlotCurve {
+                id: audioCurve
+                curveStyle: QwtQuick2PlotCurve.Sticks
+                color: "blue"
+            }
+
+            QwtQuick2PlotCurve {
+                id: audioCurve2
+                curveStyle: QwtQuick2PlotCurve.Sticks
+                color: "yellow"
             }
         }
 
@@ -64,9 +100,9 @@ Window {
             id: refreshTimer
             interval: 500
             running: true
-            repeat: true
             onTriggered: {
-                graphModel.update(curve, curve2);
+                console.debug('updating plots...')
+                graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
             }
         }
     }

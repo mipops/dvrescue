@@ -16,13 +16,14 @@ public:
 
 private:
     void parseMedia(QXmlStreamReader& xml);
-    void parseFrames(QXmlStreamReader& xml);
+    void parseFrames(QXmlStreamReader& xml, const QString& frameSize, const QString& chroma_subsampling);
 
 Q_SIGNALS:
     void bytesProcessed(qint64 value);
+    void finished();
     void gotFrame(uint frameNumber);
-    void gotSta(uint frameNumber, uint t, uint n, uint n_even);
-    void gotAud(uint frameNumber, uint t, uint n, uint n_even);
+    void gotSta(uint frameNumber, uint t, uint n, uint n_even, float den);
+    void gotAud(uint frameNumber, uint t, uint n, uint n_even, float den);
 };
 
 #endif // XMLPARSER_H

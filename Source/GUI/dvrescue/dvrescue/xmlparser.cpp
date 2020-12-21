@@ -38,6 +38,8 @@ void XmlParser::exec(QIODevice *device)
             }
         }
     }
+
+    Q_EMIT finished();
 }
 
 void XmlParser::exec(const QString &path)
@@ -55,13 +57,42 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     {
         if(xml.name() == "frames")
         {
-            parseFrames(xml);
+            QString size;
+            QString chroma_subsampling;
+
+            for(auto & attribute : xml.attributes()) {
+                if(attribute.name() == "size")
+                    size = attribute.value().toString();
+                else if(attribute.name() == "chroma_subsampling")
+                    chroma_subsampling = attribute.value().toString();
+            }
+
+            parseFrames(xml, size, chroma_subsampling);
         }
     }
 }
 
-void XmlParser::parseFrames(QXmlStreamReader &xml)
+constexpr auto video_blocks_per_diff_seq = 135;
+constexpr auto audio_blocks_per_diff_seq = 9;
+
+void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QString& chroma_subsampling)
 {
+    // magic from Dave
+    auto diff_seq_count = 0;
+    if(size == "720x576" && chroma_subsampling != "4:2:2")
+        diff_seq_count = 12;
+    else if(size == "720x480" && chroma_subsampling != "4:2:2")
+        diff_seq_count = 10;
+    else if(size == "720x576" && chroma_subsampling == "4:2:2")
+        diff_seq_count = 24;
+    else if(size == "720x480" && chroma_subsampling == "4:2:2")
+        diff_seq_count = 20;
+
+    auto video_error_den = diff_seq_count * video_blocks_per_diff_seq;
+    auto audio_error_den = diff_seq_count * audio_blocks_per_diff_seq;
+
+    assert(diff_seq_count != 0);
+
     while(xml.readNextStartElement())
     {
         if(xml.name() == "frame") {
@@ -103,7 +134,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml)
                             n_even = attribute.value().toUInt();
                     }
 
-                    Q_EMIT gotSta(frameNumber, t, n, n_even);
+                    Q_EMIT gotSta(frameNumber, t, n, n_even, video_error_den);
 
                     xml.skipCurrentElement();
                 } else if(xml.name() == "aud") {
@@ -122,7 +153,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml)
                             n_even = attribute.value().toUInt();
                     }
 
-                    Q_EMIT gotAud(frameNumber, t, n, n_even);
+                    Q_EMIT gotAud(frameNumber, t, n, n_even, audio_error_den);
 
                     xml.skipCurrentElement();
                 }
