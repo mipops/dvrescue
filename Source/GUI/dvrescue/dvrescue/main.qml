@@ -117,7 +117,7 @@ Window {
         Timer {
             id: refreshTimer
             interval: 500
-            running: true
+            running: false
             onTriggered: {
                 console.debug('updating plots...')
                 graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
