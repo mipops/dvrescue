@@ -40,5 +40,5 @@ You can download the <a href="{{ site.baseurl }}/_data/MIPoPS_Handbrake_Access.j
 
 ## Creating presentation derivatives
 
-DV can be presented directly in most video playback formats. There may be a situation in which a .dv file is not accepted, and you can use the Packaging component of DVRescue to wrap the DV with an Apple Quicktime (MOV) wrapper. This will retain the original elements of the DV stream while being able to offer a more familiar file extension.
+DV can be presented directly in most video players. There may be a situation in which a .dv file is not accepted, and you can use the Packaging component of DVRescue to wrap the DV with an Apple Quicktime (MOV) wrapper. This will retain the original elements of the DV stream while being able to offer a more familiar file extension.
 
