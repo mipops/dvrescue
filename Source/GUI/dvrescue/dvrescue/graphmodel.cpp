@@ -23,7 +23,7 @@ GraphModel::~GraphModel()
 
 void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
-    videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -100, 100);
+    videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
 
     auto videoCount = videoCurve->data().count();
@@ -35,7 +35,7 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
 
     videoCurve->plot()->replotAndUpdate();
 
-    audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -100, 100);
+    audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
     audioCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
 
     auto audioCount = audioCurve->data().count();
