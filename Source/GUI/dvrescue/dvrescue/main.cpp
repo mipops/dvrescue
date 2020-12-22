@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<GraphModel>("GraphModel", 1, 0, "GraphModel");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
+    qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
 
     QApplication app(argc, argv);
 

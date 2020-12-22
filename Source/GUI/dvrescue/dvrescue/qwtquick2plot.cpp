@@ -87,11 +87,7 @@ void QwtQuick2Plot::wheelEvent(QWheelEvent* event)
 void QwtQuick2Plot::childEvent(QChildEvent *event)
 {
     if (event->type() == QEvent::ChildAdded) {
-        auto child = event->child();
-        auto plotCurve = qobject_cast<QwtQuick2PlotCurve *>(child);
-        if (plotCurve) {
-            plotCurve->attach(this);
-        }
+        attach(event->child());
     }
 }
 
@@ -100,10 +96,16 @@ void QwtQuick2Plot::componentComplete()
     QQuickPaintedItem::componentComplete();
 
     for(QObject *child : children()) {
-        auto plotCurve = qobject_cast<QwtQuick2PlotCurve *>(child);
-        if (plotCurve) {
-            plotCurve->attach(this);
-        }
+        attach(child);
+    }
+}
+
+void QwtQuick2Plot::attach(QObject *child)
+{
+    if (qobject_cast<QwtQuick2PlotCurve *>(child)) {
+        qobject_cast<QwtQuick2PlotCurve *>(child)->attach(this);
+    } else if(qobject_cast<QwtQuick2PlotGrid *>(child)) {
+        qobject_cast<QwtQuick2PlotGrid *>(child)->attach(this);
     }
 }
 
@@ -134,9 +136,9 @@ void QwtQuick2Plot::updatePlotSize()
     }
 }
 
-QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *quickPlotObject)
+QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
 {
-    m_qwtPlotCurve = new QwtPlotCurve("Curve 1");
+    m_qwtPlotCurve.reset(new QwtPlotCurve());
     m_qwtPlotCurve->setTitle("Curve 1");
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
@@ -152,7 +154,7 @@ QwtQuick2PlotCurve::~QwtQuick2PlotCurve()
 
 QwtPlotCurve *QwtQuick2PlotCurve::curve() const
 {
-    return m_qwtPlotCurve;
+    return m_qwtPlotCurve.get();
 }
 
 QwtQuick2Plot *QwtQuick2PlotCurve::plot() const
@@ -223,3 +225,145 @@ void QwtQuick2PlotCurve::setColor(QColor color)
     Q_EMIT colorChanged(color);
 }
 
+
+QwtQuick2PlotGrid::QwtQuick2PlotGrid(QObject* parent) : QObject(parent)
+{
+    m_qwtPlotGrid.reset(new QwtPlotGrid());
+}
+
+void QwtQuick2PlotGrid::attach(QwtQuick2Plot *plot)
+{
+    m_qwtPlotGrid->attach(plot->plot());
+}
+
+bool QwtQuick2PlotGrid::enableXMin() const
+{
+    return m_qwtPlotGrid->xMinEnabled();
+}
+
+bool QwtQuick2PlotGrid::enableYMin() const
+{
+    return m_qwtPlotGrid->yMinEnabled();
+}
+
+QColor QwtQuick2PlotGrid::majorPenColor() const
+{
+    return m_qwtPlotGrid->majorPen().color();
+}
+
+qreal QwtQuick2PlotGrid::majorPenWidth() const
+{
+    return m_qwtPlotGrid->majorPen().widthF();
+}
+
+Qt::PenStyle QwtQuick2PlotGrid::majorPenStyle() const
+{
+    return m_qwtPlotGrid->majorPen().style();
+}
+
+QColor QwtQuick2PlotGrid::minorPenColor() const
+{
+    return m_qwtPlotGrid->minorPen().color();
+}
+
+qreal QwtQuick2PlotGrid::minorPenWidth() const
+{
+    return m_qwtPlotGrid->minorPen().widthF();
+}
+
+Qt::PenStyle QwtQuick2PlotGrid::minorPenStyle() const
+{
+    return m_qwtPlotGrid->minorPen().style();
+}
+
+void QwtQuick2PlotGrid::setEnableXMin(bool enableXMin)
+{
+    if (m_qwtPlotGrid->xMinEnabled() == enableXMin)
+        return;
+
+    m_qwtPlotGrid->enableXMin(enableXMin);
+    Q_EMIT enableXMinChanged(m_qwtPlotGrid->xMinEnabled());
+}
+
+void QwtQuick2PlotGrid::setEnableYMin(bool enableYMin)
+{
+    if (m_qwtPlotGrid->yMinEnabled() == enableYMin)
+        return;
+
+    m_qwtPlotGrid->enableYMin(enableYMin);
+    Q_EMIT enableYMinChanged(m_qwtPlotGrid->yMinEnabled());
+}
+
+void QwtQuick2PlotGrid::setMajorPenColor(QColor majorPenColor)
+{
+    if (m_qwtPlotGrid->majorPen().color() == majorPenColor)
+        return;
+
+    auto pen = m_qwtPlotGrid->majorPen();
+    pen.setColor(majorPenColor);
+
+    m_qwtPlotGrid->setMajorPen(pen);
+    Q_EMIT majorPenColorChanged(m_qwtPlotGrid->majorPen().color());
+}
+
+void QwtQuick2PlotGrid::setMajorPenWidth(qreal majorPenWidth)
+{
+    qWarning("Floating point comparison needs context sanity check");
+    if (qFuzzyCompare(m_qwtPlotGrid->majorPen().widthF(), majorPenWidth))
+        return;
+
+    auto pen = m_qwtPlotGrid->majorPen();
+    pen.setWidthF(majorPenWidth);
+
+    m_qwtPlotGrid->setMajorPen(pen);
+    Q_EMIT majorPenWidthChanged(m_qwtPlotGrid->majorPen().widthF());
+}
+
+void QwtQuick2PlotGrid::setMajorPenStyle(Qt::PenStyle majorPenStyle)
+{
+    if (m_qwtPlotGrid->majorPen().style() == majorPenStyle)
+        return;
+
+    auto pen = m_qwtPlotGrid->majorPen();
+    pen.setStyle(majorPenStyle);
+
+    m_qwtPlotGrid->setMajorPen(pen);
+    Q_EMIT majorPenStyleChanged(m_qwtPlotGrid->majorPen().style());
+}
+
+void QwtQuick2PlotGrid::setMinorPenColor(QColor minorPenColor)
+{
+    if (m_qwtPlotGrid->minorPen().color() == minorPenColor)
+        return;
+
+    auto pen = m_qwtPlotGrid->minorPen();
+    pen.setColor(minorPenColor);
+
+    m_qwtPlotGrid->setMinorPen(pen);
+    Q_EMIT minorPenColorChanged(m_qwtPlotGrid->minorPen().color());
+}
+
+void QwtQuick2PlotGrid::setMinorPenWidth(qreal minorPenWidth)
+{
+    qWarning("Floating point comparison needs context sanity check");
+    if (qFuzzyCompare(m_qwtPlotGrid->minorPen().widthF(), minorPenWidth))
+        return;
+
+    auto pen = m_qwtPlotGrid->minorPen();
+    pen.setWidthF(minorPenWidth);
+
+    m_qwtPlotGrid->setMinorPen(pen);
+    Q_EMIT minorPenWidthChanged(m_qwtPlotGrid->minorPen().widthF());
+}
+
+void QwtQuick2PlotGrid::setMinorPenStyle(Qt::PenStyle minorPenStyle)
+{
+    if (m_qwtPlotGrid->minorPen().style() == minorPenStyle)
+        return;
+
+    auto pen = m_qwtPlotGrid->minorPen();
+    pen.setStyle(minorPenStyle);
+
+    m_qwtPlotGrid->setMinorPen(pen);
+    Q_EMIT minorPenStyleChanged(m_qwtPlotGrid->minorPen().style());
+}

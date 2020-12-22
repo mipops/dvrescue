@@ -73,6 +73,15 @@ Window {
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "red"
             }
+
+            QwtQuick2PlotGrid {
+                enableXMin: true
+                enableYMin: true
+                majorPenColor: Qt.darkGray
+                majorPenStyle: Qt.DotLine
+                minorPenColor: Qt.gray
+                minorPenStyle: Qt.DotLine
+            }
         }
 
         QwtQuick2Plot {
@@ -93,6 +102,15 @@ Window {
                 id: audioCurve2
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "yellow"
+            }
+
+            QwtQuick2PlotGrid {
+                enableXMin: true
+                enableYMin: true
+                majorPenColor: Qt.darkGray
+                majorPenStyle: Qt.DotLine
+                minorPenColor: Qt.gray
+                minorPenStyle: Qt.DotLine
             }
         }
 
