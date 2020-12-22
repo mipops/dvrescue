@@ -24,27 +24,28 @@ GraphModel::~GraphModel()
 void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -100, 100);
+    videoCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
 
     auto videoCount = videoCurve->data().count();
     for(auto i = videoCount; i < m_videoValues.count(); ++i) {
-        auto value = m_videoValues.at(i);
-        videoCurve->data().append(QPointF(i, value.first));
-        videoCurve2->data().append(QPointF(i, value.second));
+        auto& value = m_videoValues.at(i);
+        videoCurve->data().append(QPointF(std::get<0>(value), std::get<1>(value)));
+        videoCurve2->data().append(QPointF(std::get<0>(value), std::get<2>(value)));
     }
 
     videoCurve->plot()->replotAndUpdate();
 
     audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -100, 100);
+    audioCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
 
     auto audioCount = audioCurve->data().count();
     for(auto i = audioCount; i < m_audioValues.count(); ++i) {
-        auto value = m_audioValues.at(i);
-        audioCurve->data().append(QPointF(i, value.first));
-        audioCurve2->data().append(QPointF(i, value.second));
+        auto& value = m_audioValues.at(i);
+        audioCurve->data().append(QPointF(std::get<0>(value), std::get<1>(value)));
+        audioCurve2->data().append(QPointF(std::get<0>(value), std::get<2>(value)));
     }
 
     audioCurve->plot()->replotAndUpdate();
-
 }
 
 void GraphModel::populate(const QString &fileName)
@@ -61,6 +62,7 @@ void GraphModel::populate(const QString &fileName)
 
     qDebug() << QThread::currentThread();
 
+    m_lastFrame = 0;
     m_parser = new XmlParser();
     m_thread.reset(new QThread());
 
@@ -78,28 +80,24 @@ void GraphModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
-    connect(m_parser, &XmlParser::gotFrame, [&](auto frameNumber) {
-        // qDebug() << QThread::currentThread() << frameNumber;
-        while(m_videoValues.size() != (frameNumber + 1))
-            m_videoValues.append(QPair<int, int>(0, 0));
-
-        while(m_audioValues.size() != (frameNumber + 1))
-            m_audioValues.append(QPair<int, int>(0, 0));
+    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+        m_lastFrame = frameNumber;
     });
 
     connect(m_parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         // qDebug() << "got sta: " << frameNumber << t << n << n_even;
         if(t == 10) {
-            QPair<float, float> value(float(n_even) / den * 100, -float(n - n_even) / den * 100);
-            m_videoValues[frameNumber] = value;
+            std::tuple<int, float, float> value(frameNumber, float(n_even) / den * 100, -float(n - n_even) / den * 100);
+            m_videoValues.append(value);
         }
     });
     connect(m_parser, &XmlParser::gotAud, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         Q_UNUSED(t);
         // qDebug() << "got aud: " << frameNumber << t << n << n_even;
+
         // if(t == 10) {
-            QPair<float, float> value(float(n_even) / den * 100, -float(n - n_even) / den * 100);
-            m_audioValues[frameNumber] = value;
+            std::tuple<int, float, float> value(frameNumber, float(n_even) / den * 100, -float(n - n_even) / den * 100);
+            m_audioValues.append(value);
         // }
     });
 

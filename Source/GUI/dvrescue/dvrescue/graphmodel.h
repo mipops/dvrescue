@@ -25,8 +25,9 @@ private:
     XmlParser* m_parser { nullptr };
     std::unique_ptr<QThread> m_thread;
 
-    QList<QPair<float, float>> m_videoValues;
-    QList<QPair<float, float>> m_audioValues;
+    QList<std::tuple<int, float, float>> m_videoValues;
+    QList<std::tuple<int, float, float>> m_audioValues;
+    int m_lastFrame { 0 };
 };
 
 #endif // GRAPHMODEL_H
