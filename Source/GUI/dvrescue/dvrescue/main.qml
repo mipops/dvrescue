@@ -69,13 +69,13 @@ Window {
             QwtQuick2PlotCurve {
                 id: videoCurve
                 curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "green"
+                color: "darkgreen"
             }
 
             QwtQuick2PlotCurve {
                 id: videoCurve2
                 curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "red"
+                color: "green"
             }
 
             QwtQuick2PlotGrid {
@@ -102,13 +102,13 @@ Window {
             QwtQuick2PlotCurve {
                 id: audioCurve
                 curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "blue"
+                color: "darkblue"
             }
 
             QwtQuick2PlotCurve {
                 id: audioCurve2
                 curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "yellow"
+                color: "blue"
             }
 
             QwtQuick2PlotGrid {
