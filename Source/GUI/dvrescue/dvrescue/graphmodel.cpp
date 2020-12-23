@@ -21,6 +21,11 @@ GraphModel::~GraphModel()
     }
 }
 
+int GraphModel::total() const
+{
+    return m_total;
+}
+
 void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
@@ -63,6 +68,7 @@ void GraphModel::populate(const QString &fileName)
     qDebug() << QThread::currentThread();
 
     m_lastFrame = 0;
+    m_total = 0;
     m_parser = new XmlParser();
     m_thread.reset(new QThread());
 
@@ -82,6 +88,9 @@ void GraphModel::populate(const QString &fileName)
 
     connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
         m_lastFrame = frameNumber;
+        m_total = m_lastFrame + 1;
+
+        Q_EMIT totalChanged(m_total);
     });
 
     connect(m_parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {

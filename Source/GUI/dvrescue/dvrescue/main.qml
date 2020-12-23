@@ -30,8 +30,14 @@ Window {
 
         RowLayout {
             id: toolsLayout
+            anchors.left: parent.left
+            anchors.leftMargin: 20
+            anchors.right: parent.right
+            anchors.rightMargin: 20
+
             TextField {
                 id: xmlPath
+                Layout.fillWidth: true
             }
 
             Button {
@@ -51,6 +57,10 @@ Window {
                     refreshTimer.start();
                     graphModel.populate(xmlPath.text);
                 }
+            }
+
+            Text {
+                text: "Total frames: " + graphModel.total
             }
         }
 

@@ -10,9 +10,13 @@ class QwtQuick2PlotCurve;
 class GraphModel : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(int total READ total NOTIFY totalChanged)
+
 public:
     explicit GraphModel(QObject *parent = nullptr);
     ~GraphModel();
+
+    int total() const;
 
 public Q_SLOTS:
     void update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve* videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve* audioCurve2);
@@ -20,6 +24,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void populated();
+    void totalChanged(int total);
 
 private:
     XmlParser* m_parser { nullptr };
@@ -28,6 +33,7 @@ private:
     QList<std::tuple<int, float, float>> m_videoValues;
     QList<std::tuple<int, float, float>> m_audioValues;
     int m_lastFrame { 0 };
+    int m_total { 0 };
 };
 
 #endif // GRAPHMODEL_H
