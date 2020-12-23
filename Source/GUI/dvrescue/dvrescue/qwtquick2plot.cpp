@@ -165,7 +165,7 @@ QString QwtQuick2Plot::yLeftAxisTitle() const
     return m_qwtPlot->axisTitle(m_qwtPlot->yLeft).text();
 }
 
-void QwtQuick2Plot::setLeftYAxisTitle(QString yLeftAxisTitle)
+void QwtQuick2Plot::setYLeftAxisTitle(QString yLeftAxisTitle)
 {
     if (m_qwtPlot->axisTitle(m_qwtPlot->yLeft).text() == yLeftAxisTitle)
         return;
@@ -186,6 +186,44 @@ void QwtQuick2Plot::setXBottomAxisTitle(QString xBottomAxisTitle)
 
     m_qwtPlot->setAxisTitle(m_qwtPlot->xBottom, xBottomAxisTitle);
     Q_EMIT xBottomAxisTitleChanged(this->xBottomAxisTitle());
+}
+
+QVector2D QwtQuick2Plot::xBottomAxisRange() const
+{
+    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::xBottom);
+    return QVector2D(scale.interval().minValue(), scale.interval().maxValue());
+}
+
+void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
+{
+    if (this->xBottomAxisRange() == xBottomAxisRange)
+        return;
+
+    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::xBottom);
+    scale.setInterval(xBottomAxisRange.x(), xBottomAxisRange.y());
+
+    m_qwtPlot->setAxisScaleDiv(QwtPlot::xBottom, scale);
+    Q_EMIT xBottomAxisRangeChanged(this->xBottomAxisRange());
+
+    replotAndUpdate();
+}
+
+QVector2D QwtQuick2Plot::yLeftAxisRange() const
+{
+    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::yLeft);
+    return QVector2D(scale.interval().minValue(), scale.interval().maxValue());
+}
+
+void QwtQuick2Plot::setYLeftAxisRange(QVector2D yLeftAxisRange)
+{
+    if (this->yLeftAxisRange() == yLeftAxisRange)
+        return;
+
+    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::yLeft);
+    scale.setInterval(yLeftAxisRange.x(), yLeftAxisRange.y());
+
+    m_qwtPlot->setAxisScaleDiv(QwtPlot::yLeft, scale);
+    Q_EMIT yLeftAxisRangeChanged(this->yLeftAxisRange());
 }
 
 void QwtQuick2Plot::updatePlotSize()

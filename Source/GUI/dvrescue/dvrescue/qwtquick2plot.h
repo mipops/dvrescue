@@ -27,8 +27,10 @@ class QwtQuick2Plot : public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
-    Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setLeftYAxisTitle NOTIFY leftYAxisTitleChanged);
+    Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setYLeftAxisTitle NOTIFY leftYAxisTitleChanged);
     Q_PROPERTY(QString xBottomAxisTitle READ xBottomAxisTitle WRITE setXBottomAxisTitle NOTIFY xBottomAxisTitleChanged)
+    Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
+    Q_PROPERTY(QVector2D xBottomAxisRange READ xBottomAxisRange WRITE setXBottomAxisRange NOTIFY xBottomAxisRangeChanged);
 public:
     QwtQuick2Plot(QQuickItem* parent = nullptr);
     virtual ~QwtQuick2Plot();
@@ -41,15 +43,21 @@ public:
 
     QString yLeftAxisTitle() const;
     QString xBottomAxisTitle() const;
+    QVector2D yLeftAxisRange() const;
+    QVector2D xBottomAxisRange() const;
 
 public Q_SLOTS:
-    void setLeftYAxisTitle(QString yLeftAxisTitle);
+    void setYLeftAxisTitle(QString yLeftAxisTitle);
     void setXBottomAxisTitle(QString xBottomAxisTitle);
+    void setYLeftAxisRange(QVector2D yLeftAxisRange);
+    void setXBottomAxisRange(QVector2D xBottomAxisRange);
 
 Q_SIGNALS:
     void canvasItemChanged();
     void leftYAxisTitleChanged(QString yLeftAxisTitle);
     void xBottomAxisTitleChanged(QString xBottomAxisTitle);
+    void yLeftAxisRangeChanged(QVector2D yLeftAxisRange);
+    void xBottomAxisRangeChanged(QVector2D xBottomAxisRange);
 
 protected:
     void routeMouseEvents(QMouseEvent* event);

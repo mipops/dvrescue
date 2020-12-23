@@ -17,10 +17,16 @@ Window {
 
     GraphModel {
         id: graphModel
+
+        onTotalChanged: {
+            console.debug('total: ', total)
+        }
+
         onPopulated: {
             console.debug('stopping timer')
             refreshTimer.stop();
             graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
+            zoomAll.clicked();
         }
     }
 
@@ -71,7 +77,7 @@ Window {
             anchors.topMargin: 10
             anchors.top: toolsLayout.bottom
             canvasItem.clip: true
-            height: (parent.height - toolsLayout.height) / 2 - anchors.topMargin
+            height: (parent.height - toolsLayout.height - scrollLayout.height) / 2 - anchors.topMargin
             xBottomAxisTitle: "frames, N"
             yLeftAxisTitle: "errors, %"
 
@@ -108,6 +114,7 @@ Window {
             anchors.right: parent.right
             anchors.topMargin: 10
             anchors.top: videoPlot.bottom
+            canvasItem.clip: true
             height: videoPlot.height
             xBottomAxisTitle: "frames, N"
             yLeftAxisTitle: "errors, %"
@@ -136,6 +143,76 @@ Window {
                 majorPenStyle: Qt.DotLine
                 minorPenColor: 'gray'
                 minorPenStyle: Qt.DotLine
+            }
+        }
+
+        RowLayout {
+            id: scrollLayout
+            anchors.top: audioPlot.bottom
+            anchors.left: audioPlot.left
+            anchors.right: audioPlot.right
+            height: zoomIn.height
+
+            Button {
+                id: zoomIn
+                text: "+"
+                onClicked: {
+                    videoPlot.xBottomAxisRange = Qt.vector2d(0, Math.round(videoPlot.xBottomAxisRange.y / 2))
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                }
+            }
+            Button {
+                id: zoomAll
+                text: "|"
+                onClicked: {
+                    videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total)
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                }
+            }
+
+            Button {
+                id: zoomOut
+                text: "-"
+                onClicked: {
+                    videoPlot.xBottomAxisRange = Qt.vector2d(0, videoPlot.xBottomAxisRange.y * 2)
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                }
+            }
+
+            ScrollBar {
+                id: scroll
+                orientation: "Horizontal"
+                height: parent.height
+                hoverEnabled: true
+                active: true
+                policy: ScrollBar.AlwaysOn
+                Layout.fillWidth: true
+                size: {
+                    if(graphModel.total == 0)
+                        return 0;
+
+                    var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
+                    var value = rangeCount / graphModel.total
+
+                    console.debug('size: ', value, videoPlot.xBottomAxisRange.y, videoPlot.xBottomAxisRange.x)
+
+                    return value;
+                }
+                onPositionChanged: {
+                    // console.debug('position changed: ', position)
+
+                    var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
+                    var from = Math.round(position * graphModel.total);
+                    var to = Math.round(Math.min(graphModel.total, from + rangeCount)) - 1
+
+                    // console.debug('from: ', from, 'to: ', to, 'rangeCount: ', rangeCount, 'to - from: ', to - from)
+
+                    videoPlot.xBottomAxisRange = Qt.vector2d(Math.round(to - rangeCount + 1), Math.round(to));
+                    // console.debug('new rangeCount: ', Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x),
+                                  // 'from: ', videoPlot.xBottomAxisRange.x, 'to: ', videoPlot.xBottomAxisRange.y)
+
+                    audioPlot.xBottomAxisRange = Qt.vector2d(Math.round(to - rangeCount + 1), Math.round(to));
+                }
             }
         }
 
