@@ -3,6 +3,8 @@ TEMPLATE = app
 include(../dvrescue/dvrescue.pri)
 
 CONFIG += c++17 warn_on
+CONFIG += no_keywords
+
 QT += quick testlib xmlpatterns widgets
 
 SOURCES += \

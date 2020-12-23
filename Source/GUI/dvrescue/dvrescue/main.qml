@@ -60,7 +60,11 @@ Window {
             anchors.right: parent.right
             anchors.topMargin: 10
             anchors.top: toolsLayout.bottom
+            canvasItem.clip: true
             height: (parent.height - toolsLayout.height) / 2 - anchors.topMargin
+
+            PlotPicker {
+            }
 
             QwtQuick2PlotCurve {
                 id: videoCurve
@@ -77,9 +81,9 @@ Window {
             QwtQuick2PlotGrid {
                 enableXMin: true
                 enableYMin: true
-                majorPenColor: Qt.darkGray
+                majorPenColor: 'darkGray'
                 majorPenStyle: Qt.DotLine
-                minorPenColor: Qt.gray
+                minorPenColor: 'gray'
                 minorPenStyle: Qt.DotLine
             }
         }
@@ -91,6 +95,9 @@ Window {
             anchors.topMargin: 10
             anchors.top: videoPlot.bottom
             height: videoPlot.height
+
+            PlotPicker {
+            }
 
             QwtQuick2PlotCurve {
                 id: audioCurve
@@ -107,9 +114,9 @@ Window {
             QwtQuick2PlotGrid {
                 enableXMin: true
                 enableYMin: true
-                majorPenColor: Qt.darkGray
+                majorPenColor: 'darkGray'
                 majorPenStyle: Qt.DotLine
-                minorPenColor: Qt.gray
+                minorPenColor: 'gray'
                 minorPenStyle: Qt.DotLine
             }
         }

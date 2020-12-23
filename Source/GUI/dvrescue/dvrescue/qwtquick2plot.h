@@ -6,6 +6,7 @@
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
+#include <qwt_plot_picker.h>
 
 namespace QwtQuick2
 {
@@ -25,7 +26,7 @@ namespace QwtQuick2
 class QwtQuick2Plot : public QQuickPaintedItem
 {
     Q_OBJECT
-
+    Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
 public:
     QwtQuick2Plot(QQuickItem* parent = nullptr);
     virtual ~QwtQuick2Plot();
@@ -33,6 +34,11 @@ public:
     void paint(QPainter* painter);
     Q_INVOKABLE void replotAndUpdate();
     QwtPlot* plot() const;
+    QQuickItem* canvasItem() const;
+    void updateCanvaSize();
+
+Q_SIGNALS:
+    void canvasItemChanged();
 
 protected:
     void routeMouseEvents(QMouseEvent* event);
@@ -48,7 +54,8 @@ protected:
     virtual void componentComplete();
 private:
     void attach(QObject* child);
-    QwtPlot*         m_qwtPlot;
+    QwtPlot* m_qwtPlot;
+    QQuickItem* m_canvasItem;
 
 private Q_SLOTS:
     void updatePlotSize();
@@ -160,6 +167,32 @@ Q_SIGNALS:
 
 private:
     QwtPlotGrid* m_qwtPlotGrid;
+};
+
+class QwtQuick2PlotPicker : public QQuickItem
+{
+    Q_OBJECT
+    Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged)
+    Q_PROPERTY(QPointF point READ point WRITE setPoint NOTIFY pointChanged)
+public:
+    QwtQuick2PlotPicker(QQuickItem* parent = nullptr);
+
+    void attach(QwtQuick2Plot* plot);
+    bool active() const;    
+    QPointF point() const;
+
+public Q_SLOTS:
+    void setActive(bool active);
+    void setPoint(QPointF point);
+
+Q_SIGNALS:
+    void activeChanged(bool active);    
+    void pointChanged(QPointF point);
+
+private:
+    QwtPlotPicker* m_qwtPlotPicker;
+    bool m_active;
+    QPointF m_point;
 };
 
 #endif // QMLPLOT_H

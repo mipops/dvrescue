@@ -3,16 +3,22 @@
 #include <qwt_plot.h>
 #include <qwt_plot_curve.h>
 #include <qwt_plot_renderer.h>
+#include <qwt_scale_widget.h>
+#include <qwt_plot_layout.h>
 #include <qwt_text.h>
 
 #include <QObject>
 #include <QDebug>
+#include <qwt_picker_machine.h>
 
 QwtQuick2Plot::QwtQuick2Plot(QQuickItem* parent) : QQuickPaintedItem(parent)
     , m_qwtPlot(nullptr)
 {
     setFlag(QQuickItem::ItemHasContents, true);
     setAcceptedMouseButtons(Qt::AllButtons);
+
+    m_canvasItem = new QQuickItem(this);
+    m_canvasItem->setFlag(QQuickItem::ItemHasContents, true);
 
     connect(this, &QQuickPaintedItem::widthChanged, this, &QwtQuick2Plot::updatePlotSize);
     connect(this, &QQuickPaintedItem::heightChanged, this, &QwtQuick2Plot::updatePlotSize);
@@ -37,12 +43,18 @@ QwtQuick2Plot::~QwtQuick2Plot()
 void QwtQuick2Plot::replotAndUpdate()
 {
     m_qwtPlot->replot();
+    updateCanvaSize();
     update();
 }
 
 QwtPlot *QwtQuick2Plot::plot() const
 {
     return m_qwtPlot;
+}
+
+QQuickItem *QwtQuick2Plot::canvasItem() const
+{
+    return m_canvasItem;
 }
 
 void QwtQuick2Plot::paint(QPainter* painter)
@@ -59,13 +71,13 @@ void QwtQuick2Plot::paint(QPainter* painter)
 
 void QwtQuick2Plot::mousePressEvent(QMouseEvent* event)
 {
-    qDebug() << Q_FUNC_INFO;
+    // qDebug() << Q_FUNC_INFO;
     routeMouseEvents(event);
 }
 
 void QwtQuick2Plot::mouseReleaseEvent(QMouseEvent* event)
 {
-    qDebug() << Q_FUNC_INFO;
+    // qDebug() << Q_FUNC_INFO;
     routeMouseEvents(event);
 }
 
@@ -76,7 +88,7 @@ void QwtQuick2Plot::mouseMoveEvent(QMouseEvent* event)
 
 void QwtQuick2Plot::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    qDebug() << Q_FUNC_INFO;
+    // qDebug() << Q_FUNC_INFO;
     routeMouseEvents(event);
 }
 
@@ -106,16 +118,22 @@ void QwtQuick2Plot::attach(QObject *child)
         qobject_cast<QwtQuick2PlotCurve *>(child)->attach(this);
     } else if(qobject_cast<QwtQuick2PlotGrid *>(child)) {
         qobject_cast<QwtQuick2PlotGrid *>(child)->attach(this);
+    } else if(qobject_cast<QwtQuick2PlotPicker *>(child)) {
+        qobject_cast<QwtQuick2PlotPicker *>(child)->attach(this);
     }
 }
 
 void QwtQuick2Plot::routeMouseEvents(QMouseEvent* event)
 {
     if (m_qwtPlot) {
-        QMouseEvent* newEvent = new QMouseEvent(event->type(), event->localPos(),
+        auto mappedLocalPos = event->localPos();
+        mappedLocalPos.setX(mappedLocalPos.x() - m_qwtPlot->canvas()->x());
+        mappedLocalPos.setY(mappedLocalPos.y() - m_qwtPlot->canvas()->y());
+
+        QMouseEvent* newEvent = new QMouseEvent(event->type(), mappedLocalPos,
                                                 event->button(), event->buttons(),
                                                 event->modifiers());
-        QCoreApplication::postEvent(m_qwtPlot, newEvent);
+        QCoreApplication::postEvent(m_qwtPlot->canvas(), newEvent);
     }
 }
 
@@ -129,10 +147,29 @@ void QwtQuick2Plot::routeWheelEvents(QWheelEvent* event)
     }
 }
 
+void QwtQuick2Plot::updateCanvaSize()
+{
+    auto mappedTopLeft = m_qwtPlot->plotLayout()->canvasRect().topLeft().toPoint();
+    auto mappedBottomRight = m_qwtPlot->plotLayout()->canvasRect().bottomRight().toPoint();
+
+    auto leftMargin = 0; m_qwtPlot->axisWidget(QwtPlot::yLeft)->margin();
+    auto leftSpacing = 0; m_qwtPlot->axisWidget(QwtPlot::yLeft)->spacing();
+
+    mappedTopLeft.setX(mappedTopLeft.x() + leftMargin + leftSpacing);
+    mappedBottomRight.setX(mappedBottomRight.x() - leftMargin - leftSpacing);
+
+    m_canvasItem->setX(mappedTopLeft.x());
+    m_canvasItem->setY(mappedTopLeft.y());
+    m_canvasItem->setWidth(mappedBottomRight.x() - mappedTopLeft.x());
+    m_canvasItem->setHeight(mappedBottomRight.y() - mappedTopLeft.y());
+}
+
 void QwtQuick2Plot::updatePlotSize()
 {
     if (m_qwtPlot) {
         m_qwtPlot->setGeometry(0, 0, static_cast<int>(width()), static_cast<int>(height()));
+        m_qwtPlot->updateLayout();
+        updateCanvaSize();
     }
 }
 
@@ -366,4 +403,162 @@ void QwtQuick2PlotGrid::setMinorPenStyle(Qt::PenStyle minorPenStyle)
 
     m_qwtPlotGrid->setMinorPen(pen);
     Q_EMIT minorPenStyleChanged(m_qwtPlotGrid->minorPen().style());
+}
+
+QwtQuick2PlotPicker::QwtQuick2PlotPicker(QQuickItem *parent) : QQuickItem(parent)
+{
+}
+
+void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
+{
+    class PlotPicker: public QwtPlotPicker
+    {
+    public:
+        explicit PlotPicker( QWidget *canvas, const std::function<void(bool)>& pickerActiveCallback) : QwtPlotPicker(canvas), canvas(canvas),
+            pickerActiveCallback(pickerActiveCallback) {}
+
+        virtual QwtText trackerText( const QPoint & p ) const
+        {
+            auto t = QwtPlotPicker::trackerText(p);
+            return t;
+        }
+
+        virtual QwtText trackerTextF( const QPointF & p ) const
+        {
+            auto t = QwtPlotPicker::trackerTextF(p);
+            return t;
+        }
+
+        virtual void begin() {
+            pos = trackerPosition();
+
+            QwtPlotPicker::begin();
+        }
+
+        virtual void move( const QPoint & p ) {
+            pos = p;
+
+            QwtPlotPicker::move(p);
+        }
+
+        virtual void append( const QPoint & p ) {
+            pos = p;
+
+            QwtPlotPicker::append(p);
+        }
+
+        virtual bool end( bool ok = true ) {
+            auto b = QwtPlotPicker::end(ok);
+
+            return b;
+        }
+
+        virtual bool eventFilter( QObject *o, QEvent *e) {
+            auto b = QwtPlotPicker::eventFilter(o, e);
+
+            return b;
+        }
+
+        virtual void widgetMousePressEvent (QMouseEvent *e)
+        {
+            QwtPlotPicker::widgetMousePressEvent(e);
+
+            if(pickerActiveCallback)
+                pickerActiveCallback(true);
+        }
+
+        virtual void widgetMouseReleaseEvent (QMouseEvent *e)
+        {
+            QwtPlotPicker::widgetMouseReleaseEvent(e);
+
+            if(pickerActiveCallback)
+                pickerActiveCallback(false);
+        }
+
+        virtual void widgetMouseDoubleClickEvent (QMouseEvent *e)
+        {
+            QwtPlotPicker::widgetMouseDoubleClickEvent(e);
+        }
+
+        virtual void widgetMouseMoveEvent (QMouseEvent *e)
+        {
+            QwtPlotPicker::widgetMouseMoveEvent(e);
+        }
+
+        QWidget* canvas;
+        std::function<void(bool)> pickerActiveCallback;
+        QPoint pos;
+    };
+
+    class PickerDragPointMachine : public QwtPickerDragPointMachine
+    {
+        virtual QList<Command> transition(const QwtEventPattern &ep, const QEvent * e) {
+            return QwtPickerDragPointMachine::transition(ep, e);
+        }
+    };
+
+    m_qwtPlotPicker = new PlotPicker(plot->plot()->canvas(), [this](bool pickerActive) {
+        this->setActive(pickerActive);
+    });
+
+    m_qwtPlotPicker->setAxis( QwtPlot::xBottom, QwtPlot::yLeft );
+    m_qwtPlotPicker->setRubberBand( QwtPlotPicker::CrossRubberBand );
+    m_qwtPlotPicker->setRubberBandPen( QColor( Qt::green ) );
+
+    m_qwtPlotPicker->setTrackerMode( QwtPicker::AlwaysOn );
+    m_qwtPlotPicker->setTrackerPen( QColor( Qt::black ) );
+
+    m_qwtPlotPicker->setStateMachine( new PickerDragPointMachine () );
+
+    connect(m_qwtPlotPicker, &QwtPlotPicker::moved, this, [&](auto p) {
+        auto picker = static_cast<PlotPicker*>(m_qwtPlotPicker);
+        setX(picker->pos.x());
+        setY(picker->pos.y());
+
+        setPoint(p);
+    });
+
+    connect(m_qwtPlotPicker, static_cast<void(QwtPlotPicker::*)(const QPointF&)>(&QwtPlotPicker::selected), this, [&](auto p) {
+        auto picker = static_cast<PlotPicker*>(m_qwtPlotPicker);
+        setX(picker->pos.x());
+        setY(picker->pos.y());
+
+        setPoint(p);
+    });
+
+    connect(m_qwtPlotPicker, &QwtPlotPicker::appended, this, [&](auto p) {
+        auto picker = static_cast<PlotPicker*>(m_qwtPlotPicker);
+        setX(picker->pos.x());
+        setY(picker->pos.y());
+
+        setPoint(p);
+    });
+}
+
+bool QwtQuick2PlotPicker::active() const
+{
+    return m_active;
+}
+
+QPointF QwtQuick2PlotPicker::point() const
+{
+    return m_point;
+}
+
+void QwtQuick2PlotPicker::setActive(bool active)
+{
+    if (m_active == active)
+        return;
+
+    m_active = active;
+    Q_EMIT activeChanged(m_active);
+}
+
+void QwtQuick2PlotPicker::setPoint(QPointF point)
+{
+    if (m_point == point)
+        return;
+
+    m_point = point;
+    Q_EMIT pointChanged(m_point);
 }
