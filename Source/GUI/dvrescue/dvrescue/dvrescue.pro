@@ -1,4 +1,4 @@
-QT += qml quick widgets
+QT += qml quick widgets quickcontrols2
 
 CONFIG += c++17
 CONFIG += no_keywords

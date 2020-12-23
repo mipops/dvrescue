@@ -5,6 +5,7 @@
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
 #include <QQmlParserStatus>
+#include <QQuickStyle>
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +26,8 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<QProcess::ProcessState>();
     qRegisterMetaType<QProcess::ExitStatus>();
+
+    QQuickStyle::setStyle("Material");
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)
