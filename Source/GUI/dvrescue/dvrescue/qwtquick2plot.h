@@ -101,7 +101,7 @@ Q_SIGNALS:
 
 private:
     QwtQuick2Plot* m_qwtQuickPlot { nullptr };
-    std::unique_ptr<QwtPlotCurve> m_qwtPlotCurve;
+    QwtPlotCurve* m_qwtPlotCurve;
     QVector<QPointF> m_curveData;
 };
 
@@ -159,7 +159,7 @@ Q_SIGNALS:
     void minorPenStyleChanged(Qt::PenStyle minorPenStyle);
 
 private:
-    std::unique_ptr<QwtPlotGrid> m_qwtPlotGrid;
+    QwtPlotGrid* m_qwtPlotGrid;
 };
 
 #endif // QMLPLOT_H

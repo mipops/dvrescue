@@ -138,7 +138,7 @@ void QwtQuick2Plot::updatePlotSize()
 
 QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
 {
-    m_qwtPlotCurve.reset(new QwtPlotCurve());
+    m_qwtPlotCurve = new QwtPlotCurve();
     m_qwtPlotCurve->setTitle("Curve 1");
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
@@ -154,7 +154,7 @@ QwtQuick2PlotCurve::~QwtQuick2PlotCurve()
 
 QwtPlotCurve *QwtQuick2PlotCurve::curve() const
 {
-    return m_qwtPlotCurve.get();
+    return m_qwtPlotCurve;
 }
 
 QwtQuick2Plot *QwtQuick2PlotCurve::plot() const
@@ -228,7 +228,7 @@ void QwtQuick2PlotCurve::setColor(QColor color)
 
 QwtQuick2PlotGrid::QwtQuick2PlotGrid(QObject* parent) : QObject(parent)
 {
-    m_qwtPlotGrid.reset(new QwtPlotGrid());
+    m_qwtPlotGrid = new QwtPlotGrid();
 }
 
 void QwtQuick2PlotGrid::attach(QwtQuick2Plot *plot)
