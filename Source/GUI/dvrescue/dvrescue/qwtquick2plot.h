@@ -27,6 +27,8 @@ class QwtQuick2Plot : public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
+    Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setLeftYAxisTitle NOTIFY leftYAxisTitleChanged);
+    Q_PROPERTY(QString xBottomAxisTitle READ xBottomAxisTitle WRITE setXBottomAxisTitle NOTIFY xBottomAxisTitleChanged)
 public:
     QwtQuick2Plot(QQuickItem* parent = nullptr);
     virtual ~QwtQuick2Plot();
@@ -37,8 +39,17 @@ public:
     QQuickItem* canvasItem() const;
     void updateCanvaSize();
 
+    QString yLeftAxisTitle() const;
+    QString xBottomAxisTitle() const;
+
+public Q_SLOTS:
+    void setLeftYAxisTitle(QString yLeftAxisTitle);
+    void setXBottomAxisTitle(QString xBottomAxisTitle);
+
 Q_SIGNALS:
     void canvasItemChanged();
+    void leftYAxisTitleChanged(QString yLeftAxisTitle);
+    void xBottomAxisTitleChanged(QString xBottomAxisTitle);
 
 protected:
     void routeMouseEvents(QMouseEvent* event);

@@ -27,10 +27,6 @@ QwtQuick2Plot::QwtQuick2Plot(QQuickItem* parent) : QQuickPaintedItem(parent)
     m_qwtPlot->setAutoReplot(false);
 
     updatePlotSize();
-
-    m_qwtPlot->setAxisTitle(m_qwtPlot->xBottom, tr("t"));
-    m_qwtPlot->setAxisTitle(m_qwtPlot->yLeft, tr("S"));
-
     replotAndUpdate();
 }
 
@@ -162,6 +158,34 @@ void QwtQuick2Plot::updateCanvaSize()
     m_canvasItem->setY(mappedTopLeft.y());
     m_canvasItem->setWidth(mappedBottomRight.x() - mappedTopLeft.x());
     m_canvasItem->setHeight(mappedBottomRight.y() - mappedTopLeft.y());
+}
+
+QString QwtQuick2Plot::yLeftAxisTitle() const
+{
+    return m_qwtPlot->axisTitle(m_qwtPlot->yLeft).text();
+}
+
+void QwtQuick2Plot::setLeftYAxisTitle(QString yLeftAxisTitle)
+{
+    if (m_qwtPlot->axisTitle(m_qwtPlot->yLeft).text() == yLeftAxisTitle)
+        return;
+
+    m_qwtPlot->setAxisTitle(m_qwtPlot->yLeft, yLeftAxisTitle);
+    Q_EMIT leftYAxisTitleChanged(this->yLeftAxisTitle());
+}
+
+QString QwtQuick2Plot::xBottomAxisTitle() const
+{
+    return m_qwtPlot->axisTitle(m_qwtPlot->xBottom).text();
+}
+
+void QwtQuick2Plot::setXBottomAxisTitle(QString xBottomAxisTitle)
+{
+    if (m_qwtPlot->axisTitle(m_qwtPlot->xBottom).text() == xBottomAxisTitle)
+        return;
+
+    m_qwtPlot->setAxisTitle(m_qwtPlot->xBottom, xBottomAxisTitle);
+    Q_EMIT xBottomAxisTitleChanged(this->xBottomAxisTitle());
 }
 
 void QwtQuick2Plot::updatePlotSize()

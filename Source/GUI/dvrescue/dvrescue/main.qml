@@ -62,18 +62,22 @@ Window {
             anchors.top: toolsLayout.bottom
             canvasItem.clip: true
             height: (parent.height - toolsLayout.height) / 2 - anchors.topMargin
+            xBottomAxisTitle: "frames, N"
+            yLeftAxisTitle: "errors, %"
 
             PlotPicker {
             }
 
             QwtQuick2PlotCurve {
                 id: videoCurve
+                title: "Video errors (even)";
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "darkgreen"
             }
 
             QwtQuick2PlotCurve {
                 id: videoCurve2
+                title: "Video errors (odd)";
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "green"
             }
@@ -95,18 +99,22 @@ Window {
             anchors.topMargin: 10
             anchors.top: videoPlot.bottom
             height: videoPlot.height
+            xBottomAxisTitle: "frames, N"
+            yLeftAxisTitle: "errors, %"
 
             PlotPicker {
             }
 
             QwtQuick2PlotCurve {
                 id: audioCurve
+                title: "Audio errors (even)";
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "darkblue"
             }
 
             QwtQuick2PlotCurve {
                 id: audioCurve2
+                title: "Audio errors (odd)"
                 curveStyle: QwtQuick2PlotCurve.Sticks
                 color: "blue"
             }
