@@ -55,14 +55,12 @@ QQuickItem *QwtQuick2Plot::canvasItem() const
 
 void QwtQuick2Plot::paint(QPainter* painter)
 {
-    if (m_qwtPlot) {
-        QPixmap picture(boundingRect().size().toSize());
+    QPixmap picture(boundingRect().size().toSize());
 
-        QwtPlotRenderer renderer;
-        renderer.renderTo(m_qwtPlot, picture);
+    QwtPlotRenderer renderer;
+    renderer.renderTo(m_qwtPlot, picture);
 
-        painter->drawPixmap(QPoint(), picture);
-    }
+    painter->drawPixmap(QPoint(), picture);
 }
 
 void QwtQuick2Plot::mousePressEvent(QMouseEvent* event)
@@ -121,16 +119,14 @@ void QwtQuick2Plot::attach(QObject *child)
 
 void QwtQuick2Plot::routeMouseEvents(QMouseEvent* event)
 {
-    if (m_qwtPlot) {
-        auto mappedLocalPos = event->localPos();
-        mappedLocalPos.setX(mappedLocalPos.x() - m_qwtPlot->canvas()->x());
-        mappedLocalPos.setY(mappedLocalPos.y() - m_qwtPlot->canvas()->y());
+    auto mappedLocalPos = event->localPos();
+    mappedLocalPos.setX(mappedLocalPos.x() - m_qwtPlot->canvas()->x());
+    mappedLocalPos.setY(mappedLocalPos.y() - m_qwtPlot->canvas()->y());
 
-        QMouseEvent* newEvent = new QMouseEvent(event->type(), mappedLocalPos,
-                                                event->button(), event->buttons(),
-                                                event->modifiers());
-        QCoreApplication::postEvent(m_qwtPlot->canvas(), newEvent);
-    }
+    QMouseEvent* newEvent = new QMouseEvent(event->type(), mappedLocalPos,
+                                            event->button(), event->buttons(),
+                                            event->modifiers());
+    QCoreApplication::postEvent(m_qwtPlot->canvas(), newEvent);
 }
 
 void QwtQuick2Plot::routeWheelEvents(QWheelEvent* event)
@@ -467,98 +463,109 @@ void QwtQuick2PlotGrid::setMinorPenStyle(Qt::PenStyle minorPenStyle)
     Q_EMIT minorPenStyleChanged(m_qwtPlotGrid->minorPen().style());
 }
 
+class PlotPicker: public QwtPlotPicker
+{
+public:
+    explicit PlotPicker( QWidget *canvas, const std::function<void(bool)>& pickerActiveCallback) : QwtPlotPicker(canvas), canvas(canvas),
+        pickerActiveCallback(pickerActiveCallback) {}
+
+    virtual QwtText trackerText( const QPoint & p ) const
+    {
+        auto t = QwtPlotPicker::trackerText(p);
+        return t;
+    }
+
+    virtual QwtText trackerTextF( const QPointF & p ) const
+    {
+        auto t = QwtPlotPicker::trackerTextF(p);
+        return t;
+    }
+
+    virtual void begin() {
+        pos = trackerPosition();
+
+        QwtPlotPicker::begin();
+    }
+
+    virtual void move( const QPoint & p ) {
+        pos = p;
+
+        QwtPlotPicker::move(p);
+    }
+
+    virtual void append( const QPoint & p ) {
+        pos = p;
+
+        QwtPlotPicker::append(p);
+    }
+
+    virtual bool end( bool ok = true ) {
+        auto b = QwtPlotPicker::end(ok);
+
+        return b;
+    }
+
+    virtual bool eventFilter( QObject *o, QEvent *e) {
+        auto b = QwtPlotPicker::eventFilter(o, e);
+
+        return b;
+    }
+
+    virtual void widgetMousePressEvent (QMouseEvent *e)
+    {
+        QwtPlotPicker::widgetMousePressEvent(e);
+
+        if(pickerActiveCallback)
+            pickerActiveCallback(true);
+    }
+
+    virtual void widgetMouseReleaseEvent (QMouseEvent *e)
+    {
+        QwtPlotPicker::widgetMouseReleaseEvent(e);
+
+        if(pickerActiveCallback)
+            pickerActiveCallback(false);
+    }
+
+    virtual void widgetMouseDoubleClickEvent (QMouseEvent *e)
+    {
+        QwtPlotPicker::widgetMouseDoubleClickEvent(e);
+    }
+
+    virtual void widgetMouseMoveEvent (QMouseEvent *e)
+    {
+        QwtPlotPicker::widgetMouseMoveEvent(e);
+    }
+
+    QPointF invTransform( const QPoint & p ) const
+    {
+        return QwtPlotPicker::invTransform(p);
+    }
+
+    QPoint transform( const QPointF & p ) const
+    {
+        return QwtPlotPicker::transform(p);
+    }
+
+    QWidget* canvas;
+    std::function<void(bool)> pickerActiveCallback;
+    QPoint pos;
+};
+
+class PickerDragPointMachine : public QwtPickerDragPointMachine
+{
+    virtual QList<Command> transition(const QwtEventPattern &ep, const QEvent * e) {
+        auto cmdList = QwtPickerDragPointMachine::transition(ep, e);
+        return cmdList;
+    }
+};
+
 QwtQuick2PlotPicker::QwtQuick2PlotPicker(QQuickItem *parent) : QQuickItem(parent)
 {
 }
 
 void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
 {
-    class PlotPicker: public QwtPlotPicker
-    {
-    public:
-        explicit PlotPicker( QWidget *canvas, const std::function<void(bool)>& pickerActiveCallback) : QwtPlotPicker(canvas), canvas(canvas),
-            pickerActiveCallback(pickerActiveCallback) {}
-
-        virtual QwtText trackerText( const QPoint & p ) const
-        {
-            auto t = QwtPlotPicker::trackerText(p);
-            return t;
-        }
-
-        virtual QwtText trackerTextF( const QPointF & p ) const
-        {
-            auto t = QwtPlotPicker::trackerTextF(p);
-            return t;
-        }
-
-        virtual void begin() {
-            pos = trackerPosition();
-
-            QwtPlotPicker::begin();
-        }
-
-        virtual void move( const QPoint & p ) {
-            pos = p;
-
-            QwtPlotPicker::move(p);
-        }
-
-        virtual void append( const QPoint & p ) {
-            pos = p;
-
-            QwtPlotPicker::append(p);
-        }
-
-        virtual bool end( bool ok = true ) {
-            auto b = QwtPlotPicker::end(ok);
-
-            return b;
-        }
-
-        virtual bool eventFilter( QObject *o, QEvent *e) {
-            auto b = QwtPlotPicker::eventFilter(o, e);
-
-            return b;
-        }
-
-        virtual void widgetMousePressEvent (QMouseEvent *e)
-        {
-            QwtPlotPicker::widgetMousePressEvent(e);
-
-            if(pickerActiveCallback)
-                pickerActiveCallback(true);
-        }
-
-        virtual void widgetMouseReleaseEvent (QMouseEvent *e)
-        {
-            QwtPlotPicker::widgetMouseReleaseEvent(e);
-
-            if(pickerActiveCallback)
-                pickerActiveCallback(false);
-        }
-
-        virtual void widgetMouseDoubleClickEvent (QMouseEvent *e)
-        {
-            QwtPlotPicker::widgetMouseDoubleClickEvent(e);
-        }
-
-        virtual void widgetMouseMoveEvent (QMouseEvent *e)
-        {
-            QwtPlotPicker::widgetMouseMoveEvent(e);
-        }
-
-        QWidget* canvas;
-        std::function<void(bool)> pickerActiveCallback;
-        QPoint pos;
-    };
-
-    class PickerDragPointMachine : public QwtPickerDragPointMachine
-    {
-        virtual QList<Command> transition(const QwtEventPattern &ep, const QEvent * e) {
-            return QwtPickerDragPointMachine::transition(ep, e);
-        }
-    };
-
     m_qwtPlotPicker = new PlotPicker(plot->plot()->canvas(), [this](bool pickerActive) {
         this->setActive(pickerActive);
     });
@@ -605,6 +612,16 @@ bool QwtQuick2PlotPicker::active() const
 QPointF QwtQuick2PlotPicker::point() const
 {
     return m_point;
+}
+
+QPoint QwtQuick2PlotPicker::transform(const QPointF &p)
+{
+    return static_cast<PlotPicker*>(m_qwtPlotPicker)->transform(p);
+}
+
+QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
+{
+    return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(p);
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)

@@ -200,6 +200,9 @@ public:
     bool active() const;    
     QPointF point() const;
 
+    Q_INVOKABLE QPoint transform(const QPointF& p);
+    Q_INVOKABLE QPointF invTransform(const QPoint& p);
+
 public Q_SLOTS:
     void setActive(bool active);
     void setPoint(QPointF point);
@@ -210,7 +213,7 @@ Q_SIGNALS:
 
 private:
     QwtPlotPicker* m_qwtPlotPicker;
-    bool m_active;
+    bool m_active { false };
     QPointF m_point;
 };
 

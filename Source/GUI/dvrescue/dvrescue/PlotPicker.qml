@@ -25,11 +25,12 @@ QwtQuick2PlotPicker {
     */
 
     Text {
+        id: overlayText
         parent: canvasItem
-        x: picker.x + height * 1.5
+        x: picker.x + height
         y: picker.y - height * 1.5
         text: picker.point.x + ", " + picker.point.y
-        visible: picker.active
+        visible: mouseArea.containsMouse
     }
 
     Rectangle {
@@ -47,5 +48,30 @@ QwtQuick2PlotPicker {
         width: 1
         x: picker.x
         visible: picker.active
+    }
+
+    MouseArea {
+        id: mouseArea
+        parent: canvasItem
+        anchors.fill: parent
+        cursorShape: Qt.CrossCursor
+        hoverEnabled: true
+
+        onMouseXChanged: {
+            picker.point = picker.invTransform(Qt.point(mouse.x, mouse.y))
+            picker.x = mouse.x
+            mouse.accepted = false;
+        }
+        onMouseYChanged: {
+            picker.point = picker.invTransform(Qt.point(mouse.x, mouse.y))
+            picker.y = mouse.y
+            mouse.accepted = false;
+        }
+        onPressed: {
+            mouse.accepted = false;
+        }
+        onReleased: {
+            mouse.accepted = false;
+        }
     }
 }
