@@ -79,7 +79,7 @@ Window {
             canvasItem.clip: true
             height: (parent.height - toolsLayout.height - scrollLayout.height) / 2 - anchors.topMargin
             xBottomAxisTitle: "frames, N"
-            yLeftAxisTitle: "errors, %"
+            yLeftAxisTitle: "video error concealment (%)"
 
             PlotPicker {
             }
@@ -117,7 +117,7 @@ Window {
             canvasItem.clip: true
             height: videoPlot.height
             xBottomAxisTitle: "frames, N"
-            yLeftAxisTitle: "errors, %"
+            yLeftAxisTitle: "audio error (%)"
 
             PlotPicker {
             }
