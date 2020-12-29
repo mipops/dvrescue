@@ -272,7 +272,9 @@ OPT_OUTPUT+=(-c:v:0 copy)
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
-OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
+if [[ -n "${LANG1}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
+fi
 if [[ -n "${LANG2}" ]] ; then
     OPT_OUTPUT+=(-metadata:s:a:1 language="${LANG2}")
 fi
