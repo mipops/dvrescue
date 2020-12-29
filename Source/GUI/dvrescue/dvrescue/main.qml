@@ -28,6 +28,10 @@ Window {
             graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
             zoomAll.clicked();
         }
+
+        Component.onCompleted: {
+            graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
+        }
     }
 
     Rectangle {
