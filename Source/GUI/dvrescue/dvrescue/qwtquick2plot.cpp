@@ -4,6 +4,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_renderer.h>
 #include <qwt_scale_widget.h>
+#include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
 #include <qwt_text.h>
 
@@ -195,8 +196,8 @@ void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
     if (this->xBottomAxisRange() == xBottomAxisRange)
         return;
 
-    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::xBottom);
-    scale.setInterval(xBottomAxisRange.x(), xBottomAxisRange.y());
+    QwtLinearScaleEngine se;
+    auto scale = se.divideScale( xBottomAxisRange.x(), xBottomAxisRange.y(), 5, 8 );
 
     m_qwtPlot->setAxisScaleDiv(QwtPlot::xBottom, scale);
     Q_EMIT xBottomAxisRangeChanged(this->xBottomAxisRange());
@@ -215,8 +216,8 @@ void QwtQuick2Plot::setYLeftAxisRange(QVector2D yLeftAxisRange)
     if (this->yLeftAxisRange() == yLeftAxisRange)
         return;
 
-    auto scale = m_qwtPlot->axisScaleDiv(QwtPlot::yLeft);
-    scale.setInterval(yLeftAxisRange.x(), yLeftAxisRange.y());
+    QwtLinearScaleEngine se;
+    auto scale = se.divideScale( yLeftAxisRange.x(), yLeftAxisRange.y(), 5, 8 );
 
     m_qwtPlot->setAxisScaleDiv(QwtPlot::yLeft, scale);
     Q_EMIT yLeftAxisRangeChanged(this->yLeftAxisRange());
