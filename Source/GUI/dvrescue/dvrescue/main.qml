@@ -152,12 +152,13 @@ Window {
             anchors.left: audioPlot.left
             anchors.right: audioPlot.right
             height: zoomIn.height
+            property int zoomFactor: 2
 
             Button {
                 id: zoomIn
                 text: "+"
                 onClicked: {
-                    videoPlot.xBottomAxisRange = Qt.vector2d(0, Math.round(videoPlot.xBottomAxisRange.y / 2))
+                    videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, Math.round(videoPlot.xBottomAxisRange.y / scrollLayout.zoomFactor))
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
                 }
             }
@@ -165,6 +166,7 @@ Window {
                 id: zoomAll
                 text: "|"
                 onClicked: {
+                    scroll.position = 0
                     videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
                 }
@@ -174,8 +176,14 @@ Window {
                 id: zoomOut
                 text: "-"
                 onClicked: {
-                    videoPlot.xBottomAxisRange = Qt.vector2d(0, videoPlot.xBottomAxisRange.y * 2)
-                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                    var newRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, videoPlot.xBottomAxisRange.y * scrollLayout.zoomFactor);
+                    if((newRange.y - newRange.x) > graphModel.total)
+                    {
+                        zoomAll.clicked();
+                    } else {
+                        videoPlot.xBottomAxisRange = newRange
+                        audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                    }
                 }
             }
 
