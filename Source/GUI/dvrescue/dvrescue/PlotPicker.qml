@@ -13,7 +13,7 @@ QwtQuick2PlotPicker {
 
     property var canvasItem: picker.parent.canvasItem
     onVisibleChanged: {
-        console.debug('visible: ', visible);
+        console.debug('QwtQuick2PlotPicker visible: ', visible);
     }
 
     /* debug canvas item geometry
@@ -30,7 +30,7 @@ QwtQuick2PlotPicker {
         x: picker.x + height
         y: picker.y - height * 1.5
         text: picker.point.x + ", " + picker.point.y
-        visible: mouseArea.containsMouse
+        visible: picker.visible && mouseArea.containsMouse
     }
 
     Rectangle {
@@ -39,7 +39,7 @@ QwtQuick2PlotPicker {
         width: canvasItem.width
         height: 1
         y: picker.y
-        visible: picker.active
+        visible: picker.visible && picker.active
     }
     Rectangle {
         color: 'green'
@@ -47,14 +47,14 @@ QwtQuick2PlotPicker {
         height: canvasItem.height
         width: 1
         x: picker.x
-        visible: picker.active
+        visible: picker.visible && picker.active
     }
 
     MouseArea {
         id: mouseArea
         parent: canvasItem
         anchors.fill: parent
-        cursorShape: Qt.CrossCursor
+        cursorShape: picker.visible ? Qt.CrossCursor : Qt.ArrowCursor
         hoverEnabled: true
 
         onMouseXChanged: {

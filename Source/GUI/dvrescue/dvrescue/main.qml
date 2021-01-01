@@ -86,6 +86,7 @@ Window {
             yLeftAxisTitle: "video error concealment (%)"
 
             PlotPicker {
+                visible: graphModel.total !== 0
             }
 
             QwtQuick2PlotCurve {
@@ -124,6 +125,7 @@ Window {
             yLeftAxisTitle: "audio error (%)"
 
             PlotPicker {
+                visible: graphModel.total !== 0
             }
 
             QwtQuick2PlotCurve {
