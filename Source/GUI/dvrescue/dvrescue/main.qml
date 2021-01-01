@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
@@ -94,103 +94,111 @@ Window {
             }
         }
 
-        QwtQuick2Plot {
-            id: videoPlot
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.topMargin: 10
+        SplitView {
+            id: plotsView
+            orientation: Qt.Vertical
             anchors.top: toolsLayout.bottom
-            canvasItem.clip: true
-            height: (parent.height - toolsLayout.height - scrollLayout.height) / 2 - anchors.topMargin
-            xBottomAxisTitle: "frames, N"
-            yLeftAxisTitle: "video error concealment (%)"
-
-            Component.onCompleted: {
-                yLeftAxisFont.bold = false
-                yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
-                xBottomAxisFont.bold = false
-                xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
-            }
-
-            PlotPicker {
-                visible: graphModel.total !== 0
-            }
-
-            QwtQuick2PlotCurve {
-                id: videoCurve
-                title: "Video errors (even)";
-                curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "darkgreen"
-            }
-
-            QwtQuick2PlotCurve {
-                id: videoCurve2
-                title: "Video errors (odd)";
-                curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "green"
-            }
-
-            QwtQuick2PlotGrid {
-                enableXMin: true
-                enableYMin: true
-                majorPenColor: 'darkGray'
-                majorPenStyle: Qt.DotLine
-                minorPenColor: 'gray'
-                minorPenStyle: Qt.DotLine
-            }
-        }
-
-        QwtQuick2Plot {
-            id: audioPlot
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.topMargin: 10
-            anchors.top: videoPlot.bottom
-            canvasItem.clip: true
-            height: videoPlot.height
-            xBottomAxisTitle: "frames, N"
-            yLeftAxisTitle: "audio error (%)"
+            anchors.bottom: scrollLayout.top
 
-            Component.onCompleted: {
-                yLeftAxisFont.bold = false
-                yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
-                xBottomAxisFont.bold = false
-                xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+            QwtQuick2Plot {
+                id: videoPlot
+
+                SplitView.preferredHeight: plotsView.height / 5 * 3.5
+                anchors.topMargin: 10
+                canvasItem.clip: true
+                xBottomAxisTitle: "frames, N"
+                yLeftAxisTitle: "video error concealment (%)"
+
+                Component.onCompleted: {
+                    yLeftAxisFont.bold = false
+                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                    xBottomAxisFont.bold = false
+                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+                }
+
+                PlotPicker {
+                    visible: graphModel.total !== 0
+                }
+
+                QwtQuick2PlotCurve {
+                    id: videoCurve
+                    title: "Video errors (even)";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "darkgreen"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: videoCurve2
+                    title: "Video errors (odd)";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "green"
+                }
+
+                QwtQuick2PlotGrid {
+                    enableXMin: true
+                    enableYMin: true
+                    majorPenColor: 'darkGray'
+                    majorPenStyle: Qt.DotLine
+                    minorPenColor: 'gray'
+                    minorPenStyle: Qt.DotLine
+                }
             }
 
-            PlotPicker {
-                visible: graphModel.total !== 0
-            }
+            QwtQuick2Plot {
+                id: audioPlot
+                SplitView.preferredHeight: plotsView.height / 5 * 1.5
 
-            QwtQuick2PlotCurve {
-                id: audioCurve
-                title: "Audio errors (even)";
-                curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "darkblue"
-            }
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.topMargin: 10
+                anchors.top: videoPlot.bottom
+                canvasItem.clip: true
+                xBottomAxisTitle: "frames, N"
+                yLeftAxisTitle: "audio error (%)"
 
-            QwtQuick2PlotCurve {
-                id: audioCurve2
-                title: "Audio errors (odd)"
-                curveStyle: QwtQuick2PlotCurve.Sticks
-                color: "blue"
-            }
+                Component.onCompleted: {
+                    yLeftAxisFont.bold = false
+                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                    xBottomAxisFont.bold = false
+                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+                }
 
-            QwtQuick2PlotGrid {
-                enableXMin: true
-                enableYMin: true
-                majorPenColor: 'darkGray'
-                majorPenStyle: Qt.DotLine
-                minorPenColor: 'gray'
-                minorPenStyle: Qt.DotLine
+                PlotPicker {
+                    visible: graphModel.total !== 0
+                }
+
+                QwtQuick2PlotCurve {
+                    id: audioCurve
+                    title: "Audio errors (even)";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "darkblue"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: audioCurve2
+                    title: "Audio errors (odd)"
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "blue"
+                }
+
+                QwtQuick2PlotGrid {
+                    enableXMin: true
+                    enableYMin: true
+                    majorPenColor: 'darkGray'
+                    majorPenStyle: Qt.DotLine
+                    minorPenColor: 'gray'
+                    minorPenStyle: Qt.DotLine
+                }
             }
         }
 
         RowLayout {
             id: scrollLayout
-            anchors.top: audioPlot.bottom
-            anchors.left: audioPlot.left
-            anchors.right: audioPlot.right
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
             height: zoomIn.height
             property int zoomFactor: 2
 
