@@ -28,7 +28,9 @@ class QwtQuick2Plot : public QQuickPaintedItem
     Q_OBJECT
     Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
     Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setYLeftAxisTitle NOTIFY leftYAxisTitleChanged);
+    Q_PROPERTY(QFont yLeftAxisFont READ yLeftAxisFont WRITE setYLeftAxisFont NOTIFY yLeftAxisFontChanged);
     Q_PROPERTY(QString xBottomAxisTitle READ xBottomAxisTitle WRITE setXBottomAxisTitle NOTIFY xBottomAxisTitleChanged)
+    Q_PROPERTY(QFont xBottomAxisFont READ xBottomAxisFont WRITE setXBottomAxisFont NOTIFY xBottomAxisFontChanged);
     Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
     Q_PROPERTY(QVector2D xBottomAxisRange READ xBottomAxisRange WRITE setXBottomAxisRange NOTIFY xBottomAxisRangeChanged);
 public:
@@ -46,11 +48,16 @@ public:
     QVector2D yLeftAxisRange() const;
     QVector2D xBottomAxisRange() const;
 
+    QFont yLeftAxisFont() const;
+    QFont xBottomAxisFont() const;
+
 public Q_SLOTS:
     void setYLeftAxisTitle(QString yLeftAxisTitle);
     void setXBottomAxisTitle(QString xBottomAxisTitle);
     void setYLeftAxisRange(QVector2D yLeftAxisRange);
     void setXBottomAxisRange(QVector2D xBottomAxisRange);
+    void setYLeftAxisFont(QFont yLeftAxisFont);
+    void setXBottomAxisFont(QFont xBottomAxisFont);
 
 Q_SIGNALS:
     void canvasItemChanged();
@@ -58,6 +65,8 @@ Q_SIGNALS:
     void xBottomAxisTitleChanged(QString xBottomAxisTitle);
     void yLeftAxisRangeChanged(QVector2D yLeftAxisRange);
     void xBottomAxisRangeChanged(QVector2D xBottomAxisRange);
+    void yLeftAxisFontChanged(QFont yLeftAxisFont);
+    void xBottomAxisFontChanged(QFont xBottomAxisFont);
 
 protected:
     void routeMouseEvents(QMouseEvent* event);

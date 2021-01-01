@@ -191,6 +191,16 @@ QVector2D QwtQuick2Plot::xBottomAxisRange() const
     return QVector2D(scale.interval().minValue(), scale.interval().maxValue());
 }
 
+QFont QwtQuick2Plot::yLeftAxisFont() const
+{
+    return m_qwtPlot->axisTitle(QwtPlot::yLeft).font();
+}
+
+QFont QwtQuick2Plot::xBottomAxisFont() const
+{
+    return m_qwtPlot->axisTitle(QwtPlot::xBottom).font();
+}
+
 void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
 {
     if (this->xBottomAxisRange() == xBottomAxisRange)
@@ -203,6 +213,36 @@ void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
     Q_EMIT xBottomAxisRangeChanged(this->xBottomAxisRange());
 
     replotAndUpdate();
+}
+
+void QwtQuick2Plot::setYLeftAxisFont(QFont yLeftAxisFont)
+{
+    auto title = m_qwtPlot->axisTitle(QwtPlot::yLeft);
+
+    if (title.font() == yLeftAxisFont)
+        return;
+
+    title.setFont(yLeftAxisFont);
+    m_qwtPlot->setAxisTitle(QwtPlot::yLeft, title);
+
+    updatePlotSize();
+    replotAndUpdate();
+    Q_EMIT yLeftAxisFontChanged(this->yLeftAxisFont());
+}
+
+void QwtQuick2Plot::setXBottomAxisFont(QFont xBottomAxisFont)
+{
+    auto title = m_qwtPlot->axisTitle(QwtPlot::xBottom);
+
+    if (title.font() == xBottomAxisFont)
+        return;
+
+    title.setFont(xBottomAxisFont);
+    m_qwtPlot->setAxisTitle(QwtPlot::xBottom, title);
+
+    updatePlotSize();
+    replotAndUpdate();
+    Q_EMIT xBottomAxisFontChanged(this->xBottomAxisFont());
 }
 
 QVector2D QwtQuick2Plot::yLeftAxisRange() const

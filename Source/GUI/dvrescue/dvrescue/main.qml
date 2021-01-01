@@ -85,6 +85,13 @@ Window {
             xBottomAxisTitle: "frames, N"
             yLeftAxisTitle: "video error concealment (%)"
 
+            Component.onCompleted: {
+                yLeftAxisFont.bold = false
+                yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                xBottomAxisFont.bold = false
+                xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+            }
+
             PlotPicker {
                 visible: graphModel.total !== 0
             }
@@ -123,6 +130,13 @@ Window {
             height: videoPlot.height
             xBottomAxisTitle: "frames, N"
             yLeftAxisTitle: "audio error (%)"
+
+            Component.onCompleted: {
+                yLeftAxisFont.bold = false
+                yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                xBottomAxisFont.bold = false
+                xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+            }
 
             PlotPicker {
                 visible: graphModel.total !== 0
