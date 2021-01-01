@@ -19,7 +19,6 @@ Window {
         id: graphModel
 
         onTotalChanged: {
-            console.debug('total: ', total)
         }
 
         onPopulated: {
@@ -37,6 +36,26 @@ Window {
     Rectangle {
         anchors.fill: parent;
         z: 100
+
+        DropArea {
+            id: dropArea;
+            anchors.fill: parent
+            onEntered: {
+                drag.accept (Qt.LinkAction);
+            }
+            onDropped: {
+                if(drop.urls.length !== 0)
+                {
+                    var url = drop.urls[0];
+                    xmlPath.text = FileUtils.getFilePath(url);
+                    loadButton.clicked();
+                }
+
+                console.log(drop.urls)
+            }
+            onExited: {
+            }
+        }
 
         RowLayout {
             id: toolsLayout
@@ -63,6 +82,7 @@ Window {
 
             Button {
                 text: "load"
+                id: loadButton
                 onClicked: {
                     refreshTimer.start();
                     graphModel.populate(xmlPath.text);
@@ -222,7 +242,7 @@ Window {
                     var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
                     var value = rangeCount / graphModel.total
 
-                    console.debug('size: ', value, videoPlot.xBottomAxisRange.y, videoPlot.xBottomAxisRange.x)
+                    // console.debug('size: ', value, videoPlot.xBottomAxisRange.y, videoPlot.xBottomAxisRange.x)
 
                     return value;
                 }
