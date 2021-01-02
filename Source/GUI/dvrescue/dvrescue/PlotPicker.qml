@@ -29,7 +29,7 @@ QwtQuick2PlotPicker {
         parent: canvasItem
         x: picker.x + height
         y: picker.y - height * 1.5
-        text: picker.point.x + ", " + picker.point.y
+        text: Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0)
         visible: picker.visible && mouseArea.containsMouse
     }
 
