@@ -9,6 +9,7 @@ QT += quick testlib xmlpatterns widgets
 
 SOURCES += \
     dummytest.cpp \
+    graphmodeltest.cpp \
     main.cpp \
     xmlparsingtest.cpp
 
@@ -21,4 +22,8 @@ DISTFILES += \
 
 HEADERS += \
     dummytest.h \
+    graphmodeltest.h \
     xmlparsingtest.h
+
+RESOURCES += \
+    testdata.qrc

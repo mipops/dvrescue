@@ -657,12 +657,18 @@ QPointF QwtQuick2PlotPicker::point() const
 
 QPoint QwtQuick2PlotPicker::transform(const QPointF &p)
 {
-    return static_cast<PlotPicker*>(m_qwtPlotPicker)->transform(p);
+    if(m_qwtPlotPicker)
+        return static_cast<PlotPicker*>(m_qwtPlotPicker)->transform(p);
+
+    return QPoint(p.x(), p.y());
 }
 
 QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
 {
-    return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(p);
+    if(m_qwtPlotPicker)
+        return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(p);
+
+    return QPointF(p.x(), p.y());
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)

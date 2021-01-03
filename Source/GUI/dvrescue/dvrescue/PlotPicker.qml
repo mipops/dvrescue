@@ -16,6 +16,8 @@ QwtQuick2PlotPicker {
         console.debug('QwtQuick2PlotPicker visible: ', visible);
     }
 
+    property var overlayTextFormatter: null
+
     /* debug canvas item geometry
     Rectangle {
         color: 'red'
@@ -27,7 +29,7 @@ QwtQuick2PlotPicker {
     Text {
         id: overlayText
         parent: canvasItem
-        text: Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0)
+
         property int maxX: canvasItem.width - width
         property int minY: 0
 
@@ -45,6 +47,9 @@ QwtQuick2PlotPicker {
 
             return newY
         }
+        text: overlayTextFormatter ? overlayTextFormatter(picker.point) :
+                                          Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0);
+
         visible: picker.visible && mouseArea.containsMouse
     }
 

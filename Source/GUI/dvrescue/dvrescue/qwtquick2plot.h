@@ -221,7 +221,7 @@ Q_SIGNALS:
     void pointChanged(QPointF point);
 
 private:
-    QwtPlotPicker* m_qwtPlotPicker;
+    QwtPlotPicker* m_qwtPlotPicker { nullptr };
     bool m_active { false };
     QPointF m_point;
 };

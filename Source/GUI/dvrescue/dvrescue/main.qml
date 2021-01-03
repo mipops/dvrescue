@@ -67,6 +67,7 @@ Window {
             TextField {
                 id: xmlPath
                 Layout.fillWidth: true
+                selectByMouse: true
             }
 
             Button {
@@ -85,6 +86,7 @@ Window {
                 id: loadButton
                 onClicked: {
                     refreshTimer.start();
+                    graphModel.reset(videoCurve, videoCurve2, audioCurve, audioCurve2);
                     graphModel.populate(xmlPath.text);
                 }
             }
@@ -120,6 +122,9 @@ Window {
 
                 PlotPicker {
                     visible: graphModel.total !== 0
+                    overlayTextFormatter: function(p) {
+                        return graphModel.videoInfo(p.x, p.y);
+                    }
                 }
 
                 QwtQuick2PlotCurve {
@@ -167,6 +172,9 @@ Window {
 
                 PlotPicker {
                     visible: graphModel.total !== 0
+                    overlayTextFormatter: function(p) {
+                        return graphModel.audioInfo(p.x, p.y);
+                    }
                 }
 
                 QwtQuick2PlotCurve {
