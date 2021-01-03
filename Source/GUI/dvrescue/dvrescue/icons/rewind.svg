@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 256 256"
+   version="1.1"
+   x="0px"
+   y="0px"
+   id="svg16"
+   sodipodi:docname="rewind.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   width="256"
+   height="256">
+  <metadata
+     id="metadata22">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>024-Rewind</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1853"
+     inkscape:window-height="1145"
+     id="namedview18"
+     showgrid="false"
+     inkscape:zoom="1.6796969"
+     inkscape:cx="75.976664"
+     inkscape:cy="122.87521"
+     inkscape:window-x="1987"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg16" />
+  <title
+     id="title2">024-Rewind</title>
+  <desc
+     id="desc4">Created with Sketch.</desc>
+  <g
+     id="g10"
+     transform="matrix(15.89731,0,0,15.89731,0.59436221,30.395826)"
+     style="fill:none;fill-rule:evenodd;stroke:none;stroke-width:1">
+    <g
+       id="g8"
+       style="fill:#000000">
+      <path
+         d="m 14.3443,0.4949 -5.344,3.472 v -2.444 c 0,-0.85 -0.943,-1.362 -1.656,-0.898 l -6.857,4.458 c -0.624,0.406 -0.654,1.309 -0.059,1.756 l 7.092,5.319 c 0.61,0.457 1.48,0.022 1.48,-0.74 v -3.451 l 5.285,4.166 c 0.706,0.53 1.715,0.025 1.715,-0.858 v -5.356 -4.525 c 0,-0.851 -0.943,-1.362 -1.656,-0.899"
+         id="path6"
+         inkscape:connector-curvature="0" />
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,1496 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dvrescue xmlns="https://mediaarea.net/dvrescue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://mediaarea.net/dvrescue https://mediaarea.net/dvrescue/dvrescue.xsd" version="1.1">
+	<creator>
+		<program>dvrescue</program>
+		<version>0.20.11.20201202</version>
+	</creator>
+	<media ref="/Volumes/CUNYTV_Media/archive_projects/DV//DV_Capture_To_Review_ING5/DVC02339/objects/DVC02339 - 0_00_00_07.dv" format="DV" size="11266440000">
+		<frames count="93887" pts="00:00:00.000000" end_pts="00:52:12.696233" size="720x480" video_rate="30000/1001" chroma_subsampling="4:1:1" aspect_ratio="4/3" audio_rate="32000" channels="4">
+			<frame n="0" pos="0" pts="00:00:00.000000" tc="00:00:00;07" rdt="2010-07-26 19:03:15" arb="4"/>
+			<frame n="69" pos="8280000" pts="00:00:02.302300" tc="00:00:02;16" rdt="2010-07-26 19:03:17" arb="1">
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="90" pos="10800000" pts="00:00:03.003000" tc="00:00:03;07" rdt="2010-07-26 19:03:18" arb="A">
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="0"/>
+			</frame>
+			<frame n="112" pos="13440000" pts="00:00:03.737067" tc="00:00:03;29" rdt="2010-07-26 19:03:18" arb="8">
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="115" pos="13800000" pts="00:00:03.837167" tc="00:00:04;02" rdt="2010-07-26 19:03:18" arb="B">
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="369" pos="44280000" pts="00:00:12.312300" tc="00:00:12;16" rdt="2010-07-26 19:03:27" arb="1">
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89395" pos="10727400000" pts="00:49:42.813167" tc="00:49:43;02" rdt="2010-07-26 19:52:57" arb="B">
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89396" pos="10727520000" pts="00:49:42.846533" tc="00:49:43;03" rdt="2010-07-26 19:52:57" arb="0">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89397" pos="10727640000" pts="00:49:42.879900" tc="00:49:43;04" rdt="2010-07-26 19:52:57" arb="1">
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="45" n_even="27"/>
+			</frame>
+			<frame n="89398" pos="10727760000" pts="00:49:42.913267" tc="00:49:43;05" rdt="2010-07-26 19:52:58" arb="2">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="72" n_even="45"/>
+			</frame>
+			<frame n="89399" pos="10727880000" pts="00:49:42.946633" tc="00:49:43;06" rdt="2010-07-26 19:52:58" arb="3">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="72" n_even="45"/>
+			</frame>
+			<frame n="89400" pos="10728000000" pts="00:49:42.980000" tc="00:49:43;07" rdt="2010-07-26 19:52:58" arb="4">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="72" n_even="45"/>
+			</frame>
+			<frame n="89401" pos="10728120000" pts="00:49:43.013367" tc="00:49:43;08" rdt="2010-07-26 19:52:58" arb="5" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89402" pos="10728240000" pts="00:49:43.046733" tc="00:49:43;09" rdt="2010-07-26 19:52:58" arb="6" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89403" pos="10728360000" pts="00:49:43.080100" tc="00:49:43;10" rdt="2010-07-26 19:52:58" arb="7" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89404" pos="10728480000" pts="00:49:43.113467" tc="00:49:43;11" rdt="2010-07-26 19:52:58" arb="8" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89405" pos="10728600000" pts="00:49:43.146833" tc="00:49:43;12" rdt="2010-07-26 19:52:58" arb="9" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89406" pos="10728720000" pts="00:49:43.180200" tc="00:49:43;13" rdt="2010-07-26 19:52:58" arb="A" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89407" pos="10728840000" pts="00:49:43.213567" tc="00:49:43;14" rdt="2010-07-26 19:52:58" arb="B" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89408" pos="10728960000" pts="00:49:43.246933" tc="00:49:43;15" rdt="2010-07-26 19:52:58" arb="0" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89409" pos="10729080000" pts="00:49:43.280300" tc="00:49:43;16" rdt="2010-07-26 19:52:58" arb="1" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89410" pos="10729200000" pts="00:49:43.313667" tc="00:49:43;17" rdt="2010-07-26 19:52:58" arb="2" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89411" pos="10729320000" pts="00:49:43.347033" tc="00:49:43;18" rdt="2010-07-26 19:52:58" arb="3" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89412" pos="10729440000" pts="00:49:43.380400" tc="00:49:43;19" rdt="2010-07-26 19:52:58" arb="4" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89413" pos="10729560000" pts="00:49:43.413767" tc="00:49:43;20" rdt="2010-07-26 19:52:58" arb="5" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89414" pos="10729680000" pts="00:49:43.447133" tc="00:49:43;21" rdt="2010-07-26 19:52:58" arb="6">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="9"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="14"/>
+				</dseq>
+				<sta t="10" n="23" n_even="23"/>
+				<aud n="63" n_even="36"/>
+			</frame>
+			<frame n="89415" pos="10729800000" pts="00:49:43.480500" tc="00:49:43;22" rdt="2010-07-26 19:52:58" arb="7">
+				<dseq n="0">
+					<sta t="10" n="14"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="14"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="14"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="14"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="12"/>
+				</dseq>
+				<sta t="10" n="68" n_even="68"/>
+			</frame>
+			<frame n="89416" pos="10729920000" pts="00:49:43.513867" tc="00:49:43;23" rdt="2010-07-26 19:52:58" arb="8">
+				<dseq n="0">
+					<sta t="10" n="24"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="6"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="10"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="11"/>
+				</dseq>
+				<sta t="10" n="72" n_even="72"/>
+			</frame>
+			<frame n="89417" pos="10730040000" pts="00:49:43.547233" tc="00:49:43;24" rdt="2010-07-26 19:52:58" arb="9">
+				<dseq n="0">
+					<sta t="10" n="10"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="8"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="19"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="28"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="14"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="79" n_even="79"/>
+				<aud n="18" n_even="9"/>
+			</frame>
+			<frame n="89418" pos="10730160000" pts="00:49:43.580600" tc="00:49:43;25" rdt="2010-07-26 19:52:58" arb="A">
+				<dseq n="0">
+					<sta t="10" n="17"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="16"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="21"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="16"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="11"/>
+				</dseq>
+				<sta t="10" n="81" n_even="81"/>
+				<aud n="27" n_even="27"/>
+			</frame>
+			<frame n="89419" pos="10730280000" pts="00:49:43.613967" tc="00:49:43;26" rdt="2010-07-26 19:52:58" arb="0" arb_nc="1">
+				<dseq n="0">
+					<sta t="10" n="23"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="11"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="9"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="11"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="26"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="80" n_even="80"/>
+				<aud n="54" n_even="36"/>
+			</frame>
+			<frame n="89420" pos="10730400000" pts="00:49:43.647333" tc="00:49:43;27" rdt="2010-07-26 19:52:58" arb="1" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="2"/>
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="20"/>
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="26"/>
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="5"/>
+				</dseq>
+				<dseq n="9">
+				</dseq>
+				<sta t="10" n="53" n_even="53"/>
+			</frame>
+			<frame n="89421" pos="10730520000" pts="00:49:43.680700" tc="00:49:43;28" rdt="2010-07-26 19:52:58" arb="2" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="8"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="9">
+				</dseq>
+				<sta t="10" n="121" n_even="113"/>
+			</frame>
+			<frame n="89422" pos="10730640000" pts="00:49:43.714067" tc="00:49:43;28" tc_r="1" rdt="2010-07-26 19:52:58" arb="2" arb_r="1" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="8"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="9">
+				</dseq>
+				<sta t="10" n="121" n_even="113"/>
+			</frame>
+			<frame n="89423" pos="10730760000" pts="00:49:43.747433" tc="00:49:44;00" rdt="2010-07-26 19:52:58" arb="3" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="10"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="2"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="6"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="10"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="36"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="20"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="33"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="21"/>
+				</dseq>
+				<sta t="10" n="177" n_even="118"/>
+			</frame>
+			<frame n="89424" pos="10730880000" pts="00:49:43.780800" tc="00:49:44;01" rdt="2010-07-26 19:52:58" arb="4">
+				<dseq n="0">
+					<sta t="10" n="54"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="25"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="36"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="304" n_even="169"/>
+				<aud n="63" n_even="45"/>
+			</frame>
+			<frame n="89425" pos="10731000000" pts="00:49:43.814167" tc="00:49:44;02" rdt="2010-07-26 19:52:58" arb="5" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89426" pos="10731120000" pts="00:49:43.847533" tc="00:49:44;03" rdt="2010-07-26 19:52:58" arb="6" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89427" pos="10731240000" pts="00:49:43.880900" tc="00:49:44;04" rdt="2010-07-26 19:52:58" arb="7">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="63" n_even="45"/>
+			</frame>
+			<frame n="89428" pos="10731360000" pts="00:49:43.914267" tc="00:49:44;05" rdt="2010-07-26 19:52:59" arb="8">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="63" n_even="45"/>
+			</frame>
+			<frame n="89429" pos="10731480000" pts="00:49:43.947633" tc="00:49:44;06" rdt="2010-07-26 19:52:59" arb="9">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="81" n_even="45"/>
+			</frame>
+			<frame n="89430" pos="10731600000" pts="00:49:43.981000" tc="00:49:44;07" rdt="2010-07-26 19:52:59" arb="A">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="63" n_even="45"/>
+			</frame>
+			<frame n="89431" pos="10731720000" pts="00:49:44.014367" tc="00:49:44;08" rdt="2010-07-26 19:52:59" arb="B">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="63" n_even="36"/>
+			</frame>
+			<frame n="89432" pos="10731840000" pts="00:49:44.047733" tc="00:49:44;09" rdt="2010-07-26 19:52:59" arb="0">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="45" n_even="27"/>
+			</frame>
+			<frame n="89433" pos="10731960000" pts="00:49:44.081100" tc="00:49:44;10" rdt="2010-07-26 19:52:59" arb="1" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="89434" pos="10732080000" pts="00:49:44.114467" tc="00:49:44;11" rdt="2010-07-26 19:52:59" arb="2">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="54" n_even="45"/>
+			</frame>
+			<frame n="89435" pos="10732200000" pts="00:49:44.147833" tc="00:49:44;12" rdt="2010-07-26 19:52:59" arb="3">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="63" n_even="45"/>
+			</frame>
+			<frame n="89436" pos="10732320000" pts="00:49:44.181200" tc="00:49:44;13" rdt="2010-07-26 19:52:59" arb="4">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="81" n_even="45"/>
+			</frame>
+			<frame n="89437" pos="10732440000" pts="00:49:44.214567" tc="00:49:44;14" rdt="2010-07-26 19:52:59" arb="5">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="54" n_even="36"/>
+			</frame>
+			<frame n="89438" pos="10732560000" pts="00:49:44.247933" tc="00:49:44;15" rdt="2010-07-26 19:52:59" arb="6">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<aud n="27" n_even="27"/>
+			</frame>
+			<frame n="89439" pos="10732680000" pts="00:49:44.281300" tc="00:49:44;16" rdt="2010-07-26 19:52:59" arb="7">
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="27" n_even="27"/>
+			</frame>
+			<frame n="89440" pos="10732800000" pts="00:49:44.314667" tc="00:49:44;17" rdt="2010-07-26 19:52:59" arb="8">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="45" n_even="36"/>
+			</frame>
+			<frame n="89441" pos="10732920000" pts="00:49:44.348033" tc="00:49:44;18" rdt="2010-07-26 19:52:59" arb="9">
+				<dseq n="2">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<aud n="27" n_even="27"/>
+			</frame>
+			<frame n="89442" pos="10733040000" pts="00:49:44.381400" tc="00:49:44;19" rdt="2010-07-26 19:52:59" arb="A">
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89447" pos="10733640000" pts="00:49:44.548233" tc="00:49:44;24" rdt="2010-07-26 19:52:59" arb="3">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89448" pos="10733760000" pts="00:49:44.581600" tc="00:49:44;25" rdt="2010-07-26 19:52:59" arb="4">
+				<dseq n="0">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89450" pos="10734000000" pts="00:49:44.648333" tc="00:49:44;27" rdt="2010-07-26 19:52:59" arb="6">
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<aud n="9" n_even="9"/>
+			</frame>
+			<frame n="89490" pos="10738800000" pts="00:49:45.983000" tc="00:49:46;07" rdt="2010-07-26 19:53:01" arb="A">
+				<dseq n="1">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<aud n="9"/>
+				</dseq>
+				<aud n="72" n_even="27"/>
+			</frame>
+			<frame n="89491" pos="10738920000" pts="00:49:46.016367" tc="00:49:46;08" rdt="2010-07-26 19:53:01" arb="B" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="12"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="11"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="13"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="12"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="15"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="13"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="18"/>
+				</dseq>
+				<sta t="10" n="112" n_even="58"/>
+			</frame>
+			<frame n="89492" pos="10739040000" pts="00:49:46.049733" tc="00:49:46;09" rdt="2010-07-26 19:53:01" arb="0">
+				<dseq n="0">
+					<sta t="10" n="28"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="25"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="32"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="33"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="26"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="27"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="28"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="29"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="23"/>
+				</dseq>
+				<sta t="10" n="278" n_even="142"/>
+				<aud n="81" n_even="45"/>
+			</frame>
+			<frame n="89493" pos="10739160000" pts="00:49:46.083100" tc="00:49:46;10" rdt="2010-07-26 19:53:01" arb="1">
+				<dseq n="0">
+					<sta t="10" n="46"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="34"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="50"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="32"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="39"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="20"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="41"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="38"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="19"/>
+				</dseq>
+				<sta t="10" n="340" n_even="214"/>
+				<aud n="27" n_even="27"/>
+			</frame>
+			<frame n="89494" pos="10739280000" pts="00:49:46.116467" tc="00:49:46;11" rdt="2010-07-26 19:53:01" arb="2">
+				<dseq n="0">
+					<sta t="10" n="44"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="19"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="43"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="16"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="39"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="28"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="42"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="19"/>
+				</dseq>
+				<sta t="10" n="306" n_even="195"/>
+			</frame>
+			<frame n="89495" pos="10739400000" pts="00:49:46.149833" tc="00:49:46;12" rdt="2010-07-26 19:53:01" arb="3">
+				<dseq n="0">
+					<sta t="10" n="31"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="16"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="43"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="31"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="42"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="25"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="26"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="15"/>
+				</dseq>
+				<sta t="10" n="276" n_even="171"/>
+			</frame>
+			<frame n="89496" pos="10739520000" pts="00:49:46.183200" tc="00:49:46;13" rdt="2010-07-26 19:53:01" arb="4">
+				<dseq n="0">
+					<sta t="10" n="41"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="32"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="26"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="15"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="31"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="13"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="31"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="15"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="35"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="24"/>
+				</dseq>
+				<sta t="10" n="263" n_even="164"/>
+			</frame>
+			<frame n="89497" pos="10739640000" pts="00:49:46.216567" tc="00:49:46;14" rdt="2010-07-26 19:53:01" arb="5">
+				<dseq n="0">
+					<sta t="10" n="33"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="11"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="33"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="20"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="35"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="26"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="21"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="41"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="21"/>
+				</dseq>
+				<sta t="10" n="270" n_even="168"/>
+			</frame>
+			<frame n="89498" pos="10739760000" pts="00:49:46.249933" tc="00:49:46;15" rdt="2010-07-26 19:53:01" arb="6">
+				<dseq n="0">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="18"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="44"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="17"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="32"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="6"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="25"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="19"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="25"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="22"/>
+				</dseq>
+				<sta t="10" n="235" n_even="153"/>
+			</frame>
+			<frame n="89499" pos="10739880000" pts="00:49:46.283300" tc="00:49:46;16" rdt="2010-07-26 19:53:01" arb="7">
+				<dseq n="0">
+					<sta t="10" n="29"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="54"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="27"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="30"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="12"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="33"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="44"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="55"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="39"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="54"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="377" n_even="151"/>
+				<aud n="27" n_even="9"/>
+			</frame>
+			<frame n="89500" pos="10740000000" pts="00:49:46.316667" tc="00:49:46;17" rdt="2010-07-26 19:53:01" arb="F" arb_nc="1" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="103"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="102"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="117"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="81"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="120"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="81"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="100"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="55"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="118"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="52"/>
+				</dseq>
+				<sta t="10" n="929" n_even="558"/>
+			</frame>
+			<frame n="89501" pos="10740120000" pts="00:49:46.350033" tc="00:49:46;18" rdt="2010-07-26 19:53:01" arb="9" arb_nc="1"/>
+			<frame n="93886" pos="11266320000" pts="00:52:12.662867" tc="00:52:12;27" rdt="2010-07-26 19:55:27" rec_end="1" arb="2"/>
+		</frames>
+	</media>
+</dvrescue>
