@@ -214,16 +214,22 @@ Window {
                 id: zoomIn
                 text: "+"
                 onClicked: {
-                    videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, Math.round(videoPlot.xBottomAxisRange.y / scrollLayout.zoomFactor))
+                    var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
+                    var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
+                    scroll.size = rangeCount / graphModel.total
+
+                    videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, newRight)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+
                 }
             }
             Button {
                 id: zoomAll
                 text: "|"
                 onClicked: {
+                    scroll.size = 1
                     scroll.position = 0
-                    videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total)
+                    videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total - 1)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
                 }
             }
@@ -232,13 +238,36 @@ Window {
                 id: zoomOut
                 text: "-"
                 onClicked: {
-                    var newRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, videoPlot.xBottomAxisRange.y * scrollLayout.zoomFactor);
-                    if((newRange.y - newRange.x) > graphModel.total)
+                    var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scrollLayout.zoomFactor;
+                    var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
+
+                    var originalPosition = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scroll.position / (1 - scroll.size)
+                    var originalScale = scroll.size
+                    var originalRange = videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x + 1
+
+                    // console.debug('originalPosition: ', originalPosition, 'scroll.position: ', scroll.position, 'scroll.size: ', scroll.size)
+
+                    scroll.size = rangeCount / graphModel.total;
+
+                    var newLeft = videoPlot.xBottomAxisRange.x;
+                    var needPositionChange = false;
+
+                    if(newRight > (graphModel.total - 1))
                     {
-                        zoomAll.clicked();
-                    } else {
-                        videoPlot.xBottomAxisRange = newRange
-                        audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                        newLeft = Math.max(0, newLeft - (newRight - (graphModel.total - 1)));
+                        newRight = (graphModel.total - 1)
+
+                        needPositionChange = true;
+                    }
+
+                    var newRange = Qt.vector2d(newLeft, newRight);
+
+                    videoPlot.xBottomAxisRange = newRange
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+
+                    if(needPositionChange) {
+                        // console.debug('originalPosition: ', originalPosition, 'scroll.position: ', scroll.position)
+                        scroll.position = Math.max(0, (originalPosition - videoPlot.xBottomAxisRange.x) * (1 - scroll.size) / (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x))
                     }
                 }
             }
@@ -251,17 +280,7 @@ Window {
                 active: true
                 policy: ScrollBar.AlwaysOn
                 Layout.fillWidth: true
-                size: {
-                    if(graphModel.total == 0)
-                        return 0;
 
-                    var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
-                    var value = rangeCount / graphModel.total
-
-                    // console.debug('size: ', value, videoPlot.xBottomAxisRange.y, videoPlot.xBottomAxisRange.x)
-
-                    return value;
-                }
                 onPositionChanged: {
                     // console.debug('position changed: ', position)
 

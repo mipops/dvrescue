@@ -93,15 +93,15 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
         return f < s;
     });
 
-    qDebug() << "frameOffset: " << frameOffset;
+    // qDebug() << "frameOffset: " << frameOffset;
 
     if(higher != stats.end() && lower != stats.rend())
     {
         auto& higherValue = std::get<1>(*higher);
         auto& lowerValue = std::get<1>(*lower);
 
-        qDebug() << "higherValue.frameNumber: " << higherValue.frameNumber;
-        qDebug() << "lowerValue.frameNumber: " << lowerValue.frameNumber;
+        // qDebug() << "higherValue.frameNumber: " << higherValue.frameNumber;
+        // qDebug() << "lowerValue.frameNumber: " << lowerValue.frameNumber;
 
         auto hdx = higherValue.frameNumber - frameOffset;
         auto ldx = lowerValue.frameNumber - frameOffset;
@@ -120,7 +120,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
     {
         auto& higherValue = std::get<1>(*higher);
 
-        qDebug() << "higherValue.frameNumber: " << higherValue.frameNumber;
+        // qDebug() << "higherValue.frameNumber: " << higherValue.frameNumber;
 
         closestFrame = higherValue.frameNumber;
         evenValue = higherValue.evenValue;
@@ -130,7 +130,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
     {
         auto& lowerValue = std::get<1>(*lower);
 
-        qDebug() << "lowerValue.frameNumber: " << lowerValue.frameNumber;
+        // qDebug() << "lowerValue.frameNumber: " << lowerValue.frameNumber;
 
         closestFrame = lowerValue.frameNumber;
         evenValue = lowerValue.evenValue;
@@ -141,7 +141,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
 void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
-    videoCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
+    videoCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
     auto videoCount = videoCurve->data().count();
     for(auto i = videoCount; i < m_videoValues.count(); ++i) {
@@ -157,7 +157,7 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
     videoCurve->plot()->replotAndUpdate();
 
     audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
-    audioCurve->plot()->plot()->setAxisScale(QwtPlot::xBottom, 0, m_lastFrame);
+    audioCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
     auto audioCount = audioCurve->data().count();
     for(auto i = audioCount; i < m_audioValues.count(); ++i) {
