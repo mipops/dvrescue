@@ -27,9 +27,24 @@ QwtQuick2PlotPicker {
     Text {
         id: overlayText
         parent: canvasItem
-        x: picker.x + height
-        y: picker.y - height * 1.5
         text: Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0)
+        property int maxX: canvasItem.width - width
+        property int minY: 0
+
+        x: {
+            var newX = picker.x + height
+            if(newX > maxX)
+                newX = maxX
+
+            return newX
+        }
+        y: {
+            var newY = picker.y - height * 1.5
+            if(newY < minY)
+                newY = minY
+
+            return newY
+        }
         visible: picker.visible && mouseArea.containsMouse
     }
 
