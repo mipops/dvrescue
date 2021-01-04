@@ -125,6 +125,7 @@ Window {
                     overlayTextFormatter: function(p) {
                         return graphModel.videoInfo(p.x, p.y);
                     }
+                    onZoomed: scroll.setCustomZoom(x1, x2)
                 }
 
                 QwtQuick2PlotCurve {
@@ -175,6 +176,7 @@ Window {
                     overlayTextFormatter: function(p) {
                         return graphModel.audioInfo(p.x, p.y);
                     }
+                    onZoomed: scroll.setCustomZoom(x1, x2)
                 }
 
                 QwtQuick2PlotCurve {
@@ -280,6 +282,15 @@ Window {
                 active: true
                 policy: ScrollBar.AlwaysOn
                 Layout.fillWidth: true
+                function setCustomZoom(x1, x2) {
+                    var rangeCount = x2 - x1 + 1
+                    scroll.size = rangeCount / graphModel.total
+
+                    videoPlot.xBottomAxisRange = Qt.vector2d(x1, x2)
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+
+                    scroll.position = Math.max(0, x1 / graphModel.total)
+                }
 
                 onPositionChanged: {
                     // console.debug('position changed: ', position)
