@@ -126,6 +126,7 @@ Window {
                         return graphModel.videoInfo(p.x, p.y);
                     }
                     onZoomed: scroll.setCustomZoom(x1, x2)
+                    onMoved: scroll.move(x1)
                 }
 
                 QwtQuick2PlotCurve {
@@ -177,6 +178,7 @@ Window {
                         return graphModel.audioInfo(p.x, p.y);
                     }
                     onZoomed: scroll.setCustomZoom(x1, x2)
+                    onMoved: scroll.move(x1)
                 }
 
                 QwtQuick2PlotCurve {
@@ -282,6 +284,19 @@ Window {
                 active: true
                 policy: ScrollBar.AlwaysOn
                 Layout.fillWidth: true
+
+                function move(x1) {
+                    var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
+                    var newPos = Math.max(0, x1 / graphModel.total);
+
+                    if(newPos < 0)
+                        newPos = 0;
+                    if(newPos > (1 - size))
+                        newPos = 1 - size;
+
+                    scroll.position = newPos
+                }
+
                 function setCustomZoom(x1, x2) {
                     var rangeCount = x2 - x1 + 1
                     scroll.size = rangeCount / graphModel.total

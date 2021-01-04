@@ -11,7 +11,14 @@ import QwtQuick2 1.0
 QwtQuick2PlotPicker {
     id: picker
 
+    enum ActionType {
+        Picker = 0,
+        Zooming = 1,
+        Moving = 2
+    }
+
     signal zoomed(int x1, int x2);
+    signal moved(int x1)
 
     property var canvasItem: picker.parent.canvasItem
     onVisibleChanged: {
@@ -49,9 +56,16 @@ QwtQuick2PlotPicker {
 
             return newY
         }
-        text: mouseArea.zooming ? ("zooming: " + zoomArea.start + " - " + zoomArea.end) :
-                  (overlayTextFormatter ? overlayTextFormatter(picker.point) :
-                                          Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0));
+        text: {
+            if(mouseArea.actionType === PlotPicker.ActionType.Picker) {
+                return overlayTextFormatter ? overlayTextFormatter(picker.point) :
+                                              Math.abs(picker.point.x).toFixed(0) + ", " + Math.abs(picker.point.y).toFixed(0)
+            } else if(mouseArea.actionType === PlotPicker.ActionType.Zooming) {
+                return "zooming: " + zoomArea.start + " - " + zoomArea.end
+            } else if(mouseArea.actionType === PlotPicker.ActionType.Moving) {
+                return "moving...";
+            }
+        }
 
         visible: picker.visible && mouseArea.containsMouse
     }
@@ -78,10 +92,24 @@ QwtQuick2PlotPicker {
         color: Qt.rgba(0, 1, 0, 0.5)
         parent: canvasItem
         height: canvasItem.height
-        visible: mouseArea.zooming
+        visible: mouseArea.actionType === PlotPicker.ActionType.Zooming
 
-        property int start: picker.invTransform(x);
-        property int end: picker.invTransform(x + width);
+        readonly property int start: picker.invTransform(x);
+        readonly property int end: picker.invTransform(x + width);
+
+        function handleMousePress(mouse) {
+            x = mouse.x
+        }
+
+        function handleMouseMove(mouse, zoomStart) {
+            if(mouse.x > zoomStart) {
+                x = zoomStart
+                width = mouse.x - zoomStart
+            } else {
+                x = mouse.x
+                width = zoomStart - mouse.x
+            }
+        }
     }
 
     MouseArea {
@@ -89,21 +117,23 @@ QwtQuick2PlotPicker {
         parent: canvasItem
         anchors.fill: parent
         cursorShape: picker.visible ? Qt.CrossCursor : Qt.ArrowCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         hoverEnabled: true
-        property bool zooming: false
-        property int zoomStart: 0
+        property int pressX: 0
+        property int startX1: 0
+
+        property int actionType: PlotPicker.ActionType.Picker
+        onActionTypeChanged: {
+            console.debug('actionType changed: ', actionType);
+        }
 
         onMouseXChanged: {
             picker.point = picker.invTransform(Qt.point(mouse.x, mouse.y))
             picker.x = mouse.x
-            if(zooming) {
-                if(mouse.x > zoomStart) {
-                    zoomArea.x = zoomStart
-                    zoomArea.width = mouse.x - zoomStart
-                } else {
-                    zoomArea.x = mouse.x
-                    zoomArea.width = zoomStart - mouse.x
-                }
+            if(actionType === PlotPicker.ActionType.Zooming) {
+                zoomArea.handleMouseMove(mouse, pressX);
+            } else if(actionType === PlotPicker.ActionType.Moving) {
+                moved(startX1 + picker.invTransform(pressX) - picker.invTransform(mouse.x))
             }
         }
         onMouseYChanged: {
@@ -112,27 +142,30 @@ QwtQuick2PlotPicker {
         }
         onPressed: {
             console.debug('pressed');
-            if(mouse.modifiers & Qt.ShiftModifier) {
-                zoomStart = mouse.x
-                zoomArea.x = zoomStart
-                zooming = true;
+            pressX = mouse.x
+
+            if(mouse.buttons & Qt.RightButton) {
+                actionType = PlotPicker.ActionType.Moving
+                startX1 = picker.plotItem.xBottomAxisRange.x
+            } else if(mouse.modifiers & Qt.ShiftModifier) {
+                actionType = PlotPicker.ActionType.Zooming
+                zoomArea.handleMousePress(mouse);
             } else {
                 mouse.accepted = false
             }
         }
         onCanceled: {
             console.debug('cancelled');
-            if(zooming) {
-                zooming = false;
-            }
+            actionType = PlotPicker.ActionType.Picker;
         }
 
         onReleased: {
             console.debug('released');
-            if(zooming) {
+            if(actionType === PlotPicker.ActionType.Zooming) {
                 zoomed(zoomArea.start, zoomArea.end)
-                zooming = false;
             }
+
+            actionType = PlotPicker.ActionType.Picker;
         }
     }
 }

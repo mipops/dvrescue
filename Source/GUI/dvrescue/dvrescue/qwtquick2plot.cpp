@@ -643,6 +643,12 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
 
         setPoint(p);
     });
+
+    if(m_plotItem != plot)
+    {
+        m_plotItem = plot;
+        Q_EMIT plotItemChanged(m_plotItem);
+    }
 }
 
 bool QwtQuick2PlotPicker::active() const
@@ -677,6 +683,11 @@ qreal QwtQuick2PlotPicker::invTransform(const int x)
         return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(QPoint(x, 0)).x();
 
     return QPointF(x, 0).x();
+}
+
+QwtQuick2Plot *QwtQuick2PlotPicker::plotItem() const
+{
+    return m_plotItem;
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)
