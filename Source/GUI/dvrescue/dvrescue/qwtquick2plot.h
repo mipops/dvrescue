@@ -7,6 +7,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_picker.h>
+#include <qwt_legend.h>
 
 namespace QwtQuick2
 {
@@ -232,7 +233,31 @@ private:
     QwtPlotPicker* m_qwtPlotPicker { nullptr };
     bool m_active { false };
     QPointF m_point;
-    QwtQuick2Plot* m_plotItem { nullptr };
+    QwtQuick2Plot* m_qwtQuickPlot { nullptr };
+};
+
+class QwtQuick2PlotLegend : public QQuickPaintedItem
+{
+    Q_OBJECT
+    Q_PROPERTY(QwtQuick2Plot* plotItem READ plotItem WRITE setPlotItem NOTIFY plotItemChanged)
+public:
+    QwtQuick2PlotLegend(QQuickItem* parent = nullptr);
+    QwtQuick2Plot* plotItem() const;
+
+public Q_SLOTS:
+    void setPlotItem(QwtQuick2Plot* plot);
+
+Q_SIGNALS:
+    void plotItemChanged(QwtQuick2Plot* plot);
+
+protected:
+    void paint(QPainter* painter);
+    virtual void geometryChanged(const QRectF &newGeometry,
+                                 const QRectF &oldGeometry);
+
+private:
+    QwtLegend* m_legend;
+    QwtQuick2Plot* m_qwtQuickPlot { nullptr };
 };
 
 #endif // QMLPLOT_H

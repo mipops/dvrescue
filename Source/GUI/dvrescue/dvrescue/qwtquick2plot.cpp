@@ -6,6 +6,8 @@
 #include <qwt_scale_widget.h>
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
+#include <qwt_legend.h>
+#include <qwt_plot_legenditem.h>
 #include <qwt_text.h>
 
 #include <QObject>
@@ -59,6 +61,7 @@ void QwtQuick2Plot::paint(QPainter* painter)
     QPixmap picture(boundingRect().size().toSize());
 
     QwtPlotRenderer renderer;
+    renderer.setDiscardFlag(QwtPlotRenderer::DiscardBackground, true);
     renderer.renderTo(m_qwtPlot, picture);
 
     painter->drawPixmap(QPoint(), picture);
@@ -662,10 +665,10 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
         setPoint(p);
     });
 
-    if(m_plotItem != plot)
+    if(m_qwtQuickPlot != plot)
     {
-        m_plotItem = plot;
-        Q_EMIT plotItemChanged(m_plotItem);
+        m_qwtQuickPlot = plot;
+        Q_EMIT plotItemChanged(m_qwtQuickPlot);
     }
 }
 
@@ -705,7 +708,7 @@ qreal QwtQuick2PlotPicker::invTransform(const int x)
 
 QwtQuick2Plot *QwtQuick2PlotPicker::plotItem() const
 {
-    return m_plotItem;
+    return m_qwtQuickPlot;
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)
@@ -724,4 +727,44 @@ void QwtQuick2PlotPicker::setPoint(QPointF point)
 
     m_point = point;
     Q_EMIT pointChanged(m_point);
+}
+
+QwtQuick2PlotLegend::QwtQuick2PlotLegend(QQuickItem *parent) : QQuickPaintedItem(parent)
+{
+    setFlag(QQuickItem::ItemHasContents);
+    m_legend = new QwtLegend();
+}
+
+QwtQuick2Plot* QwtQuick2PlotLegend::plotItem() const
+{
+    return m_qwtQuickPlot;
+}
+
+void QwtQuick2PlotLegend::setPlotItem(QwtQuick2Plot *plot)
+{
+    if (m_qwtQuickPlot == plot)
+        return;
+
+    if(m_qwtQuickPlot && m_qwtQuickPlot->plot())
+    {
+        disconnect(m_qwtQuickPlot->plot(), &QwtPlot::legendDataChanged, m_legend, &QwtLegend::updateLegend);
+    }
+
+    m_qwtQuickPlot = plot;
+    connect(m_qwtQuickPlot->plot(), &QwtPlot::legendDataChanged, m_legend, &QwtLegend::updateLegend);
+    m_qwtQuickPlot->plot()->updateLayout();
+
+    Q_EMIT plotItemChanged(m_qwtQuickPlot);
+}
+
+void QwtQuick2PlotLegend::paint(QPainter *painter)
+{
+    m_legend->renderLegend(painter, this->boundingRect(), true);
+}
+
+void QwtQuick2PlotLegend::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
+    m_legend->setGeometry(newGeometry.toRect());
+    update();
 }
