@@ -358,6 +358,14 @@ Window {
                 policy: ScrollBar.AlwaysOn
                 Layout.fillWidth: true
 
+                WheelHandler {
+                    onWheel: {
+                        if(event.angleDelta.y > 0)
+                            scroll.increase();
+                        else if(event.angleDelta.y < 0)
+                            scroll.decrease();
+                    }
+                }
                 function move(x1) {
                     var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
                     var newPos = Math.max(0, x1 / graphModel.total);
@@ -379,6 +387,8 @@ Window {
 
                     scroll.position = Math.max(0, x1 / graphModel.total)
                 }
+
+                stepSize: size / 100
 
                 onPositionChanged: {
                     // console.debug('position changed: ', position)
