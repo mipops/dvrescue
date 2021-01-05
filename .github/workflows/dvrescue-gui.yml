@@ -330,7 +330,7 @@ jobs:
       shell: cmd
       run: |
         cd ../qwt
-        jom -j4
+        nmake
 
     - name: Configure QCTools
       run: |
