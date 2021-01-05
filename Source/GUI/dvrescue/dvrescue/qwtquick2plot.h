@@ -33,6 +33,7 @@ class QwtQuick2Plot : public QQuickPaintedItem
     Q_PROPERTY(QFont xBottomAxisFont READ xBottomAxisFont WRITE setXBottomAxisFont NOTIFY xBottomAxisFontChanged);
     Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
     Q_PROPERTY(QVector2D xBottomAxisRange READ xBottomAxisRange WRITE setXBottomAxisRange NOTIFY xBottomAxisRangeChanged);
+    Q_PROPERTY(bool xBottomAxisEnabled READ xBottomAxisEnabled WRITE setXBottomAxisEnabled NOTIFY xBottomAxisEnabledChanged)
 public:
     QwtQuick2Plot(QQuickItem* parent = nullptr);
     virtual ~QwtQuick2Plot();
@@ -47,9 +48,9 @@ public:
     QString xBottomAxisTitle() const;
     QVector2D yLeftAxisRange() const;
     QVector2D xBottomAxisRange() const;
-
     QFont yLeftAxisFont() const;
     QFont xBottomAxisFont() const;
+    bool xBottomAxisEnabled() const;
 
 public Q_SLOTS:
     void setYLeftAxisTitle(QString yLeftAxisTitle);
@@ -58,6 +59,7 @@ public Q_SLOTS:
     void setXBottomAxisRange(QVector2D xBottomAxisRange);
     void setYLeftAxisFont(QFont yLeftAxisFont);
     void setXBottomAxisFont(QFont xBottomAxisFont);
+    void setXBottomAxisEnabled(bool xBottomAxisEnabled);
 
 Q_SIGNALS:
     void canvasItemChanged();
@@ -67,6 +69,7 @@ Q_SIGNALS:
     void xBottomAxisRangeChanged(QVector2D xBottomAxisRange);
     void yLeftAxisFontChanged(QFont yLeftAxisFont);
     void xBottomAxisFontChanged(QFont xBottomAxisFont);
+    void xBottomAxisEnabledChanged(bool xBottomAxisEnabled);
 
 protected:
     void routeMouseEvents(QMouseEvent* event);

@@ -201,6 +201,11 @@ QFont QwtQuick2Plot::xBottomAxisFont() const
     return m_qwtPlot->axisTitle(QwtPlot::xBottom).font();
 }
 
+bool QwtQuick2Plot::xBottomAxisEnabled() const
+{
+    return m_qwtPlot->axisEnabled(QwtPlot::xBottom);
+}
+
 void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
 {
     if (this->xBottomAxisRange() == xBottomAxisRange)
@@ -243,6 +248,19 @@ void QwtQuick2Plot::setXBottomAxisFont(QFont xBottomAxisFont)
     updatePlotSize();
     replotAndUpdate();
     Q_EMIT xBottomAxisFontChanged(this->xBottomAxisFont());
+}
+
+void QwtQuick2Plot::setXBottomAxisEnabled(bool xBottomAxisEnabled)
+{
+    if (this->xBottomAxisEnabled() == xBottomAxisEnabled)
+        return;
+
+    m_qwtPlot->enableAxis(QwtPlot::xBottom, xBottomAxisEnabled);
+
+    updatePlotSize();
+    replotAndUpdate();
+
+    Q_EMIT xBottomAxisEnabledChanged(this->xBottomAxisEnabled());
 }
 
 QVector2D QwtQuick2Plot::yLeftAxisRange() const

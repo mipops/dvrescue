@@ -112,9 +112,9 @@ Window {
                 id: videoPlot
 
                 SplitView.preferredHeight: plotsView.height / 5 * 3.5
-                anchors.topMargin: 10
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisEnabled: false
                 yLeftAxisTitle: "video error concealment (%)"
 
                 Component.onCompleted: {
@@ -161,9 +161,9 @@ Window {
                 id: audioPlot
                 SplitView.preferredHeight: plotsView.height / 5 * 1.5
 
+                anchors.topMargin: 5
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.topMargin: 10
                 anchors.top: videoPlot.bottom
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
@@ -228,7 +228,6 @@ Window {
 
                     videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, newRight)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
-
                 }
             }
             Button {
