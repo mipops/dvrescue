@@ -18,6 +18,8 @@ Window {
     GraphModel {
         id: graphModel
 
+        signal plotsReady();
+
         onTotalChanged: {
         }
 
@@ -26,6 +28,8 @@ Window {
             refreshTimer.stop();
             graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
             zoomAll.clicked();
+
+            plotsReady();
         }
 
         Component.onCompleted: {
@@ -235,6 +239,75 @@ Window {
                     scroll.position = 0
                     videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total - 1)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                }
+            }
+
+            Button {
+                id: custom
+                text: "Custom"
+
+                Connections {
+                    target: graphModel
+                    onPlotsReady: {
+                        customZoomSelector.x1 = videoPlot.xBottomAxisRange.x
+                        customZoomSelector.x2 = videoPlot.xBottomAxisRange.y
+                    }
+                }
+
+                onClicked: {
+                    customZoomSelector.open();
+                }
+
+                Dialog {
+                    id: customZoomSelector
+                    x: Math.round((parent.width - width) / 2)
+                    y: - height
+
+                    property alias x1: x1TextField.text
+                    property alias x2: x2TextField.text
+
+                    onVisibleChanged: {
+                        if(visible)
+                            x1TextField.forceActiveFocus();
+                    }
+
+                    function apply() {
+                        var left = Math.min(Number(customZoomSelector.x1), Number(customZoomSelector.x2));
+                        var right = Math.max(Number(customZoomSelector.x1), Number(customZoomSelector.x2));
+
+                        if(left === right && left === 0)
+                            return;
+
+                        scroll.setCustomZoom(left, right);
+                        customZoomSelector.close();
+                    }
+
+                    ColumnLayout {
+                        Keys.onEnterPressed: customZoomSelector.apply();
+                        Keys.onReturnPressed: customZoomSelector.apply();
+
+                        RowLayout {
+                            TextField {
+                                id: x1TextField
+                                validator: IntValidator {}
+                                selectByMouse: true
+                                placeholderText: "x1"
+                            }
+                            TextField {
+                                id: x2TextField
+                                validator: IntValidator {}
+                                selectByMouse: true
+                                placeholderText: "x2"
+                            }
+                        }
+
+                        Button {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "Apply"
+
+                            onClicked: customZoomSelector.apply();
+                        }
+                    }
                 }
             }
 
