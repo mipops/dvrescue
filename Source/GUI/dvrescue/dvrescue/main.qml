@@ -18,6 +18,8 @@ Window {
     GraphModel {
         id: graphModel
 
+        signal plotsReady();
+
         onTotalChanged: {
         }
 
@@ -26,6 +28,8 @@ Window {
             refreshTimer.stop();
             graphModel.update(videoCurve, videoCurve2, audioCurve, audioCurve2);
             zoomAll.clicked();
+
+            plotsReady();
         }
 
         Component.onCompleted: {
@@ -108,9 +112,9 @@ Window {
                 id: videoPlot
 
                 SplitView.preferredHeight: plotsView.height / 5 * 3.5
-                anchors.topMargin: 10
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisEnabled: false
                 yLeftAxisTitle: "video error concealment (%)"
 
                 Component.onCompleted: {
@@ -125,6 +129,8 @@ Window {
                     overlayTextFormatter: function(p) {
                         return graphModel.videoInfo(p.x, p.y);
                     }
+                    onZoomed: scroll.setCustomZoom(x1, x2)
+                    onMoved: scroll.move(x1)
                 }
 
                 QwtQuick2PlotCurve {
@@ -155,9 +161,9 @@ Window {
                 id: audioPlot
                 SplitView.preferredHeight: plotsView.height / 5 * 1.5
 
+                anchors.topMargin: 5
                 anchors.left: parent.left
                 anchors.right: parent.right
-                anchors.topMargin: 10
                 anchors.top: videoPlot.bottom
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
@@ -175,6 +181,8 @@ Window {
                     overlayTextFormatter: function(p) {
                         return graphModel.audioInfo(p.x, p.y);
                     }
+                    onZoomed: scroll.setCustomZoom(x1, x2)
+                    onMoved: scroll.move(x1)
                 }
 
                 QwtQuick2PlotCurve {
@@ -220,7 +228,6 @@ Window {
 
                     videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, newRight)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
-
                 }
             }
             Button {
@@ -231,6 +238,75 @@ Window {
                     scroll.position = 0
                     videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total - 1)
                     audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+                }
+            }
+
+            Button {
+                id: custom
+                text: "Custom"
+
+                Connections {
+                    target: graphModel
+                    onPlotsReady: {
+                        customZoomSelector.x1 = videoPlot.xBottomAxisRange.x
+                        customZoomSelector.x2 = videoPlot.xBottomAxisRange.y
+                    }
+                }
+
+                onClicked: {
+                    customZoomSelector.open();
+                }
+
+                Dialog {
+                    id: customZoomSelector
+                    x: Math.round((parent.width - width) / 2)
+                    y: - height
+
+                    property alias x1: x1TextField.text
+                    property alias x2: x2TextField.text
+
+                    onVisibleChanged: {
+                        if(visible)
+                            x1TextField.forceActiveFocus();
+                    }
+
+                    function apply() {
+                        var left = Math.min(Number(customZoomSelector.x1), Number(customZoomSelector.x2));
+                        var right = Math.max(Number(customZoomSelector.x1), Number(customZoomSelector.x2));
+
+                        if(left === right && left === 0)
+                            return;
+
+                        scroll.setCustomZoom(left, right);
+                        customZoomSelector.close();
+                    }
+
+                    ColumnLayout {
+                        Keys.onEnterPressed: customZoomSelector.apply();
+                        Keys.onReturnPressed: customZoomSelector.apply();
+
+                        RowLayout {
+                            TextField {
+                                id: x1TextField
+                                validator: IntValidator {}
+                                selectByMouse: true
+                                placeholderText: "x1"
+                            }
+                            TextField {
+                                id: x2TextField
+                                validator: IntValidator {}
+                                selectByMouse: true
+                                placeholderText: "x2"
+                            }
+                        }
+
+                        Button {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "Apply"
+
+                            onClicked: customZoomSelector.apply();
+                        }
+                    }
                 }
             }
 
@@ -280,6 +356,38 @@ Window {
                 active: true
                 policy: ScrollBar.AlwaysOn
                 Layout.fillWidth: true
+
+                WheelHandler {
+                    onWheel: {
+                        if(event.angleDelta.y > 0)
+                            scroll.increase();
+                        else if(event.angleDelta.y < 0)
+                            scroll.decrease();
+                    }
+                }
+                function move(x1) {
+                    var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
+                    var newPos = Math.max(0, x1 / graphModel.total);
+
+                    if(newPos < 0)
+                        newPos = 0;
+                    if(newPos > (1 - size))
+                        newPos = 1 - size;
+
+                    scroll.position = newPos
+                }
+
+                function setCustomZoom(x1, x2) {
+                    var rangeCount = x2 - x1 + 1
+                    scroll.size = rangeCount / graphModel.total
+
+                    videoPlot.xBottomAxisRange = Qt.vector2d(x1, x2)
+                    audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
+
+                    scroll.position = Math.max(0, x1 / graphModel.total)
+                }
+
+                stepSize: size / 100
 
                 onPositionChanged: {
                     // console.debug('position changed: ', position)

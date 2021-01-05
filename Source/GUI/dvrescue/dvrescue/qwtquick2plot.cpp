@@ -201,6 +201,11 @@ QFont QwtQuick2Plot::xBottomAxisFont() const
     return m_qwtPlot->axisTitle(QwtPlot::xBottom).font();
 }
 
+bool QwtQuick2Plot::xBottomAxisEnabled() const
+{
+    return m_qwtPlot->axisEnabled(QwtPlot::xBottom);
+}
+
 void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
 {
     if (this->xBottomAxisRange() == xBottomAxisRange)
@@ -243,6 +248,19 @@ void QwtQuick2Plot::setXBottomAxisFont(QFont xBottomAxisFont)
     updatePlotSize();
     replotAndUpdate();
     Q_EMIT xBottomAxisFontChanged(this->xBottomAxisFont());
+}
+
+void QwtQuick2Plot::setXBottomAxisEnabled(bool xBottomAxisEnabled)
+{
+    if (this->xBottomAxisEnabled() == xBottomAxisEnabled)
+        return;
+
+    m_qwtPlot->enableAxis(QwtPlot::xBottom, xBottomAxisEnabled);
+
+    updatePlotSize();
+    replotAndUpdate();
+
+    Q_EMIT xBottomAxisEnabledChanged(this->xBottomAxisEnabled());
 }
 
 QVector2D QwtQuick2Plot::yLeftAxisRange() const
@@ -643,6 +661,12 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
 
         setPoint(p);
     });
+
+    if(m_plotItem != plot)
+    {
+        m_plotItem = plot;
+        Q_EMIT plotItemChanged(m_plotItem);
+    }
 }
 
 bool QwtQuick2PlotPicker::active() const
@@ -669,6 +693,19 @@ QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
         return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(p);
 
     return QPointF(p.x(), p.y());
+}
+
+qreal QwtQuick2PlotPicker::invTransform(const int x)
+{
+    if(m_qwtPlotPicker)
+        return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(QPoint(x, 0)).x();
+
+    return QPointF(x, 0).x();
+}
+
+QwtQuick2Plot *QwtQuick2PlotPicker::plotItem() const
+{
+    return m_plotItem;
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)
