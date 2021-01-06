@@ -52,6 +52,7 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
         qwtlibs.pattern = $$absolute_path($${QWT_ROOT}/lib)
         qwtlibs.files = $$files($$qwtlibs.pattern)
         qwtlibs.path = $$absolute_path($$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/Frameworks)
+        qwtlibs.commands += $$escape_expand(\\n\\t)rm -rf $$shell_path($$qwtlibs.path)
         qwtlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_MKDIR_CMD $$shell_path($$qwtlibs.path)
 
         for(file, qwtlibs.files) {
