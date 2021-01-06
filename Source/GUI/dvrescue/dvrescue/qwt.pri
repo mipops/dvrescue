@@ -53,11 +53,12 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
         qwtlibs.files = $$files($$qwtlibs.pattern)
         qwtlibs.path = $$absolute_path($$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/Frameworks)
         qwtlibs.commands += $$escape_expand(\\n\\t)rm -rf $$shell_path($$qwtlibs.path)
-        qwtlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_MKDIR_CMD $$shell_path($$qwtlibs.path)
 
         for(file, qwtlibs.files) {
             qwtlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_COPY_DIR $$shell_path($$file) $$shell_path($$qwtlibs.path)
         }
+
+        qwtlibs.commands += $$escape_expand(\\n\\t)install_name_tool -change qwt.framework/Versions/6/qwt @executable_path/../Frameworks/qwt.framework/Versions/6/qwt $$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/MacOS/$${TARGET}
     } linux {
 
         QWTLIBNAME = libqwt
@@ -101,10 +102,6 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
 
     isEmpty(QMAKE_POST_LINK): QMAKE_POST_LINK = $$qwtlibs.commands
     else: QMAKE_POST_LINK = $${QMAKE_POST_LINK}$$escape_expand(\\n\\t)$$qwtlibs.commands
-
-    macx {
-        QMAKE_POST_LINK += && install_name_tool -change qwt.framework/Versions/6/qwt @executable_path/../Frameworks/lib/qwt.framework/Versions/6/qwt $$OUT_PWD$${BUILD_DIR}/$${TARGET}.app/Contents/MacOS/$${TARGET}
-    }
 
     message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})
 }
