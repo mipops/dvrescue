@@ -9,6 +9,7 @@
 #include <qwt_legend.h>
 #include <qwt_plot_legenditem.h>
 #include <qwt_text.h>
+#include "qwt_painter.h"
 
 #include <QObject>
 #include <QDebug>
@@ -291,7 +292,76 @@ void QwtQuick2Plot::updatePlotSize()
 
 QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
 {
-    m_qwtPlotCurve = new QwtPlotCurve();
+    class QwtPlotCurveEx : public QwtPlotCurve {
+        void drawSticks( QPainter *painter,
+            const QwtScaleMap &xMap, const QwtScaleMap &yMap,
+            const QRectF &canvasRect, int from, int to ) const
+        {
+            Q_UNUSED( canvasRect )
+
+            painter->save();
+            painter->setRenderHint( QPainter::Antialiasing, false );
+
+            const bool doAlign = QwtPainter::roundingAlignment( painter );
+
+            auto xBottomAxisScalDiv = plot()->axisScaleDiv(QwtPlot::xBottom);
+            auto first = xMap.transform(0);
+            auto second = xMap.transform(1);
+
+            double x0 = xMap.transform( baseline() );
+            double y0 = yMap.transform( baseline() );
+            if ( doAlign )
+            {
+                x0 = qRound( x0 );
+                y0 = qRound( y0 );
+            }
+
+            const Qt::Orientation o = orientation();
+
+            const QwtSeriesData<QPointF> *series = data();
+
+            for ( int i = from; i <= to; i++ )
+            {
+                const QPointF sample = series->sample( i );
+                double xi = xMap.transform( sample.x() );
+                double yi = yMap.transform( sample.y() );
+
+                if ( doAlign )
+                {
+                    xi = qRound( xi );
+                    yi = qRound( yi );
+                }
+
+                if(qAbs(second - first) > 1)
+                {
+                    if ( o == Qt::Horizontal )
+                        QwtPainter::drawRect( painter, x0, yi, xi, yi );
+                    else
+                    {
+                        auto top = qMin(y0, yi);
+                        auto left = xi;
+                        auto barWidth = qAbs(second - first);
+
+                        auto width = barWidth;
+                        auto height = qAbs(top - qMax(y0, yi));
+
+                        QRectF rect(left, top, width, height);
+                        QwtPainter::fillRect( painter, rect, pen().color() );
+                    }
+                } else {
+                    if ( o == Qt::Horizontal )
+                        QwtPainter::drawLine( painter, x0, yi, xi, yi );
+                    else
+                        QwtPainter::drawLine( painter, xi, y0, xi, yi );
+                }
+            }
+
+            painter->restore();
+        }
+
+    };
+
+    m_qwtPlotCurve = new QwtPlotCurveEx();
     m_qwtPlotCurve->setTitle("Curve 1");
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
