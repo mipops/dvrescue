@@ -58,13 +58,9 @@ QQuickItem *QwtQuick2Plot::canvasItem() const
 
 void QwtQuick2Plot::paint(QPainter* painter)
 {
-    QPixmap picture(boundingRect().size().toSize());
-
     QwtPlotRenderer renderer;
     renderer.setDiscardFlag(QwtPlotRenderer::DiscardBackground, true);
-    renderer.renderTo(m_qwtPlot, picture);
-
-    painter->drawPixmap(QPoint(), picture);
+    renderer.render(m_qwtPlot, painter, QRectF(0, 0, width(), height()));
 }
 
 void QwtQuick2Plot::mousePressEvent(QMouseEvent* event)
