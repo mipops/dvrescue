@@ -175,7 +175,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             Merge_OutputFileName = move(argv_ansi[i]);
         }
-        else if (!strcmp(argv_ansi[i], "--verbosity ") || !strcmp(argv_ansi[i], "-v"))
+        else if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v"))
         {
             if (++i >= argc)
             {
