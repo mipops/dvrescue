@@ -216,7 +216,6 @@ public:
 
     Q_INVOKABLE QPoint transform(const QPointF& p);
     Q_INVOKABLE QPointF invTransform(const QPoint& p);
-    Q_INVOKABLE qreal invTransform(const int x);
 
     QwtQuick2Plot* plotItem() const;
 

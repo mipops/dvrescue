@@ -694,14 +694,6 @@ QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
     return QPointF(p.x(), p.y());
 }
 
-qreal QwtQuick2PlotPicker::invTransform(const int x)
-{
-    if(m_qwtPlotPicker)
-        return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(QPoint(x, 0)).x();
-
-    return QPointF(x, 0).x();
-}
-
 QwtQuick2Plot *QwtQuick2PlotPicker::plotItem() const
 {
     return m_qwtQuickPlot;
