@@ -94,8 +94,8 @@ QwtQuick2PlotPicker {
         height: canvasItem.height
         visible: mouseArea.actionType === PlotPicker.ActionType.Zooming
 
-        readonly property int start: picker.invTransform(x);
-        readonly property int end: picker.invTransform(x + width);
+        readonly property int start: picker.invTransform(Qt.point(x,0)).x;
+        readonly property int end: picker.invTransform(Qt.point(x + width, 0)).x;
 
         function handleMousePress(mouse) {
             x = mouse.x
@@ -133,7 +133,7 @@ QwtQuick2PlotPicker {
             if(actionType === PlotPicker.ActionType.Zooming) {
                 zoomArea.handleMouseMove(mouse, pressX);
             } else if(actionType === PlotPicker.ActionType.Moving) {
-                moved(startX1 + picker.invTransform(pressX) - picker.invTransform(mouse.x))
+                moved(startX1 + picker.invTransform(Qt.point(pressX, 0)).x - picker.invTransform(Qt.point(mouse.x, 0)).x)
             }
         }
         onMouseYChanged: {

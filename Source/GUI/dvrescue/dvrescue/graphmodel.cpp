@@ -140,6 +140,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
 
 void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
+    videoCurve->plot()->plot()->setUpdatesEnabled(false);
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
     videoCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
@@ -154,8 +155,10 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
         videoCurve2->data().append(QPointF(frameNumber, value.oddValue));
     }
 
+    videoCurve->plot()->plot()->setUpdatesEnabled(true);
     videoCurve->plot()->replotAndUpdate();
 
+    audioCurve->plot()->plot()->setUpdatesEnabled(false);
     audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
     audioCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
@@ -170,6 +173,7 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
         audioCurve2->data().append(QPointF(frameNumber, value.oddValue));
     }
 
+    audioCurve->plot()->plot()->setUpdatesEnabled(true);
     audioCurve->plot()->replotAndUpdate();
 }
 

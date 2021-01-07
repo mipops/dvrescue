@@ -108,104 +108,123 @@ Window {
             anchors.right: parent.right
             anchors.bottom: scrollLayout.top
 
-            QwtQuick2Plot {
-                id: videoPlot
-
+            RowLayout {
                 SplitView.preferredHeight: plotsView.height / 5 * 3.5
-                canvasItem.clip: true
-                xBottomAxisTitle: "frames, N"
-                xBottomAxisEnabled: false
-                yLeftAxisTitle: "video error concealment (%)"
 
-                Component.onCompleted: {
-                    yLeftAxisFont.bold = false
-                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
-                    xBottomAxisFont.bold = false
-                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
-                }
+                QwtQuick2Plot {
+                    id: videoPlot
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
-                PlotPicker {
-                    visible: graphModel.total !== 0
-                    overlayTextFormatter: function(p) {
-                        return graphModel.videoInfo(p.x, p.y);
+                    canvasItem.clip: true
+                    xBottomAxisTitle: "frames, N"
+                    xBottomAxisEnabled: false
+                    yLeftAxisTitle: "video error concealment (%)"
+
+                    Component.onCompleted: {
+                        yLeftAxisFont.bold = false
+                        yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                        xBottomAxisFont.bold = false
+                        xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
                     }
-                    onZoomed: scroll.setCustomZoom(x1, x2)
-                    onMoved: scroll.move(x1)
+
+                    PlotPicker {
+                        visible: graphModel.total !== 0
+                        overlayTextFormatter: function(p) {
+                            return graphModel.videoInfo(p.x, p.y);
+                        }
+                        onZoomed: scroll.setCustomZoom(x1, x2)
+                        onMoved: scroll.move(x1)
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: videoCurve
+                        title: "even";
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "darkgreen"
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: videoCurve2
+                        title: "odd";
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "green"
+                    }
+
+                    QwtQuick2PlotGrid {
+                        enableXMin: true
+                        enableYMin: true
+                        majorPenColor: 'darkGray'
+                        majorPenStyle: Qt.DotLine
+                        minorPenColor: 'gray'
+                        minorPenStyle: Qt.DotLine
+                    }
                 }
 
-                QwtQuick2PlotCurve {
-                    id: videoCurve
-                    title: "Video errors (even)";
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "darkgreen"
-                }
-
-                QwtQuick2PlotCurve {
-                    id: videoCurve2
-                    title: "Video errors (odd)";
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "green"
-                }
-
-                QwtQuick2PlotGrid {
-                    enableXMin: true
-                    enableYMin: true
-                    majorPenColor: 'darkGray'
-                    majorPenStyle: Qt.DotLine
-                    minorPenColor: 'gray'
-                    minorPenStyle: Qt.DotLine
+                QwtQuick2PlotLegend {
+                    plotItem: videoPlot
+                    width: 50
+                    height: 50
                 }
             }
 
-            QwtQuick2Plot {
-                id: audioPlot
+            RowLayout {
+                anchors.topMargin: 5
                 SplitView.preferredHeight: plotsView.height / 5 * 1.5
 
-                anchors.topMargin: 5
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: videoPlot.bottom
-                canvasItem.clip: true
-                xBottomAxisTitle: "frames, N"
-                yLeftAxisTitle: "audio error (%)"
+                QwtQuick2Plot {
+                    id: audioPlot
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
-                Component.onCompleted: {
-                    yLeftAxisFont.bold = false
-                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
-                    xBottomAxisFont.bold = false
-                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
-                }
+                    canvasItem.clip: true
+                    xBottomAxisTitle: "frames, N"
+                    yLeftAxisTitle: "audio error (%)"
 
-                PlotPicker {
-                    visible: graphModel.total !== 0
-                    overlayTextFormatter: function(p) {
-                        return graphModel.audioInfo(p.x, p.y);
+                    Component.onCompleted: {
+                        yLeftAxisFont.bold = false
+                        yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                        xBottomAxisFont.bold = false
+                        xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
                     }
-                    onZoomed: scroll.setCustomZoom(x1, x2)
-                    onMoved: scroll.move(x1)
+
+                    PlotPicker {
+                        visible: graphModel.total !== 0
+                        overlayTextFormatter: function(p) {
+                            return graphModel.audioInfo(p.x, p.y);
+                        }
+                        onZoomed: scroll.setCustomZoom(x1, x2)
+                        onMoved: scroll.move(x1)
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: audioCurve
+                        title: "even";
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "darkblue"
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: audioCurve2
+                        title: "odd"
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "blue"
+                    }
+
+                    QwtQuick2PlotGrid {
+                        enableXMin: true
+                        enableYMin: true
+                        majorPenColor: 'darkGray'
+                        majorPenStyle: Qt.DotLine
+                        minorPenColor: 'gray'
+                        minorPenStyle: Qt.DotLine
+                    }
                 }
 
-                QwtQuick2PlotCurve {
-                    id: audioCurve
-                    title: "Audio errors (even)";
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "darkblue"
-                }
-
-                QwtQuick2PlotCurve {
-                    id: audioCurve2
-                    title: "Audio errors (odd)"
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "blue"
-                }
-
-                QwtQuick2PlotGrid {
-                    enableXMin: true
-                    enableYMin: true
-                    majorPenColor: 'darkGray'
-                    majorPenStyle: Qt.DotLine
-                    minorPenColor: 'gray'
-                    minorPenStyle: Qt.DotLine
+                QwtQuick2PlotLegend {
+                    plotItem: audioPlot
+                    width: 50
+                    height: 50
                 }
             }
         }

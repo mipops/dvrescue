@@ -6,7 +6,10 @@
 #include <qwt_scale_widget.h>
 #include <qwt_scale_engine.h>
 #include <qwt_plot_layout.h>
+#include <qwt_legend.h>
+#include <qwt_plot_legenditem.h>
 #include <qwt_text.h>
+#include "qwt_painter.h"
 
 #include <QObject>
 #include <QDebug>
@@ -56,12 +59,9 @@ QQuickItem *QwtQuick2Plot::canvasItem() const
 
 void QwtQuick2Plot::paint(QPainter* painter)
 {
-    QPixmap picture(boundingRect().size().toSize());
-
     QwtPlotRenderer renderer;
-    renderer.renderTo(m_qwtPlot, picture);
-
-    painter->drawPixmap(QPoint(), picture);
+    renderer.setDiscardFlag(QwtPlotRenderer::DiscardBackground, true);
+    renderer.render(m_qwtPlot, painter, QRectF(0, 0, width(), height()));
 }
 
 void QwtQuick2Plot::mousePressEvent(QMouseEvent* event)
@@ -292,7 +292,76 @@ void QwtQuick2Plot::updatePlotSize()
 
 QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
 {
-    m_qwtPlotCurve = new QwtPlotCurve();
+    class QwtPlotCurveEx : public QwtPlotCurve {
+        void drawSticks( QPainter *painter,
+            const QwtScaleMap &xMap, const QwtScaleMap &yMap,
+            const QRectF &canvasRect, int from, int to ) const
+        {
+            Q_UNUSED( canvasRect )
+
+            painter->save();
+            painter->setRenderHint( QPainter::Antialiasing, false );
+
+            const bool doAlign = QwtPainter::roundingAlignment( painter );
+
+            auto xBottomAxisScalDiv = plot()->axisScaleDiv(QwtPlot::xBottom);
+            auto first = xMap.transform(0);
+            auto second = xMap.transform(1);
+
+            double x0 = xMap.transform( baseline() );
+            double y0 = yMap.transform( baseline() );
+            if ( doAlign )
+            {
+                x0 = qRound( x0 );
+                y0 = qRound( y0 );
+            }
+
+            const Qt::Orientation o = orientation();
+
+            const QwtSeriesData<QPointF> *series = data();
+
+            for ( int i = from; i <= to; i++ )
+            {
+                const QPointF sample = series->sample( i );
+                double xi = xMap.transform( sample.x() );
+                double yi = yMap.transform( sample.y() );
+
+                if ( doAlign )
+                {
+                    xi = qRound( xi );
+                    yi = qRound( yi );
+                }
+
+                if(qAbs(second - first) > 1)
+                {
+                    if ( o == Qt::Horizontal )
+                        QwtPainter::drawRect( painter, x0, yi, xi, yi );
+                    else
+                    {
+                        auto top = qMin(y0, yi);
+                        auto left = xi;
+                        auto barWidth = qAbs(second - first);
+
+                        auto width = barWidth;
+                        auto height = qAbs(top - qMax(y0, yi));
+
+                        QRectF rect(left, top, width, height);
+                        QwtPainter::fillRect( painter, rect, pen().color() );
+                    }
+                } else {
+                    if ( o == Qt::Horizontal )
+                        QwtPainter::drawLine( painter, x0, yi, xi, yi );
+                    else
+                        QwtPainter::drawLine( painter, xi, y0, xi, yi );
+                }
+            }
+
+            painter->restore();
+        }
+
+    };
+
+    m_qwtPlotCurve = new QwtPlotCurveEx();
     m_qwtPlotCurve->setTitle("Curve 1");
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
@@ -662,10 +731,10 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
         setPoint(p);
     });
 
-    if(m_plotItem != plot)
+    if(m_qwtQuickPlot != plot)
     {
-        m_plotItem = plot;
-        Q_EMIT plotItemChanged(m_plotItem);
+        m_qwtQuickPlot = plot;
+        Q_EMIT plotItemChanged(m_qwtQuickPlot);
     }
 }
 
@@ -695,17 +764,9 @@ QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
     return QPointF(p.x(), p.y());
 }
 
-qreal QwtQuick2PlotPicker::invTransform(const int x)
-{
-    if(m_qwtPlotPicker)
-        return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(QPoint(x, 0)).x();
-
-    return QPointF(x, 0).x();
-}
-
 QwtQuick2Plot *QwtQuick2PlotPicker::plotItem() const
 {
-    return m_plotItem;
+    return m_qwtQuickPlot;
 }
 
 void QwtQuick2PlotPicker::setActive(bool active)
@@ -724,4 +785,44 @@ void QwtQuick2PlotPicker::setPoint(QPointF point)
 
     m_point = point;
     Q_EMIT pointChanged(m_point);
+}
+
+QwtQuick2PlotLegend::QwtQuick2PlotLegend(QQuickItem *parent) : QQuickPaintedItem(parent)
+{
+    setFlag(QQuickItem::ItemHasContents);
+    m_legend = new QwtLegend();
+}
+
+QwtQuick2Plot* QwtQuick2PlotLegend::plotItem() const
+{
+    return m_qwtQuickPlot;
+}
+
+void QwtQuick2PlotLegend::setPlotItem(QwtQuick2Plot *plot)
+{
+    if (m_qwtQuickPlot == plot)
+        return;
+
+    if(m_qwtQuickPlot && m_qwtQuickPlot->plot())
+    {
+        disconnect(m_qwtQuickPlot->plot(), &QwtPlot::legendDataChanged, m_legend, &QwtLegend::updateLegend);
+    }
+
+    m_qwtQuickPlot = plot;
+    connect(m_qwtQuickPlot->plot(), &QwtPlot::legendDataChanged, m_legend, &QwtLegend::updateLegend);
+    m_qwtQuickPlot->plot()->updateLayout();
+
+    Q_EMIT plotItemChanged(m_qwtQuickPlot);
+}
+
+void QwtQuick2PlotLegend::paint(QPainter *painter)
+{
+    m_legend->renderLegend(painter, this->boundingRect(), true);
+}
+
+void QwtQuick2PlotLegend::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
+    m_legend->setGeometry(newGeometry.toRect());
+    update();
 }
