@@ -83,8 +83,9 @@ public:
     void AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData);
 
     // Merge
+    void Merge_Finish() { Merge.Finish(); }
+
+private:
     size_t Merge_FilePos;
-    void Merge_AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
-    void Merge_Process();
-    void Merge_Finish();
+    dv_merge Merge;
 };
