@@ -341,6 +341,7 @@ QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
                         auto top = qMin(y0, yi);
                         auto left = xi;
                         auto barWidth = qAbs(second - first);
+                        left -= barWidth / 2;
 
                         auto width = barWidth;
                         auto height = qAbs(top - qMax(y0, yi));
