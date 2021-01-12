@@ -11,7 +11,7 @@ import QwtQuick2 1.0
 Window {
     id: root
     width: 1280
-    height: 720
+    height: 1280
     visible: true
     title: qsTr("DVRescue")
 
@@ -38,8 +38,11 @@ Window {
     }
 
     Rectangle {
-        anchors.fill: parent;
-        z: 100
+        anchors.top: mainUI.bottom
+        anchors.left: mainUI.left
+        width: parent.width
+        height: parent.height - mainUI.height
+        z: 0
 
         DropArea {
             id: dropArea;
@@ -476,7 +479,8 @@ Window {
     }
 
     SimpleTransfer {
-        width: 1280
+        id: mainUI
+        width: parent.width
         height: 720
 
         property var urlToPath: function(url) {
@@ -564,8 +568,8 @@ Window {
 
     Rectangle {
         id: debugRect
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
+        anchors.right: mainUI.right
+        anchors.bottom: mainUI.bottom
         width: 162
         height: 100
         color: "#a40000"

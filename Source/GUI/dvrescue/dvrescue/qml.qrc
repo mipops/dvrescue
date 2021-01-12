@@ -17,5 +17,11 @@
         <file>sample.xml</file>
         <file>SelectPathDialog.qml</file>
         <file>PlotPicker.qml</file>
+        <file>DvRescueLogo.ui.qml</file>
+        <file>NavButton.ui.qml</file>
+        <file>RedNavButton.ui.qml</file>
+        <file>WhiteNavButton.ui.qml</file>
+        <file>FileViewer.ui.qml</file>
+        <file>CaptureView.ui.qml</file>
     </qresource>
 </RCC>
