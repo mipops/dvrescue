@@ -4,4 +4,5 @@ import QtQuick.Controls 2.15
 
 NavButton {
     textColor: "white"
+    buttonColor: "#a40000"
 }
