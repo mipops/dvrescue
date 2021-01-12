@@ -162,7 +162,9 @@ QwtQuick2PlotPicker {
         onReleased: {
             console.debug('released');
             if(actionType === PlotPicker.ActionType.Zooming) {
-                zoomed(zoomArea.start, zoomArea.end)
+                console.debug('zoomArea.start: ', zoomArea.start, 'zoomArea.end: ', zoomArea.end);
+                if(zoomArea.start !== zoomArea.end)
+                    zoomed(zoomArea.start, zoomArea.end)
             }
 
             actionType = PlotPicker.ActionType.Picker;
