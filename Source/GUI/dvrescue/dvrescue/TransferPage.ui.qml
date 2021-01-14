@@ -25,7 +25,6 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.rightMargin: 10
-        anchors.leftMargin: 10
         anchors.topMargin: 10
     }
 }

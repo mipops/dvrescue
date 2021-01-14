@@ -6,6 +6,7 @@
 #include <qwtquick2plot.h>
 #include <QQmlParserStatus>
 #include <QQuickStyle>
+#include <QtAV>
 
 int main(int argc, char *argv[])
 {
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<QwtQuick2PlotPicker>("QwtQuick2", 1, 0, "QwtQuick2PlotPicker");
     qmlRegisterType<QwtQuick2PlotLegend>("QwtQuick2", 1, 0, "QwtQuick2PlotLegend");
 
+    auto version = QtAV_Version_String();
     QApplication app(argc, argv);
 
     app.setOrganizationName("dvrescue");

@@ -21,3 +21,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 include(./dvrescue.pri)
+include(./qtav.pri)
+include(../ffmpeg.pri)
+
+message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})

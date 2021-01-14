@@ -38,7 +38,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config qwt
+        brew install ${{ matrix.packages }} pkg-config qwt ffmpeg
 
     - name: Set Qt5 environment path
       run: |
@@ -108,6 +108,22 @@ jobs:
         qmake -r
         make -j4
 
+    - name: Build FFmpeg
+      run: |
+        git clone --depth 1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        cd ../ffmpeg
+        ./configure --enable-gpl \
+                    --enable-static \
+                    --disable-shared \
+                    --disable-autodetect \
+                    --disable-securetransport \
+                    --disable-videotoolbox \
+                    --disable-doc \
+                    --disable-ffplay \
+                    --disable-ffprobe \
+                    --disable-debug
+        make -j12
+
     - name: Build dvrescue-gui
       env:
         USE_BREW: false
@@ -170,8 +186,9 @@ jobs:
         curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get update
 
-    - name: Install compiler
+    - name: Install compiler and FFmpeg dependencies
       run: |
+        sudo add-apt-repository ppa:jonathonf/ffmpeg-4
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
                                 libavcodec-dev \
@@ -242,6 +259,19 @@ jobs:
       with:
         arch: win64_mingw81
         version: 5.15.2
+
+    - name: Install FFmpeg
+      run: |
+        cd ..
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        vcpkg install ffmpeg:x64-windows
+        cd ..
+        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
@@ -319,6 +349,18 @@ jobs:
       with: 
         version: 5.15.2
 
+    - name: Install FFmpeg
+      run: |
+        cd ..
+        git clone https://github.com/Microsoft/vcpkg.git
+        cd vcpkg
+        bootstrap-vcpkg.bat
+        vcpkg integrate install
+        vcpkg install ffmpeg:x64-windows
+        cd ..
+        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+        dir ffmpeg
 
     - name: Download and configure qwt
       run: |

@@ -8,9 +8,23 @@ import FileUtils 1.0
 import GraphModel 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
+import QtAV 1.7
 
-Rectangle {
+Item {
     property alias xmlPath: xmlPath.text
+
+    FileViewer {
+        id: fileViewer
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.rightMargin: 10
+        anchors.topMargin: 10
+    }
+
+    AVPlayer {
+        id: player
+    }
 
     GraphModel {
         id: graphModel
@@ -56,15 +70,23 @@ Rectangle {
 
     RowLayout {
         id: toolsLayout
+        anchors.top: fileViewer.bottom
+        anchors.topMargin: 5
         anchors.left: parent.left
-        anchors.leftMargin: 20
+        anchors.leftMargin: 0
         anchors.right: parent.right
-        anchors.rightMargin: 20
+        anchors.rightMargin: 0
 
-        TextField {
-            id: xmlPath
+        Rectangle  {
+            id: textFieldRect
             Layout.fillWidth: true
-            selectByMouse: true
+            height: childrenRect.height
+
+            TextField {
+                id: xmlPath
+                selectByMouse: true
+                width: parent.width
+            }
         }
 
         Button {
@@ -88,8 +110,12 @@ Rectangle {
             }
         }
 
-        Text {
-            text: "Total frames: " + graphModel.total
+        Rectangle  {
+            width: childrenRect.width
+            height: textFieldRect.height
+            Text {
+                text: "Total frames: " + graphModel.total
+            }
         }
     }
 
