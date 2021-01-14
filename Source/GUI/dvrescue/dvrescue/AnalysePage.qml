@@ -1,12 +1,13 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Controls 2.15
+import QtQuick 2.12
+import QtQuick.Window 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import GraphModel 1.0
 import QwtQuick2 1.0
+import QtQuick.Controls 1.4 as QQC1
 
 Rectangle {
     property alias xmlPath: xmlPath.text
@@ -92,7 +93,7 @@ Rectangle {
         }
     }
 
-    SplitView {
+    QQC1.SplitView {
         id: plotsView
 
         orientation: Qt.Vertical
@@ -101,8 +102,12 @@ Rectangle {
         anchors.right: parent.right
         anchors.bottom: scrollLayout.top
 
+        onHeightChanged: {
+            videoLayout.height = plotsView.height / 5 * 3.5
+        }
+
         RowLayout {
-            SplitView.preferredHeight: plotsView.height / 5 * 3.5
+            id: videoLayout
 
             QwtQuick2Plot {
                 id: videoPlot
@@ -162,8 +167,9 @@ Rectangle {
         }
 
         RowLayout {
+            id: audioLayout
+
             anchors.topMargin: 5
-            SplitView.preferredHeight: plotsView.height / 5 * 1.5
 
             QwtQuick2Plot {
                 id: audioPlot
@@ -374,6 +380,7 @@ Rectangle {
             policy: ScrollBar.AlwaysOn
             Layout.fillWidth: true
 
+            /*
             WheelHandler {
                 onWheel: {
                     if(event.angleDelta.y > 0)
@@ -382,6 +389,7 @@ Rectangle {
                         scroll.decrease();
                 }
             }
+            */
 
             function move(x1) {
                 var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1

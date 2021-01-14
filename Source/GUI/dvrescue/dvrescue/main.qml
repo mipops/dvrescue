@@ -1,12 +1,13 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import QtQuick.Controls 2.15
+import QtQuick 2.12
+import QtQuick.Window 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import GraphModel 1.0
 import QwtQuick2 1.0
+import QtQuick.Controls 1.4 as QQC1
 
 ApplicationWindow {
     id: root
