@@ -43,13 +43,13 @@ ApplicationWindow {
             text: qsTr("Transfer")
             checkable: true;
             property int index: 0
-            checked: true
         }
         WhiteNavButton {
             id: analysisButton
             text: qsTr("Analysis")
             checkable: true;
             property int index: 1
+            checked: true
         }
         RedNavButton {
             id: packageButton

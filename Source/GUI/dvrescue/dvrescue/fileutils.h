@@ -13,6 +13,7 @@ public:
     Q_INVOKABLE QString getFile(const QString& dirPath, const QString& extension);
     Q_INVOKABLE QString getFileName(const QString& filePath);
     Q_INVOKABLE QString getFilePath(const QString& urlOrPath);
+    Q_INVOKABLE QString getFileExtension(const QString& filePath);
     Q_INVOKABLE QString toLocalUrl(const QString& filePath);
     Q_INVOKABLE QString read(const QString& filePath);
     Q_INVOKABLE bool remove(const QString& filePath);

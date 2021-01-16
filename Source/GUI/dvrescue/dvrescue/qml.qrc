@@ -24,5 +24,6 @@
         <file>FileViewer.ui.qml</file>
         <file>CaptureView.ui.qml</file>
         <file>AnalysePage.qml</file>
+        <file>PlotsView.qml</file>
     </qresource>
 </RCC>
