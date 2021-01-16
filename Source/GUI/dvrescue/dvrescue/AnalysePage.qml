@@ -1,13 +1,12 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
+import QtQuick.Controls 1.4 as QQC1
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import GraphModel 1.0
-import QtQuick.Controls 1.4 as QQC1
-import QtAV 1.7
 
 Item {
     property alias xmlPath: filePath.text
@@ -110,8 +109,8 @@ Item {
                 } else {
                     graphModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                                      plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-                    player.source = filePath.text;
-                    player.play('file:///' + filePath.text);
+                    playerView.player.source = filePath.text;
+                    playerView.player.play('file:///' + filePath.text);
                 }
             }
         }
@@ -126,6 +125,7 @@ Item {
     }
 
     QQC1.SplitView {
+        id: splitView
         anchors.top: toolsLayout.bottom
         anchors.left: parent.left
         anchors.right: parent.right
@@ -134,15 +134,11 @@ Item {
         orientation: Qt.Vertical
 
         onHeightChanged: {
-            videoOutput.height = height / 5 * 1.5
+            playerView.height = height / 5 * 1.5
         }
 
-        VideoOutput2 {
-            id: videoOutput
-            source: MediaPlayer {
-                id: player
-            }
-            height: 200
+        PlayerView {
+            id: playerView
         }
 
         PlotsView {

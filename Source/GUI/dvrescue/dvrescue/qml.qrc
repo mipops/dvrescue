@@ -25,5 +25,6 @@
         <file>CaptureView.ui.qml</file>
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
+        <file>PlayerView.qml</file>
     </qresource>
 </RCC>
