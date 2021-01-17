@@ -9,7 +9,7 @@ import FileUtils 1.0
 import GraphModel 1.0
 
 Item {
-    property alias xmlPath: filePath.text
+    property alias xmlPath: filePathTextField.text
 
     FileViewer {
         id: fileViewer
@@ -79,7 +79,7 @@ Item {
             height: childrenRect.height
 
             TextField {
-                id: filePath
+                id: filePathTextField
                 selectByMouse: true
                 width: parent.width
             }
@@ -90,7 +90,7 @@ Item {
             onClicked: {
                 selectPathDialog.callback = (fileUrl) => {
                     var path = FileUtils.getFilePath(fileUrl);
-                    filePath.text = path;
+                    filePathTextField.text = path;
                 }
                 selectPathDialog.open();
             }
@@ -99,18 +99,39 @@ Item {
         Button {
             text: "load"
             id: loadButton
+
+            property string dvRescueXmlExtension: ".dvrescue.xml"
+
             onClicked: {
-                var extension = FileUtils.getFileExtension(filePath.text);
+
+                graphModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+                                 plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+
+                var extension = FileUtils.getFileExtension(filePathTextField.text);
                 if(extension === 'xml') {
                     refreshTimer.start();
-                    graphModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                                     plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-                    graphModel.populate(filePath.text);
+                    graphModel.populate(filePathTextField.text);
+
+                    if(filePathTextField.text.endsWith(dvRescueXmlExtension))
+                    {
+                        var videoPath = filePathTextField.text.substring(0, filePathTextField.text.length - dvRescueXmlExtension.length);
+                        if(FileUtils.exists(videoPath))
+                        {
+                            playerView.player.source = 'file:///' + videoPath;
+                            playerView.player.playPaused(0);
+                        }
+                    }
+
                 } else {
-                    graphModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                                     plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-                    playerView.player.source = filePath.text;
-                    playerView.player.play('file:///' + filePath.text);
+                    var dvRescueXmlPath = filePathTextField.text + dvRescueXmlExtension
+                    if(FileUtils.exists(dvRescueXmlPath))
+                    {
+                        refreshTimer.start();
+                        graphModel.populate(dvRescueXmlPath);
+                    }
+
+                    playerView.player.source = 'file:///' + filePathTextField.text;
+                    playerView.player.playPaused(0);
                 }
             }
         }

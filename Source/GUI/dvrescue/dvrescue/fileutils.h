@@ -14,7 +14,9 @@ public:
     Q_INVOKABLE QString getFileName(const QString& filePath);
     Q_INVOKABLE QString getFilePath(const QString& urlOrPath);
     Q_INVOKABLE QString getFileExtension(const QString& filePath);
+    Q_INVOKABLE QString getCompleteFileExtension(const QString& filePath);
     Q_INVOKABLE QString toLocalUrl(const QString& filePath);
+    Q_INVOKABLE bool exists(const QString& filePath);
     Q_INVOKABLE QString read(const QString& filePath);
     Q_INVOKABLE bool remove(const QString& filePath);
     Q_INVOKABLE bool copy(const QString& target, const QString& destination);

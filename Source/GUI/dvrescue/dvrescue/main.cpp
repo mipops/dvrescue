@@ -1,4 +1,5 @@
 #include "fileutils.h"
+#include "qtavplayerutils.h"
 #include "launcher.h"
 #include <graphmodel.h>
 #include <QApplication>
@@ -37,6 +38,14 @@ int main(int argc, char *argv[])
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<QtAVPlayerUtils>("QtAVPlayerUtils", 1, 0, "QtAVPlayerUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        QtAVPlayerUtils *utils = new QtAVPlayerUtils();
         return utils;
     });
 
