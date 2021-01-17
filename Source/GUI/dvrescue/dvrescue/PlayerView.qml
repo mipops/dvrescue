@@ -80,6 +80,30 @@ Rectangle {
             source: player
         }
 
+        ScrollBar {
+            id: scroll
+            Layout.fillWidth: true
+            orientation: Qt.Horizontal
+            size: 0.05
+            policy: ScrollBar.AlwaysOn
+            position: 0
+            onPositionChanged: {
+                if(pressed) {
+                    console.debug('position: ', position / (1 - size))
+                    player.seek(player.duration * (position / (1 - size)))
+                }
+            }
+
+            Connections {
+                target: player
+                onPositionChanged: {
+                    var relativePosition = player.position / player.duration * (1 - scroll.size)
+                    if(!scroll.pressed)
+                        scroll.position = relativePosition;
+                }
+            }
+        }
+
         RowLayout {
             anchors.horizontalCenter: parent.horizontalCenter
             Button {
