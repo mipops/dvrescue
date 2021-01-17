@@ -72,6 +72,10 @@ Rectangle {
                     }
                 })
             }
+
+            Component.onCompleted: {
+                QtAVPlayerUtils.setPauseOnEnd(player);
+            }
         }
 
         VideoOutput2 {

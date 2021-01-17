@@ -10,6 +10,7 @@ public:
     explicit QtAVPlayerUtils(QObject *parent = nullptr);
 
     Q_INVOKABLE qint64 displayPosition(QObject* qmlPlayer);
+    Q_INVOKABLE void setPauseOnEnd(QObject* qmlPlayer);
 
 Q_SIGNALS:
 
