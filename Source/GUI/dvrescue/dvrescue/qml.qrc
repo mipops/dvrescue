@@ -7,6 +7,7 @@
         <file>DevicesModel.qml</file>
         <file>DevicesView.qml</file>
         <file>TransferPage.ui.qml</file>
+        <file>icons/icon.png</file>
         <file>icons/fastforward.svg</file>
         <file>icons/play.svg</file>
         <file>icons/rewind.svg</file>
