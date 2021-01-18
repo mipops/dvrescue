@@ -17,3 +17,9 @@ void QtAVPlayerUtils::setPauseOnEnd(QObject *qmlPlayer)
     auto player = qmlPlayer->findChild<QtAV::AVPlayer*>();
     player->setMediaEndAction(QtAV::MediaEndAction_Pause);
 }
+
+qreal QtAVPlayerUtils::fps(QObject *qmlPlayer)
+{
+    auto player = qmlPlayer->findChild<QtAV::AVPlayer*>();
+    return player->statistics().video.frame_rate;
+}

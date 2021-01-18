@@ -6,14 +6,21 @@ import QtAV 1.7
 
 Rectangle {
     property alias player: player
+    property real fps: 0
 
     ColumnLayout {
         anchors.fill: parent
 
         MediaPlayer {
             id: player
+            autoLoad: true
+
             onStatusChanged: {
                 console.debug('status: ', status);
+                if(status === MediaPlayer.Loaded)
+                    fps = QtAVPlayerUtils.fps(player);
+                else if(status === MediaPlayer.UnknownStatus || status === MediaPlayer.NoMedia)
+                    fps =  0;
             }
 
             onPlaybackStateChanged: {
@@ -56,6 +63,17 @@ Rectangle {
                                                   })
                                               });
                 return promise
+            }
+
+            function seekEx(ms) {
+                return waitForSeekFinished(() => { player.seek(ms) }).then(() => {
+                    var displayPosition = QtAVPlayerUtils.displayPosition(player);
+                    if(displayPosition > ms) {
+                        player.stepBackward();
+                    } else if(displayPosition < ms) {
+                        player.stepForward();
+                    }
+                })
             }
 
             function playPaused(ms) {
@@ -112,6 +130,14 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
+                text: "<<"
+                onClicked: {
+                    player.seekEx(0)
+                }
+            }
+
+            Button {
+                enabled: player.status !== MediaPlayer.NoMedia
                 text: "<"
                 onClicked: {
                     player.stepBackward()
@@ -134,6 +160,14 @@ Rectangle {
                 text: ">"
                 onClicked: {
                     player.stepForward()
+                }
+            }
+
+            Button {
+                enabled: player.status !== MediaPlayer.NoMedia
+                text: ">>"
+                onClicked: {
+                    player.seek(player.duration - 1)
                 }
             }
         }

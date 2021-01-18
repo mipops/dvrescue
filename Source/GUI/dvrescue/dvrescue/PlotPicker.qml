@@ -20,7 +20,9 @@ QwtQuick2PlotPicker {
     signal zoomed(int x1, int x2);
     signal moved(int x1)
 
+    property alias active: picker.active
     property var canvasItem: picker.parent.canvasItem
+
     onVisibleChanged: {
         console.debug('QwtQuick2PlotPicker visible: ', visible);
     }

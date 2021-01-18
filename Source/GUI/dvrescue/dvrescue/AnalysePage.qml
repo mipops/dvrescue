@@ -7,6 +7,7 @@ import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import GraphModel 1.0
+import QtAVPlayerUtils 1.0
 
 Item {
     property alias xmlPath: filePathTextField.text
@@ -137,10 +138,13 @@ Item {
         }
 
         Rectangle  {
-            width: childrenRect.width
+            width: 200
             height: textFieldRect.height
             Text {
-                text: "Total frames: " + graphModel.total
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                id: framesInfo
+                text: "Total frames: " + graphModel.total + ", fps: " + playerView.fps
+
             }
         }
     }
@@ -160,6 +164,23 @@ Item {
 
         PlayerView {
             id: playerView
+            signal positionChanged(int frameIndex);
+
+            onFpsChanged: {
+                if(fps !== 0) {
+                    plotsView.framePos = 0
+                } else {
+                    plotsView.framePos = -1
+                }
+            }
+            player.onPositionChanged: {
+                var displayPosition = QtAVPlayerUtils.displayPosition(player)
+                var ms = displayPosition
+                var frameIndex = ms * fps / 1000;
+
+                console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
+                positionChanged(frameIndex);
+            }
         }
 
         PlotsView {
@@ -170,6 +191,20 @@ Item {
                 function onPlotsReady() {
                     plotsView.zoomAll();
                 }
+            }
+
+            Connections {
+                target: playerView
+                function onPositionChanged(frameIndex) {
+                    plotsView.framePos = frameIndex
+                }
+            }
+
+            onPickerMoved: {
+                var frameIndex = plotX
+                var position = frameIndex / playerView.fps * 1000
+
+                playerView.player.seek(position);
             }
         }
     }

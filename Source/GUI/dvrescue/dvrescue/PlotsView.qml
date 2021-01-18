@@ -10,9 +10,13 @@ Rectangle {
     property alias evenAudioCurve: evenAudioCurve
     property alias oddAudioCurve: oddAudioCurve
 
+    signal pickerMoved(int displayX, int plotX);
+
     function zoomAll() {
         zoomAllButton.clicked();
     }
+
+    property int framePos: -1
 
     QQC1.SplitView {
         id: plotsSplitView
@@ -48,11 +52,22 @@ Rectangle {
                     xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
                 }
 
+                Rectangle {
+                    parent: videoPlot.canvasItem
+                    width: 1
+                    height: parent.height
+                    color: 'red'
+                    x: videoPlotPicker.transform(Qt.point(framePos, 0)).x
+                }
+
                 PlotPicker {
+                    id: videoPlotPicker
                     visible: graphModel.total !== 0
                     overlayTextFormatter: function(p) {
                         return graphModel.videoInfo(p.x, p.y);
                     }
+                    onXChanged: if(active && visible) pickerMoved(x, point.x)
+                    onActiveChanged: if(active && visible) pickerMoved(x, point.x)
                     onZoomed: scroll.setCustomZoom(x1, x2)
                     onMoved: scroll.move(x1)
                 }
@@ -109,11 +124,22 @@ Rectangle {
                     xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
                 }
 
+                Rectangle {
+                    parent: audioPlot.canvasItem
+                    width: 1
+                    height: parent.height
+                    color: 'red'
+                    x: audioPlotPicker.transform(Qt.point(framePos, 0)).x
+                }
+
                 PlotPicker {
+                    id: audioPlotPicker
                     visible: graphModel.total !== 0
                     overlayTextFormatter: function(p) {
                         return graphModel.audioInfo(p.x, p.y);
                     }
+                    onXChanged: if(active && visible) pickerMoved(x, point.x)
+                    onActiveChanged: if(active && visible) pickerMoved(x, point.x)
                     onZoomed: scroll.setCustomZoom(x1, x2)
                     onMoved: scroll.move(x1)
                 }
