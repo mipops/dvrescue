@@ -89,6 +89,7 @@ namespace
         TimeCode            TC;
         uint8_t*            BlockStatus = nullptr;
         size_t              BlockStatus_Count = 0;
+        uint8_t             RepeatCount = 0;
 
         per_frame() = default;
         per_frame(status const& Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
@@ -114,6 +115,7 @@ namespace
         size_t              Count_Frames_OK = 0;
         size_t              Count_Frames_NOK = 0;
         size_t              Count_Frames_Missing = 0;
+        size_t              Count_Frames_Repeated = 0;
         bool                DoNotUseFile = false;
         vector<per_segment> Segments;
 
@@ -260,13 +262,25 @@ bool dv_merge_private::Init()
 bool dv_merge_private::ManageRepeatedFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
     auto& Input = Inputs[InputPos];
+    auto& Frames = Input.Segments[Segment_Pos].Frames;
 
-    // Stop if frame repetition was found
-    if (Input.DoNotUseFile || timecode(FrameData->TimeCode).Repeat())
+    // Ignore if frame repetition was found
+    if (Input.DoNotUseFile || (timecode(FrameData->TimeCode).Repeat() && !Frames.empty()))
     {
-        if (!Input.DoNotUseFile)
+        if (!Input.DoNotUseFile && !Frames.empty())
         {
-            Input.DoNotUseFile = true;
+            if (Frames.back().RepeatCount == 0xFF) // Check if there are too many repetition
+                Input.DoNotUseFile = true;
+            else
+            {
+                Frames.back().RepeatCount++;
+                Input.Count_Frames_Repeated++;
+                if (Frame_Pos >= Frames.size()) // Frame already parsed
+                {
+                    if (fseek(Input.F, (long)(Input.Segments[Segment_Pos].Frames.back().BlockStatus_Count * 80), SEEK_CUR))
+                        cerr << "File seek issue" << endl;
+                }
+            }
         }
         return true;
     }
@@ -506,6 +520,11 @@ bool dv_merge_private::Process()
             auto BytesRead = fread(Inputs[i].Buffer, 1, Frame.BlockStatus_Count * 80, Inputs[i].F);
             if (BytesRead != Frame.BlockStatus_Count * 80)
                 cerr << "File read issue" << endl;
+            if (Frame.RepeatCount)
+            {
+                if (fseek(Inputs[i].F, (long)(Frame.BlockStatus_Count * 80 * Frame.RepeatCount), SEEK_CUR))
+                    cerr << "File seek issue" << endl;
+            }
         }
     }
 
@@ -810,6 +829,7 @@ bool dv_merge_private::Stats()
         {
             ShowBlocks(Inputs[i].Count_Blocks_Used, Count_Blocks_Total);
             cout << " from file " << i << "     used.";
+            ShowFrames(Inputs[i].Count_Frames_Repeated, Count_Frames_Total, " were repetition and discarded.");
         }
         else
         {
