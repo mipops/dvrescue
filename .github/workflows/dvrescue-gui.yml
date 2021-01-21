@@ -321,11 +321,6 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-
-    - name: Install jom
-      run: |
-        choco install jom
-
     - name: Init vs environment
       uses: egor-tensin/vs-shell@v2
       with:
@@ -338,12 +333,12 @@ jobs:
         cd ../zlib-dev
         mkdir build
         cd build
-        cmake -G "NMake Makefiles JOM" ^
+        cmake -G "NMake Makefiles" ^
               -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\..\zlib" ^
               -DBUILD_SHARED_LIBS=0 ^
               -DCMAKE_BUILD_TYPE=Release ^
               ..
-        jom -j4 install
+        nmake install
 
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v2
@@ -385,7 +380,7 @@ jobs:
       shell: cmd
       run: |
         cd Source/GUI/dvrescue/
-        jom -j4
+        nmake
 
     - name: Launch dvrescue-gui
       run: |
