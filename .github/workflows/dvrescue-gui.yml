@@ -264,6 +264,7 @@ jobs:
       run: |
         cd ..
         git clone https://github.com/Microsoft/vcpkg.git
+        git checkout 2020.11
         cd vcpkg
         bootstrap-vcpkg.bat
         vcpkg integrate install
@@ -353,6 +354,7 @@ jobs:
       run: |
         cd ..
         git clone https://github.com/Microsoft/vcpkg.git
+        git checkout 2020.11
         cd vcpkg
         bootstrap-vcpkg.bat
         vcpkg integrate install
