@@ -9,6 +9,7 @@
 #include "ZenLib/Ztring.h"
 #include "Output.h"
 #include <iostream>
+#include <limits>
 #include <mutex>
 #include <iomanip>
 #include <map>
@@ -117,6 +118,7 @@ namespace
         size_t              Count_Frames_Missing = 0;
         size_t              Count_Frames_Repeated = 0;
         bool                DoNotUseFile = false;
+        bool                FirstTimeCodeFound = false;
         vector<per_segment> Segments;
 
         ~per_file()
@@ -190,6 +192,7 @@ namespace
         per_file Output;
         size_t Segment_Pos = 0;
         size_t Frame_Pos = 0;
+        bool FirstTimeCodeFound = false;
 
         // Stats
         size_t Count_Blocks_OK = 0;
@@ -374,55 +377,41 @@ bool dv_merge_private::SyncStart()
     auto Input_Count = Merge_InputFileNames.size();
 
     // Time code jumps - first frame
-    if (!Frame_Pos)
+    if (Frame_Pos)
+        return false;
+
+    // Look for first time code presence per input and minimum theoritical time code
+    vector<size_t> StartPos;
+    int64_t TC_Min = numeric_limits<int64_t>::max();
+    for (size_t i = 0; i < Input_Count; i++)
     {
-        size_t Frames_Status_Max = -1;
-        for (size_t i = 0; i < Input_Count; i++)
-        {
-            auto& Input = Inputs[i];
-            auto& Frames = Input.Segments[Segment_Pos].Frames;
-            if (Frames_Status_Max > Frames.size())
-                Frames_Status_Max = Frames.size();
-        }
-        if (Frames_Status_Max)
-        {
-            auto& Input0 = Inputs[0];
-            auto& Frames0 = Input0.Segments[Segment_Pos].Frames;
-            TimeCode TC_Min = Frames0[0].TC;
-            TimeCode TC_Max = TC_Min;
-            for (size_t i = 0; i < Input_Count; i++)
-            {
-                auto& Input = Inputs[i];
-                auto& Frames = Input.Segments[Segment_Pos].Frames;
-                const auto& TC = Frames[0].TC;
-                if (!TC.IsValid())
-                    continue;
-                if (TC_Min.ToFrames() > TC.ToFrames())
-                    TC_Min = TC;
-                if (TC_Max.ToFrames() < TC.ToFrames())
-                    TC_Max = TC;
-            }
-            if (TC_Min != TC_Max)
-                for (size_t i = 0; i < Input_Count; i++)
-                {
-                    auto& Input = Inputs[i];
-                    auto& Frames = Input.Segments[Segment_Pos].Frames;
-                    auto TC_Previous = TC_Min;
-                    auto TC_End = Frames.front().TC;
-                    size_t Offset = 0;
-                    while (TC_Previous != TC_End)
-                    {
-                        per_frame PreviousFrame;
-                        PreviousFrame.TC = TC_Previous;
-                        PreviousFrame.Status.set(Status_FrameMissing);
-                        Frames.emplace(Frames.begin() + Offset, move(PreviousFrame));
-                        TC_Previous++;
-                        Offset++;
-                    }
-                }
-        }
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+
+        size_t Frames_Pos = 0;
+        while (Frames_Pos < Frames.size() && !Frames[Frames_Pos].TC.HasValue())
+            Frames_Pos++;
+        if (Frames_Pos >= Frames.size())
+            return true;
+        StartPos.push_back(Frames_Pos);
+        int64_t TC_Min_ThisInput = Frames[Frames_Pos].TC.ToFrames() - Frames_Pos;
+        if (TC_Min > TC_Min_ThisInput)
+            TC_Min = TC_Min_ThisInput;
     }
 
+    // Align inputs
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+
+        auto MissingFrames = Frames[StartPos[i]].TC.ToFrames() - StartPos[i] - TC_Min;
+        if (!MissingFrames)
+            continue;
+        per_frame PreviousFrame;
+        PreviousFrame.Status.set(Status_FrameMissing);
+        Frames.insert(Frames.begin(), MissingFrames, PreviousFrame);
+    }
     return false;
 }
 
