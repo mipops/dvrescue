@@ -71,6 +71,11 @@ mac: {
             BUILD_SUFFIX=
             BUILD_DIR=/release
         }
+
+        win32-g++: {
+            BUILD_SUFFIX=
+        }
+
         QTAVLIBNAME = QtAV$${BUILD_SUFFIX}1
     } else {
         QTAVLIBNAME = QtAV$${BUILD_SUFFIX}
@@ -98,7 +103,6 @@ mac: {
         qtavlibs.commands += $$escape_expand(\\n\\t)rm -rf $$shell_path($$qtavlibs.dstfolder)
     }
     qtavlibs.commands += $$escape_expand(\\n\\t)$$QMAKE_COPY_DIR $$shell_path($$qtavlibs.srcfolder) $$shell_path($$qtavlibs.dstfolder)
-    qtavlibs.commands += $$escape_expand(\\n\\t)
 
     message('qtavlibs.commands: ' $$qtavlibs.commands)
 
