@@ -248,12 +248,6 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Python 3.7 version
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.7'
-        architecture: 'x64'
-
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v2
       with:
