@@ -1,0 +1,74 @@
+#!/bin/bash
+REPORT="${1}"
+
+CREATOR="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "/d:dvrescue/d:creator/d:program" "${REPORT}")"
+
+if [[ "${CREATOR}" != "dvrescue" ]] ; then
+    echo "Error ${CSV_OUTPUT} does not appear to be a dvrescue xml file."
+    exit 1
+fi
+
+echo "Frame #,Byte Offset,Timestamp,Timecode,Timecode Repeat,Timecode Jump,Recording Time,Recording Time Repeat,Recording Time Jump,Recording Start,Recording End,Arbitrary Bits,Arbitrary Bits Repeat,Arbitrary Bits Jump,Captions,Caption Parity Fail,No Pack,No Subcode Pack,No Video Pack,No Audio Pack,No Video Source or Control,No Audio Source or Control,Full Conceal,Full Conceal Video,Full Conceal Audio,Video Size,Video Rate,Chroma Subsampling,Aspect Ratio,Audio Rate,Channels,Video Error Concealment %,Video Error Concealment % (odd/even balance),Audio Error %,Audio Error % (odd/even balance)"
+xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t \
+    -m "/d:dvrescue/d:media/d:frames/d:frame" \
+    -v @n -o "," \
+    -v @pos -o "," \
+    -v @pts -o "," \
+    -v @tc -o "," \
+    -v @tc_r -o "," \
+    -v @tc_nc -o "," \
+    -v @rdt -o "," \
+    -v @rdt_r -o "," \
+    -v @rdt_nc -o "," \
+    -v @rec_start -o "," \
+    -v @rec_end -o "," \
+    -v @arb -o "," \
+    -v @arb_r -o "," \
+    -v @arb_nc -o "," \
+    -v "concat(\
+        substring('y',1,number(parent::d:frames/@captions='y')),\
+        substring('+',1,number(parent::d:frames/@captions='p' and @caption='on')*string-length(@caption)),\
+        substring('+',1,number(parent::d:frames/@captions='p' and @caption='off')*string-length(@caption)),\
+        substring('|',1,number(parent::d:frames/@captions='p' and not(@caption) and preceding-sibling::d:frame[@caption][1]/@caption='on'))
+          )" -o "," \
+    -v @caption-parity -o "," \
+    -v @no_pack -o "," \
+    -v @no_pack_sub -o "," \
+    -v @no_pack_vid -o "," \
+    -v @no_pack_aud -o "," \
+    -v @no_sourceorcontrol_vid -o "," \
+    -v @no_sourceorcontrol_audio -o "," \
+    -v @full_conceal -o "," \
+    -v @full_conceal_vid -o "," \
+    -v @full_conceal_aud -o "," \
+    -v "parent::d:frames/@size" -o "," \
+    -v "parent::d:frames/@video_rate" -o "," \
+    -v "parent::d:frames/@chroma_subsampling" -o "," \
+    -v "parent::d:frames/@aspect_ratio" -o "," \
+    -v "parent::d:frames/@audio_rate" -o "," \
+    -v "parent::d:frames/@channels" -o "," \
+    -v "sum(d:sta/@n) div number(concat(\
+        substring(1350,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length('1350')),\
+        substring(2700,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('2700')),\
+        substring(1620,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length('1620')),\
+        substring(3240,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('3240'))\
+          ))" -o "," \
+    -v "( (2 * sum(d:sta/@n_even)) - sum(d:sta/@n) ) div number(concat(\
+        substring( 675,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length( '675')),\
+        substring(1350,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('1350')),\
+        substring( 810,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length( '810')),\
+        substring(1620,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('1620'))\
+        ))" -o "," \
+    -v "sum(d:aud/@n) div number(concat(\
+        substring( 90,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length( '90')),\
+        substring(180,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('180')),\
+        substring(108,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length('108')),\
+        substring(216,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('216'))\
+        ))" -o "," \
+    -v "( (2 * sum(d:aud/@n_even)) - sum(d:aud/@n) ) div number(concat(\
+        substring( 45,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length( '45')),\
+        substring( 90,1,number(parent::d:frames/@size='720x480' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length( '90')),\
+        substring( 54,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling!='4:2:2')*string-length( '54')),\
+        substring(108,1,number(parent::d:frames/@size='720x576' and parent::d:frames/@chroma_subsampling ='4:2:2')*string-length('108'))\
+        ))" \
+    -n "${REPORT}"
