@@ -59,6 +59,9 @@ QString GraphModel::audioInfo(float x, float y)
     if(closestFrame == -1)
         return QString();
 
+    if(frameOffset == closestFrame)
+        return QString("frame: %1\n").arg(frameOffset) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
+
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 

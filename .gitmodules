@@ -1,0 +1,3 @@
+[submodule "Source/GUI/dvrescue/dvrescue-qtav"]
+	path = Source/GUI/dvrescue/dvrescue-qtav
+	url = https://github.com/ElderOrb/QtAV.git

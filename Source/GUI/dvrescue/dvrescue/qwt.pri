@@ -102,6 +102,4 @@ macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
 
     isEmpty(QMAKE_POST_LINK): QMAKE_POST_LINK = $$qwtlibs.commands
     else: QMAKE_POST_LINK = $${QMAKE_POST_LINK}$$escape_expand(\\n\\t)$$qwtlibs.commands
-
-    message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})
 }

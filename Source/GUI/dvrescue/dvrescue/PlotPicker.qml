@@ -1,5 +1,5 @@
-import QtQuick 2.15
-import QtQuick.Window 2.15
+import QtQuick 2.12
+import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
@@ -20,7 +20,9 @@ QwtQuick2PlotPicker {
     signal zoomed(int x1, int x2);
     signal moved(int x1)
 
+    property alias active: picker.active
     property var canvasItem: picker.parent.canvasItem
+
     onVisibleChanged: {
         console.debug('QwtQuick2PlotPicker visible: ', visible);
     }
@@ -162,7 +164,9 @@ QwtQuick2PlotPicker {
         onReleased: {
             console.debug('released');
             if(actionType === PlotPicker.ActionType.Zooming) {
-                zoomed(zoomArea.start, zoomArea.end)
+                console.debug('zoomArea.start: ', zoomArea.start, 'zoomArea.end: ', zoomArea.end);
+                if(zoomArea.start !== zoomArea.end)
+                    zoomed(zoomArea.start, zoomArea.end)
             }
 
             actionType = PlotPicker.ActionType.Picker;

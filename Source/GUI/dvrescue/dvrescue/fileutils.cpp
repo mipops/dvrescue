@@ -56,11 +56,31 @@ QString FileUtils::getFilePath(const QString &urlOrPath)
     return url.toLocalFile();
 }
 
+QString FileUtils::getFileExtension(const QString &filePath)
+{
+    QFileInfo info(filePath);
+
+    return info.suffix();
+}
+
+QString FileUtils::getCompleteFileExtension(const QString &filePath)
+{
+    QFileInfo info(filePath);
+
+    return info.completeSuffix();
+}
+
 QString FileUtils::toLocalUrl(const QString &filePath)
 {
     QUrl url(QUrl::fromLocalFile(filePath));
 
     return url.toString();
+}
+
+bool FileUtils::exists(const QString &filePath)
+{
+    QFileInfo info(filePath);
+    return info.exists();
 }
 
 QString FileUtils::read(const QString &filePath)

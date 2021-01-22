@@ -38,7 +38,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config qwt
+        brew install ${{ matrix.packages }} pkg-config qwt ffmpeg
 
     - name: Set Qt5 environment path
       run: |
@@ -108,6 +108,22 @@ jobs:
         qmake -r
         make -j4
 
+    - name: Build FFmpeg
+      run: |
+        git clone --depth 1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        cd ../ffmpeg
+        ./configure --enable-gpl \
+                    --enable-static \
+                    --disable-shared \
+                    --disable-autodetect \
+                    --disable-securetransport \
+                    --disable-videotoolbox \
+                    --disable-doc \
+                    --disable-ffplay \
+                    --disable-ffprobe \
+                    --disable-debug
+        make -j12
+
     - name: Build dvrescue-gui
       env:
         USE_BREW: false
@@ -170,8 +186,9 @@ jobs:
         curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get update
 
-    - name: Install compiler
+    - name: Install compiler and FFmpeg dependencies
       run: |
+        sudo add-apt-repository ppa:jonathonf/ffmpeg-4
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
                                 libavcodec-dev \
@@ -231,17 +248,35 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Python 3.7 version
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.7'
-        architecture: 'x64'
-
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v2
       with:
         arch: win64_mingw81
         version: 5.15.2
+
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip
+
+    - name: Install FFmpeg
+      run: |
+        cd ..
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
+        dir ffmpeg
+
+#        cd ..
+#        git clone https://github.com/Microsoft/vcpkg.git
+#        git checkout 2020.11
+#        cd vcpkg
+#        bootstrap-vcpkg.bat
+#        vcpkg integrate install
+#        vcpkg install ffmpeg:x64-windows
+#        cd ..
+#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
@@ -255,14 +290,24 @@ jobs:
         mingw32-make -j4
 
     - name: Configure dvrescue-gui
+      env:
+        STUPID_GITHUB_ACTION: true
       run: |
         cd Source/GUI/dvrescue/
         qmake
 
+#    - name: Start SSH session
+#      uses: luchihoratiu/debug-via-ssh@main
+#      with:
+#        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+#        SSH_PASS: ${{ secrets.SSH_PASS }}
+
     - name: Build dvrescue-gui
+      env:
+        STUPID_GITHUB_ACTION: true
       run: |
         cd Source/GUI/dvrescue/
-        mingw32-make -j4
+        mingw32-make
 
     - name: Launch dvrescue-gui
       run: |
@@ -290,11 +335,6 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-
-    - name: Install jom
-      run: |
-        choco install jom
-
     - name: Init vs environment
       uses: egor-tensin/vs-shell@v2
       with:
@@ -307,18 +347,41 @@ jobs:
         cd ../zlib-dev
         mkdir build
         cd build
-        cmake -G "NMake Makefiles JOM" ^
+        cmake -G "NMake Makefiles" ^
               -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\..\zlib" ^
               -DBUILD_SHARED_LIBS=0 ^
               -DCMAKE_BUILD_TYPE=Release ^
               ..
-        jom -j4 install
+        nmake install
 
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v2
       with: 
         version: 5.15.2
 
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip
+
+    - name: Install FFmpeg
+      run: |
+        cd ..
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
+        dir ffmpeg
+#
+#        cd ..
+#        git clone https://github.com/Microsoft/vcpkg.git
+#        git checkout 2020.11
+#        cd vcpkg
+#        bootstrap-vcpkg.bat
+#        vcpkg integrate install
+#        vcpkg install ffmpeg:x64-windows
+#        cd ..
+#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
@@ -332,16 +395,16 @@ jobs:
         cd ../qwt
         nmake
 
-    - name: Configure QCTools
+    - name: Configure dvrescue-gui
       run: |
         cd Source/GUI/dvrescue/
         qmake
 
-    - name: Build QCTools
+    - name: Build dvrescue-gui
       shell: cmd
       run: |
         cd Source/GUI/dvrescue/
-        jom -j4
+        nmake
 
     - name: Launch dvrescue-gui
       run: |

@@ -108,7 +108,7 @@ void Launcher::execute(const QString &cmd)
 
         connect(m_thread, &QThread::started, this, [this, cmd]() {
             qDebug() << "starting process from thread: " << QThread::currentThread();
-            auto appAndArguments = cmd.split(" ", Qt::SkipEmptyParts);
+            auto appAndArguments = cmd.split(" ", QString::SkipEmptyParts);
             m_process->setProgram(appAndArguments[0]);
             if(appAndArguments.size() > 1) {
                 appAndArguments.removeFirst();
@@ -123,7 +123,7 @@ void Launcher::execute(const QString &cmd)
 
         qDebug() << "starting command" << cmd;
 
-        auto appAndArguments = cmd.split(" ", Qt::SkipEmptyParts);
+        auto appAndArguments = cmd.split(" ", QString::SkipEmptyParts);
         m_process->setProgram(appAndArguments[0]);
         if(appAndArguments.size() > 1) {
             appAndArguments.removeFirst();
