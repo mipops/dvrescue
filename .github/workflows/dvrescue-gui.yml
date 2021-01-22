@@ -290,18 +290,21 @@ jobs:
         mingw32-make -j4
 
     - name: Configure dvrescue-gui
+      env:
+        STUPID_GITHUB_ACTION: true
       run: |
         cd Source/GUI/dvrescue/
         qmake
 
-    - name: Start SSH session
-      uses: luchihoratiu/debug-via-ssh@main
-      with:
-        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        SSH_PASS: ${{ secrets.SSH_PASS }}
+#    - name: Start SSH session
+#      uses: luchihoratiu/debug-via-ssh@main
+#      with:
+#        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+#        SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - name: Build dvrescue-gui
-      shell: cmd
+      env:
+        STUPID_GITHUB_ACTION: true
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make

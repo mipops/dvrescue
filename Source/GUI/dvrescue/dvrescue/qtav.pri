@@ -98,7 +98,13 @@ mac: {
     qtavlibs.srcfolder = $$QTAV_OUT/../bin/QtAV
     qtavlibs.dstfolder = $$absolute_path($$OUT_PWD$${BUILD_DIR}/QtAV)
     win32: {
-        qtavlibs.commands += $$escape_expand(\\n\\t)if exist $$shell_path($$qtavlibs.dstfolder) rd /S /Q $$shell_path($$qtavlibs.dstfolder)
+        STUPID_GITHUB_ACTION=$$(STUPID_GITHUB_ACTION)
+        !isEmpty(STUPID_GITHUB_ACTION) {
+            win32-g++:qtavlibs.commands += $$escape_expand(\\n\\t)rm -rf $$shell_path($$qtavlibs.dstfolder)
+            !win32-g++:qtavlibs.commands += $$escape_expand(\\n\\t)if exist $$shell_path($$qtavlibs.dstfolder) rd /S /Q $$shell_path($$qtavlibs.dstfolder)
+        } else {
+            qtavlibs.commands += $$escape_expand(\\n\\t)if exist $$shell_path($$qtavlibs.dstfolder) rd /S /Q $$shell_path($$qtavlibs.dstfolder)
+        }
     } else {
         qtavlibs.commands += $$escape_expand(\\n\\t)rm -rf $$shell_path($$qtavlibs.dstfolder)
     }
