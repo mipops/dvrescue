@@ -303,7 +303,7 @@ jobs:
     - name: Build dvrescue-gui
       run: |
         cd Source/GUI/dvrescue/
-        mingw32-make -j4
+        mingw32-make
 
     - name: Launch dvrescue-gui
       run: |
