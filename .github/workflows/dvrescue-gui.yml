@@ -260,19 +260,29 @@ jobs:
         arch: win64_mingw81
         version: 5.15.2
 
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip
+
     - name: Install FFmpeg
       run: |
         cd ..
-        git clone https://github.com/Microsoft/vcpkg.git
-        git checkout 2020.11
-        cd vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        vcpkg install ffmpeg:x64-windows
-        cd ..
-        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
-        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
         dir ffmpeg
+
+#        cd ..
+#        git clone https://github.com/Microsoft/vcpkg.git
+#        git checkout 2020.11
+#        cd vcpkg
+#        bootstrap-vcpkg.bat
+#        vcpkg integrate install
+#        vcpkg install ffmpeg:x64-windows
+#        cd ..
+#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
@@ -345,19 +355,29 @@ jobs:
       with: 
         version: 5.15.2
 
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip
+
     - name: Install FFmpeg
       run: |
         cd ..
-        git clone https://github.com/Microsoft/vcpkg.git
-        git checkout 2020.11
-        cd vcpkg
-        bootstrap-vcpkg.bat
-        vcpkg integrate install
-        vcpkg install ffmpeg:x64-windows
-        cd ..
-        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
-        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
+        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
         dir ffmpeg
+#
+#        cd ..
+#        git clone https://github.com/Microsoft/vcpkg.git
+#        git checkout 2020.11
+#        cd vcpkg
+#        bootstrap-vcpkg.bat
+#        vcpkg integrate install
+#        vcpkg install ffmpeg:x64-windows
+#        cd ..
+#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
+#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
+#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
