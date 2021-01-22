@@ -301,6 +301,7 @@ jobs:
         qmake
 
     - name: Build dvrescue-gui
+      shell: cmd
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make
