@@ -392,12 +392,12 @@ jobs:
         cd ../qwt
         nmake
 
-    - name: Configure QCTools
+    - name: Configure dvrescue-gui
       run: |
         cd Source/GUI/dvrescue/
         qmake
 
-    - name: Build QCTools
+    - name: Build dvrescue-gui
       shell: cmd
       run: |
         cd Source/GUI/dvrescue/
