@@ -57,17 +57,8 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     {
         if(xml.name() == "frames")
         {
-            QString size;
-            QString chroma_subsampling;
-
-            for(auto & attribute : xml.attributes()) {
-                if(attribute.name() == "size")
-                    size = attribute.value().toString();
-                else if(attribute.name() == "chroma_subsampling")
-                    chroma_subsampling = attribute.value().toString();
-            }
-
-            parseFrames(xml, size, chroma_subsampling);
+            auto attributes = xml.attributes();
+            parseFrames(xml, attributes);
         }
     }
 }
@@ -75,8 +66,18 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
 constexpr auto video_blocks_per_diff_seq = 135;
 constexpr auto audio_blocks_per_diff_seq = 9;
 
-void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QString& chroma_subsampling)
+void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesAttributes)
 {
+    QString size;
+    QString chroma_subsampling;
+
+    for(auto & attribute : framesAttributes) {
+        if(attribute.name() == "size")
+            size = attribute.value().toString();
+        else if(attribute.name() == "chroma_subsampling")
+            chroma_subsampling = attribute.value().toString();
+    }
+
     // magic from Dave
     auto diff_seq_count = 0;
     if(size == "720x576" && chroma_subsampling != "4:2:2")
@@ -99,13 +100,15 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QS
             // qDebug() << "frame";
 
             auto frameNumber = 0;
-            for(auto & attribute : xml.attributes()) {
+            auto frameAttributes = xml.attributes();
+            for(auto & attribute : frameAttributes) {
                 // qDebug() << "\t" << attribute.name() << "=" << attribute.value();
                 if(attribute.name() == "n")
-                    frameNumber = attribute.value().toUInt();
+                    frameNumber = attribute.value().toUInt();                
             }
 
             Q_EMIT gotFrame(frameNumber);
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes);
 
             while(xml.readNextStartElement())
             {

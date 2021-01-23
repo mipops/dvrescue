@@ -5,6 +5,7 @@
 #include <QObject>
 
 class QXmlStreamReader;
+class QXmlStreamAttributes;
 class XmlParser : public QObject
 {
     Q_OBJECT
@@ -16,12 +17,13 @@ public:
 
 private:
     void parseMedia(QXmlStreamReader& xml);
-    void parseFrames(QXmlStreamReader& xml, const QString& frameSize, const QString& chroma_subsampling);
+    void parseFrames(QXmlStreamReader& xml, QXmlStreamAttributes& framesAttributes);
 
 Q_SIGNALS:
     void bytesProcessed(qint64 value);
     void finished();
     void gotFrame(uint frameNumber);
+    void gotFrameAttributes(uint frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes);
     void gotSta(uint frameNumber, uint t, uint n, uint n_even, float den);
     void gotAud(uint frameNumber, uint t, uint n, uint n_even, float den);
 };

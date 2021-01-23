@@ -80,15 +80,15 @@ write_file($$QTAV/.qmake.conf, noExamples, append)
 SUBDIRS += \
         dvrescue-qtav \
 	dvrescue \
-#        dvrescue.tests \
-#        dvrescue.qmltests
+        dvrescue.tests \
+        dvrescue.qmltests
 
 dvrescue-qtav.file = dvrescue-qtav/QtAV.pro
 
 dvrescue.subdir = dvrescue
-#dvrescue.tests.subdir = dvrescue.tests
-#dvrescue.qmltests.subdir = dvrescue.qmltests
+dvrescue.tests.subdir = dvrescue.tests
+dvrescue.qmltests.subdir = dvrescue.qmltests
 
 dvrescue.depends = dvrescue-qtav
-#dvrescue.tests.depends = dvrescue-qtav
-#dvrescue.qmltests.depends = dvrescue-qtav
+dvrescue.tests.depends = dvrescue-qtav
+dvrescue.qmltests.depends = dvrescue-qtav

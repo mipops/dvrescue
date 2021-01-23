@@ -1,6 +1,7 @@
 TEMPLATE = app
 
 include(../dvrescue/dvrescue.pri)
+include(../dvrescue/qtav.pri)
 
 CONFIG += c++17 warn_on
 CONFIG += no_keywords
@@ -8,8 +9,8 @@ CONFIG += no_keywords
 QT += quick testlib xmlpatterns widgets
 
 SOURCES += \
+    datamodeltest.cpp \
     dummytest.cpp \
-    graphmodeltest.cpp \
     main.cpp \
     xmlparsingtest.cpp
 
@@ -21,8 +22,8 @@ DISTFILES += \
     tests/tst_parsing.qml
 
 HEADERS += \
+    datamodeltest.h \
     dummytest.h \
-    graphmodeltest.h \
     xmlparsingtest.h
 
 RESOURCES += \

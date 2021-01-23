@@ -1,6 +1,7 @@
 TEMPLATE = app
 
 include(../dvrescue/dvrescue.pri)
+include(../dvrescue/qtav.pri)
 
 CONFIG += c++17 warn_on qmltestcase
 CONFIG += no_keywords

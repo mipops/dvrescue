@@ -1,17 +1,18 @@
-#include "graphmodel.h"
+#include "datamodel.h"
 #include "qwtquick2plot.h"
 #include <QThread>
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QtAlgorithms>
+#include <QJSEngine>
 
-GraphModel::GraphModel(QObject *parent) : QObject(parent)
+DataModel::DataModel(QObject *parent) : QObject(parent)
 {
-
+    connect(this, &DataModel::dataRowCreated, this, &DataModel::onDataRowCreated);
 }
 
-GraphModel::~GraphModel()
+DataModel::~DataModel()
 {
     if(m_thread)
     {
@@ -22,12 +23,12 @@ GraphModel::~GraphModel()
     }
 }
 
-int GraphModel::total() const
+int DataModel::total() const
 {
     return m_total;
 }
 
-QString GraphModel::videoInfo(float x, float y)
+QString DataModel::videoInfo(float x, float y)
 {
     Q_UNUSED(y);
 
@@ -46,7 +47,7 @@ QString GraphModel::videoInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-QString GraphModel::audioInfo(float x, float y)
+QString DataModel::audioInfo(float x, float y)
 {
     Q_UNUSED(y);
 
@@ -65,17 +66,24 @@ QString GraphModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-void GraphModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
+void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_videoValues, x, y, frame, oddValue, evenValue);
 }
 
-void GraphModel::getAudioInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
+void DataModel::getAudioInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_audioValues, x, y, frame, oddValue, evenValue);
 }
 
-void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats, float x, float y, int &closestFrame, float &oddValue, float &evenValue)
+QJSEngine* engine = nullptr;
+
+void DataModel::setEngine(QJSEngine *jsEngine)
+{
+    engine = jsEngine;
+}
+
+void DataModel::getInfo(QList<std::tuple<int, DataModel::GraphStats> > &stats, float x, float y, int &closestFrame, float &oddValue, float &evenValue)
 {
     Q_UNUSED(y);
 
@@ -144,7 +152,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
     }
 }
 
-void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->plot()->plot()->setUpdatesEnabled(false);
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
@@ -183,15 +191,30 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
     audioCurve->plot()->replotAndUpdate();
 }
 
-void GraphModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->data().clear();
     videoCurve2->data().clear();
     audioCurve->data().clear();
     audioCurve2->data().clear();
+
+    Q_EMIT clearModel();
 }
 
-void GraphModel::populate(const QString &fileName)
+void DataModel::bind(QAbstractTableModel *model)
+{
+    if(m_model) {
+        disconnect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
+        disconnect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
+    }
+    m_model = model;
+    if(m_model) {
+        connect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
+        connect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
+    }
+}
+
+void DataModel::populate(const QString &fileName)
 {
     if(m_thread)
     {
@@ -204,7 +227,7 @@ void GraphModel::populate(const QString &fileName)
         m_audioValues.clear();
     }
 
-    qDebug() << QThread::currentThread();
+    qDebug() << "DataModel::populate: " << QThread::currentThread();
 
     m_lastFrame = 0;
     m_total = 0;
@@ -225,10 +248,11 @@ void GraphModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
-    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
 
+        onGotFrame(frameNumber, framesAttributes, frameAttributes);
         Q_EMIT totalChanged(m_total);
     });
 
@@ -264,4 +288,29 @@ void GraphModel::populate(const QString &fileName)
     });
 
     m_thread->start();
+}
+
+void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes)
+{
+    // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
+
+    QVariantMap map;
+    map["Frame #"] = frameNumber;
+    map["Byte Offset"] = frameAttributes.hasAttribute("pos") ? frameAttributes.value("pos").toString() : "n/a";
+    map["Timestamp"] = frameAttributes.hasAttribute("pts") ? frameAttributes.value("pts").toString() : "n/a";
+    map["Timecode"] = frameAttributes.hasAttribute("tc") ? frameAttributes.value("tc").toString() : "n/a";
+    map["Timecode Repeat"] = frameAttributes.hasAttribute("tc_r") ? frameAttributes.value("tc_r").toString() : "n/a";
+    map["Timecode Jump"] = frameAttributes.hasAttribute("tc_nc") ? frameAttributes.value("tc_nc").toString() : "n/a";
+
+    Q_EMIT dataRowCreated(map);
+}
+
+void DataModel::onDataRowCreated(const QVariantMap &map)
+{
+    // qDebug() << "DataModel::dataRowCreated: " << QThread::currentThread();
+
+    assert(engine);
+    auto variant = QVariant::fromValue(engine->toScriptValue(map));
+
+    Q_EMIT gotDataRow(variant);
 }

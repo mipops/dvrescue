@@ -1,21 +1,21 @@
-#include "graphmodeltest.h"
+#include "datamodeltest.h"
 
-#include <graphmodel.h>
+#include <datamodel.h>
 #include <QDebug>
 #include <QEventLoop>
 #include <QtTest>
 
-GraphModelTest::GraphModelTest(QObject *parent) : QObject(parent)
+DataModelTest::DataModelTest(QObject *parent) : QObject(parent)
 {
 
 }
 
-void GraphModelTest::test_info()
+void DataModelTest::test_info()
 {
     QEventLoop loop;
 
-    GraphModel model;
-    connect(&model, &GraphModel::populated, &loop, &QEventLoop::quit);
+    DataModel model;
+    connect(&model, &DataModel::populated, &loop, &QEventLoop::quit);
     model.populate(":/xml/DVC02339 - 0_00_00_07.dv.xml");
 
     loop.exec();
