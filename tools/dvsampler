@@ -60,16 +60,23 @@ http://samples.ffmpeg.org/ffmpeg-bugs/trac/ticket2341/error_no_audio_detected.dv
 http://samples.ffmpeg.org/mplayer-bugs/bug1322/infiniteloop.dv
 http://samples.ffmpeg.org/V-codecs/DVSD/pond.dv
 https://makeinstallnotwar.org/video/Demo_DV_720x480_CC.mov
+https://github.com/mipops/dvrescue/files/5008881/O_O.dv.zip
 )
 
 if [[ ! -d samples ]] ; then
   mkdir samples
 fi
 for i in "${online_samples[@]}" ; do
-  if [[ ! -f "samples/$(basename "${i}")" ]] ; then
+  NAME="$(basename "${i}")"
+  if [[ ! -f "samples/${NAME//.zip}" ]] ; then
     cd samples
-    echo "downloading $(basename "${i}")..."
-    curl -O "${i}"
+    echo "downloading ${NAME}..."
+    curl -L -O "${i}"
+    EXT="${i##*.}"
+    echo "ZIP $EXT"
+    if [[ "${EXT}" == "zip" ]] ; then
+      unzip "${NAME}"
+    fi
     cd -
   fi
 done
