@@ -75,12 +75,19 @@ Rectangle {
 
         function updateColumnWidths() {
             var newColumnWidths = {}
+            var totalWidth = 0;
             for(var i = 0; i < tableView.model.columnCount; ++i)
             {
                 newColumnWidths[i] = getColumnWidth(i)
                 console.debug('column', i, 'width: ', newColumnWidths[i])
+                totalWidth += newColumnWidths[i]
             }
+
+            totalWidth += (tableView.model.columnCount - 1) * tableView.view.columnSpacing
             columnWidths = newColumnWidths
+
+            tableView.view.contentWidth = totalWidth
+            console.debug('tableView.view.contentWidth: ', tableView.view.contentWidth)
         }
 
         property var columnWidths: ({})
