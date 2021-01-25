@@ -2,6 +2,8 @@
 #include "qtavplayerutils.h"
 #include "launcher.h"
 #include "sortfiltertablemodel.h"
+#include "qqmltablemodel_p.h"
+#include "qqmltablemodelcolumn_p.h"
 #include <datamodel.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -22,6 +24,8 @@ int main(int argc, char *argv[])
     qmlRegisterType<QwtQuick2PlotPicker>("QwtQuick2", 1, 0, "QwtQuick2PlotPicker");
     qmlRegisterType<QwtQuick2PlotLegend>("QwtQuick2", 1, 0, "QwtQuick2PlotLegend");
     qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
+    qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
+    qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");
     qRegisterMetaType<QAbstractTableModel*>();
 
     auto version = QtAV_Version_String();

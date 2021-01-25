@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick 2.12
-import Qt.labs.qmlmodels 1.0
+import TableModel 1.0
+import TableModelColumn 1.0
 import SortFilterTableModel 1.0
 
 Rectangle {

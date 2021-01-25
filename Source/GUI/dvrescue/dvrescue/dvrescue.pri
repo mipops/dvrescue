@@ -6,6 +6,8 @@ HEADERS += \
     $$PWD/datamodel.h \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
+    $$PWD/qqmltablemodel_p.h \
+    $$PWD/qqmltablemodelcolumn_p.h \
     $$PWD/qtavplayerutils.h \
     $$PWD/qwtquick2plot.h \
     $$PWD/xmlparser.h \
@@ -16,6 +18,8 @@ SOURCES += \
     $$PWD/datamodel.cpp \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \
+    $$PWD/qqmltablemodel.cpp \
+    $$PWD/qqmltablemodelcolumn.cpp \
     $$PWD/qtavplayerutils.cpp \
     $$PWD/qwtquick2plot.cpp \
     $$PWD/xmlparser.cpp \
