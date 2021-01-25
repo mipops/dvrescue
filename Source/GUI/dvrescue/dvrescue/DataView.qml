@@ -133,5 +133,41 @@ Rectangle {
             display: "Recording Time"
             property int minWidth: recordingTimeMetrics.width + columnSpacing
         }
+
+        TableModelColumn {
+            display: "Recording Time Repeat";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Recording Time Jump";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Recording Start";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Recording End";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Arbitrary Bits";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Arbitrary Bits Repeat";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Arbitrary Bits Jump";
+            property int minWidth: 20
+        }
+
     }
 }

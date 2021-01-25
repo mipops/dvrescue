@@ -297,7 +297,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     QVariantMap map;
     map["Frame #"] = frameNumber;
 
-    auto fillAttribute = [&](const QString& mapKeyName, const QXmlStreamAttributes& attributes, const QString& name, const QString& defaultValue = "n/a") {
+    auto fillAttribute = [&](const QString& mapKeyName, const QXmlStreamAttributes& attributes, const QString& name, const QString& defaultValue = "") {
         map[mapKeyName] = attributes.hasAttribute(name) ? attributes.value(name).toString() : defaultValue;
     };
 
@@ -307,6 +307,14 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Timecode Repeat", frameAttributes, "tc_r");
     fillAttribute("Timecode Jump", frameAttributes, "tc_nc");
     fillAttribute("Recording Time", frameAttributes, "rdt");
+    fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
+    fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
+
+    fillAttribute("Recording Start", frameAttributes, "rec_start");
+    fillAttribute("Recording End", frameAttributes, "rec_end");
+    fillAttribute("Arbitrary Bits", frameAttributes, "arb");
+    fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
+    fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
 
     Q_EMIT dataRowCreated(map);
 }
