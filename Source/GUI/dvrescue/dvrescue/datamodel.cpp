@@ -296,11 +296,17 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     QVariantMap map;
     map["Frame #"] = frameNumber;
-    map["Byte Offset"] = frameAttributes.hasAttribute("pos") ? frameAttributes.value("pos").toString() : "n/a";
-    map["Timestamp"] = frameAttributes.hasAttribute("pts") ? frameAttributes.value("pts").toString() : "n/a";
-    map["Timecode"] = frameAttributes.hasAttribute("tc") ? frameAttributes.value("tc").toString() : "n/a";
-    map["Timecode Repeat"] = frameAttributes.hasAttribute("tc_r") ? frameAttributes.value("tc_r").toString() : "n/a";
-    map["Timecode Jump"] = frameAttributes.hasAttribute("tc_nc") ? frameAttributes.value("tc_nc").toString() : "n/a";
+
+    auto fillAttribute = [&](const QString& mapKeyName, const QXmlStreamAttributes& attributes, const QString& name, const QString& defaultValue = "n/a") {
+        map[mapKeyName] = attributes.hasAttribute(name) ? attributes.value(name).toString() : defaultValue;
+    };
+
+    fillAttribute("Byte Offset", frameAttributes, "pos");
+    fillAttribute("Timestamp", frameAttributes, "pts");
+    fillAttribute("Timecode", frameAttributes, "tc");
+    fillAttribute("Timecode Repeat", frameAttributes, "tc_r");
+    fillAttribute("Timecode Jump", frameAttributes, "tc_nc");
+    fillAttribute("Recording Time", frameAttributes, "rdt");
 
     Q_EMIT dataRowCreated(map);
 }

@@ -13,10 +13,19 @@ Rectangle {
     property bool canShowIndicator: true
     property bool canFilter: true
 
+    readonly property int desiredWidth: metrics.width
+
     clip: true
     color: "#333333"
 
+    TextMetrics {
+        id: metrics
+        font: label.font
+        text: label.text
+    }
+
     Column {
+        id: column
         anchors.fill: parent
 
         TextFieldEx {

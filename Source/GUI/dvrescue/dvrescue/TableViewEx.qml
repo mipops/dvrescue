@@ -38,27 +38,27 @@ Item {
         tableView.forceLayout();
     }
 
-    Row {
-        id: columnsHeader
-        // y: tableView.contentY
-        spacing: 1
-
-        Repeater {
-            id: header
-            model: tableView.columns > 0 ? tableView.columns : 1
-        }
-    }
-
     TableView {
         id: tableView
         columnSpacing: 1
         rowSpacing: 1
         clip: true
         flickableDirection: Flickable.VerticalFlick
-        // topMargin: columnsHeader.implicitHeight
+        topMargin: columnsHeader.implicitHeight
 
-        anchors.top: columnsHeader.bottom
-        anchors.bottom: parent.bottom;
+        Row {
+            id: columnsHeader
+            y: tableView.contentY
+            spacing: 1
+
+            Repeater {
+                id: header
+                model: tableView.columns > 0 ? tableView.columns : 1
+            }
+        }
+
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
 
@@ -68,6 +68,12 @@ Item {
 
         ScrollBar.vertical: ScrollBar {
             id: vscroll
+            policy: ScrollBar.AsNeeded
+        }
+
+        ScrollBar.horizontal: ScrollBar {
+            id: hscroll
+            policy: ScrollBar.AsNeeded
         }
 
         ScrollIndicator.horizontal: ScrollIndicator { }
