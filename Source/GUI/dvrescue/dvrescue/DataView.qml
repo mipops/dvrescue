@@ -17,7 +17,7 @@ Rectangle {
         delegateHeight: 35
 
         headerDelegate: SortableFiltrableColumnHeading {
-            width: tableView.view.columnWidthProvider(modelData)
+            width: tableView.columnWidths[modelData]
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
@@ -42,36 +42,59 @@ Rectangle {
             for(var i = 0; i < tableView.model.columnCount; ++i)
             {
                 var headerItem = tableView.getHeaderItem(i)
-                if(headerItem === null)
+                if(headerItem === null) {
+                    console.debug('headerItem === null')
                     continue;
+                }
 
                 // console.debug('headerItem: ', headerItem)
                 var minWidth = dataModel.columns[i].minWidth
                 value += Math.max(headerItem.desiredWidth, minWidth)
             }
 
-            // console.debug('new totalDesiredWidth: ', value)
+            console.debug('new totalDesiredWidth: ', value, 'tableView.width: ', tableView.width)
             return value;
         }
 
-        property bool initialized: false
-        property int totalDesiredWidth: {
-            return tableView.width, tableView.model.columnsCount, initialized, getTotalDesiredWidth()
-        }
-
-        columnWidthProvider: function(column) {
+        function getColumnWidth(column) {
             var minWidth = dataModel.columns[column].minWidth
             var desiredWidth = Math.max(tableView.getHeaderItem(column).desiredWidth, minWidth)
 
             var relativeWidth = tableView.totalDesiredWidth !== 0 ? (desiredWidth / tableView.totalDesiredWidth) : 0
             var allowedWidth = relativeWidth * tableView.width
 
-            return Math.max(allowedWidth, desiredWidth);
+            var columnWidth = Math.max(allowedWidth, desiredWidth);
+            return columnWidth
+        }
+
+        property bool initialized: false
+        property int totalDesiredWidth: {
+            return initialized, getTotalDesiredWidth()
+        }
+
+        function updateColumnWidths() {
+            var newColumnWidths = {}
+            for(var i = 0; i < tableView.model.columnCount; ++i)
+            {
+                newColumnWidths[i] = getColumnWidth(i)
+                console.debug('column', i, 'width: ', newColumnWidths[i])
+            }
+            columnWidths = newColumnWidths
+        }
+
+        property var columnWidths: ({})
+        onWidthChanged: {
+            updateColumnWidths()
+        }
+
+        columnWidthProvider: function(column) {
+            return tableView.columnWidths[column];
         }
 
         Component.onCompleted: {
             Qt.callLater(() => {
-                             initialized = true
+                             initialized = true;
+                             updateColumnWidths();
                          })
         }
     }
@@ -169,5 +192,89 @@ Rectangle {
             property int minWidth: 20
         }
 
+        TableModelColumn {
+            display: "Captions";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Caption Parity";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Pack";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Subcode Pack";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Video Pack";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Audio Pack";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Video Source or Control";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "No Audio Source or Control";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Full Conceal";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Full Conceal Video";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Full Conceal Audio";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Video Size";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Video Rate";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Chroma Subsampling";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Aspect Ratio";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Audio Rate";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Channels";
+            property int minWidth: 20
+        }
     }
 }

@@ -316,6 +316,26 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
     fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
 
+    fillAttribute("Captions", framesAttributes, "captions");
+    fillAttribute("Caption Parity", frameAttributes, "caption-parity");
+    fillAttribute("No Pack", frameAttributes, "no_pack");
+    fillAttribute("No Subcode Pack", frameAttributes, "no_pack_sub");
+    fillAttribute("No Video Pack", frameAttributes, "no_pack_vid");
+    fillAttribute("No Audio Pack", frameAttributes, "no_pack_aud");
+
+    fillAttribute("No Video Source or Control", frameAttributes, "no_sourceorcontrol_vid");
+    fillAttribute("No Audio Source or Control", frameAttributes, "no_sourceorcontrol_audio");
+    fillAttribute("Full Conceal", frameAttributes, "full_conceal");
+    fillAttribute("Full Conceal Video", frameAttributes, "full_conceal_vid");
+    fillAttribute("Full Conceal Audio", frameAttributes, "full_conceal_aud");
+
+    fillAttribute("Video Size", framesAttributes, "size");
+    fillAttribute("Video Rate", framesAttributes, "video_rate");
+    fillAttribute("Chroma Subsampling", framesAttributes, "chroma_subsampling");
+    fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
+    fillAttribute("Audio Rate", framesAttributes, "audio_rate");
+    fillAttribute("Channels", framesAttributes, "channels");
+
     Q_EMIT dataRowCreated(map);
 }
 

@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import QtQuick 2.12
 import Qt.labs.qmlmodels 1.0
 
@@ -35,6 +36,7 @@ Item {
     clip: true
 
     function forceLayout() {
+        console.debug('forceLayout')
         tableView.forceLayout();
     }
 
@@ -46,10 +48,20 @@ Item {
         flickableDirection: Flickable.VerticalFlick
         topMargin: columnsHeader.implicitHeight
 
+        onWidthChanged: {
+            console.debug('tableView.width: ', width)
+        }
+
         Row {
             id: columnsHeader
             y: tableView.contentY
-            spacing: 1
+            spacing: tableView.columnSpacing
+            x: 0
+            z: 2
+
+            onWidthChanged: {
+                console.debug('rowLayout.width: ', width)
+            }
 
             Repeater {
                 id: header
