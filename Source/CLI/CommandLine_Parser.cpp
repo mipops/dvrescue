@@ -188,6 +188,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             {
                 case '0':
                 case '5':
+                case '7':
                 case '9':
                     Verbosity = argv_ansi[i][0] - '0';
                     break;
