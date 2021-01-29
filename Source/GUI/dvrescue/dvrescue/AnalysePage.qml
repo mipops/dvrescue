@@ -52,7 +52,7 @@ Item {
                 var url = drop.urls[0];
                 var filePath = FileUtils.getFilePath(url);
 
-                filePath.text = filePath;
+                filePathTextField.text = filePath;
                 loadButton.clicked();
             }
 
