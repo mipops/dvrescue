@@ -48,7 +48,8 @@ public Q_SLOTS:
     void populate(const QString& fileName);
 
 private Q_SLOTS:
-    void onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes);
+    void onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+                    int totalSta, int totalEvenSta, int totalAud, int totalEvenAud);
     void onDataRowCreated(const QVariantMap& map);
 
 Q_SIGNALS:

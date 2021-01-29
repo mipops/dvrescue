@@ -108,7 +108,12 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             }
 
             Q_EMIT gotFrame(frameNumber);
-            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes);
+
+            int totalSta = 0;
+            int totalEvenSta = 0;
+
+            int totalAud = 0;
+            int totalAudSta = 0;
 
             while(xml.readNextStartElement())
             {
@@ -137,6 +142,8 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                             n_even = attribute.value().toUInt();
                     }
 
+                    totalSta += n;
+                    totalEvenSta += n_even;
                     Q_EMIT gotSta(frameNumber, t, n, n_even, video_error_den);
 
                     xml.skipCurrentElement();
@@ -156,11 +163,15 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                             n_even = attribute.value().toUInt();
                     }
 
+                    totalAud += n;
+                    totalAudSta += n_even;
                     Q_EMIT gotAud(frameNumber, t, n, n_even, audio_error_den);
 
                     xml.skipCurrentElement();
                 }
             }
+
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta);
 
             Q_EMIT bytesProcessed(xml.device()->pos());
         }

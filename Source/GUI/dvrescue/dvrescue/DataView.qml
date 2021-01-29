@@ -284,5 +284,26 @@ Rectangle {
             display: "Channels";
             property int minWidth: 20
         }
+
+        TableModelColumn {
+            display: "Video Error Concealment %";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Video Error Concealment % (odd/even balance)";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Audio Error %";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Audio Error % (odd/even balance)";
+            property int minWidth: 20
+        }
+
     }
 }

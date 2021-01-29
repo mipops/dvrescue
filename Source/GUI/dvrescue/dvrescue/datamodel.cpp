@@ -248,11 +248,12 @@ void DataModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
-    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes) {
+    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
 
-        onGotFrame(frameNumber, framesAttributes, frameAttributes);
+        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud);
         Q_EMIT totalChanged(m_total);
     });
 
@@ -290,7 +291,11 @@ void DataModel::populate(const QString &fileName)
     m_thread->start();
 }
 
-void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes)
+constexpr auto video_blocks_per_diff_seq = 135;
+constexpr auto audio_blocks_per_diff_seq = 9;
+
+void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud)
 {
     // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
 
@@ -335,6 +340,21 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
     fillAttribute("Audio Rate", framesAttributes, "audio_rate");
     fillAttribute("Channels", framesAttributes, "channels");
+
+    auto video_block_count = diff_seq_count * video_blocks_per_diff_seq;
+    auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;
+
+    auto video_error_concealment_percent = double(totalSta) / video_block_count * 100;
+    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent);
+
+    auto video_error_concealment_odd_even = double(2 * totalEvenSta - totalSta) / (video_block_count / 2) * 100;
+    map["Video Error Concealment % (odd/even balance)"] = video_error_concealment_odd_even;
+
+    auto audio_error_concealment_percent = double(totalAud) / audio_block_count * 100;
+    map["Audio Error %"] = QString::number(audio_error_concealment_percent);
+
+    auto audio_error_concealment_odd_even = double(2 * totalEvenAud - totalAud) / (audio_block_count / 2) * 100;
+    map["Audio Error % (odd/even balance)"] = audio_error_concealment_odd_even;
 
     Q_EMIT dataRowCreated(map);
 }
