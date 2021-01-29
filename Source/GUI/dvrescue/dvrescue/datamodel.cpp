@@ -249,11 +249,11 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud) {
+            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
 
-        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud);
+        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);
     });
 
@@ -295,7 +295,7 @@ constexpr auto video_blocks_per_diff_seq = 135;
 constexpr auto audio_blocks_per_diff_seq = 9;
 
 void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud)
+                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn)
 {
     // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
 
@@ -321,7 +321,37 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
     fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
 
-    fillAttribute("Captions", framesAttributes, "captions");
+    map["Captions"] = "";
+    if(framesAttributes.hasAttribute("captions"))
+    {
+        if(framesAttributes.value("captions").toString() == "y")
+        {
+            map["Captions"] = "y";
+        }
+        else if(framesAttributes.value("captions").toString() == "p")
+        {
+            if(frameAttributes.hasAttribute("caption"))
+            {
+                auto caption = frameAttributes.value("caption");
+                if(caption == "on")
+                {
+                    map["Captions"] = "┬";
+                }
+                else if(caption == "off")
+                {
+                    map["Captions"] = "┴";
+                }
+            }
+            else
+            {
+                if(captionOn)
+                {
+                    map["Captions"] = "│";
+                }
+            }
+        }
+    }
+
     fillAttribute("Caption Parity", frameAttributes, "caption-parity");
     fillAttribute("No Pack", frameAttributes, "no_pack");
     fillAttribute("No Subcode Pack", frameAttributes, "no_pack_sub");

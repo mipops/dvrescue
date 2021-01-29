@@ -94,6 +94,8 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
     assert(diff_seq_count != 0);
 
+    auto captionOn = false;
+
     while(xml.readNextStartElement())
     {
         if(xml.name() == "frame") {
@@ -104,7 +106,20 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             for(auto & attribute : frameAttributes) {
                 // qDebug() << "\t" << attribute.name() << "=" << attribute.value();
                 if(attribute.name() == "n")
-                    frameNumber = attribute.value().toUInt();                
+                    frameNumber = attribute.value().toUInt();
+            }
+
+            if(framesAttributes.hasAttribute("captions") && framesAttributes.value("captions") == "p")
+            {
+                if(frameAttributes.hasAttribute("caption"))
+                {
+                    auto caption = frameAttributes.value("caption");
+                    if(caption == "on") {
+                        captionOn = true;
+                    } else if(caption == "off") {
+                        captionOn = false;
+                    }
+                }
             }
 
             Q_EMIT gotFrame(frameNumber);
@@ -171,7 +186,9 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                 }
             }
 
-            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta);
+
+
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn);
 
             Q_EMIT bytesProcessed(xml.device()->pos());
         }
