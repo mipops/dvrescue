@@ -314,19 +314,7 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="caption" type="xsd:string">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-          When frames/@captions is 'p' (partial), contains information about closed captioning packs presence.
-          'on' at the first (in this 'frames' element) frame starting a closed captioning packs stream.
-          'off' at the first frame without captioning packs when previous frames have it.
-        </xsd:documentation>
-      </xsd:annotation>
-      <xsd:restriction base="xsd:string">
-        <xsd:enumeration value="on"/>
-        <xsd:enumeration value="off"/>
-      </xsd:restriction>
-    </xsd:attribute>
+    <xsd:attribute name="caption" type="captionType"/>
     <xsd:attribute name="caption-parity" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -398,6 +386,20 @@
       </xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
+
+  <xsd:simpleType name="captionType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        When frames/@captions is 'p' (partial), contains information about closed captioning packs presence.
+        'on' at the first (in this 'frames' element) frame starting a closed captioning packs stream.
+        'off' at the first frame without captioning packs when previous frames have it.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="on"/>
+      <xsd:enumeration value="off"/>
+    </xsd:restriction>
+  </xsd:simpleType>
 
   <xsd:complexType name="dseqType">
     <xsd:sequence>
