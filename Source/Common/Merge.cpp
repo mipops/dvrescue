@@ -193,6 +193,7 @@ namespace
         size_t Segment_Pos = 0;
         size_t Frame_Pos = 0;
         size_t Count_Last_Missing_Frames = 0;
+        size_t Count_Last_OK_Frames = 0;
         bool FirstTimeCodeFound = false;
 
         // Stats
@@ -500,6 +501,7 @@ bool dv_merge_private::Process()
 
     // Check if there is a single frame available for this time code
     size_t IsMissing = Input_Count;
+    size_t IsOK = Input_Count;
     for (size_t i = 0; i < Input_Count; i++)
     {
         auto& Input = Inputs[i];
@@ -507,6 +509,8 @@ bool dv_merge_private::Process()
         auto& Frame = Frames[Frame_Pos];
         if (!Frame.Status[Status_FrameMissing])
             IsMissing--;
+        if (Frame.Status.any())
+            IsOK--;
     }
     if (IsMissing < Input_Count)
         IsMissing = 0;
@@ -522,8 +526,22 @@ bool dv_merge_private::Process()
         }
         Count_Last_Missing_Frames = 0;
     }
+    if (IsOK < Input_Count)
+        IsOK = 0;
+    if (Count_Last_OK_Frames && !IsOK && Verbosity <= 7)
+    {
+        if (Verbosity > 5 && Count_Last_OK_Frames)
+        {
+            if (Count_Last_OK_Frames > 1)
+            {
+                cout << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+            }
+            cout << '\n';
+        }
+        Count_Last_OK_Frames = 0;
+    }
 
-    if (Verbosity > 5 && !Count_Last_Missing_Frames)
+    if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
         cout << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total();
 
     size_t BlockStatus_Count = 0;
@@ -569,7 +587,7 @@ bool dv_merge_private::Process()
             Prefered_TC = i;
     }
 
-    if (Verbosity > 5 && !Count_Last_Missing_Frames)
+    if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
     {
         if (Prefered_TC != -1)
         {
@@ -586,7 +604,7 @@ bool dv_merge_private::Process()
             cout << " M";
         else
             cout << " X";
-        if (!IsMissing)
+        if (!IsMissing && !IsOK)
         {
             cout << ' ';
             for (size_t i = 0; i < Input_Count; i++)
@@ -614,8 +632,19 @@ bool dv_merge_private::Process()
         Count_Blocks_Missing += Frame.BlockStatus_Count;
         Count_Frames_Missing++; // Don't try to find good blocks if there is no file with good blocks
         Frame_Pos++;
-        Count_Last_Missing_Frames++;
+        if (Verbosity <= 7)
+            Count_Last_Missing_Frames++;
+        else
+            cout << '\n';
         return false;
+    }
+
+    if (IsOK)
+    {
+        if (Verbosity <= 7)
+            Count_Last_OK_Frames++;
+        else
+            cout << '\n';
     }
 
     // Find valid blocks
@@ -741,7 +770,7 @@ bool dv_merge_private::Process()
         }
     }
 
-    if (Verbosity > 5)
+    if (Verbosity > 5 && !IsOK)
     {
         bool HasTimeCodeIssue = false;
         for (size_t i = 1; i < Input_Count; i++)
@@ -771,7 +800,7 @@ bool dv_merge_private::Process()
 
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
         fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
-    if (Verbosity > 5)
+    if (Verbosity > 5 && !IsOK)
         cout << endl;
 
     Frame_Pos++;
@@ -813,6 +842,18 @@ void dv_merge_private::Finish()
         return;
 
     // Processing
+    if (Count_Last_OK_Frames)
+    {
+        if (Verbosity > 5 && Verbosity <= 7 && Count_Last_OK_Frames)
+        {
+            if (Count_Last_OK_Frames > 1)
+            {
+                cout << setw(Inputs.size() + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+            }
+            cout << '\n';
+        }
+        Count_Last_OK_Frames = 0;
+    }
     while (!Process());
 
     // Post-processing
