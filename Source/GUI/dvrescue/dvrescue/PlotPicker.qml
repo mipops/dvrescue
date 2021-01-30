@@ -5,7 +5,6 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
-import GraphModel 1.0
 import QwtQuick2 1.0
 
 QwtQuick2PlotPicker {

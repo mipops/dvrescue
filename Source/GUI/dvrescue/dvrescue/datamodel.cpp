@@ -1,17 +1,18 @@
-#include "graphmodel.h"
+#include "datamodel.h"
 #include "qwtquick2plot.h"
 #include <QThread>
 #include <QDebug>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QtAlgorithms>
+#include <QJSEngine>
 
-GraphModel::GraphModel(QObject *parent) : QObject(parent)
+DataModel::DataModel(QObject *parent) : QObject(parent)
 {
-
+    connect(this, &DataModel::dataRowCreated, this, &DataModel::onDataRowCreated);
 }
 
-GraphModel::~GraphModel()
+DataModel::~DataModel()
 {
     if(m_thread)
     {
@@ -22,12 +23,12 @@ GraphModel::~GraphModel()
     }
 }
 
-int GraphModel::total() const
+int DataModel::total() const
 {
     return m_total;
 }
 
-QString GraphModel::videoInfo(float x, float y)
+QString DataModel::videoInfo(float x, float y)
 {
     Q_UNUSED(y);
 
@@ -46,7 +47,7 @@ QString GraphModel::videoInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-QString GraphModel::audioInfo(float x, float y)
+QString DataModel::audioInfo(float x, float y)
 {
     Q_UNUSED(y);
 
@@ -65,17 +66,24 @@ QString GraphModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-void GraphModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
+void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_videoValues, x, y, frame, oddValue, evenValue);
 }
 
-void GraphModel::getAudioInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
+void DataModel::getAudioInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_audioValues, x, y, frame, oddValue, evenValue);
 }
 
-void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats, float x, float y, int &closestFrame, float &oddValue, float &evenValue)
+QJSEngine* engine = nullptr;
+
+void DataModel::setEngine(QJSEngine *jsEngine)
+{
+    engine = jsEngine;
+}
+
+void DataModel::getInfo(QList<std::tuple<int, DataModel::GraphStats> > &stats, float x, float y, int &closestFrame, float &oddValue, float &evenValue)
 {
     Q_UNUSED(y);
 
@@ -144,7 +152,7 @@ void GraphModel::getInfo(QList<std::tuple<int, GraphModel::GraphStats> > &stats,
     }
 }
 
-void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->plot()->plot()->setUpdatesEnabled(false);
     videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
@@ -183,15 +191,30 @@ void GraphModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *vide
     audioCurve->plot()->replotAndUpdate();
 }
 
-void GraphModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
 {
     videoCurve->data().clear();
     videoCurve2->data().clear();
     audioCurve->data().clear();
     audioCurve2->data().clear();
+
+    Q_EMIT clearModel();
 }
 
-void GraphModel::populate(const QString &fileName)
+void DataModel::bind(QAbstractTableModel *model)
+{
+    if(m_model) {
+        disconnect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
+        disconnect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
+    }
+    m_model = model;
+    if(m_model) {
+        connect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
+        connect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
+    }
+}
+
+void DataModel::populate(const QString &fileName)
 {
     if(m_thread)
     {
@@ -204,7 +227,7 @@ void GraphModel::populate(const QString &fileName)
         m_audioValues.clear();
     }
 
-    qDebug() << QThread::currentThread();
+    qDebug() << "DataModel::populate: " << QThread::currentThread();
 
     m_lastFrame = 0;
     m_total = 0;
@@ -225,10 +248,12 @@ void GraphModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
-    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
 
+        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);
     });
 
@@ -264,4 +289,112 @@ void GraphModel::populate(const QString &fileName)
     });
 
     m_thread->start();
+}
+
+constexpr auto video_blocks_per_diff_seq = 135;
+constexpr auto audio_blocks_per_diff_seq = 9;
+
+void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn)
+{
+    // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
+
+    QVariantMap map;
+    map["Frame #"] = frameNumber;
+
+    auto fillAttribute = [&](const QString& mapKeyName, const QXmlStreamAttributes& attributes, const QString& name, const QString& defaultValue = "") {
+        map[mapKeyName] = attributes.hasAttribute(name) ? attributes.value(name).toString() : defaultValue;
+    };
+
+    fillAttribute("Byte Offset", frameAttributes, "pos");
+    fillAttribute("Timestamp", frameAttributes, "pts");
+    fillAttribute("Timecode", frameAttributes, "tc");
+    fillAttribute("Timecode Repeat", frameAttributes, "tc_r");
+    fillAttribute("Timecode Jump", frameAttributes, "tc_nc");
+    fillAttribute("Recording Time", frameAttributes, "rdt");
+    fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
+    fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
+
+    fillAttribute("Recording Start", frameAttributes, "rec_start");
+    fillAttribute("Recording End", frameAttributes, "rec_end");
+    fillAttribute("Arbitrary Bits", frameAttributes, "arb");
+    fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
+    fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
+
+    map["Captions"] = "";
+    if(framesAttributes.hasAttribute("captions"))
+    {
+        if(framesAttributes.value("captions").toString() == "y")
+        {
+            map["Captions"] = "y";
+        }
+        else if(framesAttributes.value("captions").toString() == "p")
+        {
+            if(frameAttributes.hasAttribute("caption"))
+            {
+                auto caption = frameAttributes.value("caption");
+                if(caption == "on")
+                {
+                    map["Captions"] = "┬";
+                }
+                else if(caption == "off")
+                {
+                    map["Captions"] = "┴";
+                }
+            }
+            else
+            {
+                if(captionOn)
+                {
+                    map["Captions"] = "│";
+                }
+            }
+        }
+    }
+
+    fillAttribute("Caption Parity", frameAttributes, "caption-parity");
+    fillAttribute("No Pack", frameAttributes, "no_pack");
+    fillAttribute("No Subcode Pack", frameAttributes, "no_pack_sub");
+    fillAttribute("No Video Pack", frameAttributes, "no_pack_vid");
+    fillAttribute("No Audio Pack", frameAttributes, "no_pack_aud");
+
+    fillAttribute("No Video Source or Control", frameAttributes, "no_sourceorcontrol_vid");
+    fillAttribute("No Audio Source or Control", frameAttributes, "no_sourceorcontrol_audio");
+    fillAttribute("Full Conceal", frameAttributes, "full_conceal");
+    fillAttribute("Full Conceal Video", frameAttributes, "full_conceal_vid");
+    fillAttribute("Full Conceal Audio", frameAttributes, "full_conceal_aud");
+
+    fillAttribute("Video Size", framesAttributes, "size");
+    fillAttribute("Video Rate", framesAttributes, "video_rate");
+    fillAttribute("Chroma Subsampling", framesAttributes, "chroma_subsampling");
+    fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
+    fillAttribute("Audio Rate", framesAttributes, "audio_rate");
+    fillAttribute("Channels", framesAttributes, "channels");
+
+    auto video_block_count = diff_seq_count * video_blocks_per_diff_seq;
+    auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;
+
+    auto video_error_concealment_percent = double(totalSta) / video_block_count * 100;
+    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent);
+
+    auto video_error_concealment_odd_even = double(2 * totalEvenSta - totalSta) / (video_block_count / 2) * 100;
+    map["Video Error Concealment % (odd/even balance)"] = video_error_concealment_odd_even;
+
+    auto audio_error_concealment_percent = double(totalAud) / audio_block_count * 100;
+    map["Audio Error %"] = QString::number(audio_error_concealment_percent);
+
+    auto audio_error_concealment_odd_even = double(2 * totalEvenAud - totalAud) / (audio_block_count / 2) * 100;
+    map["Audio Error % (odd/even balance)"] = audio_error_concealment_odd_even;
+
+    Q_EMIT dataRowCreated(map);
+}
+
+void DataModel::onDataRowCreated(const QVariantMap &map)
+{
+    // qDebug() << "DataModel::dataRowCreated: " << QThread::currentThread();
+
+    assert(engine);
+    auto variant = QVariant::fromValue(engine->toScriptValue(map));
+
+    Q_EMIT gotDataRow(variant);
 }

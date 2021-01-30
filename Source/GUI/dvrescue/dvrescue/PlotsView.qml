@@ -62,9 +62,9 @@ Rectangle {
 
                 PlotPicker {
                     id: videoPlotPicker
-                    visible: graphModel.total !== 0
+                    visible: dataModel.total !== 0
                     overlayTextFormatter: function(p) {
-                        return graphModel.videoInfo(p.x, p.y);
+                        return dataModel.videoInfo(p.x, p.y);
                     }
                     onXChanged: if(active && visible) pickerMoved(x, point.x)
                     onActiveChanged: if(active && visible) pickerMoved(x, point.x)
@@ -134,9 +134,9 @@ Rectangle {
 
                 PlotPicker {
                     id: audioPlotPicker
-                    visible: graphModel.total !== 0
+                    visible: dataModel.total !== 0
                     overlayTextFormatter: function(p) {
-                        return graphModel.audioInfo(p.x, p.y);
+                        return dataModel.audioInfo(p.x, p.y);
                     }
                     onXChanged: if(active && visible) pickerMoved(x, point.x)
                     onActiveChanged: if(active && visible) pickerMoved(x, point.x)
@@ -190,7 +190,7 @@ Rectangle {
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
-                scroll.size = rangeCount / graphModel.total
+                scroll.size = rangeCount / dataModel.total
 
                 videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, newRight)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
@@ -202,7 +202,7 @@ Rectangle {
             onClicked: {
                 scroll.size = 1
                 scroll.position = 0
-                videoPlot.xBottomAxisRange = Qt.vector2d(0, graphModel.total - 1)
+                videoPlot.xBottomAxisRange = Qt.vector2d(0, dataModel.total - 1)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
             }
         }
@@ -212,8 +212,8 @@ Rectangle {
             text: "Custom"
 
             Connections {
-                target: graphModel
-                function onPlotsReady() {
+                target: dataModel
+                function onPopulated() {
                     customZoomSelector.x1 = videoPlot.xBottomAxisRange.x
                     customZoomSelector.x2 = videoPlot.xBottomAxisRange.y
                 }
@@ -289,15 +289,15 @@ Rectangle {
 
                 // console.debug('originalPosition: ', originalPosition, 'scroll.position: ', scroll.position, 'scroll.size: ', scroll.size)
 
-                scroll.size = rangeCount / graphModel.total;
+                scroll.size = rangeCount / dataModel.total;
 
                 var newLeft = videoPlot.xBottomAxisRange.x;
                 var needPositionChange = false;
 
-                if(newRight > (graphModel.total - 1))
+                if(newRight > (dataModel.total - 1))
                 {
-                    newLeft = Math.max(0, newLeft - (newRight - (graphModel.total - 1)));
-                    newRight = (graphModel.total - 1)
+                    newLeft = Math.max(0, newLeft - (newRight - (dataModel.total - 1)));
+                    newRight = (dataModel.total - 1)
 
                     needPositionChange = true;
                 }
@@ -341,7 +341,7 @@ Rectangle {
 
             function move(x1) {
                 var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
-                var newPos = Math.max(0, x1 / graphModel.total);
+                var newPos = Math.max(0, x1 / dataModel.total);
 
                 if(newPos < 0)
                     newPos = 0;
@@ -353,12 +353,12 @@ Rectangle {
 
             function setCustomZoom(x1, x2) {
                 var rangeCount = x2 - x1 + 1
-                scroll.size = rangeCount / graphModel.total
+                scroll.size = rangeCount / dataModel.total
 
                 videoPlot.xBottomAxisRange = Qt.vector2d(x1, x2)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
 
-                scroll.position = Math.max(0, x1 / graphModel.total)
+                scroll.position = Math.max(0, x1 / dataModel.total)
             }
 
             stepSize: size / 100
@@ -367,8 +367,8 @@ Rectangle {
                 console.debug('position changed: ', position)
 
                 var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
-                var from = Math.round(position * graphModel.total);
-                var to = Math.round(Math.min(graphModel.total, from + rangeCount)) - 1
+                var from = Math.round(position * dataModel.total);
+                var to = Math.round(Math.min(dataModel.total, from + rangeCount)) - 1
 
                 // console.debug('from: ', from, 'to: ', to, 'rangeCount: ', rangeCount, 'to - from: ', to - from)
 

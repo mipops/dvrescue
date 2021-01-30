@@ -1,7 +1,10 @@
 #include "fileutils.h"
 #include "qtavplayerutils.h"
 #include "launcher.h"
-#include <graphmodel.h>
+#include "sortfiltertablemodel.h"
+#include "qqmltablemodel_p.h"
+#include "qqmltablemodelcolumn_p.h"
+#include <datamodel.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
@@ -14,12 +17,16 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
-    qmlRegisterType<GraphModel>("GraphModel", 1, 0, "GraphModel");
+    qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
     qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
     qmlRegisterType<QwtQuick2PlotPicker>("QwtQuick2", 1, 0, "QwtQuick2PlotPicker");
     qmlRegisterType<QwtQuick2PlotLegend>("QwtQuick2", 1, 0, "QwtQuick2PlotLegend");
+    qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
+    qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
+    qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");
+    qRegisterMetaType<QAbstractTableModel*>();
 
     auto version = QtAV_Version_String();
     QApplication app(argc, argv);
@@ -50,6 +57,8 @@ int main(int argc, char *argv[])
     });
 
     QQmlApplicationEngine engine;
+    DataModel::setEngine(&engine);
+
     const QUrl url(QStringLiteral("qrc:/main.qml"));
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
                      &app, [url](QObject *obj, const QUrl &objUrl) {

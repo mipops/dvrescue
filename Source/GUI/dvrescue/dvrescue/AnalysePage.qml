@@ -6,7 +6,7 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
-import GraphModel 1.0
+import DataModel 1.0
 import QtAVPlayerUtils 1.0
 
 Item {
@@ -21,10 +21,8 @@ Item {
         anchors.topMargin: 10
     }
 
-    GraphModel {
-        id: graphModel
-
-        signal plotsReady();
+    DataModel {
+        id: dataModel
 
         onTotalChanged: {
         }
@@ -32,13 +30,12 @@ Item {
         onPopulated: {
             console.debug('stopping timer')
             refreshTimer.stop();
-            graphModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                               plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-            plotsReady();
         }
 
         Component.onCompleted: {
-            graphModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                               plotsView.evenAudioCurve, plotsView.oddAudioCurve);
         }
     }
@@ -55,7 +52,7 @@ Item {
                 var url = drop.urls[0];
                 var filePath = FileUtils.getFilePath(url);
 
-                filePath.text = filePath;
+                filePathTextField.text = filePath;
                 loadButton.clicked();
             }
 
@@ -105,13 +102,13 @@ Item {
 
             onClicked: {
 
-                graphModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+                dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                                  plotsView.evenAudioCurve, plotsView.oddAudioCurve);
 
                 var extension = FileUtils.getFileExtension(filePathTextField.text);
                 if(extension === 'xml') {
                     refreshTimer.start();
-                    graphModel.populate(filePathTextField.text);
+                    dataModel.populate(filePathTextField.text);
 
                     if(filePathTextField.text.endsWith(dvRescueXmlExtension))
                     {
@@ -128,7 +125,7 @@ Item {
                     if(FileUtils.exists(dvRescueXmlPath))
                     {
                         refreshTimer.start();
-                        graphModel.populate(dvRescueXmlPath);
+                        dataModel.populate(dvRescueXmlPath);
                     }
 
                     playerView.player.source = 'file:///' + filePathTextField.text;
@@ -143,7 +140,7 @@ Item {
             Text {
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 id: framesInfo
-                text: "Total frames: " + graphModel.total + ", fps: " + playerView.fps
+                text: "Total frames: " + dataModel.total + ", fps: " + playerView.fps
 
             }
         }
@@ -162,6 +159,10 @@ Item {
             playerView.height = height / 5 * 1.5
         }
 
+        onWidthChanged: {
+            dataView.width = width / 2
+        }
+
         PlayerView {
             id: playerView
             signal positionChanged(int frameIndex);
@@ -173,8 +174,15 @@ Item {
                     plotsView.framePos = -1
                 }
             }
+
+            property var prevDisplayPosition: -1
             player.onPositionChanged: {
                 var displayPosition = QtAVPlayerUtils.displayPosition(player)
+                if(prevDisplayPosition === displayPosition)
+                    return;
+
+                prevDisplayPosition = displayPosition;
+
                 var ms = displayPosition
                 var frameIndex = ms * fps / 1000;
 
@@ -183,29 +191,43 @@ Item {
             }
         }
 
-        PlotsView {
-            id: plotsView
+        QQC1.SplitView {
+            id: tableAndPlots
+            orientation: Qt.Horizontal
 
-            Connections {
-                target: graphModel
-                function onPlotsReady() {
-                    plotsView.zoomAll();
+            DataView {
+                id: dataView
+
+                Component.onCompleted: {
+                    dataModel.bind(model)
                 }
             }
 
-            Connections {
-                target: playerView
-                function onPositionChanged(frameIndex) {
-                    plotsView.framePos = frameIndex
+            PlotsView {
+                id: plotsView
+
+                Connections {
+                    target: dataModel
+                    function onPopulated() {
+                        plotsView.zoomAll();
+                    }
+                }
+
+                Connections {
+                    target: playerView
+                    function onPositionChanged(frameIndex) {
+                        plotsView.framePos = frameIndex
+                    }
+                }
+
+                onPickerMoved: {
+                    var frameIndex = plotX
+                    var position = frameIndex / playerView.fps * 1000
+
+                    playerView.player.seek(position);
                 }
             }
 
-            onPickerMoved: {
-                var frameIndex = plotX
-                var position = frameIndex / playerView.fps * 1000
-
-                playerView.player.seek(position);
-            }
         }
     }
 
@@ -215,7 +237,7 @@ Item {
         running: false
         onTriggered: {
             console.debug('updating plots...')
-            graphModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                               plotsView.evenAudioCurve, plotsView.oddAudioCurve);
         }
     }

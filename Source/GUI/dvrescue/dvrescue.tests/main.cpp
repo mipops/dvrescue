@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "dummytest.h"
-#include "graphmodeltest.h"
+#include "datamodeltest.h"
 #include "xmlparsingtest.h"
 
 int main(int argc, char *argv[])
@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     std::map<QString, std::unique_ptr<QObject>> tests;
 
-    tests.emplace("graphmodel", std::make_unique<GraphModelTest>());
+    tests.emplace("datamodel", std::make_unique<DataModelTest>());
     tests.emplace("xmlparsing", std::make_unique<XmlParsingTest>());
     tests.emplace("dummy", std::make_unique<DummyTest>());
 

@@ -27,5 +27,10 @@
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
         <file>PlayerView.qml</file>
+        <file>DataView.qml</file>
+        <file>TableViewEx.qml</file>
+        <file>TextDelegate.qml</file>
+        <file>SortableFiltrableColumnHeading.qml</file>
+        <file>TextFieldEx.qml</file>
     </qresource>
 </RCC>

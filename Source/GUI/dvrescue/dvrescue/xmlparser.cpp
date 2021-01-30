@@ -57,17 +57,8 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     {
         if(xml.name() == "frames")
         {
-            QString size;
-            QString chroma_subsampling;
-
-            for(auto & attribute : xml.attributes()) {
-                if(attribute.name() == "size")
-                    size = attribute.value().toString();
-                else if(attribute.name() == "chroma_subsampling")
-                    chroma_subsampling = attribute.value().toString();
-            }
-
-            parseFrames(xml, size, chroma_subsampling);
+            auto attributes = xml.attributes();
+            parseFrames(xml, attributes);
         }
     }
 }
@@ -75,8 +66,18 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
 constexpr auto video_blocks_per_diff_seq = 135;
 constexpr auto audio_blocks_per_diff_seq = 9;
 
-void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QString& chroma_subsampling)
+void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesAttributes)
 {
+    QString size;
+    QString chroma_subsampling;
+
+    for(auto & attribute : framesAttributes) {
+        if(attribute.name() == "size")
+            size = attribute.value().toString();
+        else if(attribute.name() == "chroma_subsampling")
+            chroma_subsampling = attribute.value().toString();
+    }
+
     // magic from Dave
     auto diff_seq_count = 0;
     if(size == "720x576" && chroma_subsampling != "4:2:2")
@@ -93,19 +94,41 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QS
 
     assert(diff_seq_count != 0);
 
+    auto captionOn = false;
+
     while(xml.readNextStartElement())
     {
         if(xml.name() == "frame") {
             // qDebug() << "frame";
 
             auto frameNumber = 0;
-            for(auto & attribute : xml.attributes()) {
+            auto frameAttributes = xml.attributes();
+            for(auto & attribute : frameAttributes) {
                 // qDebug() << "\t" << attribute.name() << "=" << attribute.value();
                 if(attribute.name() == "n")
                     frameNumber = attribute.value().toUInt();
             }
 
+            if(framesAttributes.hasAttribute("captions") && framesAttributes.value("captions") == "p")
+            {
+                if(frameAttributes.hasAttribute("caption"))
+                {
+                    auto caption = frameAttributes.value("caption");
+                    if(caption == "on") {
+                        captionOn = true;
+                    } else if(caption == "off") {
+                        captionOn = false;
+                    }
+                }
+            }
+
             Q_EMIT gotFrame(frameNumber);
+
+            int totalSta = 0;
+            int totalEvenSta = 0;
+
+            int totalAud = 0;
+            int totalAudSta = 0;
 
             while(xml.readNextStartElement())
             {
@@ -134,6 +157,8 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QS
                             n_even = attribute.value().toUInt();
                     }
 
+                    totalSta += n;
+                    totalEvenSta += n_even;
                     Q_EMIT gotSta(frameNumber, t, n, n_even, video_error_den);
 
                     xml.skipCurrentElement();
@@ -153,11 +178,17 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, const QString& size, const QS
                             n_even = attribute.value().toUInt();
                     }
 
+                    totalAud += n;
+                    totalAudSta += n_even;
                     Q_EMIT gotAud(frameNumber, t, n, n_even, audio_error_den);
 
                     xml.skipCurrentElement();
                 }
             }
+
+
+
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn);
 
             Q_EMIT bytesProcessed(xml.device()->pos());
         }

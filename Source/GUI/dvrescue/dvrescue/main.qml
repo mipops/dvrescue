@@ -5,13 +5,12 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
-import GraphModel 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
 
 ApplicationWindow {
     id: root
-    width: 1280
+    width: 1920
     height: 1280
     visible: true
     title: qsTr("DVRescue")

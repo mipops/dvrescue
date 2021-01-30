@@ -118,7 +118,7 @@ Rectangle {
 
             Connections {
                 target: player
-                onPositionChanged: {
+                function onPositionChanged() {
                     var relativePosition = player.position / player.duration * (1 - scroll.size)
                     if(!scroll.pressed)
                         scroll.position = relativePosition;
