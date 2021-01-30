@@ -2,6 +2,21 @@
 <!-- WIP -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dv="https://mediaarea.net/dvrescue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:x="http://www.w3.org/1999/xhtml" version="1.0" extension-element-prefixes="xsi" exclude-result-prefixes="dv x" >
 <xsl:output encoding="UTF-8" method="html" version="1.0" indent="yes" doctype-system="about:legacy-compat"/>
+<xsl:template name="substring-after-last">
+  <xsl:param name="string"/>
+  <xsl:param name="char"/>
+  <xsl:choose>
+    <xsl:when test="contains($string, $char)">
+      <xsl:call-template name="substring-after-last">
+        <xsl:with-param name="string" select="substring-after($string, $char)"/>
+        <xsl:with-param name="char" select="$char"/>
+      </xsl:call-template>
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="$string"/>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
 <xsl:template match="/dv:dvrescue">
   <html>
     <head>
@@ -134,10 +149,33 @@
           </section>
           <section class="frames">
             <xsl:for-each select="dv:frame">
+              <xsl:variable name="filename">
+                <xsl:call-template name="substring-after-last">
+                  <xsl:with-param name="string" select="../../@ref"/>
+                  <xsl:with-param name="char" select="'/'"/>
+                </xsl:call-template>
+              </xsl:variable>
+              <xsl:variable name="jpg_name">
+                <xsl:value-of select="$filename"/>
+                <xsl:text>_n</xsl:text>
+                <xsl:value-of select="substring(string(1000000 + @n), 2)"/>
+                <xsl:text>_</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="@tc">
+                        <xsl:value-of select="translate(@tc,':','-')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>XX-XX-XX-XX</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+                <xsl:text>.jpg</xsl:text>
+              </xsl:variable>
               <div class="frameError">
                 <xsl:if test="dv:dseq">
                   <img>
-                    <xsl:attribute name="src"><xsl:value-of select="translate(@tc,':','-')"/>.jpg</xsl:attribute>
+                    <xsl:attribute name="src">
+                      <xsl:value-of select="$jpg_name"/>
+                    </xsl:attribute>
                   </img>
                 </xsl:if>
                 <xsl:if test="@tc"><p class="tc"><xsl:value-of select="@tc"/></p></xsl:if>
