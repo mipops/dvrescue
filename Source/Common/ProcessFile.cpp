@@ -153,7 +153,7 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
     PerFrame.push_back(ToPush);
 
     if (!Merge_OutputFileName.empty())
-        Merge_AddFrame(FrameData);
+        Merge.AddFrame(Merge_FilePos, FrameData);
 }
 
 //---------------------------------------------------------------------------

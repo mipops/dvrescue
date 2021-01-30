@@ -9,6 +9,7 @@
 #include "ZenLib/Ztring.h"
 #include "Output.h"
 #include <iostream>
+#include <limits>
 #include <mutex>
 #include <iomanip>
 #include <map>
@@ -67,8 +68,6 @@ namespace
         return ToReturn;
     }
 
-    mutex Mutex;
-
     enum status : uint8_t
     {
         Status_TimeCodeIssue,   // Time code is missing
@@ -91,12 +90,20 @@ namespace
         TimeCode            TC;
         uint8_t*            BlockStatus = nullptr;
         size_t              BlockStatus_Count = 0;
+        uint8_t             RepeatCount = 0;
 
         per_frame() = default;
         per_frame(status const& Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
             Status((unsigned long)(1 << (unsigned)Status_)), TC(TC_), BlockStatus(BlockStatus_), BlockStatus_Count(BlockStatus_Count_) {}
+        per_frame(unsigned long const Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
+            Status(Status_), TC(TC_), BlockStatus(BlockStatus_), BlockStatus_Count(BlockStatus_Count_) {}
     };
 
+    struct per_segment
+    {
+        vector<per_frame>   Frames;
+    };
+    
     struct per_file
     {
         FILE*               F = nullptr;
@@ -109,17 +116,20 @@ namespace
         size_t              Count_Frames_OK = 0;
         size_t              Count_Frames_NOK = 0;
         size_t              Count_Frames_Missing = 0;
+        size_t              Count_Frames_Repeated = 0;
         bool                DoNotUseFile = false;
-        vector<per_frame>   Frames;
+        bool                FirstTimeCodeFound = false;
+        vector<per_segment> Segments;
 
         ~per_file()
         {
             if (F)
                 fclose(F);
-            for (auto& Frame : Frames)
-            {
-                delete[] Frame.BlockStatus;
-            }
+            for (auto& Segment : Segments)
+                for (auto& Frame : Segment.Frames)
+                {
+                    delete[] Frame.BlockStatus;
+                }
         }
 
         size_t Count_Blocks_Bad()
@@ -137,94 +147,188 @@ namespace
             return Count_Blocks_NOK_Frames_NOK + Count_Blocks_Missing_Frames_NOK;
         }
     };
-    vector<per_file> Inputs;
-    per_file Output;
-
-    // Stats
-    size_t Count_Blocks_OK = 0;
-    size_t Count_Blocks_NOK = 0;
-    size_t Count_Blocks_Missing = 0;
-    size_t Count_Blocks_Bad()
-    {
-        return Count_Blocks_NOK + Count_Blocks_Missing;
-    }
-    size_t Count_Blocks_Total()
-    {
-        return Count_Blocks_OK + Count_Blocks_NOK + Count_Blocks_Missing;
-    }
-    size_t Count_Frames_NOK_Blocks_Total = 0;
-    size_t Count_Frame_Pos = 0;
-    size_t Count_Frames_OK = 0;
-    size_t Count_Frames_Recovered = 0;
-    size_t Count_Frames_NOK = 0;
-    size_t Count_Frames_Missing = 0;
-    size_t Count_Frames_Bad()
-    {
-        return Count_Frames_NOK + Count_Frames_Missing;
-    }
-    size_t Count_Frames_Total()
-    {
-        return Count_Frames_OK + Count_Frames_NOK + Count_Frames_Missing;
-    }
-    size_t Frames_Status_Max = -1;
 
     // Display
     const int Formating_FrameCount_Width = 6;
     const int Formating_BlockCount_Width = 9;
     const int Formating_FrameBlockCount_Width = 4;
     const int Formating_Precision = 6;
+    void ShowFrames(size_t Count, size_t Total, const char* Next = nullptr)
+    {
+        if (!Count)
+            return;
+        auto Percent = (float)Count / Total * 100;
+        cout << fixed << setw(Formating_FrameCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of frames";
+        if (Next)
+            cout << Next;
+    }
+    void ShowBlocks(size_t Count, size_t Total, const char* Next = nullptr)
+    {
+        auto Percent = (float)Count / Total * 100;
+        cout << fixed << setw(Formating_BlockCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of blocks";
+        if (Next)
+            cout << Next;
+    }
+
+    //---------------------------------------------------------------------------
+    class dv_merge_private
+    {
+    public:
+        void AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+        void Finish();
+
+    private:
+        bool Init();
+        bool ManageRepeatedFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+        bool AppendFrameToList(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+        bool ManagePartialFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+        bool SyncStart();
+        bool SyncEnd();
+        bool Process();
+        bool Stats();
+
+        mutex Mutex;
+        vector<per_file> Inputs;
+        per_file Output;
+        size_t Segment_Pos = 0;
+        size_t Frame_Pos = 0;
+        size_t Count_Last_Missing_Frames = 0;
+        size_t Count_Last_OK_Frames = 0;
+        bool FirstTimeCodeFound = false;
+
+        // Stats
+        size_t Count_Blocks_OK = 0;
+        size_t Count_Blocks_NOK = 0;
+        size_t Count_Blocks_Missing = 0;
+        size_t Count_Blocks_Bad()
+        {
+            return Count_Blocks_NOK + Count_Blocks_Missing;
+        }
+        size_t Count_Blocks_Total()
+        {
+            return Count_Blocks_OK + Count_Blocks_NOK + Count_Blocks_Missing;
+        }
+        size_t Count_Frames_NOK_Blocks_Total = 0;
+        size_t Count_Frames_OK = 0;
+        size_t Count_Frames_Recovered = 0;
+        size_t Count_Frames_NOK = 0;
+        size_t Count_Frames_Missing = 0;
+        size_t Count_Frames_Bad()
+        {
+            return Count_Frames_NOK + Count_Frames_Missing;
+        }
+        size_t Count_Frames_Total()
+        {
+            return Count_Frames_OK + Count_Frames_NOK + Count_Frames_Missing;
+        }
+    };
+    dv_merge_private Merge_Private;
 }
 
 //---------------------------------------------------------------------------
-void file::Merge_AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+void dv_merge::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
-    Mutex.lock();
-    auto FileCount = Merge_InputFileNames.size();
-    if (Inputs.empty())
+    Merge_Private.AddFrame(InputPos, FrameData);
+}
+
+//---------------------------------------------------------------------------
+void dv_merge::Finish()
+{
+    Merge_Private.Finish();
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::Init()
+{
+    if (!Inputs.empty())
+        return false;
+    auto Input_Count = Merge_InputFileNames.size();
+
+    Merge_Help();
+
+    Inputs.resize(Input_Count);
+    for (auto const& Inputs_FileName : Merge_InputFileNames)
     {
-        Merge_Help();
-
-        Inputs.resize(FileCount);
-        for (auto const& Inputs_FileName : Merge_InputFileNames)
-        {
-            if (Verbosity > 5)
-                cout << "File " << &Inputs_FileName - &Merge_InputFileNames.front() << ": " << Inputs_FileName << '\n';
-            Inputs[&Inputs_FileName - &Merge_InputFileNames.front()].F = fopen(Inputs_FileName.c_str(), "rb");
-        }
-        Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
-
         if (Verbosity > 5)
-            cout << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|SS:FF|U|St|Comments" << endl;
+            cout << "File " << &Inputs_FileName - &Merge_InputFileNames.front() << ": " << Inputs_FileName << '\n';
+        auto& Input = Inputs[&Inputs_FileName - &Merge_InputFileNames.front()];
+        Input.F = fopen(Inputs_FileName.c_str(), "rb");
+        Input.Segments.resize(1);
     }
+    Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
 
-    // Stop if frame repetition was found
-    auto& Input = Inputs[Merge_FilePos];
-    if (Input.DoNotUseFile || timecode(FrameData->TimeCode).Repeat())
+    if (Verbosity > 5)
     {
-        if (!Input.DoNotUseFile)
+        cout << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|SS:FF|U|S";
+        if (Input_Count > 1)
         {
-            Input.DoNotUseFile = true;
+            cout << 't'; // "Status"
+            if (Input_Count > 2)
+                cout << setw(Input_Count - 2) << ' ';
         }
-        Mutex.unlock();
-        return;
+        cout << "|Comments" << endl;
     }
 
-    per_frame CurrentFrame;
+    return false;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::ManageRepeatedFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+{
+    auto& Input = Inputs[InputPos];
+    auto& Frames = Input.Segments[Segment_Pos].Frames;
+
+    // Ignore if frame repetition was found
+    if (Input.DoNotUseFile || (timecode(FrameData->TimeCode).Repeat() && !Frames.empty()))
+    {
+        if (!Input.DoNotUseFile && !Frames.empty())
+        {
+            if (Frames.back().RepeatCount == 0xFF) // Check if there are too many repetition
+                Input.DoNotUseFile = true;
+            else
+            {
+                Frames.back().RepeatCount++;
+                Input.Count_Frames_Repeated++;
+                if (Frame_Pos >= Frames.size()) // Frame already parsed
+                {
+                    if (fseek(Input.F, (long)(Input.Segments[Segment_Pos].Frames.back().BlockStatus_Count * 80), SEEK_CUR))
+                        cerr << "File seek issue" << endl;
+                }
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+{
+    auto& Input = Inputs[InputPos];
+    auto& Frames = Input.Segments.back().Frames;
     auto BlockStatus_Count = FrameData->BlockStatus_Count;
+    per_frame CurrentFrame;
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData->TimeCode);
     if (TC_Temp.HasValue())
         CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
-    if (!Input.Frames.empty())
+    if (!Frames.empty() && Frames.back().TC.HasValue())
     {
-        TimeCode TC_Previous(Input.Frames.back().TC);
-        TC_Previous++;
+        TimeCode TC_Previous(Frames.back().TC);
         if (CurrentFrame.TC.HasValue())
         {
+            if (CurrentFrame.TC.HasValue() && CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
+            {
+                Input.Segments.resize(Input.Segments.size() + 1);
+                Input.Segments.back().Frames.emplace_back(move(CurrentFrame));
+                return false;
+            }
+            TC_Previous++;
             while (TC_Previous != CurrentFrame.TC)
             {
-                Input.Frames.emplace_back(Status_FrameMissing, TC_Previous, nullptr, BlockStatus_Count);
+                Frames.emplace_back(Status_FrameMissing, TC_Previous, nullptr, BlockStatus_Count);
                 Input.Count_Blocks_Missing += BlockStatus_Count;
                 Input.Count_Frames_Missing++;
                 TC_Previous++;
@@ -232,10 +336,23 @@ void file::Merge_AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameDat
         }
         else
         {
-            CurrentFrame.TC = TC_Previous;
+            CurrentFrame.TC = TC_Previous + 1;
             CurrentFrame.Status.set(Status_TimeCodeIssue);
         }
     }
+
+    Frames.emplace_back(move(CurrentFrame));
+
+    return false;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::ManagePartialFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+{
+    auto& Input = Inputs[InputPos];
+    auto& Frames = Input.Segments.back().Frames;
+    auto& CurrentFrame = Frames.back();
+    auto BlockStatus_Count = FrameData->BlockStatus_Count;
 
     // Mergeable blocks
     CurrentFrame.BlockStatus_Count = BlockStatus_Count;
@@ -262,320 +379,509 @@ void file::Merge_AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameDat
         Input.Count_Blocks[i] += Count_Blocks[i];
     }
 
-    Input.Frames.emplace_back(move(CurrentFrame));
-
-    // Time code jumps - first frame
-    if (!Count_Frame_Pos)
-    {
-        Frames_Status_Max = -1;
-        for (size_t i = 0; i < FileCount; i++)
-            if (Frames_Status_Max > Inputs[i].Frames.size())
-                Frames_Status_Max = Inputs[i].Frames.size();
-        if (Frames_Status_Max)
-        {
-            TimeCode TC_Min = Inputs[0].Frames[0].TC;
-            TimeCode TC_Max = TC_Min;
-            for (size_t i = 0; i < FileCount; i++)
-            {
-                if (TC_Min.ToFrames() > Inputs[i].Frames[0].TC.ToFrames())
-                    TC_Min = Inputs[i].Frames[0].TC;
-                if (TC_Max.ToFrames() < Inputs[i].Frames[0].TC.ToFrames())
-                    TC_Max = Inputs[i].Frames[0].TC;
-            }
-            if (TC_Min != TC_Max)
-                for (size_t i = 0; i < FileCount; i++)
-                {
-                    auto TC_Previous = TC_Min;
-                    auto TC_End = Inputs[i].Frames.front().TC;
-                    size_t Offset = 0;
-                    while (TC_Previous != TC_End)
-                    {
-                        per_frame PreviousFrame;
-                        PreviousFrame.TC = TC_Previous;
-                        PreviousFrame.Status.set(Status_FrameMissing);
-                        Inputs[i].Frames.emplace(Inputs[i].Frames.begin() + Offset, move(PreviousFrame));
-                        TC_Previous++;
-                        Offset++;
-                    }
-                }
-        }
-    }
-
-    // Check which frames are available everywhere
-    Frames_Status_Max = -1;
-    for (size_t i = 0; i < FileCount; i++)
-        if (Frames_Status_Max > Inputs[i].Frames.size())
-            Frames_Status_Max = Inputs[i].Frames.size();
-    Merge_Process();
-    Mutex.unlock();
+    return false;
 }
 
 //---------------------------------------------------------------------------
-void file::Merge_Process()
+bool dv_merge_private::SyncStart()
 {
-    auto FileCount = Merge_InputFileNames.size();
+    auto Input_Count = Merge_InputFileNames.size();
 
-    for (; Count_Frame_Pos < Frames_Status_Max; Count_Frame_Pos++)
+    // Time code jumps - first frame
+    if (Frame_Pos)
+        return false;
+
+    // Look for first time code presence per input and minimum theoritical time code
+    vector<size_t> StartPos;
+    int64_t TC_Min = numeric_limits<int64_t>::max();
+    for (size_t i = 0; i < Input_Count; i++)
     {
-        if (Verbosity > 5)
-            cout << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frame_Pos;
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
 
-        size_t BlockStatus_Count = 0;
-        for (size_t i = 0; i < FileCount; i++)
-            if (BlockStatus_Count < Inputs[i].Frames[Count_Frame_Pos].BlockStatus_Count)
-                BlockStatus_Count = Inputs[i].Frames[Count_Frame_Pos].BlockStatus_Count;
+        size_t Frames_Pos = 0;
+        while (Frames_Pos < Frames.size() && !Frames[Frames_Pos].TC.HasValue())
+            Frames_Pos++;
+        if (Frames_Pos >= Frames.size())
+            return true;
+        StartPos.push_back(Frames_Pos);
+        int64_t TC_Min_ThisInput = Frames[Frames_Pos].TC.ToFrames() - Frames_Pos;
+        if (TC_Min > TC_Min_ThisInput)
+            TC_Min = TC_Min_ThisInput;
+    }
 
-        // Copy 1 frame in memory, for each input
-        for (size_t i = 0; i < FileCount; i++)
+    // Align inputs
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+
+        auto MissingFrames = Frames[StartPos[i]].TC.ToFrames() - StartPos[i] - TC_Min;
+        if (!MissingFrames)
+            continue;
+        Input.Count_Blocks_Missing += Frames[StartPos[i]].BlockStatus_Count * MissingFrames;
+        Input.Count_Frames_Missing += MissingFrames;
+        per_frame PreviousFrame;
+        PreviousFrame.Status.set(Status_FrameMissing);
+        PreviousFrame.BlockStatus_Count = Frames[StartPos[i]].BlockStatus_Count;
+        Frames.insert(Frames.begin(), MissingFrames, PreviousFrame);
+    }
+    return false;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::SyncEnd()
+{
+    // Check which frames are available at least once
+    auto Input_Count = Merge_InputFileNames.size();
+    size_t LongestFile = 0;
+    size_t Frames_Status_Max = 0;
+    size_t BlockStatus_Count = 0;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        if (Frames_Status_Max < Frames.size())
         {
-            if (!Inputs[i].Frames[Count_Frame_Pos].Status[Status_FrameMissing])
-            {
-                auto B = fread(Inputs[i].Buffer, 1, Inputs[i].Frames[Count_Frame_Pos].BlockStatus_Count * 80, Inputs[i].F);
-                if (B != Inputs[i].Frames[Count_Frame_Pos].BlockStatus_Count * 80)
-                    int A = 0;
-            }
+            Frames_Status_Max = Frames.size();
+            BlockStatus_Count = Frames.back().BlockStatus_Count;
         }
+    }
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        while (Frames.size() < Frames_Status_Max)
+        {
+            Frames.emplace_back(Status_FrameMissing, TimeCode(), nullptr, BlockStatus_Count);
+            Input.Count_Blocks_Missing += BlockStatus_Count;
+            Input.Count_Frames_Missing++;
+        }
+    }
 
-        // Find a prefered frame
-        size_t Prefered_Frame = -1;
-        size_t Prefered_TC = -1;
-        for (size_t i = 0; i < FileCount; i++)
+    return false;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::Process()
+{
+    auto Input_Count = Merge_InputFileNames.size();
+    size_t Frames_Status_Max;
+    for (int i = 0; i < 2; i++)
+    {
+        Frames_Status_Max = -1;
+        for (size_t i = 0; i < Input_Count; i++)
         {
             auto& Input = Inputs[i];
-            if (Prefered_Frame == -1 && !Input.Frames[Count_Frame_Pos].Status[Status_FrameMissing] && !Input.Frames[Count_Frame_Pos].Status[Status_BlockIssue])
-                Prefered_Frame = i;
-            if (Prefered_TC == -1 && !Input.Frames[Count_Frame_Pos].Status[Status_TimeCodeIssue])
-                Prefered_TC = i;
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            if (Frames_Status_Max > Frames.size())
+                Frames_Status_Max = Frames.size();
         }
-
-        if (Verbosity > 5)
+        if (Frame_Pos < Frames_Status_Max)
+            break;
+        auto Segment_Pos1 = Segment_Pos + 1;
+        for (size_t i = 0; i < Input_Count; i++)
         {
-            if (Prefered_TC != -1)
-                cout << ' ' << TC_String(Inputs[Prefered_TC].Frames[Count_Frame_Pos].TC);
-            else
-                cout << " ??:??";
-            if (Prefered_Frame != -1)
-                cout << ' ' << Prefered_Frame;
-            else
-                cout << " X";
-            cout << ' ';
-            for (size_t i = 0; i < FileCount; i++)
+            auto& Input = Inputs[i];
+            if (Segment_Pos1 >= Input.Segments.size())
+                return true;
+        }
+        if (SyncEnd())
+            return true;
+        if (!i)
+            continue; // Second pass of the current segment
+        i = 0;
+        Segment_Pos++;
+        Frame_Pos = 0;
+        if (SyncStart())
+            return true;
+    }
+    if (Segment_Pos >= Inputs[0].Segments.size() || Frame_Pos >= Frames_Status_Max)
+        return true;
+
+    // Check if there is a single frame available for this time code
+    size_t IsMissing = Input_Count;
+    size_t IsOK = Input_Count;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        if (!Frame.Status[Status_FrameMissing])
+            IsMissing--;
+        if (Frame.Status.any())
+            IsOK--;
+    }
+    if (IsMissing < Input_Count)
+        IsMissing = 0;
+    if (Count_Last_Missing_Frames && !IsMissing && Verbosity <= 7)
+    {
+        if (Verbosity > 5 && Count_Last_Missing_Frames)
+        {
+            if (Count_Last_Missing_Frames > 1)
             {
-                if (Inputs[i].Frames[Count_Frame_Pos].Status[Status_FrameMissing])
+                cout << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_Missing_Frames << " frames)";
+            }
+            cout << '\n';
+        }
+        Count_Last_Missing_Frames = 0;
+    }
+    if (IsOK < Input_Count)
+        IsOK = 0;
+    if (Count_Last_OK_Frames && !IsOK && Verbosity <= 7)
+    {
+        if (Verbosity > 5 && Count_Last_OK_Frames)
+        {
+            if (Count_Last_OK_Frames > 1)
+            {
+                cout << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+            }
+            cout << '\n';
+        }
+        Count_Last_OK_Frames = 0;
+    }
+
+    if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
+        cout << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total();
+
+    size_t BlockStatus_Count = 0;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        if (BlockStatus_Count < Frame.BlockStatus_Count)
+            BlockStatus_Count = Frame.BlockStatus_Count;
+    }
+
+    // Copy 1 frame in memory, for each input
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        if (!Frame.Status[Status_FrameMissing])
+        {
+            auto BytesRead = fread(Inputs[i].Buffer, 1, Frame.BlockStatus_Count * 80, Inputs[i].F);
+            if (BytesRead != Frame.BlockStatus_Count * 80)
+                cerr << "File read issue" << endl;
+            if (Frame.RepeatCount)
+            {
+                if (fseek(Inputs[i].F, (long)(Frame.BlockStatus_Count * 80 * Frame.RepeatCount), SEEK_CUR))
+                    cerr << "File seek issue" << endl;
+            }
+        }
+    }
+
+    // Find a prefered frame
+    size_t Prefered_Frame = -1;
+    size_t Prefered_TC = -1;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        auto& Input = Inputs[i];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        if (Prefered_Frame == -1 && !Frame.Status[Status_FrameMissing] && !Frame.Status[Status_BlockIssue])
+            Prefered_Frame = i;
+        if (Prefered_TC == -1 && !Frame.Status[Status_TimeCodeIssue] && Frame.TC.HasValue())
+            Prefered_TC = i;
+    }
+
+    if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
+    {
+        if (Prefered_TC != -1)
+        {
+            auto& Input = Inputs[Prefered_TC];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            cout << ' ' << TC_String(Frame.TC);
+        }
+        else
+            cout << " ??:??";
+        if (Prefered_Frame != -1)
+            cout << ' ' << Prefered_Frame;
+        else if (IsMissing)
+            cout << " M";
+        else
+            cout << " X";
+        if (!IsMissing && !IsOK)
+        {
+            cout << ' ';
+            for (size_t i = 0; i < Input_Count; i++)
+            {
+                auto& Input = Inputs[i];
+                auto& Frames = Input.Segments[Segment_Pos].Frames;
+                auto& Frame = Frames[Frame_Pos];
+                if (Frame.Status[Status_FrameMissing])
                     cout << 'M';
-                else if (Inputs[i].Frames[Count_Frame_Pos].Status[Status_BlockIssue])
+                else if (Frame.Status[Status_BlockIssue])
                     cout << 'P';
-                else if (Inputs[i].Frames[Count_Frame_Pos].Status[Status_TimeCodeIssue])
+                else if (Frame.Status[Status_TimeCodeIssue])
                     cout << 'T';
                 else
                     cout << ' ';
             }
         }
-
-        // Find valid blocks
-        if (Prefered_Frame != -1)
-        {
-            Inputs[Prefered_Frame].Count_Blocks_Used += BlockStatus_Count;
-            Count_Blocks_OK += BlockStatus_Count;
-            Count_Frames_OK++;
-            memcpy(Output.Buffer, Inputs[Prefered_Frame].Buffer, Inputs[Prefered_Frame].Frames[Count_Frame_Pos].BlockStatus_Count * 80);
-        }
+    }
+    
+    if (IsMissing)
+    {
+        auto& Input = Inputs[0];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        Count_Blocks_Missing += Frame.BlockStatus_Count;
+        Count_Frames_Missing++; // Don't try to find good blocks if there is no file with good blocks
+        Frame_Pos++;
+        if (Verbosity <= 7)
+            Count_Last_Missing_Frames++;
         else
-        {
-            size_t ThisFrame_Count_Blocks_Used[100];
-            memset(ThisFrame_Count_Blocks_Used, 0, FileCount * sizeof(size_t));
-            size_t IssueCount = 0;
+            cout << '\n';
+        return false;
+    }
 
-            // For each block
-            vector<size_t> Priorities; // Find the frame with the minimum count of bad blocks
-            Priorities.resize(FileCount);
+    if (IsOK)
+    {
+        if (Verbosity <= 7)
+            Count_Last_OK_Frames++;
+        else
+            cout << '\n';
+    }
+
+    // Find valid blocks
+    if (Prefered_Frame != -1)
+    {
+        auto& Input = Inputs[Prefered_Frame];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        Input.Count_Blocks_Used += BlockStatus_Count;
+        Count_Blocks_OK += BlockStatus_Count;
+        Count_Frames_OK++;
+        memcpy(Output.Buffer, Input.Buffer, Frame.BlockStatus_Count * 80);
+    }
+    else
+    {
+        size_t ThisFrame_Count_Blocks_Used[100];
+        memset(ThisFrame_Count_Blocks_Used, 0, Input_Count * sizeof(size_t));
+        size_t IssueCount = 0;
+
+        // For each block
+        vector<size_t> Priorities; // Find the frame with the minimum count of bad blocks
+        Priorities.resize(Input_Count);
+        for (int b = 0; b < BlockStatus_Count; b++)
+        {
+            for (int i = 0; i < Input_Count; i++)
+            {
+                auto& Input = Inputs[i];
+                auto& Frames = Input.Segments[Segment_Pos].Frames;
+                auto& Frame = Frames[Frame_Pos];
+                if (Frame.Status[Status_BlockIssue])
+                {
+                    switch (Frame.BlockStatus[b])
+                    {
+                    case BlockStatus_NOK:
+                        Priorities[i]++;
+                        Inputs[i].Count_Blocks_NOK_Frames_NOK++;
+                        break;
+                    default:;
+                    }
+                }
+                else if (!b)
+                    Priorities[i] = (size_t)-1;
+            }
+        }
+        map<size_t, vector<size_t>> Priorities2;
+        for (int i = 0; i < Input_Count; i++)
+            Priorities2[Priorities[i]].push_back(i);
+        Priorities.clear();
+        for (auto p : Priorities2)
+            for (auto k : p.second)
+                Priorities.push_back(k);
+        {
+            for (size_t i = 0; i < Input_Count; i++)
+            {
+                auto& Input = Inputs[i];
+                auto& Frames = Input.Segments[Segment_Pos].Frames;
+                auto& Frame = Frames[Frame_Pos];
+                if (Frame.Status[Status_FrameMissing])
+                    Input.Count_Blocks_Missing_Frames_NOK += BlockStatus_Count;
+            }
+            Prefered_Frame = Priorities[0];
+            Inputs[Prefered_Frame].Count_Blocks_Used += BlockStatus_Count;
+            memcpy(Output.Buffer, Inputs[Priorities[0]].Buffer, BlockStatus_Count * 80); // Copy the content of the file having the less issues
             for (int b = 0; b < BlockStatus_Count; b++)
             {
-                for (int f = 0; f < FileCount; f++)
-                    if (Inputs[f].Frames[Count_Frame_Pos].Status[Status_BlockIssue])
+                bool NoIssue = false;
+                for (int i = 0; i < Input_Count; i++)
+                {
+                    auto p = Priorities[i];
+                    auto& Input = Inputs[p];
+                    auto& Frames = Input.Segments[Segment_Pos].Frames;
+                    auto& Frame = Frames[Frame_Pos];
+                    if (Frame.Status[Status_BlockIssue])
                     {
-                        switch (Inputs[f].Frames[Count_Frame_Pos].BlockStatus[b])
+                        switch (Frame.BlockStatus[b])
                         {
-                        case BlockStatus_NOK:
-                            Priorities[f]++;
-                            Inputs[f].Count_Blocks_NOK_Frames_NOK++;
+                        case 1:
+                            if (!NoIssue)
+                            {
+                                if (i)
+                                    memcpy(Output.Buffer + b * 80, Inputs[p].Buffer + b * 80, 80);
+                                ThisFrame_Count_Blocks_Used[p]++;
+                            }
+                            NoIssue = true;
+                            break;
+                        case 2:
                             break;
                         default:;
+                            NoIssue = true;
                         }
                     }
-                    else if (!b)
-                        Priorities[f] = (size_t)-1;
+                }
+                if (!NoIssue)
+                    IssueCount++;
             }
-            map<size_t, vector<size_t>> Priorities2;
-            for (int f = 0; f < FileCount; f++)
-                Priorities2[Priorities[f]].push_back(f);
-            Priorities.clear();
-            for (auto p : Priorities2)
-                for (auto k : p.second)
-                    Priorities.push_back(k);
-            if (Priorities2.begin()->first == (size_t)-1)
+            if (Verbosity > 5)
+                cout << ',';
+            for (int i = 0; i < Input_Count; i++)
             {
-                Count_Blocks_Missing += BlockStatus_Count;
-                Count_Frames_Missing++; // Don't try to find good blocks if there is no file with good blocks
+                if (i != Prefered_Frame)
+                {
+                    Inputs[i].Count_Blocks_Used += ThisFrame_Count_Blocks_Used[i];
+                    Inputs[Prefered_Frame].Count_Blocks_Used -= ThisFrame_Count_Blocks_Used[i];
+                }
+                if (Verbosity > 5)
+                    cout << ' ' << fixed << setw(Formating_FrameBlockCount_Width) << ThisFrame_Count_Blocks_Used[i];
+            }
+            if (Verbosity > 5)
+                cout << " block picks";
+            if (IssueCount)
+            {
+                if (Verbosity > 5)
+                    cout << " & " << fixed << setw(Formating_FrameBlockCount_Width) << IssueCount << " remaining block errors";
+                Count_Frames_NOK++;
+                Count_Frames_NOK_Blocks_Total += BlockStatus_Count;
             }
             else
             {
-                for (size_t i = 0; i < FileCount; i++)
-                {
-                    if (Inputs[i].Frames[Count_Frame_Pos].Status[Status_FrameMissing])
-                        Inputs[i].Count_Blocks_Missing_Frames_NOK += BlockStatus_Count;
-                }
-                Prefered_Frame = Priorities[0];
-                Inputs[Prefered_Frame].Count_Blocks_Used += BlockStatus_Count;
-                memcpy(Output.Buffer, Inputs[Priorities[0]].Buffer, BlockStatus_Count * 80); // Copy the content of the file having the less issues
-                for (int b = 0; b < BlockStatus_Count; b++)
-                {
-                    bool NoIssue = false;
-                    for (int f = 0; f < FileCount; f++)
-                    {
-                        auto p = Priorities[f];
-                        if (Inputs[p].Frames[Count_Frame_Pos].Status[Status_BlockIssue])
-                        {
-                            switch (Inputs[p].Frames[Count_Frame_Pos].BlockStatus[b])
-                            {
-                            case 1:
-                                if (!NoIssue)
-                                {
-                                    if (f)
-                                        memcpy(Output.Buffer + b * 80, Inputs[p].Buffer + b * 80, 80);
-                                    ThisFrame_Count_Blocks_Used[p]++;
-                                }
-                                NoIssue = true;
-                                break;
-                            case 2:
-                                break;
-                            default:;
-                                NoIssue = true;
-                            }
-                        }
-                    }
-                    if (!NoIssue)
-                        IssueCount++;
-                }
-                if (Verbosity > 5)
-                    cout << ',';
-                for (int f = 0; f < FileCount; f++)
-                {
-                    if (f != Prefered_Frame)
-                    {
-                        Inputs[f].Count_Blocks_Used += ThisFrame_Count_Blocks_Used[f];
-                        Inputs[Prefered_Frame].Count_Blocks_Used -= ThisFrame_Count_Blocks_Used[f];
-                    }
-                    if (Verbosity > 5)
-                        cout << ' ' << fixed << setw(Formating_FrameBlockCount_Width) << ThisFrame_Count_Blocks_Used[f];
-                }
-                if (Verbosity > 5)
-                    cout << " block picks";
-                if (IssueCount)
-                {
-                    if (Verbosity > 5)
-                        cout << " & " << fixed << setw(Formating_FrameBlockCount_Width) << IssueCount << " remaining block errors";
-                    Count_Frames_NOK++;
-                    Count_Frames_NOK_Blocks_Total += BlockStatus_Count;
-                }
-                else
-                {
-                    Count_Frames_Recovered++;
-                }
-                Count_Blocks_OK += BlockStatus_Count - IssueCount;
-                Count_Blocks_NOK += IssueCount;
+                Count_Frames_Recovered++;
             }
+            Count_Blocks_OK += BlockStatus_Count - IssueCount;
+            Count_Blocks_NOK += IssueCount;
         }
-
-        if (Verbosity > 5)
-        {
-            bool HasTimeCodeIssue = false;
-            for (size_t i = 1; i < FileCount; i++)
-                if (Inputs[i].Frames[Count_Frame_Pos].Status[Status_TimeCodeIssue])
-                    HasTimeCodeIssue = true;
-            if (HasTimeCodeIssue)
-            {
-                if (Verbosity > 5)
-                {
-                    cout << ',';
-                    for (size_t i = 0; i < FileCount; i++)
-                    {
-                        cout << ' ';
-                        cout << (Inputs[i].Frames[Count_Frame_Pos].Status[Status_TimeCodeIssue] ? "??:??" : TC_String(Inputs[i].Frames[Count_Frame_Pos].TC));
-                    }
-                }
-            }
-        }
-
-        if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
-            fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
-        if (Verbosity > 5)
-            cout << endl;
     }
+
+    if (Verbosity > 5 && !IsOK)
+    {
+        bool HasTimeCodeIssue = false;
+        for (size_t i = 1; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Status[Status_TimeCodeIssue])
+                HasTimeCodeIssue = true;
+        }
+        if (HasTimeCodeIssue)
+        {
+            if (Verbosity > 5)
+            {
+                cout << ',';
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    cout << ' ';
+                    auto& Input = Inputs[i];
+                    auto& Frames = Input.Segments[Segment_Pos].Frames;
+                    auto& Frame = Frames[Frame_Pos];
+                    cout << (Frame.Status[Status_TimeCodeIssue] ? "??:??" : TC_String(Frame.TC));
+                }
+            }
+        }
+    }
+
+    if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
+        fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
+    if (Verbosity > 5 && !IsOK)
+        cout << endl;
+
+    Frame_Pos++;
+    return false;
 }
 
-void ShowFrames(size_t Count, size_t Total, const char* Next = nullptr)
-{
-    if (!Count)
-        return;
-    auto Percent = (float)Count / Total * 100;
-    cout << fixed << setw(Formating_FrameCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of frames";
-    if (Next)
-        cout << Next;
-}
-void ShowBlocks(size_t Count, size_t Total, const char* Next = nullptr)
-{
-    auto Percent = (float)Count / Total * 100;
-    cout << fixed << setw(Formating_BlockCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of blocks";
-    if (Next)
-        cout << Next;
-}
 //---------------------------------------------------------------------------
-void file::Merge_Finish()
+void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
+    // Coherency check
+    lock_guard<mutex> Lock(Mutex);
+
+    // Pre-processing
+    if (Init())
+        return;
+    if (ManageRepeatedFrame(InputPos, FrameData))
+        return;
+    if (AppendFrameToList(InputPos, FrameData))
+        return;
+    if (ManagePartialFrame(InputPos, FrameData))
+        return;
+    if (SyncStart())
+        return;
+
+    // Processing
+    while (!Process());
+}
+
+//---------------------------------------------------------------------------
+void dv_merge_private::Finish()
+{
+    // Coherency check
+    lock_guard<mutex> Lock(Mutex);
     if (Merge_OutputFileName.empty())
         return;
 
-    // Check which frames are available at least once
-    auto FileCount = Merge_InputFileNames.size();
-    size_t LongestFile = 0;
-    for (size_t i = 0; i < FileCount; i++)
-        if (Frames_Status_Max < Inputs[i].Frames.size())
-        {
-            Frames_Status_Max = Inputs[i].Frames.size();
-            LongestFile = i;
-        }
-    auto BlockStatus_Count = Inputs[LongestFile].Frames.back().BlockStatus_Count;
-    for (size_t i = 0; i < FileCount; i++)
+    // Pre-processing
+    if (SyncEnd())
+        return;
+
+    // Processing
+    if (Count_Last_OK_Frames)
     {
-        auto& Input = Inputs[i];
-        while (Input.Frames.size() < Frames_Status_Max)
+        if (Verbosity > 5 && Verbosity <= 7 && Count_Last_OK_Frames)
         {
-
-            Input.Frames.emplace_back(Status_FrameMissing, TimeCode(), nullptr, BlockStatus_Count);
-            Input.Count_Blocks_Missing += BlockStatus_Count;
-            Input.Count_Frames_Missing++;
+            if (Count_Last_OK_Frames > 1)
+            {
+                cout << setw(Inputs.size() + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+            }
+            cout << '\n';
         }
+        Count_Last_OK_Frames = 0;
     }
-    Merge_Process();
+    while (!Process());
 
+    // Post-processing
+    if (Stats())
+        return;
+}
+
+//---------------------------------------------------------------------------
+bool dv_merge_private::Stats()
+{
     // Stats - Frame count
     if (!Verbosity)
-        return;
-    auto Count_Blocks_Total = ::Count_Blocks_Total();
-    FrameNumber = Frames_Status_Max;
-    cout << '\n' << setfill(' ') << setw(Formating_FrameCount_Width) << FrameNumber << " frames in total.\n\n";
+        return false;
+    auto Input_Count = Merge_InputFileNames.size();
+    auto Count_Blocks_Total = dv_merge_private::Count_Blocks_Total();
+    auto Count_Frames_Total = dv_merge_private::Count_Frames_Total();
+    cout << '\n' << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total << " frames in total.\n\n";
 
     // Stats - Merge
     cout << "How frames are merged:\n";
-    ShowFrames(Count_Frames_OK, FrameNumber, " are recovered from full frames.\n");
-    ShowFrames(Count_Frames_Recovered, FrameNumber, " are fully recovered based on reconstruction from blocks.\n");
-    ShowFrames(Count_Frames_NOK, FrameNumber, " remain with errors.\n");
+    ShowFrames(Count_Frames_OK, Count_Frames_Total, " are recovered from full frames.\n");
+    ShowFrames(Count_Frames_Recovered, Count_Frames_Total, " are fully recovered based on reconstruction from blocks.\n");
+    ShowFrames(Count_Frames_NOK, Count_Frames_Total, " remain with errors.\n");
     if (Count_Frames_NOK)
     {
         size_t Count_Frames_NotHealthy_Blocks_NotHealthy_Max = -1;
         size_t Count_Frames_NotHealthy_Blocks_NotHealthy_Max_Pos;
-        for (size_t i = 0; i < FileCount; i++)
+        for (size_t i = 0; i < Input_Count; i++)
         {
             if (Count_Frames_NotHealthy_Blocks_NotHealthy_Max > Inputs[i].Count_Blocks_Bad_Frames_NOK())
             {
@@ -591,17 +897,18 @@ void file::Merge_Finish()
             ShowBlocks(Count_Blocks_NOK, Count_Frames_NOK_Blocks_Total, " bad).\n");
         }
     }
-    ShowFrames(Count_Frames_Missing, FrameNumber, " are still missing.\n");
+    ShowFrames(Count_Frames_Missing, Count_Frames_Total, " are still missing.\n");
     cout << '\n';
 
     // Stats - What is used
     cout << "Usage of input files:\n";
-    for (size_t i = 0; i < FileCount; i++)
+    for (size_t i = 0; i < Input_Count; i++)
     {
         if (Inputs[i].Count_Blocks_Used)
         {
             ShowBlocks(Inputs[i].Count_Blocks_Used, Count_Blocks_Total);
             cout << " from file " << i << "     used.";
+            ShowFrames(Inputs[i].Count_Frames_Repeated, Count_Frames_Total, " were repetition and discarded.");
         }
         else
         {
@@ -617,12 +924,12 @@ void file::Merge_Finish()
     float Frames_Bad_MinRatio = 1;
     float Blocks_Bad_MinRatio = 1;
     cout << "Input files summary:\n";
-    for (size_t i = 0; i < FileCount; i++)
+    for (size_t i = 0; i < Input_Count; i++)
     {
         auto Blocks_Bad = Inputs[i].Count_Blocks_Bad();
         auto Frames_Bad = Inputs[i].Count_Frames_Bad();
         auto Blocks_Bad_Ratio = (float)Blocks_Bad / Count_Blocks_Total;
-        auto Frames_Bad_Ratio = (float)Frames_Bad / FrameNumber;
+        auto Frames_Bad_Ratio = (float)Frames_Bad / Count_Frames_Total;
         if (Blocks_Bad_MinRatio > Blocks_Bad_Ratio)
             Blocks_Bad_MinRatio = Blocks_Bad_Ratio;
         if (Frames_Bad_MinRatio > Frames_Bad_Ratio)
@@ -631,7 +938,7 @@ void file::Merge_Finish()
         if (Blocks_Bad)
         {
             ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
-            ShowFrames(Frames_Bad, FrameNumber, "\n");
+            ShowFrames(Frames_Bad, Count_Frames_Total, "\n");
         }
         else
         {
@@ -644,11 +951,11 @@ void file::Merge_Finish()
     auto Blocks_Bad = Count_Blocks_Bad();
     auto Blocks_Bad_FinalRatio = (float)Blocks_Bad / Count_Blocks_Total;
     auto Frames_Bad = Count_Frames_Bad();
-    auto Frames_Bad_FinalRatio = (float)Frames_Bad / FrameNumber;
+    auto Frames_Bad_FinalRatio = (float)Frames_Bad / Count_Frames_Total;
     cout << "Result:\n";
     cout << std::setw(8) << ' ';
     ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
-    ShowFrames(Frames_Bad, FrameNumber, "\n");
+    ShowFrames(Frames_Bad, Count_Frames_Total, "\n");
     if (Frames_Bad_MinRatio != Frames_Bad_FinalRatio || Blocks_Bad_MinRatio != Blocks_Bad_FinalRatio)
     {
         cout << std::setw(Formating_BlockCount_Width + 9) << ' ';
@@ -672,4 +979,6 @@ void file::Merge_Finish()
         cout << '\n';
     }
     cout << flush;
+
+    return false;
 }

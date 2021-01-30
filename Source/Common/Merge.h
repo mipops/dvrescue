@@ -18,3 +18,12 @@ using namespace std;
 extern vector<string> Merge_InputFileNames;
 extern string Merge_OutputFileName;
 extern uint8_t Verbosity;
+struct MediaInfo_Event_DvDif_Analysis_Frame_1;
+
+//---------------------------------------------------------------------------
+class dv_merge
+{
+public:
+    void AddFrame(size_t Merge_FilePos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+    void Finish();
+};
