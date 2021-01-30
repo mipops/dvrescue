@@ -449,7 +449,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // Errors
-                if (!Coherency.full_conceal() && ((Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size)))
+                if (!Coherency.full_conceal() && ((!Coherency.full_conceal_vid() && Frame->Video_STA_Errors && Frame->Video_STA_Errors_Count == DseqSta_Size) || (!Coherency.full_conceal_aud() && Frame->Audio_Data_Errors && Frame->Audio_Data_Errors_Count == Dseq_Size)))
                 {
                     Text += ">\n";
 
