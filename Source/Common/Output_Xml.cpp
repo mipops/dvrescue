@@ -170,8 +170,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Captions_Partial[1] = {};
                     bool HasChanges = false;
                     bool CaptionsOn = Change->Captions_Flags & 1;
-                    if (CaptionsOn)
-                        Captions_Partial[1].push(Change->FrameNumber);
+                    Captions_Partial[CaptionsOn].push(Change->FrameNumber);
                     do
                     {
                         // We check if the caption presence change is the only change, and skip it if it is the case, while keeping info about in/out of caption change
