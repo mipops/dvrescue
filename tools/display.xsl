@@ -155,19 +155,25 @@
                   <xsl:with-param name="char" select="'/'"/>
                 </xsl:call-template>
               </xsl:variable>
+              <xsl:variable name="tc_display">
+                <xsl:choose>
+                  <xsl:when test="@tc">
+                      <xsl:value-of select="@tc"/>
+                  </xsl:when>
+                  <xsl:otherwise>
+                      <xsl:text>XX:XX:XX:XX</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:variable>
+              <xsl:variable name="tc_filename_safe">
+                <xsl:value-of select="translate($tc_display,':','-')"/>
+              </xsl:variable>
               <xsl:variable name="jpg_name">
                 <xsl:value-of select="$filename"/>
                 <xsl:text>_n</xsl:text>
                 <xsl:value-of select="substring(string(1000000 + @n), 2)"/>
                 <xsl:text>_</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="@tc">
-                        <xsl:value-of select="translate(@tc,':','-')"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:text>XX-XX-XX-XX</xsl:text>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:value-of select="$tc_filename_safe"/>
                 <xsl:text>.jpg</xsl:text>
               </xsl:variable>
               <div class="frameError">
@@ -178,7 +184,7 @@
                     </xsl:attribute>
                   </img>
                 </xsl:if>
-                <xsl:if test="@tc"><p class="tc"><xsl:value-of select="@tc"/></p></xsl:if>
+                <xsl:if test="$tc_display"><p class="tc"><xsl:value-of select="$tc_display"/></p></xsl:if>
                 <xsl:if test="@n"><p class="tc"><xsl:value-of select="@n"/></p></xsl:if>
                 <xsl:if test="@rec_start"><p>Recording start</p></xsl:if>
                 <xsl:if test="@rec_end"><p>Recording end</p></xsl:if>
