@@ -28,7 +28,7 @@
           background-color: black;
           color: white;
           font-weight: bold;
-          font-size: 1.5em;       
+          font-size: 1.5em;
         }
         td {
           padding-left: 2em;
@@ -145,7 +145,7 @@
                 <xsl:if test="@rec_start"><p>Recording start</p></xsl:if>
                 <xsl:if test="@rec_end"><p>Recording end</p></xsl:if>
                 <xsl:if test="@rdt">
-                  <p><strong>Recorded Date Time </strong> 
+                  <p><strong>Recorded Date Time </strong>
                     <xsl:value-of select="@rdt"/>
                     <xsl:if test="@rdt_r"> (repeating) </xsl:if>
                     <xsl:if test="@rdt_nc"> (non-consecutive) </xsl:if>
@@ -158,7 +158,7 @@
                     <xsl:if test="@arb_nc"> (non-consecutive)</xsl:if>
                   </p>
                 </xsl:if>
-                <xsl:for-each select="dv:sta">  
+                <xsl:for-each select="dv:sta">
                     <xsl:call-template name="staType"/>
                 </xsl:for-each>
                 <xsl:for-each select="dv:aud">
