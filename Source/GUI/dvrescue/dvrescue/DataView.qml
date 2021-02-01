@@ -5,15 +5,21 @@ import TableModelColumn 1.0
 import SortFilterTableModel 1.0
 
 Rectangle {
+    id: dataView
     property alias model: dataModel
     property var cppDataModel;
     property int framePos: -1
-    onFramePosChanged: {
+
+    signal tapped(int framePos);
+
+    function bringToView(framePos) {
         var sourceRow = cppDataModel.rowByFrame(framePos);
         if(sourceRow !== -1)
         {
             var row = sortFilterTableModel.fromSourceRowIndex(sourceRow)
-            tableView.bringToView(row)
+            Qt.callLater(() => {
+                             tableView.bringToView(row)
+                         })
         }
     }
 
@@ -57,6 +63,14 @@ Rectangle {
                 }
 
                 return (row % 2) == 0 ? evenColor : oddColor
+            }
+
+            TapHandler {
+                onTapped: {
+                    var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                    var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                    dataView.tapped(frameNumber);
+                }
             }
         }
 

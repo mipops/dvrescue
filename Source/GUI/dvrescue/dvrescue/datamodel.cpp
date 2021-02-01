@@ -68,6 +68,9 @@ QString DataModel::audioInfo(float x, float y)
 
 int DataModel::frameByIndex(int index)
 {
+    if(index < 0 || index >= m_frames.size())
+        return index;
+
     return m_frames[index];
 }
 

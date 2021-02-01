@@ -192,7 +192,20 @@ Item {
                 var frameIndex = ms * fps / 1000;
 
                 console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
-                playerView.positionChanged(frameIndex);
+                playerView.positionChanged(Math.round(frameIndex));
+            }
+
+            function seekToFrame(frameIndex) {
+                var position = frameIndex / playerView.fps * 1000
+                playerView.player.seekEx(position);
+            }
+
+            Connections {
+                target: dataView
+                onTapped: {
+                    if(framePos !== -1)
+                        playerView.seekToFrame(framePos);
+                }
             }
         }
 
@@ -235,9 +248,7 @@ Item {
 
                 onPickerMoved: {
                     var frameIndex = plotX
-                    var position = frameIndex / playerView.fps * 1000
-
-                    playerView.player.seek(position);
+                    playerView.seekToFrame(frameIndex)
                 }
             }
 

@@ -65,6 +65,23 @@ Rectangle {
                 return promise
             }
 
+            function waitForStepFinished(action) {
+                var promise = new Promise((resolve, reject) => {
+                                                  var stepFinishedHandler;
+                                                  stepFinishedHandler = (value) => {
+                                                      player.stepFinished.disconnect(stepFinishedHandler)
+                                                      resolve();
+                                                  };
+
+                                                  player.stepFinished.connect(stepFinishedHandler);
+                                                  Qt.callLater(() => {
+                                                        if(action)
+                                                            action();
+                                                  })
+                                              });
+                return promise
+            }
+
             function seekEx(ms) {
                 return waitForSeekFinished(() => { player.seek(ms) }).then(() => {
                     var displayPosition = QtAVPlayerUtils.displayPosition(player);
