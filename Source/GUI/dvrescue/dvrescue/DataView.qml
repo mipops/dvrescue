@@ -6,6 +6,17 @@ import SortFilterTableModel 1.0
 
 Rectangle {
     property alias model: dataModel
+    property var cppDataModel;
+    property int framePos: -1
+    onFramePosChanged: {
+        var sourceRow = cppDataModel.rowByFrame(framePos);
+        if(sourceRow !== -1)
+        {
+            var row = sortFilterTableModel.fromSourceRowIndex(sourceRow)
+            tableView.bringToView(row)
+        }
+    }
+
     onWidthChanged: {
         tableView.forceLayout();
     }
@@ -35,7 +46,18 @@ Rectangle {
             implicitHeight: tableView.delegateHeight
             property color evenColor: '#e3e3e3'
             property color oddColor: '#f3f3f3'
-            color: (row % 2) == 0 ? evenColor : oddColor
+            property color redColor: 'red'
+            color: {
+
+                var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                if(frameNumber === framePos) {
+                    return redColor;
+                }
+
+                return (row % 2) == 0 ? evenColor : oddColor
+            }
         }
 
         function getTotalDesiredWidth() {

@@ -192,7 +192,7 @@ Item {
                 var frameIndex = ms * fps / 1000;
 
                 console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
-                positionChanged(frameIndex);
+                playerView.positionChanged(frameIndex);
             }
         }
 
@@ -202,6 +202,14 @@ Item {
 
             DataView {
                 id: dataView
+                cppDataModel: dataModel
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        dataView.framePos = frameIndex
+                    }
+                }
 
                 Component.onCompleted: {
                     dataModel.bind(model)
@@ -220,7 +228,7 @@ Item {
 
                 Connections {
                     target: playerView
-                    function onPositionChanged(frameIndex) {
+                    onPositionChanged: {
                         plotsView.framePos = frameIndex
                     }
                 }

@@ -66,6 +66,16 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
+int DataModel::frameByIndex(int index)
+{
+    return m_frames[index];
+}
+
+int DataModel::rowByFrame(int frame)
+{
+    return m_rowByFrame.contains(frame) ? m_rowByFrame[frame] : -1;
+}
+
 void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_videoValues, x, y, frame, oddValue, evenValue);
@@ -223,6 +233,8 @@ void DataModel::populate(const QString &fileName)
         m_thread->quit();
         m_thread->wait();
 
+        m_frames.clear();
+        m_rowByFrame.clear();
         m_videoValues.clear();
         m_audioValues.clear();
     }
@@ -252,6 +264,8 @@ void DataModel::populate(const QString &fileName)
             int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
+        m_frames.append(frameNumber);
+        m_rowByFrame[frameNumber] = m_frames.length() - 1;
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);

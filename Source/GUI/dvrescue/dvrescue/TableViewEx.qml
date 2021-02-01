@@ -18,9 +18,9 @@ Item {
 
     function bringToView(index) {
 
-        var expectedContentY = (index) * (delegateHeight + tableView.rowSpacing)
+        var expectedContentY = (index) * (delegateHeight + tableView.rowSpacing) - tableView.topMargin
         var maxContentY = model.rowCount === 0 ? 0 :
-                                                 (model.rowCount * (delegateHeight + tableView.rowSpacing) - tableView.rowSpacing - tableView.height)
+                                                 (model.rowCount * (delegateHeight + tableView.rowSpacing) - tableView.rowSpacing - tableView.height - tableView.topMargin)
 
         if(tableView.contentHeight < tableView.height)
             return;
@@ -28,7 +28,7 @@ Item {
         if(maxContentY >= 0) {
             console.debug('adjusting contentY...');
             tableView.contentY = Math.min(expectedContentY, maxContentY)
-            console.debug('adjusting contentY... done!');
+            console.debug('adjusting contentY... done: ', tableView.contentY);
         }
     }
 

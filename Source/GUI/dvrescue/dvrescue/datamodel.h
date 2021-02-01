@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QPair>
 #include <QSet>
+#include <QMap>
 #include <xmlparser.h>
 
 class QwtQuick2PlotCurve;
@@ -26,6 +27,8 @@ public:
 
     Q_INVOKABLE QString videoInfo(float x, float y);
     Q_INVOKABLE QString audioInfo(float x, float y);
+    Q_INVOKABLE int frameByIndex(int index);
+    Q_INVOKABLE int rowByFrame(int frame);
 
     struct GraphStats {
         int frameNumber;
@@ -67,6 +70,9 @@ private:
 
     QList<std::tuple<int, GraphStats>> m_videoValues;
     QList<std::tuple<int, GraphStats>> m_audioValues;
+    QList<int> m_frames;
+    QMap<int, int> m_rowByFrame;
+
     int m_lastFrame { 0 };
     int m_total { 0 };
 };
