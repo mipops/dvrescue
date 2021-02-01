@@ -174,10 +174,14 @@ while [[ "${@}" != "" ]] ; do
       N="$(echo "${error_frame}" | cut -d "," -f1)"
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
-      TC_FILENAME_SAFE="$(echo "${TC}" | sed 's|:|-|g')"
+      if [[ -n "${TC}" ]] ; then
+        TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
+      else
+        TC_E="XX\\:XX\\:XX\\:XX"
+      fi
+      TC_FILENAME_SAFE="n$(printf "%06d" ${N})_$(echo "${TC:-XX:XX:XX:XX}" | sed 's|:|-|g')"
       PTS_C="$(echo "${PTS}" | sed 's|:|-|g')"
       PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
-      TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
       if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
         _mkdir2 "${SIDECAR_DIR}/dvrescue_tmp"
         JPG_OUTPUT="${SIDECAR_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
