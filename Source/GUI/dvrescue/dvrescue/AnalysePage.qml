@@ -97,6 +97,7 @@ Item {
         Button {
             text: "load"
             id: loadButton
+            enabled: filePathTextField.text.length !== 0
 
             property string dvRescueXmlExtension: ".dvrescue.xml"
 

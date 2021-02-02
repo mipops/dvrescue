@@ -144,7 +144,8 @@ Rectangle {
         }
 
         RowLayout {
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.alignment: Qt.AlignHCenter
+
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
                 text: "<<"

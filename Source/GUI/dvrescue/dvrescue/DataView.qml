@@ -80,7 +80,6 @@ Rectangle {
             {
                 var headerItem = tableView.getHeaderItem(i)
                 if(headerItem === null) {
-                    console.debug('headerItem === null')
                     continue;
                 }
 
@@ -94,8 +93,12 @@ Rectangle {
         }
 
         function getColumnWidth(column) {
+            var headerItem = tableView.getHeaderItem(column);
+            if(headerItem === null)
+                return 0;
+
             var minWidth = dataModel.columns[column].minWidth
-            var desiredWidth = Math.max(tableView.getHeaderItem(column).desiredWidth, minWidth)
+            var desiredWidth = Math.max(headerItem.desiredWidth, minWidth)
 
             var relativeWidth = tableView.totalDesiredWidth !== 0 ? (desiredWidth / tableView.totalDesiredWidth) : 0
             var allowedWidth = relativeWidth * tableView.width
@@ -115,7 +118,6 @@ Rectangle {
             for(var i = 0; i < tableView.model.columnCount; ++i)
             {
                 newColumnWidths[i] = getColumnWidth(i)
-                console.debug('column', i, 'width: ', newColumnWidths[i])
                 totalWidth += newColumnWidths[i]
             }
 
