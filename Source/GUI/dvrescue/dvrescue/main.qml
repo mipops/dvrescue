@@ -61,6 +61,8 @@ ApplicationWindow {
             onClicked: {
                 avfctlField.text = avfctl.avfctlCmd
                 avfctlField.forceActiveFocus();
+
+                dvrescueField.text = dvrescue.dvrescueCmd
                 avfctlDialog.open();
             }
         }
@@ -161,28 +163,44 @@ ApplicationWindow {
         id: avfctl
     }
 
+    DvRescueCLI {
+        id: dvrescue
+    }
+
     Settings {
         id: settings;
         property alias avfctlCmd: avfctl.avfctlCmd
+        property alias dvrescueCmd: dvrescue.dvrescueCmd
         property alias selectedXml: analysePage.xmlPath
     }
 
     Dialog {
         id: avfctlDialog
-        title: "Please, specify avfctl tool location"
+        title: "Please, specify tool locations.."
         contentWidth: 480
 
-        TextField {
-            id: avfctlField
-            width: 480
+        Column {
+            TextField {
+                id: avfctlField
+                width: 480
 
-            placeholderText: "avfctl tool path..."
-            selectByMouse: true
+                placeholderText: "avfctl tool path..."
+                selectByMouse: true
+            }
+
+            TextField {
+                id: dvrescueField
+                width: 480
+
+                placeholderText: "dvrescue tool path..."
+                selectByMouse: true
+            }
         }
 
         standardButtons: Dialog.Cancel | Dialog.Ok
         onAccepted: {
             avfctl.avfctlCmd = avfctlField.text
+            dvrescue.dvrescueCmd = dvrescueField.text
         }
         anchors.centerIn: parent
     }
