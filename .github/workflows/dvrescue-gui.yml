@@ -227,6 +227,7 @@ jobs:
         ls
         ls ./dvrescue
         ./dvrescue/dvrescue --platform minimal > /dev/null 2>&1 &
+        sleep 1
         pidof dvrescue
 
   build-windows-mingw:
