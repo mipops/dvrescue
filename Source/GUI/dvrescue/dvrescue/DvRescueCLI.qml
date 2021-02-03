@@ -1,16 +1,17 @@
 import QtQuick 2.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
+import FileUtils 1.0
 
 Item {
-    property string dvRescueName: Qt.platform.os === "windows" ? "DVRescue.exe" : "DVRescue"
+    property string dvRescueName: Qt.platform.os === "windows" ? "DVRescue.exe" : "dvrescue"
 
     property string detectedDvRescueCmd: StandardPaths.findExecutable(dvRescueName);
     onDetectedDvRescueCmdChanged: {
         console.debug('detectedDvRescueCmd: ', detectedDvRescueCmd)
     }
 
-    property string dvrescueCmd: detectedDvRescueCmd ? decodeURIComponent(Qt.resolvedUrl(detectedDvRescueCmd).replace(/^(file:\/{3})/,"")) : ''
+    property string dvrescueCmd: detectedDvRescueCmd ? FileUtils.getFilePath(detectedDvRescueCmd) : ''
     onDvrescueCmdChanged: {
         console.debug('dvrescueCmd: ', dvrescueCmd)
     }
