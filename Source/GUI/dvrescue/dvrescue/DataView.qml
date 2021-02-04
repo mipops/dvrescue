@@ -253,17 +253,7 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Full Conceal";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Full Conceal Video";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Full Conceal Audio";
+            display: "Full Concealment";
             property int minWidth: 20
         }
 

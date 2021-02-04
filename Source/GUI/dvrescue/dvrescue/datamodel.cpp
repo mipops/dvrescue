@@ -417,9 +417,24 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Missing Packs"] = missingPacks.join(", ");
 
-    fillAttribute("Full Conceal", frameAttributes, "full_conceal");
-    fillAttribute("Full Conceal Video", frameAttributes, "full_conceal_vid");
-    fillAttribute("Full Conceal Audio", frameAttributes, "full_conceal_aud");
+
+    auto fullConcealment = QString();
+    auto full_conceal = frameAttributes.hasAttribute("full_conceal") && frameAttributes.value("full_conceal").toInt() == 1;
+    auto full_conceal_video = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
+    auto full_conceal_audio = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
+
+    if(full_conceal) {
+        fullConcealment = "Video & Audio";
+    } else {
+        if(full_conceal_video && full_conceal_audio)
+            fullConcealment = "Video, Audio";
+        else if(full_conceal_video)
+            fullConcealment = "Video";
+        else if(full_conceal_audio)
+            fullConcealment = "Audio";
+    }
+
+    map["Full Concealment"] = fullConcealment;
 
     fillAttribute("Video Size", framesAttributes, "size");
     fillAttribute("Video Rate", framesAttributes, "video_rate");
