@@ -262,9 +262,9 @@ jobs:
     - name: Install FFmpeg
       run: |
         cd ..
-        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
-        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
-        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-02-04-13-17/ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
+        unzip ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
+        ren ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3 ffmpeg
         dir ffmpeg
 
 #        cd ..
@@ -367,9 +367,9 @@ jobs:
     - name: Install FFmpeg
       run: |
         cd ..
-        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-01-21-14-17/ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
-        unzip ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared.zip
-        ren ffmpeg-N-100688-ga423bc9dc2-win64-gpl-shared ffmpeg
+        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-02-04-13-17/ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
+        unzip ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
+        ren ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3 ffmpeg
         dir ffmpeg
 #
 #        cd ..
