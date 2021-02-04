@@ -32,5 +32,6 @@
         <file>TextDelegate.qml</file>
         <file>SortableFiltrableColumnHeading.qml</file>
         <file>TextFieldEx.qml</file>
+        <file>DvRescueCLI.qml</file>
     </qresource>
 </RCC>

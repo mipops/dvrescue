@@ -126,6 +126,11 @@ Item {
                     {
                         refreshTimer.start();
                         dataModel.populate(dvRescueXmlPath);
+                    } else {
+                        dvrescue.makeReport(filePathTextField.text).then(() => {
+                             refreshTimer.start();
+                             dataModel.populate(dvRescueXmlPath);
+                        });
                     }
 
                     playerView.player.source = 'file:///' + filePathTextField.text;
