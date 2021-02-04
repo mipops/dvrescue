@@ -162,6 +162,10 @@ Rectangle {
         id: recordingTimeMetrics
         text: "0000-00-00 00:00:00"
     }
+    TextMetrics {
+        id: missingPacksMetrics
+        text: "Subcode, Video, Audio"
+    }
 
     property int columnSpacing: 10
 
@@ -244,33 +248,8 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "No Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Subcode Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Video Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Audio Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Video Source or Control";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Audio Source or Control";
-            property int minWidth: 20
+            display: "Missing Packs";
+            property int minWidth: missingPacksMetrics.width + columnSpacing
         }
 
         TableModelColumn {

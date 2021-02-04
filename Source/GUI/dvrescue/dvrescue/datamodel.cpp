@@ -389,13 +389,34 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     }
 
     fillAttribute("Caption Parity", frameAttributes, "caption-parity");
-    fillAttribute("No Pack", frameAttributes, "no_pack");
-    fillAttribute("No Subcode Pack", frameAttributes, "no_pack_sub");
-    fillAttribute("No Video Pack", frameAttributes, "no_pack_vid");
-    fillAttribute("No Audio Pack", frameAttributes, "no_pack_aud");
 
-    fillAttribute("No Video Source or Control", frameAttributes, "no_sourceorcontrol_vid");
-    fillAttribute("No Audio Source or Control", frameAttributes, "no_sourceorcontrol_audio");
+    QStringList missingPacks;
+    auto no_pack = frameAttributes.hasAttribute("no_pack") && frameAttributes.value("no_pack").toInt() == 1;
+    auto no_subcode_pack = frameAttributes.hasAttribute("no_pack_sub") && frameAttributes.value("no_subcode_pack").toInt() == 1;
+    auto no_video_pack = frameAttributes.hasAttribute("no_video_pack") && frameAttributes.value("no_video_pack").toInt() == 1;
+    auto no_audio_pack = frameAttributes.hasAttribute("no_audio_pack") && frameAttributes.value("no_audio_pack").toInt() == 1;
+
+    if(no_pack) {
+        missingPacks << "Subcode" << "Video" << "Audio";
+    } else {
+        if(no_subcode_pack)
+            missingPacks << "Subcode";
+        if(no_video_pack)
+            missingPacks << "Video";
+        if(no_audio_pack)
+            missingPacks << "Audio";
+    }
+
+    auto no_sourceorcontrol_vid = frameAttributes.hasAttribute("no_sourceorcontrol_vid") && frameAttributes.value("no_sourceorcontrol_vid").toInt() == 1;
+    auto no_sourceorcontrol_audio = frameAttributes.hasAttribute("no_sourceorcontrol_audio") && frameAttributes.value("no_sourceorcontrol_audio").toInt() == 1;
+
+    if(no_sourceorcontrol_vid)
+        missingPacks << "No Video Source or Control";
+    if(no_sourceorcontrol_audio)
+        missingPacks << "No Audio Source or Control";
+
+    map["Missing Packs"] = missingPacks.join(", ");
+
     fillAttribute("Full Conceal", frameAttributes, "full_conceal");
     fillAttribute("Full Conceal Video", frameAttributes, "full_conceal_vid");
     fillAttribute("Full Conceal Audio", frameAttributes, "full_conceal_aud");
