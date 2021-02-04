@@ -214,12 +214,7 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Recording Start";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Recording End";
+            display: "Recording Marks";
             property int minWidth: 20
         }
 

@@ -332,8 +332,27 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
     fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
 
-    fillAttribute("Recording Start", frameAttributes, "rec_start");
-    fillAttribute("Recording End", frameAttributes, "rec_end");
+    auto hasRecStart = frameAttributes.hasAttribute("rec_start");
+    auto hasRecEnd = frameAttributes.hasAttribute("rec_end");
+    auto recordingMarks = QString();
+
+    if(hasRecStart || hasRecEnd)
+    {
+        auto recStart = hasRecStart ? frameAttributes.value("rec_start").toInt() : 0;
+        auto recEnd = hasRecEnd ? frameAttributes.value("rec_end").toInt() : 0;
+        if(recStart == 1 && recEnd == 1) {
+             recordingMarks = "Start & End";
+        }
+        else if(recStart == 1) {
+            recordingMarks = "Start";
+        }
+        else if(recEnd == 1) {
+            recordingMarks = "End";
+        }
+    }
+
+    map["Recording Marks"] = recordingMarks;
+
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
     fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
     fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
