@@ -32,7 +32,7 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 10
         model: sortFilterTableModel
-        delegateHeight: 35
+        delegateHeight: 25
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
@@ -40,12 +40,12 @@ Rectangle {
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
+            filterFont.pixelSize: 11
+            textFont.pixelSize: 13
 
             onFilterTextChanged: {
                 sortFilterTableModel.setFilterText(modelData, filterText);
             }
-
-            height: tableView.delegateHeight * 2.5
 
             Rectangle {
                 id: handle
@@ -84,6 +84,8 @@ Rectangle {
             property color evenColor: '#e3e3e3'
             property color oddColor: '#f3f3f3'
             property color redColor: 'red'
+            textFont.pixelSize: 13
+
             color: {
 
                 var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
