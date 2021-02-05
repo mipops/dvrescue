@@ -101,8 +101,9 @@ Rectangle {
                 return (row % 2) == 0 ? evenColor : oddColor
             }
 
-            TapHandler {
-                onTapped: {
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
                     var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                     var frameNumber = cppDataModel.frameByIndex(sourceRow);
                     dataView.tapped(frameNumber);
