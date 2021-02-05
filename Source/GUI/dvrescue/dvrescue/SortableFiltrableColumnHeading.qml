@@ -14,6 +14,7 @@ Rectangle {
     property bool canFilter: true
 
     readonly property int desiredWidth: metrics.width
+    property int minimumWidth: 20
 
     clip: true
     color: "#333333"

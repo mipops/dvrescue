@@ -35,6 +35,7 @@ Rectangle {
         delegateHeight: 35
 
         headerDelegate: SortableFiltrableColumnHeading {
+            id: header
             width: tableView.columnWidths[modelData]
             text: dataModel.columns[modelData].display
             canFilter: true
@@ -45,6 +46,36 @@ Rectangle {
             }
 
             height: tableView.delegateHeight * 2.5
+
+            Rectangle {
+                id: handle
+                color: Qt.darker(parent.color, 1.05)
+                height: parent.height
+                width: 10
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                MouseArea {
+                    id: mouseHandle
+                    anchors.fill: parent
+                    drag{ target: parent; axis: Drag.XAxis }
+                    hoverEnabled: true
+                    cursorShape: Qt.SizeHorCursor
+                    onMouseXChanged: {
+                        if (drag.active) {
+                            var newWidth = header.width + mouseX
+                            if (newWidth >= minimumWidth) {
+                                // header.width = newWidth
+
+                                var newWidths = tableView.columnWidths
+                                newWidths[modelData] = newWidth;
+
+                                tableView.columnWidths = newWidths
+                                tableView.forceLayout();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         delegate: TextDelegate {
