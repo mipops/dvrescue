@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.12
 Rectangle {
     id: root
     signal sorting(int sortOrder);
-    height: childrenRect.height
+    height: column.height
     property alias text: label.text
     property alias textFont: label.font
     property alias filterText: filterField.text
@@ -15,6 +15,7 @@ Rectangle {
     property bool canShowIndicator: true
     property bool canFilter: true
 
+    readonly property int desiredHeight: column.height
     readonly property int desiredWidth: metrics.width
     property int minimumWidth: 20
 
@@ -50,6 +51,7 @@ Rectangle {
             color: '#aaaaaa'
             anchors.horizontalCenter: parent.horizontalCenter
             width: root.width
+            wrapMode: "WordWrap"
             verticalAlignment: Text.AlignTop
             horizontalAlignment: Text.AlignHCenter
 

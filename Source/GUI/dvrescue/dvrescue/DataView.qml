@@ -42,6 +42,7 @@ Rectangle {
             canSort: false
             filterFont.pixelSize: 11
             textFont.pixelSize: 13
+            height: tableView.getMaxDesiredHeight()
 
             onFilterTextChanged: {
                 sortFilterTableModel.setFilterText(modelData, filterText);
@@ -67,9 +68,11 @@ Rectangle {
                                 // header.width = newWidth
 
                                 var newWidths = tableView.columnWidths
+                                var oldWidth = newWidths[modelData]
                                 newWidths[modelData] = newWidth;
 
                                 tableView.columnWidths = newWidths
+                                tableView.view.contentWidth += newWidth - oldWidth
                                 tableView.forceLayout();
                             }
                         }
@@ -105,6 +108,20 @@ Rectangle {
                     dataView.tapped(frameNumber);
                 }
             }
+        }
+
+        function getMaxDesiredHeight() {
+            var value = 0
+            for(var i = 0; i < tableView.model.columnCount; ++i)
+            {
+                var headerItem = tableView.getHeaderItem(i)
+                if(headerItem === null) {
+                    continue;
+                }
+
+                value = Math.max(value, headerItem.desiredHeight)
+            }
+            return value;
         }
 
         function getTotalDesiredWidth() {
@@ -145,7 +162,7 @@ Rectangle {
             return initialized, getTotalDesiredWidth()
         }
 
-        function updateColumnWidths() {
+        function adjustColumnWidths() {
             var newColumnWidths = {}
             var totalWidth = 0;
             for(var i = 0; i < tableView.model.columnCount; ++i)
@@ -163,7 +180,7 @@ Rectangle {
 
         property var columnWidths: ({})
         onWidthChanged: {
-            updateColumnWidths()
+            adjustColumnWidths()
         }
 
         columnWidthProvider: function(column) {
@@ -173,7 +190,7 @@ Rectangle {
         Component.onCompleted: {
             Qt.callLater(() => {
                              initialized = true;
-                             updateColumnWidths();
+                             adjustColumnWidths();
                          })
         }
     }
