@@ -392,49 +392,46 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     QStringList missingPacks;
     auto no_pack = frameAttributes.hasAttribute("no_pack") && frameAttributes.value("no_pack").toInt() == 1;
-    auto no_subcode_pack = frameAttributes.hasAttribute("no_pack_sub") && frameAttributes.value("no_subcode_pack").toInt() == 1;
-    auto no_video_pack = frameAttributes.hasAttribute("no_video_pack") && frameAttributes.value("no_video_pack").toInt() == 1;
-    auto no_audio_pack = frameAttributes.hasAttribute("no_audio_pack") && frameAttributes.value("no_audio_pack").toInt() == 1;
+    auto no_pack_sub = frameAttributes.hasAttribute("no_pack_sub") && frameAttributes.value("no_pack_sub").toInt() == 1;
+    auto no_pack_vid = frameAttributes.hasAttribute("no_pack_vid") && frameAttributes.value("no_pack_vid").toInt() == 1;
+    auto no_pack_aud = frameAttributes.hasAttribute("no_pack_aud") && frameAttributes.value("no_pack_aud").toInt() == 1;
 
     if(no_pack) {
         missingPacks << "Subcode" << "Video" << "Audio";
     } else {
-        if(no_subcode_pack)
+        if(no_pack_sub)
             missingPacks << "Subcode";
-        if(no_video_pack)
+        if(no_pack_vid)
             missingPacks << "Video";
-        if(no_audio_pack)
+        if(no_pack_aud)
             missingPacks << "Audio";
     }
 
     auto no_sourceorcontrol_vid = frameAttributes.hasAttribute("no_sourceorcontrol_vid") && frameAttributes.value("no_sourceorcontrol_vid").toInt() == 1;
-    auto no_sourceorcontrol_audio = frameAttributes.hasAttribute("no_sourceorcontrol_audio") && frameAttributes.value("no_sourceorcontrol_audio").toInt() == 1;
+    auto no_sourceorcontrol_aud = frameAttributes.hasAttribute("no_sourceorcontrol_aud") && frameAttributes.value("no_sourceorcontrol_aud").toInt() == 1;
 
     if(no_sourceorcontrol_vid)
         missingPacks << "No Video Source or Control";
-    if(no_sourceorcontrol_audio)
+    if(no_sourceorcontrol_aud)
         missingPacks << "No Audio Source or Control";
 
     map["Missing Packs"] = missingPacks.join(", ");
 
-
-    auto fullConcealment = QString();
+    QStringList fullConcealment;
     auto full_conceal = frameAttributes.hasAttribute("full_conceal") && frameAttributes.value("full_conceal").toInt() == 1;
-    auto full_conceal_video = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
-    auto full_conceal_audio = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
+    auto full_conceal_vid = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
+    auto full_conceal_aud = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
 
     if(full_conceal) {
-        fullConcealment = "Video & Audio";
+        fullConcealment << "Video" << "Audio";
     } else {
-        if(full_conceal_video && full_conceal_audio)
-            fullConcealment = "Video, Audio";
-        else if(full_conceal_video)
-            fullConcealment = "Video";
-        else if(full_conceal_audio)
-            fullConcealment = "Audio";
+        if(full_conceal_vid)
+            fullConcealment << "Video";
+        if(full_conceal_aud)
+            fullConcealment << "Audio";
     }
 
-    map["Full Concealment"] = fullConcealment;
+    map["Full Concealment"] = fullConcealment.join(", ");
 
     fillAttribute("Video Size", framesAttributes, "size");
     fillAttribute("Video Rate", framesAttributes, "video_rate");
