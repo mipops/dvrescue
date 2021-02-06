@@ -5,15 +5,19 @@ import QtQuick.Layouts 1.12
 Rectangle {
     id: root
     signal sorting(int sortOrder);
-    height: 70
+    height: column.height
     property alias text: label.text
+    property alias textFont: label.font
     property alias filterText: filterField.text
+    property alias filterFont: filterField.font
     property bool canSort: true
     property alias state: upDownIndicator.state
     property bool canShowIndicator: true
     property bool canFilter: true
 
+    readonly property int desiredHeight: column.height
     readonly property int desiredWidth: metrics.width
+    property int minimumWidth: 20
 
     clip: true
     color: "#333333"
@@ -26,30 +30,29 @@ Rectangle {
 
     Column {
         id: column
-        anchors.fill: parent
+        spacing: 0
 
         TextFieldEx {
             id: filterField
             readOnly: !canFilter
+            anchors.horizontalCenter: parent.horizontalCenter
             width: root.width
-            height: root.height / 2
-            padding: 10
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
             placeholderText: canFilter ? "filter string" : ""
             placeholderTextColor: Qt.darker(label.color)
             color: '#aaaaaa'
+            bottomPadding: 3
+            topPadding: 0
         }
 
         Label {
             id: label
             color: '#aaaaaa'
-
+            anchors.horizontalCenter: parent.horizontalCenter
             width: root.width
-            height: root.height / 2
-            font.pixelSize: 15
-            padding: 10
-            verticalAlignment: Text.AlignVCenter
+            wrapMode: "WordWrap"
+            verticalAlignment: Text.AlignTop
             horizontalAlignment: Text.AlignHCenter
 
             property int initialSortOrder: Qt.DescendingOrder

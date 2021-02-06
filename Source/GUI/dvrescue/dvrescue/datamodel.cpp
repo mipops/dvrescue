@@ -66,6 +66,19 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
+int DataModel::frameByIndex(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return index;
+
+    return m_frames[index];
+}
+
+int DataModel::rowByFrame(int frame)
+{
+    return m_rowByFrame.contains(frame) ? m_rowByFrame[frame] : -1;
+}
+
 void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_videoValues, x, y, frame, oddValue, evenValue);
@@ -223,6 +236,8 @@ void DataModel::populate(const QString &fileName)
         m_thread->quit();
         m_thread->wait();
 
+        m_frames.clear();
+        m_rowByFrame.clear();
         m_videoValues.clear();
         m_audioValues.clear();
     }
@@ -252,6 +267,8 @@ void DataModel::populate(const QString &fileName)
             int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
+        m_frames.append(frameNumber);
+        m_rowByFrame[frameNumber] = m_frames.length() - 1;
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);
@@ -315,8 +332,27 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
     fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
 
-    fillAttribute("Recording Start", frameAttributes, "rec_start");
-    fillAttribute("Recording End", frameAttributes, "rec_end");
+    auto hasRecStart = frameAttributes.hasAttribute("rec_start");
+    auto hasRecEnd = frameAttributes.hasAttribute("rec_end");
+    auto recordingMarks = QString();
+
+    if(hasRecStart || hasRecEnd)
+    {
+        auto recStart = hasRecStart ? frameAttributes.value("rec_start").toInt() : 0;
+        auto recEnd = hasRecEnd ? frameAttributes.value("rec_end").toInt() : 0;
+        if(recStart == 1 && recEnd == 1) {
+             recordingMarks = "Start & End";
+        }
+        else if(recStart == 1) {
+            recordingMarks = "Start";
+        }
+        else if(recEnd == 1) {
+            recordingMarks = "End";
+        }
+    }
+
+    map["Recording Marks"] = recordingMarks;
+
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
     fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
     fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
@@ -353,16 +389,49 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     }
 
     fillAttribute("Caption Parity", frameAttributes, "caption-parity");
-    fillAttribute("No Pack", frameAttributes, "no_pack");
-    fillAttribute("No Subcode Pack", frameAttributes, "no_pack_sub");
-    fillAttribute("No Video Pack", frameAttributes, "no_pack_vid");
-    fillAttribute("No Audio Pack", frameAttributes, "no_pack_aud");
 
-    fillAttribute("No Video Source or Control", frameAttributes, "no_sourceorcontrol_vid");
-    fillAttribute("No Audio Source or Control", frameAttributes, "no_sourceorcontrol_audio");
-    fillAttribute("Full Conceal", frameAttributes, "full_conceal");
-    fillAttribute("Full Conceal Video", frameAttributes, "full_conceal_vid");
-    fillAttribute("Full Conceal Audio", frameAttributes, "full_conceal_aud");
+    QStringList missingPacks;
+    auto no_pack = frameAttributes.hasAttribute("no_pack") && frameAttributes.value("no_pack").toInt() == 1;
+    auto no_pack_sub = frameAttributes.hasAttribute("no_pack_sub") && frameAttributes.value("no_pack_sub").toInt() == 1;
+    auto no_pack_vid = frameAttributes.hasAttribute("no_pack_vid") && frameAttributes.value("no_pack_vid").toInt() == 1;
+    auto no_pack_aud = frameAttributes.hasAttribute("no_pack_aud") && frameAttributes.value("no_pack_aud").toInt() == 1;
+
+    if(no_pack) {
+        missingPacks << "Subcode" << "Video" << "Audio";
+    } else {
+        if(no_pack_sub)
+            missingPacks << "Subcode";
+        if(no_pack_vid)
+            missingPacks << "Video";
+        if(no_pack_aud)
+            missingPacks << "Audio";
+    }
+
+    auto no_sourceorcontrol_vid = frameAttributes.hasAttribute("no_sourceorcontrol_vid") && frameAttributes.value("no_sourceorcontrol_vid").toInt() == 1;
+    auto no_sourceorcontrol_aud = frameAttributes.hasAttribute("no_sourceorcontrol_aud") && frameAttributes.value("no_sourceorcontrol_aud").toInt() == 1;
+
+    if(no_sourceorcontrol_vid)
+        missingPacks << "No Video Source or Control";
+    if(no_sourceorcontrol_aud)
+        missingPacks << "No Audio Source or Control";
+
+    map["Missing Packs"] = missingPacks.join(", ");
+
+    QStringList fullConcealment;
+    auto full_conceal = frameAttributes.hasAttribute("full_conceal") && frameAttributes.value("full_conceal").toInt() == 1;
+    auto full_conceal_vid = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
+    auto full_conceal_aud = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
+
+    if(full_conceal) {
+        fullConcealment << "Video" << "Audio";
+    } else {
+        if(full_conceal_vid)
+            fullConcealment << "Video";
+        if(full_conceal_aud)
+            fullConcealment << "Audio";
+    }
+
+    map["Full Concealment"] = fullConcealment.join(", ");
 
     fillAttribute("Video Size", framesAttributes, "size");
     fillAttribute("Video Rate", framesAttributes, "video_rate");
@@ -375,16 +444,16 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;
 
     auto video_error_concealment_percent = double(totalSta) / video_block_count * 100;
-    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent);
+    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent, 'f', 2) + QString("%");
 
     auto video_error_concealment_odd_even = double(2 * totalEvenSta - totalSta) / (video_block_count / 2) * 100;
-    map["Video Error Concealment % (odd/even balance)"] = video_error_concealment_odd_even;
+    map["Video Error Concealment % (odd/even balance)"] = QString::number(video_error_concealment_odd_even, 'f', 2) + QString("%");
 
     auto audio_error_concealment_percent = double(totalAud) / audio_block_count * 100;
-    map["Audio Error %"] = QString::number(audio_error_concealment_percent);
+    map["Audio Error %"] = QString::number(audio_error_concealment_percent, 'f', 2) + QString("%");
 
     auto audio_error_concealment_odd_even = double(2 * totalEvenAud - totalAud) / (audio_block_count / 2) * 100;
-    map["Audio Error % (odd/even balance)"] = audio_error_concealment_odd_even;
+    map["Audio Error % (odd/even balance)"] = QString::number(audio_error_concealment_odd_even, 'f', 2) + QString("%");
 
     Q_EMIT dataRowCreated(map);
 }

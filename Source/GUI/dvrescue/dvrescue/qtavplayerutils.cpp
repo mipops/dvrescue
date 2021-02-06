@@ -3,7 +3,7 @@
 
 QtAVPlayerUtils::QtAVPlayerUtils(QObject *parent) : QObject(parent)
 {
-
+    QtAV::setLogLevel(QtAV::LogOff);
 }
 
 qint64 QtAVPlayerUtils::displayPosition(QObject *qmlPlayer)

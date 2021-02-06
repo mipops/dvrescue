@@ -8,6 +8,7 @@ Rectangle {
     implicitHeight: 20
     color: (row % 2) == 0 ? 'gray' : 'lightgray'
     property alias text: textLabel.text
+    property alias textFont: textLabel.font
 
     TextInput {
         id: textLabel

@@ -5,7 +5,24 @@ import TableModelColumn 1.0
 import SortFilterTableModel 1.0
 
 Rectangle {
+    id: dataView
     property alias model: dataModel
+    property var cppDataModel;
+    property int framePos: -1
+
+    signal tapped(int framePos);
+
+    function bringToView(framePos) {
+        var sourceRow = cppDataModel.rowByFrame(framePos);
+        if(sourceRow !== -1)
+        {
+            var row = sortFilterTableModel.fromSourceRowIndex(sourceRow)
+            Qt.callLater(() => {
+                             tableView.bringToView(row)
+                         })
+        }
+    }
+
     onWidthChanged: {
         tableView.forceLayout();
     }
@@ -15,19 +32,53 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 10
         model: sortFilterTableModel
-        delegateHeight: 35
+        delegateHeight: 25
 
         headerDelegate: SortableFiltrableColumnHeading {
+            id: header
             width: tableView.columnWidths[modelData]
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
+            filterFont.pixelSize: 11
+            textFont.pixelSize: 13
+            height: tableView.getMaxDesiredHeight()
 
             onFilterTextChanged: {
                 sortFilterTableModel.setFilterText(modelData, filterText);
             }
 
-            height: tableView.delegateHeight * 2.5
+            Rectangle {
+                id: handle
+                color: Qt.darker(parent.color, 1.05)
+                height: parent.height
+                width: 10
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                MouseArea {
+                    id: mouseHandle
+                    anchors.fill: parent
+                    drag{ target: parent; axis: Drag.XAxis }
+                    hoverEnabled: true
+                    cursorShape: Qt.SizeHorCursor
+                    onMouseXChanged: {
+                        if (drag.active) {
+                            var newWidth = header.width + mouseX
+                            if (newWidth >= minimumWidth) {
+                                // header.width = newWidth
+
+                                var newWidths = tableView.columnWidths
+                                var oldWidth = newWidths[modelData]
+                                newWidths[modelData] = newWidth;
+
+                                tableView.columnWidths = newWidths
+                                tableView.view.contentWidth += newWidth - oldWidth
+                                tableView.forceLayout();
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         delegate: TextDelegate {
@@ -35,7 +86,43 @@ Rectangle {
             implicitHeight: tableView.delegateHeight
             property color evenColor: '#e3e3e3'
             property color oddColor: '#f3f3f3'
-            color: (row % 2) == 0 ? evenColor : oddColor
+            property color redColor: 'red'
+            textFont.pixelSize: 13
+
+            color: {
+
+                var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                if(frameNumber === framePos) {
+                    return redColor;
+                }
+
+                return (row % 2) == 0 ? evenColor : oddColor
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                    var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                    dataView.tapped(frameNumber);
+                }
+            }
+        }
+
+        function getMaxDesiredHeight() {
+            var value = 0
+            for(var i = 0; i < tableView.model.columnCount; ++i)
+            {
+                var headerItem = tableView.getHeaderItem(i)
+                if(headerItem === null) {
+                    continue;
+                }
+
+                value = Math.max(value, headerItem.desiredHeight)
+            }
+            return value;
         }
 
         function getTotalDesiredWidth() {
@@ -44,7 +131,6 @@ Rectangle {
             {
                 var headerItem = tableView.getHeaderItem(i)
                 if(headerItem === null) {
-                    console.debug('headerItem === null')
                     continue;
                 }
 
@@ -58,8 +144,12 @@ Rectangle {
         }
 
         function getColumnWidth(column) {
+            var headerItem = tableView.getHeaderItem(column);
+            if(headerItem === null)
+                return 0;
+
             var minWidth = dataModel.columns[column].minWidth
-            var desiredWidth = Math.max(tableView.getHeaderItem(column).desiredWidth, minWidth)
+            var desiredWidth = Math.max(headerItem.desiredWidth, minWidth)
 
             var relativeWidth = tableView.totalDesiredWidth !== 0 ? (desiredWidth / tableView.totalDesiredWidth) : 0
             var allowedWidth = relativeWidth * tableView.width
@@ -73,13 +163,12 @@ Rectangle {
             return initialized, getTotalDesiredWidth()
         }
 
-        function updateColumnWidths() {
+        function adjustColumnWidths() {
             var newColumnWidths = {}
             var totalWidth = 0;
             for(var i = 0; i < tableView.model.columnCount; ++i)
             {
                 newColumnWidths[i] = getColumnWidth(i)
-                console.debug('column', i, 'width: ', newColumnWidths[i])
                 totalWidth += newColumnWidths[i]
             }
 
@@ -92,7 +181,7 @@ Rectangle {
 
         property var columnWidths: ({})
         onWidthChanged: {
-            updateColumnWidths()
+            adjustColumnWidths()
         }
 
         columnWidthProvider: function(column) {
@@ -102,7 +191,7 @@ Rectangle {
         Component.onCompleted: {
             Qt.callLater(() => {
                              initialized = true;
-                             updateColumnWidths();
+                             adjustColumnWidths();
                          })
         }
     }
@@ -123,6 +212,10 @@ Rectangle {
     TextMetrics {
         id: recordingTimeMetrics
         text: "0000-00-00 00:00:00"
+    }
+    TextMetrics {
+        id: missingPacksMetrics
+        text: "Subcode, Video, Audio"
     }
 
     property int columnSpacing: 10
@@ -176,12 +269,7 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Recording Start";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Recording End";
+            display: "Recording Marks";
             property int minWidth: 20
         }
 
@@ -211,47 +299,12 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "No Pack";
-            property int minWidth: 20
+            display: "Missing Packs";
+            property int minWidth: missingPacksMetrics.width + columnSpacing
         }
 
         TableModelColumn {
-            display: "No Subcode Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Video Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Audio Pack";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Video Source or Control";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "No Audio Source or Control";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Full Conceal";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Full Conceal Video";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Full Conceal Audio";
+            display: "Full Concealment";
             property int minWidth: 20
         }
 

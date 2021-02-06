@@ -97,6 +97,7 @@ Item {
         Button {
             text: "load"
             id: loadButton
+            enabled: filePathTextField.text.length !== 0
 
             property string dvRescueXmlExtension: ".dvrescue.xml"
 
@@ -192,7 +193,20 @@ Item {
                 var frameIndex = ms * fps / 1000;
 
                 console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
-                positionChanged(frameIndex);
+                playerView.positionChanged(Math.round(frameIndex));
+            }
+
+            function seekToFrame(frameIndex) {
+                var position = frameIndex / playerView.fps * 1000
+                playerView.player.seekEx(position);
+            }
+
+            Connections {
+                target: dataView
+                onTapped: {
+                    if(framePos !== -1)
+                        playerView.seekToFrame(framePos);
+                }
             }
         }
 
@@ -202,6 +216,14 @@ Item {
 
             DataView {
                 id: dataView
+                cppDataModel: dataModel
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        dataView.framePos = frameIndex
+                    }
+                }
 
                 Component.onCompleted: {
                     dataModel.bind(model)
@@ -220,16 +242,14 @@ Item {
 
                 Connections {
                     target: playerView
-                    function onPositionChanged(frameIndex) {
+                    onPositionChanged: {
                         plotsView.framePos = frameIndex
                     }
                 }
 
                 onPickerMoved: {
                     var frameIndex = plotX
-                    var position = frameIndex / playerView.fps * 1000
-
-                    playerView.player.seek(position);
+                    playerView.seekToFrame(frameIndex)
                 }
             }
 
