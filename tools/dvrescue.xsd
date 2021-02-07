@@ -360,7 +360,7 @@
     <xsd:attribute name="no_sourceorcontrol_aud" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if no audio source and no video source control pack is present in video but at least 1 pack is present in audio.
+          Boolean that indicates if no audio source and no audio source control pack is present in audio but at least 1 pack is present in audio.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
