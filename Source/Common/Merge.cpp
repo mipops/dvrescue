@@ -8,6 +8,7 @@
 #include "Common/ProcessFile.h"
 #include "ZenLib/Ztring.h"
 #include "Output.h"
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <mutex>
@@ -22,6 +23,8 @@ using namespace ZenLib;
 //---------------------------------------------------------------------------
 vector<string> Merge_InputFileNames;
 string Merge_OutputFileName;
+ofstream Out;
+string MergeInfo_OutputFileName;
 uint8_t Verbosity = 5;
 //---------------------------------------------------------------------------
 
@@ -291,6 +294,12 @@ bool dv_merge_private::Init()
         return false;
     auto Input_Count = Merge_InputFileNames.size();
 
+    if (!MergeInfo_OutputFileName.empty())
+    {
+        Out.open(MergeInfo_OutputFileName);
+        cout.rdbuf(Out.rdbuf());
+    }
+
     Merge_Help();
 
     Inputs.resize(Input_Count);
@@ -306,7 +315,8 @@ bool dv_merge_private::Init()
     if (Merge_OutputFileName == "-")
     {
         Output.F = stdout;
-        Verbosity = 0;
+        if (MergeInfo_OutputFileName.empty())
+            Verbosity = 0;
     }
     else
         Output.F = fopen(Merge_OutputFileName.c_str(), "wb");

@@ -175,6 +175,25 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             Merge_OutputFileName = move(argv_ansi[i]);
         }
+        else if (!strcmp(argv_ansi[i], "--merge-log"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing merge info output file name after " << argv_ansi[i-1] << ".\n";
+                return ReturnValue_ERROR;
+            }
+            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (!File->is_open())
+            {
+                if (C.Err)
+                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
+                delete File;
+                return ReturnValue_ERROR;
+            }
+            else
+                MergeInfo_OutputFileName = argv_ansi[i];
+        }
         else if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v"))
         {
             if (++i >= argc)
