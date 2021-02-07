@@ -71,7 +71,7 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "        Verbosity of the output set to value:\n"
         "        0: no output.\n"
         "        5: summary only.\n"
-        "        5: information per frame if there is a problem + summary.\n"
+        "        7: information per frame if there is a problem + summary.\n"
         "        9: information per frame + summary.\n"
         "\n"
         "If no output file name is provided, XML output is displayed on console output."
