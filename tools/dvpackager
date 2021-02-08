@@ -161,7 +161,7 @@ _convert_hhmmssmmm2s(){
     H="$(echo "${TS}" | cut -d ":" -f1)"
     M="$(echo "${TS}" | cut -d ":" -f2)"
     S="$(echo "${TS}" | cut -d ":" -f3)"
-    awk "BEGIN {print $H * 60 * 60 + $M * 60 + $S}"
+    echo "${H}*60*60+${M}*60+${S}" | bc -l
 }
 
 _duration_from_pts_range(){
@@ -169,7 +169,7 @@ _duration_from_pts_range(){
     END="${2}"
     START_SEC="$(_convert_hhmmssmmm2s "${START}")"
     END_SEC="$(_convert_hhmmssmmm2s "${END}")"
-    awk "BEGIN {print $END_SEC - $START_SEC}"
+    echo "${END_SEC}-${START_SEC}" | bc -l
 }
 
 _make_chapter_metadata_file(){
@@ -439,7 +439,7 @@ while [[ "${@}" != "" ]] ; do
                 if [[ "${FRAME_END}" != "-1" ]] ; then
                     FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
                     VFRAMES=(-frames:v:0 "${FRAME_COUNT}")
-                    DURATION_SECS=(-t "$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l)")
+                    DURATION_SECS=(-t "$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')")
                 fi
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
