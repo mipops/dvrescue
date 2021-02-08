@@ -432,7 +432,9 @@ while [[ "${@}" != "" ]] ; do
                         START_BYTE=(-skip_initial_bytes "${PKT_POS}")
                     fi
                 else
-                    START_TIME=(-ss "${PTS}")
+                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                        START_TIME=(-ss "${PTS}")
+                    fi
                 fi
                 if [[ "${FRAME_END}" != "-1" ]] ; then
                     FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
