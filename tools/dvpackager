@@ -305,14 +305,14 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a)
+        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a)
+        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
