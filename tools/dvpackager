@@ -384,14 +384,14 @@ while [[ "${@}" != "" ]] ; do
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
             case "${EXT}" in
                 "mov")
-                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                    if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
                         OPT_OUTPUT+=(-map 1:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
                         OPT_OUTPUT+=(-tag:s:s:0 tx3g)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
-                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                    if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
                         OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s mov_text)
                         OPT_OUTPUT+=(-tag:s:s:1 tx3g)
@@ -404,13 +404,13 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
                 "mkv")
-                    if [[ -s "${DVRESCUE_TECHSUBS}" ]] ; then
+                    if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
                         OPT_OUTPUT+=(-map 1:s:0)
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
                         OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
                     fi
-                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                    if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
                         OPT_OUTPUT+=(-map 2:s:0)
                         OPT_OUTPUT+=(-c:s copy)
                         OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
