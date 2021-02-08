@@ -434,11 +434,11 @@ while [[ "${@}" != "" ]] ; do
                     fi
                 else
                     START_TIME=(-ss "${PTS}")
-                    END_TIME+=(-to "${END_PTS}")
                 fi
                 if [[ "${FRAME_END}" != "-1" ]] ; then
                     FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
                     DURATION_SECS=(-t "$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')")
+                    END_TIME+=(-to "${END_PTS}")
                 fi
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
