@@ -482,14 +482,14 @@ while [[ "${@}" != "" ]] ; do
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     AUD_STREAM_COUNT="$(mediainfo -f --Output="General;%AudioCount%" "${OUTPUT_FILE}")"
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
-                    VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
-                    AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
-                    DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
-                    if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
-                        :
-                    else
-                        _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
-                    fi
+                        VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                        AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                        DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
+                        if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
+                            :
+                        else
+                            _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                        fi
                     else
                         _report -d "FYI: $(basename "${OUTPUT_FILE}") has no audio track."
                     fi
