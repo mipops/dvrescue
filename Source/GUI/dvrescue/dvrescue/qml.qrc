@@ -33,5 +33,6 @@
         <file>SortableFiltrableColumnHeading.qml</file>
         <file>TextFieldEx.qml</file>
         <file>DvRescueCLI.qml</file>
+        <file>OddEvenTextDelegate.qml</file>
     </qresource>
 </RCC>

@@ -3,6 +3,8 @@ import QtQuick 2.12
 import TableModel 1.0
 import TableModelColumn 1.0
 import SortFilterTableModel 1.0
+import QtQuick.Controls 2.12
+import Qt.labs.qmlmodels 1.0
 
 Rectangle {
     id: dataView
@@ -81,32 +83,108 @@ Rectangle {
             }
         }
 
-        delegate: TextDelegate {
-            height: tableView.delegateHeight
-            implicitHeight: tableView.delegateHeight
-            property color evenColor: '#e3e3e3'
-            property color oddColor: '#f3f3f3'
-            property color redColor: 'red'
-            textFont.pixelSize: 13
+        delegate: DelegateChooser {
+            DelegateChoice {
+                column: 23
 
-            color: {
+                OddEvenTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
 
-                var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                if(frameNumber === framePos) {
-                    return redColor;
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    evenProgressColor: 'darkgreen'
+                    oddProgressColor: 'green'
+                    evenProgress.value: decoration.x
+                    oddProgress.value: decoration.y
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
                 }
-
-                return (row % 2) == 0 ? evenColor : oddColor
             }
 
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                    var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                    dataView.tapped(frameNumber);
+            DelegateChoice {
+                column: 24
+
+                OddEvenTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    evenProgressColor: 'darkblue'
+                    oddProgressColor: 'blue'
+                    evenProgress.value: decoration.x
+                    oddProgress.value: decoration.y
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice  {
+                TextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
                 }
             }
         }
@@ -216,6 +294,11 @@ Rectangle {
     TextMetrics {
         id: missingPacksMetrics
         text: "Subcode, Video, Audio"
+    }
+
+    TextMetrics {
+        id: errorConcealmentMetrics
+        text: "Video Error Concealment %"
     }
 
     property int columnSpacing: 10
@@ -340,23 +423,14 @@ Rectangle {
 
         TableModelColumn {
             display: "Video Error Concealment %";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Video Error Concealment % (odd/even balance)";
-            property int minWidth: 20
+            decoration: "Video Error Concealment";
+            property int minWidth: errorConcealmentMetrics.width
         }
 
         TableModelColumn {
             display: "Audio Error %";
-            property int minWidth: 20
+            decoration: "Audio Error";
+            property int minWidth: errorConcealmentMetrics.width
         }
-
-        TableModelColumn {
-            display: "Audio Error % (odd/even balance)";
-            property int minWidth: 20
-        }
-
     }
 }
