@@ -5,9 +5,14 @@
  */
 
 //---------------------------------------------------------------------------
+#include <iomanip>
+#include <iostream>
 #include "Common/ProcessFile.h"
 #include "ZenLib/Ztring.h"
+#include "Output.h"
+#include "TimeCode.h"
 using namespace ZenLib;
+using namespace std;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -41,6 +46,12 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
         case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrame((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
         }
         break;
+    case MediaInfo_Parser_Global:
+        switch (EventID)
+        {
+        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrame((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
+        }
+        break;
     }
 }
 
@@ -61,6 +72,8 @@ void file::Parse(const String& FileName)
 {
     MI.Option(__T("File_Event_CallBackFunction"), __T("CallBack=memory://") + Ztring::ToZtring((size_t)&Event_CallBackFunction) + __T(";UserHandler=memory://") + Ztring::ToZtring((size_t)this));
     MI.Option(__T("File_DvDif_Analysis"), __T("1"));
+    if (Merge_InputFileNames.size() && Merge_InputFileNames.front() == "-") // Only if from stdin (not supported in other cases)
+        MI.Option(__T("File_Demux_Unpacketize"), __T("1"));
     MI.Open(FileName);
 
     // Filing some info
@@ -154,13 +167,50 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 
     if (!Merge_OutputFileName.empty())
         Merge.AddFrame(Merge_FilePos, FrameData);
+
+    // Information
+    if (!Merge_FilePos && Verbosity > 0 && Verbosity <= 7)
+    {
+        string Text;
+        const int Formating_FrameCount_Width = 6;
+        Text = to_string(FrameNumber);
+        if (Text.size() < Formating_FrameCount_Width)
+            Text.insert(0, Formating_FrameCount_Width - Text.size(), ' ');
+        timecode TC_Temp(FrameData->TimeCode);
+        if (TC_Temp.HasValue())
+        {
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            Text += ' ';
+            Text += TC.ToString();
+        }
+        rec_date_time RecDateTime(FrameData->RecordedDateTime1, FrameData->RecordedDateTime2);
+        string RecDateTime_String;
+        if (RecDateTime.HasDate())
+        {
+            Text += ' ';
+            date_to_string(Text, RecDateTime.Years(), RecDateTime.Months(), RecDateTime.Days());
+        }
+        if (RecDateTime.HasTime())
+        {
+            Text += ' ';
+            timecode_to_string(Text, RecDateTime.TimeInSeconds(), TC_Temp.DropFrame(), RecDateTime.Frames());
+        }
+        UpdateCerr(Text);
+    }
 }
 
 //---------------------------------------------------------------------------
 void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
 {
-    if (!FrameData->StreamIDs_Size)
+    // DV frame
+    if (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
+    {
+        if (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-") // Only for stdin
+            Merge.AddFrame(Merge_FilePos, FrameData);
         return;
+    }
+
+    // Caption frame
     auto Dseq = FrameData->StreamIDs[FrameData->StreamIDs_Size-1];
     if ((Dseq & 0xFFFF00) != ((0x2 << 16) | (0x65 << 8))) // identifier with SCT = 0x2, PackType = 0x65, and Dseq
         return;
@@ -193,4 +243,13 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
             FieldData.emplace_back(FrameNumber);
         FieldData.back().Captions.emplace_back(FrameData->Content + i * 2);
     }
+}
+
+void UpdateCerr(const string& Content)
+{
+    static size_t Content_Previous_Size = 0;
+    if (Content_Previous_Size > Content.size())
+        Content_Previous_Size = Content.size();
+    cerr << Content;
+    cerr << setw(Content_Previous_Size - Content.size()) << ' ' << '\r';
 }

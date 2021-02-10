@@ -61,7 +61,8 @@ return_value Core::Process()
     if (!Merge_OutputFileName.empty())
     {
         PerFile[0]->Merge_Finish();
-        return ReturnValue_OK;
+        if (!XmlFile)
+            return ReturnValue_OK;
     }
 
     // Set output defaults

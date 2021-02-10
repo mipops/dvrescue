@@ -114,12 +114,16 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
     for (const auto& File : PerFile)
     {
         // Media header
-        auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
-        if (FileName.empty())
+        if (!File->MI.Count_Get(Stream_General))
             continue; // Show the file only if it exists
-        Text += "\t<media ref=\"";
-        Text += Ztring(FileName).To_UTF8();;
-        Text += '\"';
+        Text += "\t<media";
+        auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
+        if (!FileName.empty())
+        {
+            Text += " ref=\"";
+            Text += Ztring(FileName).To_UTF8();
+            Text += '\"';
+        }
         if (File->PerFrame.empty() || File->PerChange.empty())
         {
             if (File->MI.Get(Stream_Video, 0, __T("Format")) != __T("DV"))
