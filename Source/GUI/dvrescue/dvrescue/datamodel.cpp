@@ -437,8 +437,16 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     fillAttribute("Video Rate", framesAttributes, "video_rate");
     fillAttribute("Chroma Subsampling", framesAttributes, "chroma_subsampling");
     fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
-    fillAttribute("Audio Rate", framesAttributes, "audio_rate");
-    fillAttribute("Channels", framesAttributes, "channels");
+
+    QString channels = "";
+    QString audioRate = "";
+    if(framesAttributes.hasAttribute("audio_rate"))
+        audioRate = QString("%1k").arg(framesAttributes.value("audio_rate").toInt() / 1000);
+
+    if(framesAttributes.hasAttribute("channels"))
+        channels = framesAttributes.value("channels").toString() + "ch";
+
+    map["Audio"] = channels + " " + audioRate;
 
     auto video_block_count = diff_seq_count * video_blocks_per_diff_seq;
     auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;

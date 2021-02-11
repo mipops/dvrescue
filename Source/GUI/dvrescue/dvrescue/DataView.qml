@@ -85,7 +85,7 @@ Rectangle {
 
         delegate: DelegateChooser {
             DelegateChoice {
-                column: 23
+                column: 22
 
                 OddEvenTextDelegate {
                     height: tableView.delegateHeight
@@ -122,7 +122,7 @@ Rectangle {
             }
 
             DelegateChoice {
-                column: 24
+                column: 23
 
                 OddEvenTextDelegate {
                     height: tableView.delegateHeight
@@ -412,13 +412,8 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Audio Rate";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Channels";
-            property int minWidth: 20
+            display: "Audio";
+            property int minWidth: 60
         }
 
         TableModelColumn {
