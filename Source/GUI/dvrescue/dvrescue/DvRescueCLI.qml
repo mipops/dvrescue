@@ -48,10 +48,12 @@ Item {
             });
 
             var makeReportTemplate = "file.dv -x file.dv.dvrescue.xml -s file.dv.dvrescue.vtt -c file.dv.dvrescue.scc";
-            var makeReportCmdLine = makeReportTemplate.split("file.dv").join(file)
-            console.debug('makeReportCmdLine: ', makeReportCmdLine);
+            var arguments = makeReportTemplate.split(" ");
+            for(var i = 0; i < arguments.length; ++i) {
+                arguments[i] = arguments[i].replace("file.dv", file);
+            }
 
-            launcher.execute(dvrescueCmd + ' ' + makeReportCmdLine);
+            launcher.execute(dvrescueCmd, arguments);
             if(callback)
                 callback(launcher)
         })
