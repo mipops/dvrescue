@@ -85,7 +85,7 @@ Rectangle {
 
         delegate: DelegateChooser {
             DelegateChoice {
-                column: 22
+                column: dataModel.videoErrorColumn
 
                 OddEvenTextDelegate {
                     height: tableView.delegateHeight
@@ -122,7 +122,7 @@ Rectangle {
             }
 
             DelegateChoice {
-                column: 23
+                column: dataModel.audioErrorColumn
 
                 OddEvenTextDelegate {
                     height: tableView.delegateHeight
@@ -305,6 +305,17 @@ Rectangle {
 
     TableModel {
         id: dataModel
+
+        property var columnsNames: {
+            var names = [];
+            for(var i = 0; i < columns.length; ++i) {
+                names.push(columns[i].display)
+            }
+            return names;
+        }
+
+        property int videoErrorColumn: columnsNames.indexOf("Video Error Concealment %");
+        property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
 
         TableModelColumn {
             display: "Frame #";
