@@ -186,7 +186,15 @@ Rectangle {
 
         Button {
             id: zoomInButton
-            text: "+"
+            icon.source: "icons/button-zoom-in.svg"
+            icon.width: width
+            icon.height: height
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "+"
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
@@ -198,7 +206,16 @@ Rectangle {
         }
         Button {
             id: zoomAllButton
-            text: "|"
+            icon.source: "icons/button-fit-to-screen.svg"
+            icon.width: width
+            icon.height: height
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "|"
+
             onClicked: {
                 scroll.size = 1
                 scroll.position = 0
@@ -209,7 +226,15 @@ Rectangle {
 
         Button {
             id: customZoomButton
-            text: "Custom"
+            icon.source: "icons/button-custom-range.svg"
+            icon.width: width
+            icon.height: height
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "Custom"
 
             Connections {
                 target: dataModel
@@ -278,7 +303,15 @@ Rectangle {
 
         Button {
             id: zoomOutButton
-            text: "-"
+            icon.source: "icons/button-zoom-out.svg"
+            icon.width: width
+            icon.height: height
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "-"
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
