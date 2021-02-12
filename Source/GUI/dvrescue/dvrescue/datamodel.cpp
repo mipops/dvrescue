@@ -323,6 +323,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
         map[mapKeyName] = attributes.hasAttribute(name) ? attributes.value(name).toString() : defaultValue;
     };
 
+    auto getStringAttribute = [&](const QString& name, const QXmlStreamAttributes& attributes) {
+        return attributes.hasAttribute(name) ? attributes.value(name).toString() : QString();
+    };
+
     fillAttribute("Byte Offset", frameAttributes, "pos");
     fillAttribute("Timestamp", frameAttributes, "pts");
     fillAttribute("Timecode", frameAttributes, "tc");
@@ -433,12 +437,43 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Full Concealment"] = fullConcealment.join(", ");
 
-    fillAttribute("Video Size", framesAttributes, "size");
-    fillAttribute("Video Rate", framesAttributes, "video_rate");
-    fillAttribute("Chroma Subsampling", framesAttributes, "chroma_subsampling");
-    fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
-    fillAttribute("Audio Rate", framesAttributes, "audio_rate");
-    fillAttribute("Channels", framesAttributes, "channels");
+    QString videoRate;
+    QString videoSize;
+    QString aspectRatio;
+    QString chromaSubsampling;
+
+    if(framesAttributes.hasAttribute("video_rate")) {
+        auto videoRateValue = framesAttributes.value("video_rate").toString();
+        if(videoRateValue == "30000/1001") {
+            videoRate = "NTSC";
+        } else if(videoRateValue == "25") {
+            videoRate = "PAL";
+        } else {
+            videoRate = videoRateValue;
+        }
+    }
+
+    videoSize = getStringAttribute("size", framesAttributes);
+    aspectRatio = getStringAttribute("aspect_ratio", framesAttributes);
+    chromaSubsampling = getStringAttribute("chroma_subsampling", framesAttributes);
+
+    map["Video"] = (QStringList() << videoRate << videoSize << aspectRatio << chromaSubsampling).join(" ");
+
+    QString channels;
+    QString audioRate;
+    if(framesAttributes.hasAttribute("audio_rate"))
+    {
+        auto rate = framesAttributes.value("audio_rate").toInt();
+        if((rate % 1000) == 0)
+            audioRate = QString::number(rate / 1000) + "k";
+        else
+            audioRate = QString::number(float(rate) / 1000, 'f', 1) + "k";
+    }
+
+    if(framesAttributes.hasAttribute("channels"))
+        channels = framesAttributes.value("channels").toString() + "ch";
+
+    map["Audio"] = channels + " " + audioRate;
 
     auto video_block_count = diff_seq_count * video_blocks_per_diff_seq;
     auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;

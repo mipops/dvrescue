@@ -144,10 +144,7 @@ void Launcher::execute(const QString &app, const QStringList arguments)
     }
 
     m_process->setProgram(app);
-
-#ifdef Q_OS_WIN
-    m_process->setNativeArguments("\"" + arguments.join(" ") + "\"");
-#endif //
+    m_process->setArguments(arguments);
 
     m_process->start();
 }

@@ -21,6 +21,27 @@ Item {
         anchors.topMargin: 10
     }
 
+    Rectangle {
+        z: 100
+        color: 'darkgray'
+        opacity: 0.5
+        anchors.fill: parent
+        visible: busy.running
+
+        MouseArea {
+            anchors.fill: parent
+        }
+    }
+
+    BusyIndicator {
+        id: busy
+        z: 100
+        width: Math.min(parent.width, parent.height) / 3
+        height: width;
+        running: false
+        anchors.centerIn: parent
+    }
+
     DataModel {
         id: dataModel
 
@@ -128,9 +149,13 @@ Item {
                         refreshTimer.start();
                         dataModel.populate(dvRescueXmlPath);
                     } else {
+                        busy.running = true;
                         dvrescue.makeReport(filePathTextField.text).then(() => {
+                             busy.running = false;
                              refreshTimer.start();
                              dataModel.populate(dvRescueXmlPath);
+                        }).catch((error) => {
+                            busy.running = false;
                         });
                     }
 

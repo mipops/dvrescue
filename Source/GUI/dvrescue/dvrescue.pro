@@ -69,13 +69,14 @@ mac: {
     write_file($$QTAV/.qmake.conf, noVideoToolbox, append)
 }
 
-# we don't need examples
-noExamples = CONFIG*=no-examples
-write_file($$QTAV/.qmake.conf, noExamples, append)
+# .. we have to build examples, otherwise QML-related dependencies not copied into bin folder
+# noExamples = CONFIG*=no-examples
+# write_file($$QTAV/.qmake.conf, noExamples, append)
 
-# .. but have to build tests, otherwise QML-related dependencies not copied into bin folder
-#noTests = CONFIG*=no-tests
-#write_file($$QTAV/.qmake.conf, noTests, append)
+# update: unfortuantely building tests causes some linking errors on Ubuntu 18.04
+# so disable it for now
+noTests = CONFIG*=no-tests
+write_file($$QTAV/.qmake.conf, noTests, append)
 
 SUBDIRS += \
         dvrescue-qtav \
