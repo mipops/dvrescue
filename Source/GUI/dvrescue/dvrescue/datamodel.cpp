@@ -323,6 +323,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
         map[mapKeyName] = attributes.hasAttribute(name) ? attributes.value(name).toString() : defaultValue;
     };
 
+    auto getStringAttribute = [&](const QString& name, const QXmlStreamAttributes& attributes) {
+        return attributes.hasAttribute(name) ? attributes.value(name).toString() : QString();
+    };
+
     fillAttribute("Byte Offset", frameAttributes, "pos");
     fillAttribute("Timestamp", frameAttributes, "pts");
     fillAttribute("Timecode", frameAttributes, "tc");
@@ -433,13 +437,30 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Full Concealment"] = fullConcealment.join(", ");
 
-    fillAttribute("Video Size", framesAttributes, "size");
-    fillAttribute("Video Rate", framesAttributes, "video_rate");
-    fillAttribute("Chroma Subsampling", framesAttributes, "chroma_subsampling");
-    fillAttribute("Aspect Ratio", framesAttributes, "aspect_ratio");
+    QString videoRate;
+    QString videoSize;
+    QString aspectRatio;
+    QString chromaSubsampling;
 
-    QString channels = "";
-    QString audioRate = "";
+    if(framesAttributes.hasAttribute("video_rate")) {
+        auto videoRateValue = framesAttributes.value("video_rate").toString();
+        if(videoRateValue == "30000/1001") {
+            videoRate = "NTSC";
+        } else if(videoRateValue == "25") {
+            videoRate = "PAL";
+        } else {
+            videoRate = videoRateValue;
+        }
+    }
+
+    videoSize = getStringAttribute("size", framesAttributes);
+    aspectRatio = getStringAttribute("aspect_ratio", framesAttributes);
+    chromaSubsampling = getStringAttribute("chroma_subsampling", framesAttributes);
+
+    map["Video"] = (QStringList() << videoRate << videoSize << aspectRatio << chromaSubsampling).join(" ");
+
+    QString channels;
+    QString audioRate;
     if(framesAttributes.hasAttribute("audio_rate"))
     {
         auto rate = framesAttributes.value("audio_rate").toInt();

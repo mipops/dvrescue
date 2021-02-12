@@ -403,23 +403,8 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Video Size";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Video Rate";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Chroma Subsampling";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Aspect Ratio";
-            property int minWidth: 20
+            display: "Video";
+            property int minWidth: 150
         }
 
         TableModelColumn {
