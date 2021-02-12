@@ -441,7 +441,13 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     QString channels = "";
     QString audioRate = "";
     if(framesAttributes.hasAttribute("audio_rate"))
-        audioRate = QString("%1k").arg(framesAttributes.value("audio_rate").toInt() / 1000);
+    {
+        auto rate = framesAttributes.value("audio_rate").toInt();
+        if((rate % 1000) == 0)
+            audioRate = QString::number(rate / 1000) + "k";
+        else
+            audioRate = QString::number(float(rate) / 1000, 'f', 1) + "k";
+    }
 
     if(framesAttributes.hasAttribute("channels"))
         channels = framesAttributes.value("channels").toString() + "ch";
