@@ -6,7 +6,7 @@
         <file>AvfCtlParser.qml</file>
         <file>DevicesModel.qml</file>
         <file>DevicesView.qml</file>
-        <file>TransferPage.ui.qml</file>
+        <file>TransferPage.qml</file>
         <file>icons/icon.png</file>
         <file>icons/fastforward.svg</file>
         <file>icons/play.svg</file>
@@ -19,9 +19,9 @@
         <file>SelectPathDialog.qml</file>
         <file>PlotPicker.qml</file>
         <file>DvRescueLogo.ui.qml</file>
-        <file>NavButton.ui.qml</file>
-        <file>RedNavButton.ui.qml</file>
-        <file>WhiteNavButton.ui.qml</file>
+        <file>NavButton.qml</file>
+        <file>RedNavButton.qml</file>
+        <file>WhiteNavButton.qml</file>
         <file>FileViewer.ui.qml</file>
         <file>CaptureView.ui.qml</file>
         <file>AnalysePage.qml</file>
