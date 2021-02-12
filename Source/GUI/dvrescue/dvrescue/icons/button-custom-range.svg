@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="200"
+   height="200"
+   viewBox="0 0 52.916665 52.916668"
+   version="1.1"
+   id="svg5459"
+   sodipodi:docname="custom-range.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <defs
+     id="defs5453" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.4363281"
+     inkscape:cx="89.285968"
+     inkscape:cy="118.14132"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:pagecheckerboard="true"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1052"
+     inkscape:window-x="0"
+     inkscape:window-y="244"
+     inkscape:window-maximized="1">
+    <sodipodi:guide
+       position="-5.9729569,26.389611"
+       orientation="0,1"
+       id="guide6029"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="26.606808,45.503074"
+       orientation="1,0"
+       inkscape:locked="false"
+       id="guide6031" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5456">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-244.08332)">
+    <path
+       transform="matrix(1,0,-0.09968885,0.99501866,0,0)"
+       style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#ffffff;stroke-width:2.10046959;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke"
+       d="m 30.701054,249.09256 h 45.423519 v 45.55667 H 30.701054 Z"
+       id="rect868-8-0-0-8-3" />
+    <g
+       aria-label="CUSTOM"
+       style="font-style:normal;font-weight:normal;font-size:19.44549179px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.48613727"
+       id="text1207">
+      <path
+         d="m 8.7817168,273.11512 h 2.2048612 v -0.55121 h 0.551215 v -0.55122 h 1.102431 v 1.10243 h -0.551216 v 0.55122 h -0.551215 v 0.55121 H 8.2305015 v -0.55121 H 7.6792862 v -0.55122 H 7.1280709 v -5.51215 h 0.5512153 v -0.55122 h 0.5512153 v -0.55121 h 3.3072915 v 0.55121 h 0.551215 v 0.55122 h 0.551216 v 1.10243 h -1.102431 v -0.55122 h -0.551215 v -0.55121 H 8.7817168 v 0.55121 H 8.2305015 v 4.40973 h 0.5512153 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6146" />
+      <path
+         d="m 14.29387,273.11512 h -0.551216 v -6.61458 h 1.102431 v 6.06337 H 15.3963 v 0.55121 h 2.204861 v -0.55121 h 0.551216 v -6.06337 h 1.10243 v 6.61458 h -0.551215 v 0.55122 h -0.551215 v 0.55121 h -3.307292 v -0.55121 H 14.29387 Z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6148" />
+      <path
+         d="m 25.318175,267.60297 h 0.551216 v 1.10243 H 24.76696 v -0.55122 h -0.551215 v -0.55121 h -2.204861 v 0.55121 h -0.551216 v 1.10244 h 0.551216 v 0.55121 h 2.756076 v 0.55122 h 0.551215 v 0.55121 h 0.551216 v 2.20486 h -0.551216 v 0.55122 H 24.76696 v 0.55121 h -3.307292 v -0.55121 h -0.551215 v -0.55122 h -0.551215 v -1.10243 h 1.10243 v 0.55122 h 0.551216 v 0.55121 h 2.204861 v -0.55121 h 0.551215 v -1.10243 h -0.551215 v -0.55122 h -2.756077 v -0.55121 h -0.551215 v -0.55122 h -0.551215 v -2.20486 h 0.551215 v -0.55122 h 0.551215 v -0.55121 h 3.307292 v 0.55121 h 0.551215 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6150" />
+      <path
+         d="m 29.176682,267.60297 h -2.204861 v -1.10243 h 5.512153 v 1.10243 h -2.204861 v 6.61458 h -1.102431 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6152" />
+      <path
+         d="m 37.444912,267.60297 h -2.204861 v 0.55121 h -0.551216 v 4.40973 h 0.551216 v 0.55121 h 2.204861 v -0.55121 h 0.551215 v -4.40973 h -0.551215 z m -2.756077,-0.55122 v -0.55121 h 3.307292 v 0.55121 h 0.551215 v 0.55122 h 0.551216 v 5.51215 h -0.551216 v 0.55122 h -0.551215 v 0.55121 h -3.307292 v -0.55121 H 34.13762 v -0.55122 h -0.551215 v -5.51215 h 0.551215 v -0.55122 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6154" />
+      <path
+         d="m 41.303419,274.21755 h -1.10243 v -7.71701 h 1.10243 v 1.10243 h 0.551216 v 0.55121 h 0.551215 v 0.55122 h 1.102431 v -0.55122 h 0.551215 v -0.55121 h 0.551215 v -1.10243 h 1.102431 v 7.71701 h -1.102431 v -4.96093 h -0.551215 v 0.55121 h -0.551215 v 1.10243 H 42.40585 v -1.10243 h -0.551215 v -0.55121 h -0.551216 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:11.28888893px;font-family:'VCR OSD Mono';-inkscape-font-specification:'VCR OSD Mono, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;stroke-width:0.48613727"
+         id="path6156" />
+    </g>
+  </g>
+</svg>

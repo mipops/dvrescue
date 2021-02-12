@@ -39,25 +39,34 @@ ApplicationWindow {
 
         RedNavButton {
             id: transferButton
-            text: qsTr("Transfer")
+            // text: qsTr("Transfer")
             checkable: true;
             property int index: 0
+            icon.source: "icons/menu-transfer.svg"
+            icon.width: width
+            icon.height: height
         }
         WhiteNavButton {
             id: analysisButton
-            text: qsTr("Analysis")
+            // text: qsTr("Analysis")
             checkable: true;
             property int index: 1
             checked: true
+            icon.source: "icons/menu-analysis.svg"
+            icon.width: width
+            icon.height: height
         }
         RedNavButton {
             id: packageButton
-            text: qsTr("Package")
+            // text: qsTr("Package")
             checkable: true;
             property int index: 2
+            icon.source: "icons/menu-package.svg"
+            icon.width: width
+            icon.height: height
         }
         WhiteNavButton {
-            text: qsTr("Settings")
+            // text: qsTr("Settings")
             onClicked: {
                 avfctlField.text = avfctl.avfctlCmd
                 avfctlField.forceActiveFocus();
@@ -65,15 +74,24 @@ ApplicationWindow {
                 dvrescueField.text = dvrescue.dvrescueCmd
                 avfctlDialog.open();
             }
+            icon.source: "icons/menu-settings.svg"
+            icon.width: width
+            icon.height: height
         }
         RedNavButton {
-            text: qsTr("Help")
+            // text: qsTr("Help")
+            icon.source: "icons/menu-help.svg"
+            icon.width: width
+            icon.height: height
         }
         WhiteNavButton {
-            text: qsTr("Debug")
+            // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
             }
+            icon.source: "icons/menu-debug.svg"
+            icon.width: width
+            icon.height: height
         }
     }
 
