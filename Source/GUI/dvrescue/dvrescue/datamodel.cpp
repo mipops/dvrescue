@@ -71,7 +71,15 @@ int DataModel::frameByIndex(int index)
     if(index < 0 || index >= m_frames.size())
         return index;
 
-    return m_frames[index];
+    return std::get<0>(m_frames[index]);
+}
+
+bool DataModel::isSubstantialFrame(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return false;
+
+    return std::get<1>(m_frames[index]).isSubstantial;
 }
 
 int DataModel::rowByFrame(int frame)
@@ -264,10 +272,10 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
+            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         m_lastFrame = frameNumber;
         m_total = m_lastFrame + 1;
-        m_frames.append(frameNumber);
+        m_frames.append(std::make_tuple(frameNumber, FrameStats { isSubstantial }));
         m_rowByFrame[frameNumber] = m_frames.length() - 1;
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);

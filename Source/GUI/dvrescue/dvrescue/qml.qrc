@@ -49,5 +49,7 @@
         <file>icons/menu-settings.svg</file>
         <file>icons/menu-transfer.svg</file>
         <file>JumpRepeatTextDelegate.qml</file>
+        <file>TextImageDelegate.qml</file>
+        <file>SubstantialTextDelegate.qml</file>
     </qresource>
 </RCC>
