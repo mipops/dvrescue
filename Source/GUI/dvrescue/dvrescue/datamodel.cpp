@@ -329,12 +329,28 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     fillAttribute("Byte Offset", frameAttributes, "pos");
     fillAttribute("Timestamp", frameAttributes, "pts");
+
     fillAttribute("Timecode", frameAttributes, "tc");
-    fillAttribute("Timecode Repeat", frameAttributes, "tc_r");
-    fillAttribute("Timecode Jump", frameAttributes, "tc_nc");
+    int timecodeRepeat = 0;
+    if(frameAttributes.hasAttribute("tc_r"))
+        timecodeRepeat = frameAttributes.value("tc_r").toInt();
+
+    auto timecodeJump = 0;
+    if(frameAttributes.hasAttribute("tc_nc"))
+        timecodeJump = frameAttributes.value("tc_nc").toInt();
+
+    map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
+
     fillAttribute("Recording Time", frameAttributes, "rdt");
-    fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
-    fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
+    int recordingTimeRepeat = 0;
+    if(frameAttributes.hasAttribute("rdt_r"))
+        recordingTimeRepeat = frameAttributes.value("rdt_r").toInt();
+
+    auto recordingTimeJump = 0;
+    if(frameAttributes.hasAttribute("rdt_nc"))
+        recordingTimeJump = frameAttributes.value("rdt_nc").toInt();
+
+    map["Recording Time: Jump/Repeat"] = QPoint(recordingTimeJump, recordingTimeRepeat);
 
     auto hasRecStart = frameAttributes.hasAttribute("rec_start");
     auto hasRecEnd = frameAttributes.hasAttribute("rec_end");
@@ -358,8 +374,15 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Recording Marks"] = recordingMarks;
 
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
-    fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
-    fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
+    int arbitraryBitsRepeat = 0;
+    if(frameAttributes.hasAttribute("arb_r"))
+        arbitraryBitsRepeat = frameAttributes.value("arb_r").toInt();
+
+    auto arbitraryBitsJump = 0;
+    if(frameAttributes.hasAttribute("arb_nc"))
+        arbitraryBitsJump = frameAttributes.value("arb_nc").toInt();
+
+    map["Arbitrary Bits: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
 
     map["Captions"] = "";
     if(framesAttributes.hasAttribute("captions"))
