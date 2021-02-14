@@ -336,7 +336,13 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     };
 
     fillAttribute("Byte Offset", frameAttributes, "pos");
-    fillAttribute("Timestamp", frameAttributes, "pts");
+
+    QString timestamp;
+    if(frameAttributes.hasAttribute("pts")) {
+        auto splitted = frameAttributes.value("pts").toString().split(".");
+        timestamp = splitted[0] + "." + splitted[1].mid(0, 2);
+    }
+    map["Timestamp"] = timestamp;
 
     fillAttribute("Timecode", frameAttributes, "tc");
     int timecodeRepeat = 0;
@@ -512,10 +518,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;
 
     auto video_error_concealment_percent = double(totalSta) / video_block_count * 100;
-    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent, 'f', 2) + QString("%");
+    map["Video Error %"] = QString::number(video_error_concealment_percent, 'f', 2) + QString("%");
 
     auto video_error_concealment = QPointF(totalEvenSta, totalSta - totalEvenSta) / video_block_count * 2;
-    map["Video Error Concealment"] = video_error_concealment;
+    map["Video Error"] = video_error_concealment;
 
     auto audio_error_concealment_percent = double(totalAud) / audio_block_count * 100;
     map["Audio Error %"] = QString::number(audio_error_concealment_percent, 'f', 2) + QString("%");

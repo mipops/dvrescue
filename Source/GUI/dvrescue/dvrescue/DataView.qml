@@ -419,7 +419,7 @@ Rectangle {
 
     TextMetrics {
         id: timestampMetrics
-        text: "00:00:00.000000"
+        text: "00:00:00.000"
     }
     TextMetrics {
         id: timecodeMetrics
@@ -458,16 +458,11 @@ Rectangle {
 
         property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
 
-        property int videoErrorColumn: columnsNames.indexOf("Video Error Concealment %");
+        property int videoErrorColumn: columnsNames.indexOf("Video Error %");
         property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
 
         TableModelColumn {
             display: "Frame #";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Byte Offset";
             property int minWidth: 20
         }
 
@@ -494,6 +489,28 @@ Rectangle {
         }
 
         TableModelColumn {
+            display: "Video Error %";
+            decoration: "Video Error";
+            property int minWidth: errorConcealmentMetrics.width
+        }
+
+        TableModelColumn {
+            display: "Audio Error %";
+            decoration: "Audio Error";
+            property int minWidth: errorConcealmentMetrics.width
+        }
+
+        TableModelColumn {
+            display: "Full Concealment";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Missing Packs";
+            property int minWidth: missingPacksMetrics.width + columnSpacing
+        }
+
+        TableModelColumn {
             display: "Arbitrary Bits";
             decoration: "Arbitrary Bits: Jump/Repeat"
             property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
@@ -510,30 +527,13 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Missing Packs";
-            property int minWidth: missingPacksMetrics.width + columnSpacing
-        }
-
-        TableModelColumn {
-            display: "Full Concealment";
+            display: "Byte Offset";
             property int minWidth: 20
         }
 
         TableModelColumn {
             display: "Video/Audio";
             property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
-        }
-
-        TableModelColumn {
-            display: "Video Error Concealment %";
-            decoration: "Video Error Concealment";
-            property int minWidth: errorConcealmentMetrics.width
-        }
-
-        TableModelColumn {
-            display: "Audio Error %";
-            decoration: "Audio Error";
-            property int minWidth: errorConcealmentMetrics.width
         }
     }
 }
