@@ -228,7 +228,7 @@ elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
 else
     BREW_PREFIX="$(brew --prefix ffmpegdecklink 2>/dev/null)"
 fi
-if [[ -d "${BREW_PREFIX}/bin" ]] ; then
+if [[ -n "${BREW_PREFIX}" && -d "${BREW_PREFIX}/bin" ]] ; then
     FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
 else
     FFMPEG_PATH="$(which ffmpeg)"
