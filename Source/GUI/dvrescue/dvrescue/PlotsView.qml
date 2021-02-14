@@ -5,6 +5,7 @@ import QtQuick.Controls 1.4 as QQC1
 import QwtQuick2 1.0
 
 Rectangle {
+    color: "transparent"
     property alias evenVideoCurve: evenVideoCurve
     property alias oddVideoCurve: oddVideoCurve
     property alias evenAudioCurve: evenAudioCurve
@@ -42,8 +43,10 @@ Rectangle {
 
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisColor: "darkgray"
                 xBottomAxisEnabled: false
                 yLeftAxisTitle: "video error concealment (%)"
+                yLeftAxisColor: "darkgray"
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
@@ -77,6 +80,7 @@ Rectangle {
                     title: "even";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "darkgreen"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotCurve {
@@ -84,6 +88,7 @@ Rectangle {
                     title: "odd";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "green"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotGrid {
@@ -115,7 +120,9 @@ Rectangle {
 
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisColor: "darkgray"
                 yLeftAxisTitle: "audio error (%)"
+                yLeftAxisColor: "darkgray"
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
@@ -149,6 +156,7 @@ Rectangle {
                     title: "even";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "darkblue"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotCurve {
@@ -156,6 +164,7 @@ Rectangle {
                     title: "odd"
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "blue"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotGrid {
@@ -186,9 +195,13 @@ Rectangle {
 
         Button {
             id: zoomInButton
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
             icon.source: "icons/button-zoom-in.svg"
             icon.width: width
             icon.height: height
+            icon.color: "white"
             padding: 0
             topInset: 0
             leftInset: 0
@@ -206,9 +219,13 @@ Rectangle {
         }
         Button {
             id: zoomAllButton
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
             icon.source: "icons/button-fit-to-screen.svg"
             icon.width: width
             icon.height: height
+            icon.color: "white"
             padding: 0
             topInset: 0
             leftInset: 0
@@ -226,9 +243,13 @@ Rectangle {
 
         Button {
             id: customZoomButton
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
             icon.source: "icons/button-custom-range.svg"
             icon.width: width
             icon.height: height
+            icon.color: "white"
             padding: 0
             topInset: 0
             leftInset: 0
@@ -303,9 +324,13 @@ Rectangle {
 
         Button {
             id: zoomOutButton
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
             icon.source: "icons/button-zoom-out.svg"
             icon.width: width
             icon.height: height
+            icon.color: "white"
             padding: 0
             topInset: 0
             leftInset: 0

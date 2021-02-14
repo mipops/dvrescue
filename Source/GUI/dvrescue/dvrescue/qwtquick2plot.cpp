@@ -206,6 +206,18 @@ bool QwtQuick2Plot::xBottomAxisEnabled() const
     return m_qwtPlot->axisEnabled(QwtPlot::xBottom);
 }
 
+QColor QwtQuick2Plot::yLeftAxisColor() const
+{
+    auto axisWidget = m_qwtPlot->axisWidget(QwtPlot::yLeft);
+    return axisWidget->palette().color(QPalette::WindowText);
+}
+
+QColor QwtQuick2Plot::xBottomAxisColor() const
+{
+    auto axisWidget = m_qwtPlot->axisWidget(QwtPlot::xBottom);
+    return axisWidget->palette().color(QPalette::WindowText);
+}
+
 void QwtQuick2Plot::setXBottomAxisRange(QVector2D xBottomAxisRange)
 {
     if (this->xBottomAxisRange() == xBottomAxisRange)
@@ -261,6 +273,34 @@ void QwtQuick2Plot::setXBottomAxisEnabled(bool xBottomAxisEnabled)
     replotAndUpdate();
 
     Q_EMIT xBottomAxisEnabledChanged(this->xBottomAxisEnabled());
+}
+
+void QwtQuick2Plot::setYLeftAxisColor(QColor yLeftAxisColor)
+{
+    if (this->yLeftAxisColor() == yLeftAxisColor)
+        return;
+
+    auto axisWidget = m_qwtPlot->axisWidget(QwtPlot::yLeft);
+    QPalette palette = axisWidget->palette();
+    palette.setColor( QPalette::WindowText, yLeftAxisColor); // for ticks
+    palette.setColor( QPalette::Text, yLeftAxisColor); // for ticks' labels
+    axisWidget->setPalette(palette);
+
+    Q_EMIT yLeftAxisColorChanged(yLeftAxisColor);
+}
+
+void QwtQuick2Plot::setXBottomAxisColor(QColor xBottomAxisColor)
+{
+    if (this->xBottomAxisColor() == xBottomAxisColor)
+        return;
+
+    auto axisWidget = m_qwtPlot->axisWidget(QwtPlot::xBottom);
+    QPalette palette = axisWidget->palette();
+    palette.setColor( QPalette::WindowText, xBottomAxisColor); // for ticks
+    palette.setColor( QPalette::Text, xBottomAxisColor); // for ticks' labels
+    axisWidget->setPalette(palette);
+
+    Q_EMIT xBottomAxisColorChanged(xBottomAxisColor);
 }
 
 QVector2D QwtQuick2Plot::yLeftAxisRange() const
@@ -412,6 +452,12 @@ QColor QwtQuick2PlotCurve::color() const
     return m_qwtPlotCurve->pen().color();
 }
 
+QColor QwtQuick2PlotCurve::titleColor() const
+{
+    auto title = m_qwtPlotCurve->title();
+    return title.color();
+}
+
 void QwtQuick2PlotCurve::setCurveStyle(QwtQuick2PlotCurve::CurveStyle curveStyle)
 {
     m_qwtPlotCurve->setStyle((QwtPlotCurve::CurveStyle) curveStyle);
@@ -420,10 +466,13 @@ void QwtQuick2PlotCurve::setCurveStyle(QwtQuick2PlotCurve::CurveStyle curveStyle
 
 void QwtQuick2PlotCurve::setTitle(QString title)
 {
-    if (m_qwtPlotCurve->title().text() == title)
+    if (this->title() == title)
         return;
 
-    m_qwtPlotCurve->setTitle(title);
+    auto qwtTitle = m_qwtPlotCurve->title();
+    qwtTitle.setText(title);
+    m_qwtPlotCurve->setTitle(qwtTitle);
+
     Q_EMIT titleChanged(title);
 }
 
@@ -447,6 +496,18 @@ void QwtQuick2PlotCurve::setColor(QColor color)
     pen.setColor(color);
     m_qwtPlotCurve->setPen(pen);
     Q_EMIT colorChanged(color);
+}
+
+void QwtQuick2PlotCurve::setTitleColor(QColor titleColor)
+{
+    if (this->titleColor() == titleColor)
+        return;
+
+    auto title = m_qwtPlotCurve->title();
+    title.setColor(titleColor);
+    m_qwtPlotCurve->setTitle(title);
+
+    Q_EMIT titleColorChanged(this->titleColor());
 }
 
 
