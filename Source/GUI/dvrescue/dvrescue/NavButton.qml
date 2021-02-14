@@ -7,12 +7,16 @@ Button {
     width: 162
     height: 80
     property color textColor: "white"
-    property color buttonColor: "black"
+    property color buttonColor: "transparent"
     padding: 0
     topInset: 0
     leftInset: 0
     bottomInset: 0
     rightInset: 0
+
+    icon.width: width
+    icon.height: height
+    icon.color: 'white'
 
     background: Rectangle {
         id: buttonBackground

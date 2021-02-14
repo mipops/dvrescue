@@ -37,35 +37,29 @@ ApplicationWindow {
             buttons: [transferButton, analysisButton, packageButton]
         }
 
-        RedNavButton {
+        NavButton {
             id: transferButton
             // text: qsTr("Transfer")
             checkable: true;
             property int index: 0
             icon.source: "icons/menu-transfer.svg"
-            icon.width: width
-            icon.height: height
         }
-        WhiteNavButton {
+        NavButton {
             id: analysisButton
             // text: qsTr("Analysis")
             checkable: true;
             property int index: 1
             checked: true
             icon.source: "icons/menu-analysis.svg"
-            icon.width: width
-            icon.height: height
         }
-        RedNavButton {
+        NavButton {
             id: packageButton
             // text: qsTr("Package")
             checkable: true;
             property int index: 2
             icon.source: "icons/menu-package.svg"
-            icon.width: width
-            icon.height: height
         }
-        WhiteNavButton {
+        NavButton {
             // text: qsTr("Settings")
             onClicked: {
                 avfctlField.text = avfctl.avfctlCmd
@@ -75,23 +69,17 @@ ApplicationWindow {
                 avfctlDialog.open();
             }
             icon.source: "icons/menu-settings.svg"
-            icon.width: width
-            icon.height: height
         }
-        RedNavButton {
+        NavButton {
             // text: qsTr("Help")
             icon.source: "icons/menu-help.svg"
-            icon.width: width
-            icon.height: height
         }
-        WhiteNavButton {
+        NavButton {
             // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
             }
             icon.source: "icons/menu-debug.svg"
-            icon.width: width
-            icon.height: height
         }
     }
 
