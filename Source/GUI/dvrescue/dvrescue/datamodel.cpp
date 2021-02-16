@@ -463,13 +463,24 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto full_conceal_vid = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
     auto full_conceal_aud = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
 
+    map["Video Error/Full Concealment"] = false;
+    map["Audio Error/Full Concealment"] = false;
+
     if(full_conceal) {
         fullConcealment << "Video" << "Audio";
+
+        map["Video Error/Full Concealment"] = true;
+        map["Audio Error/Full Concealment"] = true;
     } else {
-        if(full_conceal_vid)
+        if(full_conceal_vid) {
             fullConcealment << "Video";
-        if(full_conceal_aud)
+            map["Video Error/Full Concealment"] = true;
+        }
+
+        if(full_conceal_aud) {
             fullConcealment << "Audio";
+            map["Audio Error/Full Concealment"] = true;
+        }
     }
 
     map["Full Concealment"] = fullConcealment.join(", ");

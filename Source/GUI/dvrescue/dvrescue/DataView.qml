@@ -232,7 +232,7 @@ Rectangle {
                     property color oddColor: '#f3f3f3'
                     property color redColor: 'red'
                     textFont.pixelSize: 13
-                    text: display
+                    text: edit ? "100%" : display
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
@@ -243,10 +243,10 @@ Rectangle {
                     }
                     overlayColor: 'red'
 
-                    evenProgressColor: 'darkgreen'
-                    oddProgressColor: 'green'
-                    evenProgress.value: decoration.x
-                    oddProgress.value: decoration.y
+                    evenProgressColor: edit ? 'yellow' : 'darkgreen'
+                    oddProgressColor: edit ? 'yellow' : 'green'
+                    evenProgress.value: edit ? 1 : decoration.x
+                    oddProgress.value: edit ? 1 : decoration.y
 
                     MouseArea {
                         anchors.fill: parent
@@ -269,7 +269,7 @@ Rectangle {
                     property color oddColor: '#f3f3f3'
                     property color redColor: 'red'
                     textFont.pixelSize: 13
-                    text: display
+                    text: edit ? "100%" : display
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
@@ -280,10 +280,10 @@ Rectangle {
                     }
                     overlayColor: 'red'
 
-                    evenProgressColor: 'darkblue'
-                    oddProgressColor: 'blue'
-                    evenProgress.value: decoration.x
-                    oddProgress.value: decoration.y
+                    evenProgressColor: edit ? 'yellow' : 'darkblue'
+                    oddProgressColor: edit ? 'yellow' : 'blue'
+                    evenProgress.value: edit ? 1 : decoration.x
+                    oddProgress.value: edit ? 1 : decoration.y
 
                     MouseArea {
                         anchors.fill: parent
@@ -491,12 +491,14 @@ Rectangle {
         TableModelColumn {
             display: "Video Error %";
             decoration: "Video Error";
+            edit: "Video Error/Full Concealment";
             property int minWidth: errorConcealmentMetrics.width
         }
 
         TableModelColumn {
             display: "Audio Error %";
             decoration: "Audio Error";
+            edit: "Audio Error/Full Concealment";
             property int minWidth: errorConcealmentMetrics.width
         }
 
