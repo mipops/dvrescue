@@ -373,7 +373,9 @@ Rectangle {
         }
 
         Text {
-            Layout.minimumWidth: 50
+            color: "white"
+            Layout.minimumWidth: 40
+            horizontalAlignment: Text.AlignHCenter
             text: videoPlot.xBottomAxisRange.x
         }
 
@@ -385,6 +387,14 @@ Rectangle {
             active: true
             policy: ScrollBar.AlwaysOn
             Layout.fillWidth: true
+
+            background: Rectangle {
+                implicitWidth: scroll.interactive ? 16 : 4
+                implicitHeight: scroll.interactive ? 16 : 4
+                color: "white"
+                opacity: 0.0
+                visible: scroll.interactive
+            }
 
             /*
             WheelHandler {
@@ -439,7 +449,9 @@ Rectangle {
         }
 
         Text {
-            Layout.minimumWidth: 50
+            color: "white"
+            Layout.minimumWidth: 40
+            horizontalAlignment: Text.AlignHCenter
             text: videoPlot.xBottomAxisRange.y
         }
     }
