@@ -28,6 +28,8 @@ public:
     Q_INVOKABLE QString videoInfo(float x, float y);
     Q_INVOKABLE QString audioInfo(float x, float y);
     Q_INVOKABLE int frameByIndex(int index);
+    Q_INVOKABLE bool isSubstantialFrame(int index);
+    Q_INVOKABLE int getLastSubstantialFrame(int index);
     Q_INVOKABLE int rowByFrame(int frame);
 
     struct GraphStats {
@@ -35,7 +37,12 @@ public:
         float evenValue;
         float oddValue;
         float den;
-    } Stats;
+    };
+
+    struct FrameStats {
+        bool isSubstantial;
+        int lastSubstantialFrame;
+    };
 
     void getInfo(QList<std::tuple<int, GraphStats>>& stats, float x, float y, int& frame, float& oddValue, float& evenValue);
     void getVideoInfo(float x, float y, int& frame, float& oddValue, float& evenValue);
@@ -70,9 +77,10 @@ private:
 
     QList<std::tuple<int, GraphStats>> m_videoValues;
     QList<std::tuple<int, GraphStats>> m_audioValues;
-    QList<int> m_frames;
+    QList<std::tuple<int, FrameStats>> m_frames;
     QMap<int, int> m_rowByFrame;
 
+    int m_lastSubstantialFrame { -1 };
     int m_lastFrame { 0 };
     int m_total { 0 };
 };

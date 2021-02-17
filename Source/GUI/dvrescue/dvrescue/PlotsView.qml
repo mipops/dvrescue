@@ -5,6 +5,7 @@ import QtQuick.Controls 1.4 as QQC1
 import QwtQuick2 1.0
 
 Rectangle {
+    color: "transparent"
     property alias evenVideoCurve: evenVideoCurve
     property alias oddVideoCurve: oddVideoCurve
     property alias evenAudioCurve: evenAudioCurve
@@ -42,8 +43,10 @@ Rectangle {
 
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisColor: "darkgray"
                 xBottomAxisEnabled: false
                 yLeftAxisTitle: "video error concealment (%)"
+                yLeftAxisColor: "darkgray"
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
@@ -77,6 +80,7 @@ Rectangle {
                     title: "even";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "darkgreen"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotCurve {
@@ -84,6 +88,7 @@ Rectangle {
                     title: "odd";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "green"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotGrid {
@@ -115,7 +120,9 @@ Rectangle {
 
                 canvasItem.clip: true
                 xBottomAxisTitle: "frames, N"
+                xBottomAxisColor: "darkgray"
                 yLeftAxisTitle: "audio error (%)"
+                yLeftAxisColor: "darkgray"
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
@@ -149,6 +156,7 @@ Rectangle {
                     title: "even";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "darkblue"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotCurve {
@@ -156,6 +164,7 @@ Rectangle {
                     title: "odd"
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "blue"
+                    titleColor: "darkgray"
                 }
 
                 QwtQuick2PlotGrid {
@@ -186,7 +195,19 @@ Rectangle {
 
         Button {
             id: zoomInButton
-            text: "+"
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
+            icon.source: "icons/button-zoom-in.svg"
+            icon.width: width
+            icon.height: height
+            icon.color: "white"
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "+"
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
@@ -198,7 +219,20 @@ Rectangle {
         }
         Button {
             id: zoomAllButton
-            text: "|"
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
+            icon.source: "icons/button-fit-to-screen.svg"
+            icon.width: width
+            icon.height: height
+            icon.color: "white"
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "|"
+
             onClicked: {
                 scroll.size = 1
                 scroll.position = 0
@@ -209,7 +243,19 @@ Rectangle {
 
         Button {
             id: customZoomButton
-            text: "Custom"
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
+            icon.source: "icons/button-custom-range.svg"
+            icon.width: width
+            icon.height: height
+            icon.color: "white"
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "Custom"
 
             Connections {
                 target: dataModel
@@ -278,7 +324,19 @@ Rectangle {
 
         Button {
             id: zoomOutButton
-            text: "-"
+            implicitHeight: 38
+            implicitWidth: 60
+            background: Item {}
+            icon.source: "icons/button-zoom-out.svg"
+            icon.width: width
+            icon.height: height
+            icon.color: "white"
+            padding: 0
+            topInset: 0
+            leftInset: 0
+            bottomInset: 0
+            rightInset: 0
+            // text: "-"
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
@@ -315,7 +373,9 @@ Rectangle {
         }
 
         Text {
-            Layout.minimumWidth: 50
+            color: "white"
+            Layout.minimumWidth: 40
+            horizontalAlignment: Text.AlignHCenter
             text: videoPlot.xBottomAxisRange.x
         }
 
@@ -327,6 +387,14 @@ Rectangle {
             active: true
             policy: ScrollBar.AlwaysOn
             Layout.fillWidth: true
+
+            background: Rectangle {
+                implicitWidth: scroll.interactive ? 16 : 4
+                implicitHeight: scroll.interactive ? 16 : 4
+                color: "white"
+                opacity: 0.0
+                visible: scroll.interactive
+            }
 
             /*
             WheelHandler {
@@ -381,7 +449,9 @@ Rectangle {
         }
 
         Text {
-            Layout.minimumWidth: 50
+            color: "white"
+            Layout.minimumWidth: 40
+            horizontalAlignment: Text.AlignHCenter
             text: videoPlot.xBottomAxisRange.y
         }
     }

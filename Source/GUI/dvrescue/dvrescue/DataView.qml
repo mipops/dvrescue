@@ -85,9 +85,9 @@ Rectangle {
 
         delegate: DelegateChooser {
             DelegateChoice {
-                column: dataModel.videoErrorColumn
+                column: dataModel.timecodeColumn
 
-                OddEvenTextDelegate {
+                JumpRepeatTextDelegate {
                     height: tableView.delegateHeight
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
@@ -95,6 +95,8 @@ Rectangle {
                     property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
+                    hasJump: decoration.x
+                    hasRepeat: decoration.y
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
@@ -105,10 +107,151 @@ Rectangle {
                     }
                     overlayColor: 'red'
 
-                    evenProgressColor: 'darkgreen'
-                    oddProgressColor: 'green'
-                    evenProgress.value: decoration.x
-                    oddProgress.value: decoration.y
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice {
+                column: dataModel.recordingTimeColumn
+
+                JumpRepeatTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+                    hasJump: decoration.x
+                    hasRepeat: decoration.y
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice {
+                column: dataModel.arbitraryBitsColumn
+
+                JumpRepeatTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+                    hasJump: decoration.x
+                    hasRepeat: decoration.y
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice  {
+                column: dataModel.videoAudioColumn
+
+                SubstantialTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    property int sourceRow: sortFilterTableModel.toSourceRowIndex(row)
+                    property int frameNumber: cppDataModel.frameByIndex(sourceRow)
+                    property bool isSubstantialFrame: cppDataModel.isSubstantialFrame(sourceRow)
+                    imageVisible: isSubstantialFrame
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        id: videoAudioMouseArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+
+                    ToolTip {
+                        visible: videoAudioMouseArea.containsMouse && isSubstantialFrame
+                        text: isSubstantialFrame ? ("From: " + cppDataModel.getLastSubstantialFrame(sourceRow) + " to " + frameNumber) : ""
+                        anchors.centerIn: parent
+                    }
+                }
+            }
+
+            DelegateChoice {
+                column: dataModel.videoErrorColumn
+
+                OddEvenTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: edit ? "100%" : display
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    evenProgressColor: edit ? 'yellow' : 'darkgreen'
+                    oddProgressColor: edit ? 'yellow' : 'green'
+                    evenProgress.value: edit ? 1 : decoration.x
+                    oddProgress.value: edit ? 1 : decoration.y
 
                     MouseArea {
                         anchors.fill: parent
@@ -131,7 +274,7 @@ Rectangle {
                     property color oddColor: '#f3f3f3'
                     property color redColor: 'red'
                     textFont.pixelSize: 13
-                    text: display
+                    text: edit ? "100%" : display
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
@@ -142,10 +285,10 @@ Rectangle {
                     }
                     overlayColor: 'red'
 
-                    evenProgressColor: 'darkblue'
-                    oddProgressColor: 'blue'
-                    evenProgress.value: decoration.x
-                    oddProgress.value: decoration.y
+                    evenProgressColor: edit ? 'yellow' : 'darkblue'
+                    oddProgressColor: edit ? 'yellow' : 'blue'
+                    evenProgress.value: edit ? 1 : decoration.x
+                    oddProgress.value: edit ? 1 : decoration.y
 
                     MouseArea {
                         anchors.fill: parent
@@ -281,7 +424,7 @@ Rectangle {
 
     TextMetrics {
         id: timestampMetrics
-        text: "00:00:00.000000"
+        text: "00:00:00.000"
     }
     TextMetrics {
         id: timecodeMetrics
@@ -314,16 +457,17 @@ Rectangle {
             return names;
         }
 
-        property int videoErrorColumn: columnsNames.indexOf("Video Error Concealment %");
+        property int timecodeColumn: columnsNames.indexOf("Timecode");
+        property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
+        property int arbitraryBitsColumn: columnsNames.indexOf("Arbitrary Bits");
+
+        property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
+
+        property int videoErrorColumn: columnsNames.indexOf("Video Error %");
         property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
 
         TableModelColumn {
             display: "Frame #";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Byte Offset";
             property int minWidth: 20
         }
 
@@ -334,32 +478,14 @@ Rectangle {
 
         TableModelColumn {
             display: "Timecode";
-            property int minWidth: timecodeMetrics.width + columnSpacing
-        }
-
-        TableModelColumn {
-            display: "Timecode Repeat";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Timecode Jump";
-            property int minWidth: 20
+            decoration: "Timecode: Jump/Repeat";
+            property int minWidth: timecodeMetrics.width + columnSpacing + timecodeMetrics.height * 2
         }
 
         TableModelColumn {
             display: "Recording Time"
-            property int minWidth: recordingTimeMetrics.width + columnSpacing
-        }
-
-        TableModelColumn {
-            display: "Recording Time Repeat";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Recording Time Jump";
-            property int minWidth: 20
+            decoration: "Recording Time: Jump/Repeat";
+            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2
         }
 
         TableModelColumn {
@@ -368,18 +494,33 @@ Rectangle {
         }
 
         TableModelColumn {
+            display: "Video Error %";
+            decoration: "Video Error";
+            edit: "Video Error/Full Concealment";
+            property int minWidth: errorConcealmentMetrics.width
+        }
+
+        TableModelColumn {
+            display: "Audio Error %";
+            decoration: "Audio Error";
+            edit: "Audio Error/Full Concealment";
+            property int minWidth: errorConcealmentMetrics.width
+        }
+
+        TableModelColumn {
+            display: "Full Concealment";
+            property int minWidth: 20
+        }
+
+        TableModelColumn {
+            display: "Missing Packs";
+            property int minWidth: missingPacksMetrics.width + columnSpacing
+        }
+
+        TableModelColumn {
             display: "Arbitrary Bits";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Arbitrary Bits Repeat";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Arbitrary Bits Jump";
-            property int minWidth: 20
+            decoration: "Arbitrary Bits: Jump/Repeat"
+            property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
         }
 
         TableModelColumn {
@@ -393,35 +534,13 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Missing Packs";
-            property int minWidth: missingPacksMetrics.width + columnSpacing
-        }
-
-        TableModelColumn {
-            display: "Full Concealment";
+            display: "Byte Offset";
             property int minWidth: 20
         }
 
         TableModelColumn {
-            display: "Video";
-            property int minWidth: 150
-        }
-
-        TableModelColumn {
-            display: "Audio";
-            property int minWidth: 60
-        }
-
-        TableModelColumn {
-            display: "Video Error Concealment %";
-            decoration: "Video Error Concealment";
-            property int minWidth: errorConcealmentMetrics.width
-        }
-
-        TableModelColumn {
-            display: "Audio Error %";
-            decoration: "Audio Error";
-            property int minWidth: errorConcealmentMetrics.width
+            display: "Video/Audio";
+            property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
         }
     }
 }

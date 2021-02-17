@@ -53,12 +53,16 @@ void XmlParser::exec(const QString &path)
 
 void XmlParser::parseMedia(QXmlStreamReader &xml)
 {
+    bool firstFrames = true;
     while(xml.readNextStartElement())
     {
         if(xml.name() == "frames")
         {
             auto attributes = xml.attributes();
-            parseFrames(xml, attributes);
+            parseFrames(xml, attributes, firstFrames);
+
+            if(firstFrames)
+                firstFrames = false;
         }
     }
 }
@@ -66,7 +70,7 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
 constexpr auto video_blocks_per_diff_seq = 135;
 constexpr auto audio_blocks_per_diff_seq = 9;
 
-void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesAttributes)
+void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesAttributes, bool firstFrames)
 {
     QString size;
     QString chroma_subsampling;
@@ -95,6 +99,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     assert(diff_seq_count != 0);
 
     auto captionOn = false;
+    auto firstFrame = true;
 
     while(xml.readNextStartElement())
     {
@@ -186,11 +191,14 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                 }
             }
 
+            auto isSubstantial = !firstFrames && firstFrame;
+            qDebug() << "frame: " << frameNumber << "isSubstantial: " << isSubstantial;
 
-
-            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn);
-
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn, isSubstantial);
             Q_EMIT bytesProcessed(xml.device()->pos());
+
+            if(firstFrame)
+                firstFrame = false;
         }
     }
 }

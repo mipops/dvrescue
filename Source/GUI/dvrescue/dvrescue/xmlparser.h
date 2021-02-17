@@ -17,14 +17,14 @@ public:
 
 private:
     void parseMedia(QXmlStreamReader& xml);
-    void parseFrames(QXmlStreamReader& xml, QXmlStreamAttributes& framesAttributes);
+    void parseFrames(QXmlStreamReader& xml, QXmlStreamAttributes& framesAttributes, bool firstFrames);
 
 Q_SIGNALS:
     void bytesProcessed(qint64 value);
     void finished();
     void gotFrame(uint frameNumber);
     void gotFrameAttributes(uint frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes,
-                            int diff_seq_count, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn);
+                            int diff_seq_count, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial);
     void gotSta(uint frameNumber, uint t, uint n, uint n_even, float den);
     void gotAud(uint frameNumber, uint t, uint n, uint n_even, float den);
 };

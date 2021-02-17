@@ -28,8 +28,10 @@ class QwtQuick2Plot : public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
+    Q_PROPERTY(QColor yLeftAxisColor READ yLeftAxisColor WRITE setYLeftAxisColor NOTIFY yLeftAxisColorChanged)
     Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setYLeftAxisTitle NOTIFY leftYAxisTitleChanged);
     Q_PROPERTY(QFont yLeftAxisFont READ yLeftAxisFont WRITE setYLeftAxisFont NOTIFY yLeftAxisFontChanged);
+    Q_PROPERTY(QColor xBottomAxisColor READ xBottomAxisColor WRITE setXBottomAxisColor NOTIFY xBottomAxisColorChanged);
     Q_PROPERTY(QString xBottomAxisTitle READ xBottomAxisTitle WRITE setXBottomAxisTitle NOTIFY xBottomAxisTitleChanged)
     Q_PROPERTY(QFont xBottomAxisFont READ xBottomAxisFont WRITE setXBottomAxisFont NOTIFY xBottomAxisFontChanged);
     Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
@@ -51,7 +53,9 @@ public:
     QVector2D xBottomAxisRange() const;
     QFont yLeftAxisFont() const;
     QFont xBottomAxisFont() const;
-    bool xBottomAxisEnabled() const;
+    bool xBottomAxisEnabled() const;    
+    QColor yLeftAxisColor() const;
+    QColor xBottomAxisColor() const;
 
 public Q_SLOTS:
     void setYLeftAxisTitle(QString yLeftAxisTitle);
@@ -61,6 +65,8 @@ public Q_SLOTS:
     void setYLeftAxisFont(QFont yLeftAxisFont);
     void setXBottomAxisFont(QFont xBottomAxisFont);
     void setXBottomAxisEnabled(bool xBottomAxisEnabled);
+    void setYLeftAxisColor(QColor yLeftAxisColor);
+    void setXBottomAxisColor(QColor xBottomAxisColor);
 
 Q_SIGNALS:
     void canvasItemChanged();
@@ -71,6 +77,8 @@ Q_SIGNALS:
     void yLeftAxisFontChanged(QFont yLeftAxisFont);
     void xBottomAxisFontChanged(QFont xBottomAxisFont);
     void xBottomAxisEnabledChanged(bool xBottomAxisEnabled);
+    void yLeftAxisColorChanged(QColor yLeftAxisColor);
+    void xBottomAxisColorChanged(QColor xBottomAxisColor);
 
 protected:
     void routeMouseEvents(QMouseEvent* event);
@@ -98,6 +106,7 @@ class QwtQuick2PlotCurve : public QObject
     Q_OBJECT
     Q_PROPERTY(CurveStyle curveStyle READ curveStyle WRITE setCurveStyle NOTIFY curveStyleChanged)
     Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
+    Q_PROPERTY(QColor titleColor READ titleColor WRITE setTitleColor NOTIFY titleColorChanged)
     Q_PROPERTY(qreal width READ width WRITE setWidth NOTIFY widthChanged)
     Q_PROPERTY(QColor color READ color WRITE setColor NOTIFY colorChanged)
 public:
@@ -124,19 +133,22 @@ public:
 
     QString title() const;
     qreal width() const;
-    QColor color() const;
+    QColor color() const;    
+    QColor titleColor() const;
 
 public Q_SLOTS:
     void setCurveStyle(CurveStyle curveStyle);
     void setTitle(QString title);
     void setWidth(qreal width);
     void setColor(QColor color);
+    void setTitleColor(QColor titleColor);
 
 Q_SIGNALS:
     void curveStyleChanged(CurveStyle curveStyle);
     void titleChanged(QString title);
     void widthChanged(qreal width);
     void colorChanged(QColor color);
+    void titleColorChanged(QColor titleColor);
 
 private:
     QwtQuick2Plot* m_qwtQuickPlot { nullptr };

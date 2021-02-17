@@ -37,27 +37,30 @@ ApplicationWindow {
             buttons: [transferButton, analysisButton, packageButton]
         }
 
-        RedNavButton {
+        NavButton {
             id: transferButton
-            text: qsTr("Transfer")
+            // text: qsTr("Transfer")
             checkable: true;
             property int index: 0
+            icon.source: "icons/menu-transfer.svg"
         }
-        WhiteNavButton {
+        NavButton {
             id: analysisButton
-            text: qsTr("Analysis")
+            // text: qsTr("Analysis")
             checkable: true;
             property int index: 1
             checked: true
+            icon.source: "icons/menu-analysis.svg"
         }
-        RedNavButton {
+        NavButton {
             id: packageButton
-            text: qsTr("Package")
+            // text: qsTr("Package")
             checkable: true;
             property int index: 2
+            icon.source: "icons/menu-package.svg"
         }
-        WhiteNavButton {
-            text: qsTr("Settings")
+        NavButton {
+            // text: qsTr("Settings")
             onClicked: {
                 avfctlField.text = avfctl.avfctlCmd
                 avfctlField.forceActiveFocus();
@@ -65,15 +68,18 @@ ApplicationWindow {
                 dvrescueField.text = dvrescue.dvrescueCmd
                 avfctlDialog.open();
             }
+            icon.source: "icons/menu-settings.svg"
         }
-        RedNavButton {
-            text: qsTr("Help")
+        NavButton {
+            // text: qsTr("Help")
+            icon.source: "icons/menu-help.svg"
         }
-        WhiteNavButton {
-            text: qsTr("Debug")
+        NavButton {
+            // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
             }
+            icon.source: "icons/menu-debug.svg"
         }
     }
 

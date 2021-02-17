@@ -71,7 +71,23 @@ int DataModel::frameByIndex(int index)
     if(index < 0 || index >= m_frames.size())
         return index;
 
-    return m_frames[index];
+    return std::get<0>(m_frames[index]);
+}
+
+bool DataModel::isSubstantialFrame(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return false;
+
+    return std::get<1>(m_frames[index]).isSubstantial;
+}
+
+int DataModel::getLastSubstantialFrame(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return -1;
+
+    return std::get<1>(m_frames[index]).lastSubstantialFrame;
 }
 
 int DataModel::rowByFrame(int frame)
@@ -245,6 +261,7 @@ void DataModel::populate(const QString &fileName)
     qDebug() << "DataModel::populate: " << QThread::currentThread();
 
     m_lastFrame = 0;
+    m_lastSubstantialFrame = -1;
     m_total = 0;
     m_parser = new XmlParser();
     m_thread.reset(new QThread());
@@ -263,12 +280,25 @@ void DataModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
+    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+        m_frames.append(std::make_tuple(frameNumber, FrameStats { false, -1 }));
+    });
+
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn) {
+            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         m_lastFrame = frameNumber;
+
+        if(m_lastSubstantialFrame == -1)
+            m_lastSubstantialFrame = frameNumber;
+
         m_total = m_lastFrame + 1;
-        m_frames.append(frameNumber);
+        auto& frameStats = std::get<1>(m_frames.back());
+        frameStats.isSubstantial = isSubstantial;
+        frameStats.lastSubstantialFrame = m_lastSubstantialFrame;
         m_rowByFrame[frameNumber] = m_frames.length() - 1;
+
+        if(isSubstantial)
+            m_lastSubstantialFrame = frameNumber;
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);
@@ -328,13 +358,35 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     };
 
     fillAttribute("Byte Offset", frameAttributes, "pos");
-    fillAttribute("Timestamp", frameAttributes, "pts");
+
+    QString timestamp;
+    if(frameAttributes.hasAttribute("pts")) {
+        auto splitted = frameAttributes.value("pts").toString().split(".");
+        timestamp = splitted[0] + "." + splitted[1].mid(0, 2);
+    }
+    map["Timestamp"] = timestamp;
+
     fillAttribute("Timecode", frameAttributes, "tc");
-    fillAttribute("Timecode Repeat", frameAttributes, "tc_r");
-    fillAttribute("Timecode Jump", frameAttributes, "tc_nc");
+    int timecodeRepeat = 0;
+    if(frameAttributes.hasAttribute("tc_r"))
+        timecodeRepeat = frameAttributes.value("tc_r").toInt();
+
+    auto timecodeJump = 0;
+    if(frameAttributes.hasAttribute("tc_nc"))
+        timecodeJump = frameAttributes.value("tc_nc").toInt();
+
+    map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
+
     fillAttribute("Recording Time", frameAttributes, "rdt");
-    fillAttribute("Recording Time Repeat", frameAttributes, "rdt_r");
-    fillAttribute("Recording Time Jump", frameAttributes, "rdt_nc");
+    int recordingTimeRepeat = 0;
+    if(frameAttributes.hasAttribute("rdt_r"))
+        recordingTimeRepeat = frameAttributes.value("rdt_r").toInt();
+
+    auto recordingTimeJump = 0;
+    if(frameAttributes.hasAttribute("rdt_nc"))
+        recordingTimeJump = frameAttributes.value("rdt_nc").toInt();
+
+    map["Recording Time: Jump/Repeat"] = QPoint(recordingTimeJump, recordingTimeRepeat);
 
     auto hasRecStart = frameAttributes.hasAttribute("rec_start");
     auto hasRecEnd = frameAttributes.hasAttribute("rec_end");
@@ -358,8 +410,15 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Recording Marks"] = recordingMarks;
 
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
-    fillAttribute("Arbitrary Bits Repeat", frameAttributes, "arb_r");
-    fillAttribute("Arbitrary Bits Jump", frameAttributes, "arb_nc");
+    int arbitraryBitsRepeat = 0;
+    if(frameAttributes.hasAttribute("arb_r"))
+        arbitraryBitsRepeat = frameAttributes.value("arb_r").toInt();
+
+    auto arbitraryBitsJump = 0;
+    if(frameAttributes.hasAttribute("arb_nc"))
+        arbitraryBitsJump = frameAttributes.value("arb_nc").toInt();
+
+    map["Arbitrary Bits: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
 
     map["Captions"] = "";
     if(framesAttributes.hasAttribute("captions"))
@@ -426,13 +485,24 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto full_conceal_vid = frameAttributes.hasAttribute("full_conceal_vid") && frameAttributes.value("full_conceal_vid").toInt() == 1;
     auto full_conceal_aud = frameAttributes.hasAttribute("full_conceal_aud") && frameAttributes.value("full_conceal_aud").toInt() == 1;
 
+    map["Video Error/Full Concealment"] = false;
+    map["Audio Error/Full Concealment"] = false;
+
     if(full_conceal) {
         fullConcealment << "Video" << "Audio";
+
+        map["Video Error/Full Concealment"] = true;
+        map["Audio Error/Full Concealment"] = true;
     } else {
-        if(full_conceal_vid)
+        if(full_conceal_vid) {
             fullConcealment << "Video";
-        if(full_conceal_aud)
+            map["Video Error/Full Concealment"] = true;
+        }
+
+        if(full_conceal_aud) {
             fullConcealment << "Audio";
+            map["Audio Error/Full Concealment"] = true;
+        }
     }
 
     map["Full Concealment"] = fullConcealment.join(", ");
@@ -457,7 +527,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     aspectRatio = getStringAttribute("aspect_ratio", framesAttributes);
     chromaSubsampling = getStringAttribute("chroma_subsampling", framesAttributes);
 
-    map["Video"] = (QStringList() << videoRate << videoSize << aspectRatio << chromaSubsampling).join(" ");
+    auto video = (QStringList() << videoRate << videoSize << aspectRatio << chromaSubsampling).join(" ");
 
     QString channels;
     QString audioRate;
@@ -473,16 +543,18 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     if(framesAttributes.hasAttribute("channels"))
         channels = framesAttributes.value("channels").toString() + "ch";
 
-    map["Audio"] = channels + " " + audioRate;
+    auto audio = channels + " " + audioRate;
+
+    map["Video/Audio"] = video + " " + audio;
 
     auto video_block_count = diff_seq_count * video_blocks_per_diff_seq;
     auto audio_block_count = diff_seq_count * audio_blocks_per_diff_seq;
 
     auto video_error_concealment_percent = double(totalSta) / video_block_count * 100;
-    map["Video Error Concealment %"] = QString::number(video_error_concealment_percent, 'f', 2) + QString("%");
+    map["Video Error %"] = QString::number(video_error_concealment_percent, 'f', 2) + QString("%");
 
     auto video_error_concealment = QPointF(totalEvenSta, totalSta - totalEvenSta) / video_block_count * 2;
-    map["Video Error Concealment"] = video_error_concealment;
+    map["Video Error"] = video_error_concealment;
 
     auto audio_error_concealment_percent = double(totalAud) / audio_block_count * 100;
     map["Audio Error %"] = QString::number(audio_error_concealment_percent, 'f', 2) + QString("%");
