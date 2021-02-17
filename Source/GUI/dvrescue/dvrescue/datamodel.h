@@ -40,6 +40,7 @@ public:
 
     struct FrameStats {
         bool isSubstantial;
+        int lastSubstantialFrame;
     };
 
     void getInfo(QList<std::tuple<int, GraphStats>>& stats, float x, float y, int& frame, float& oddValue, float& evenValue);
@@ -78,6 +79,7 @@ private:
     QList<std::tuple<int, FrameStats>> m_frames;
     QMap<int, int> m_rowByFrame;
 
+    int m_lastSubstantialFrame { -1 };
     int m_lastFrame { 0 };
     int m_total { 0 };
 };

@@ -253,6 +253,7 @@ void DataModel::populate(const QString &fileName)
     qDebug() << "DataModel::populate: " << QThread::currentThread();
 
     m_lastFrame = 0;
+    m_lastSubstantialFrame = -1;
     m_total = 0;
     m_parser = new XmlParser();
     m_thread.reset(new QThread());
@@ -271,12 +272,25 @@ void DataModel::populate(const QString &fileName)
         Q_EMIT populated();
     });
 
+    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+        m_frames.append(std::make_tuple(frameNumber, FrameStats { false, -1 }));
+    });
+
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
             int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         m_lastFrame = frameNumber;
+
+        if(m_lastSubstantialFrame == -1)
+            m_lastSubstantialFrame = frameNumber;
+
         m_total = m_lastFrame + 1;
-        m_frames.append(std::make_tuple(frameNumber, FrameStats { isSubstantial }));
+        auto& frameStats = std::get<1>(m_frames.back());
+        frameStats.isSubstantial = isSubstantial;
+        frameStats.lastSubstantialFrame = m_lastSubstantialFrame;
         m_rowByFrame[frameNumber] = m_frames.length() - 1;
+
+        if(isSubstantial)
+            m_lastSubstantialFrame = frameNumber;
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
         Q_EMIT totalChanged(m_total);
