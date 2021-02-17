@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE QString audioInfo(float x, float y);
     Q_INVOKABLE int frameByIndex(int index);
     Q_INVOKABLE bool isSubstantialFrame(int index);
+    Q_INVOKABLE int getLastSubstantialFrame(int index);
     Q_INVOKABLE int rowByFrame(int frame);
 
     struct GraphStats {

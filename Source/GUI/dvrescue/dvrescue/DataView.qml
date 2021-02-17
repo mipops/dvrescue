@@ -199,25 +199,30 @@ Rectangle {
                     text: display
 
                     property int sourceRow: sortFilterTableModel.toSourceRowIndex(row)
-                    imageVisible: {
-                        return cppDataModel.isSubstantialFrame(sourceRow)
-                    }
+                    property int frameNumber: cppDataModel.frameByIndex(sourceRow)
+                    property bool isSubstantialFrame: cppDataModel.isSubstantialFrame(sourceRow)
+                    imageVisible: isSubstantialFrame
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
                     overlayColor: 'red'
 
                     MouseArea {
+                        id: videoAudioMouseArea
                         anchors.fill: parent
+                        hoverEnabled: true
                         onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
                         }
+                    }
+
+                    ToolTip {
+                        visible: videoAudioMouseArea.containsMouse && isSubstantialFrame
+                        text: isSubstantialFrame ? ("From: " + cppDataModel.getLastSubstantialFrame(sourceRow) + " to " + frameNumber) : ""
+                        anchors.centerIn: parent
                     }
                 }
             }

@@ -82,6 +82,14 @@ bool DataModel::isSubstantialFrame(int index)
     return std::get<1>(m_frames[index]).isSubstantial;
 }
 
+int DataModel::getLastSubstantialFrame(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return -1;
+
+    return std::get<1>(m_frames[index]).lastSubstantialFrame;
+}
+
 int DataModel::rowByFrame(int frame)
 {
     return m_rowByFrame.contains(frame) ? m_rowByFrame[frame] : -1;
