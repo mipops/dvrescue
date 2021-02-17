@@ -247,6 +247,7 @@ Item {
                     target: playerView
                     onPositionChanged: {
                         dataView.framePos = frameIndex
+                        dataView.bringToView(dataView.framePos)
                     }
                 }
 
