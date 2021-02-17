@@ -55,6 +55,13 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="error" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Provides an error message is there is an issue parsing the file.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="framesType">
