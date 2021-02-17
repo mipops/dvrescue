@@ -244,6 +244,27 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="abst" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The ABSolute Track number for frame element, which references its corresponding tape position.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="abst_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if absolute track number is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="abst_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if absolute track number is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="tc" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
