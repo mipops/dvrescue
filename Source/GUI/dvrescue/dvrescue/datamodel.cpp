@@ -90,6 +90,26 @@ int DataModel::getLastSubstantialFrame(int index)
     return std::get<1>(m_frames[index]).lastSubstantialFrame;
 }
 
+QString DataModel::getLastSubstantialFrameTransition(int index)
+{
+    if(index < 0 || index >= m_frames.size())
+        return QString();
+
+    auto frameInfoTuple = m_frames.at(index);
+    auto frameNumber = std::get<0>(frameInfoTuple);
+
+    auto lastSubstantialFrameInfoTuple = m_frames.at(m_rowByFrame[std::get<1>(frameInfoTuple).lastSubstantialFrame]);
+    auto lastSubstantialFrameNumber = std::get<0>(lastSubstantialFrameInfoTuple);
+
+    qDebug() << "frameNumber: " << frameNumber << "lastSubstantialFrameNumber: " << lastSubstantialFrameNumber;
+
+    auto frameInfo = std::get<1>(frameInfoTuple);
+    auto lastSubstantialFrameInfo = std::get<1>(lastSubstantialFrameInfoTuple);
+
+    return QString("From ") + lastSubstantialFrameInfo.videoInfo + " " + lastSubstantialFrameInfo.audioInfo + " to "
+        + frameInfo.videoInfo + " " + frameInfo.audioInfo;
+}
+
 int DataModel::rowByFrame(int frame)
 {
     return m_rowByFrame.contains(frame) ? m_rowByFrame[frame] : -1;
@@ -281,11 +301,13 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
-        m_frames.append(std::make_tuple(frameNumber, FrameStats { false, -1 }));
+        m_frames.append(std::make_tuple(frameNumber, FrameStats { false, -1, QString(), QString() }));
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
             int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+        Q_UNUSED(isSubstantial);
+
         m_lastFrame = frameNumber;
 
         if(m_lastSubstantialFrame == -1)
@@ -300,7 +322,7 @@ void DataModel::populate(const QString &fileName)
         if(isSubstantial)
             m_lastSubstantialFrame = frameNumber;
 
-        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn);
+        onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn, isSubstantial);
         Q_EMIT totalChanged(m_total);
     });
 
@@ -342,8 +364,10 @@ constexpr auto video_blocks_per_diff_seq = 135;
 constexpr auto audio_blocks_per_diff_seq = 9;
 
 void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn)
+                           int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional)
 {
+    Q_UNUSED(isSubstantional);
+
     // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
 
     QVariantMap map;
@@ -544,6 +568,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
         channels = framesAttributes.value("channels").toString() + "ch";
 
     auto audio = channels + " " + audioRate;
+
+    auto& frameStats = std::get<1>(m_frames.back());
+    frameStats.videoInfo = video;
+    frameStats.audioInfo = audio;
 
     map["Video/Audio"] = video + " " + audio;
 

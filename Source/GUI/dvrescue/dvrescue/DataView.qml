@@ -221,7 +221,7 @@ Rectangle {
 
                     ToolTip {
                         visible: videoAudioMouseArea.containsMouse && isSubstantialFrame
-                        text: isSubstantialFrame ? ("From: " + cppDataModel.getLastSubstantialFrame(sourceRow) + " to " + frameNumber) : ""
+                        text: isSubstantialFrame ? (cppDataModel.getLastSubstantialFrameTransition(sourceRow)) : ""
                         anchors.centerIn: parent
                     }
                 }
