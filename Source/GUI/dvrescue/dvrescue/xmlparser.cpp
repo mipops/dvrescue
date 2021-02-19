@@ -1,6 +1,7 @@
 #include "xmlparser.h"
 #include <QFile>
 #include <QXmlStreamReader>
+#include <QThread>
 #include <QDebug>
 
 XmlParser::XmlParser(QObject *parent) : QObject(parent)
@@ -53,6 +54,20 @@ void XmlParser::exec(const QString &path)
 
 void XmlParser::parseMedia(QXmlStreamReader &xml)
 {
+    QString ref;
+    QString format;
+    int size = 0;
+    for(auto & attr : xml.attributes()) {
+        if(attr.name() == "ref")
+            ref = attr.value().toString();
+        else if(attr.name() == "format")
+            format = attr.value().toString();
+        else if(attr.name() == "size")
+            size = attr.value().toInt();
+    }
+
+    Q_EMIT gotMedia(ref, format, size);
+
     bool firstFrames = true;
     while(xml.readNextStartElement())
     {
@@ -74,13 +89,18 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 {
     QString size;
     QString chroma_subsampling;
+    int count = 0;
 
     for(auto & attribute : framesAttributes) {
         if(attribute.name() == "size")
             size = attribute.value().toString();
         else if(attribute.name() == "chroma_subsampling")
             chroma_subsampling = attribute.value().toString();
+        else if(attribute.name() == "count")
+            count = attribute.value().toUInt();
     }
+
+    Q_EMIT gotFrames(count);
 
     // magic from Dave
     auto diff_seq_count = 0;
@@ -192,7 +212,6 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             }
 
             auto isSubstantial = !firstFrames && firstFrame;
-            qDebug() << "frame: " << frameNumber << "isSubstantial: " << isSubstantial;
 
             Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn, isSubstantial);
             Q_EMIT bytesProcessed(xml.device()->pos());

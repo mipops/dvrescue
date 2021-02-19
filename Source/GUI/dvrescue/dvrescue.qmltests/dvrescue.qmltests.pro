@@ -7,7 +7,7 @@ include(../ffmpeg.pri)
 CONFIG += c++17 warn_on qmltestcase
 CONFIG += no_keywords
 
-QT += quick widgets
+QT += quick widgets quickcontrols2
 
 SOURCES += \
     main.cpp \
@@ -18,7 +18,11 @@ message('QML_ROOT_PATH: ' $$QML_ROOT_PATH)
 
 DISTFILES += \
     tests/tst_deviceslist.qml \
+    tests/tst_fileview.qml \
     tests/tst_parsing.qml
 
 HEADERS += \
     setup.h
+
+RESOURCES += \
+    testdata.qrc

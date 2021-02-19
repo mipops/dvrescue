@@ -19,6 +19,11 @@ Item {
         anchors.top: parent.top
         anchors.rightMargin: 10
         anchors.topMargin: 10
+
+        onSelectedPathChanged: {
+            filePathTextField.text = selectedPath
+            loadButton.clicked()
+        }
     }
 
     Rectangle {

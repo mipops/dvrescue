@@ -15,14 +15,13 @@
         <file>colorbars.jpg</file>
         <file>dvrescue.png</file>
         <file>SpecifyPathDialog.qml</file>
-        <file>sample.xml</file>
         <file>SelectPathDialog.qml</file>
         <file>PlotPicker.qml</file>
         <file>DvRescueLogo.ui.qml</file>
         <file>NavButton.qml</file>
         <file>RedNavButton.qml</file>
         <file>WhiteNavButton.qml</file>
-        <file>FileViewer.ui.qml</file>
+        <file>FileViewer.qml</file>
         <file>CaptureView.ui.qml</file>
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
@@ -51,5 +50,8 @@
         <file>JumpRepeatTextDelegate.qml</file>
         <file>TextImageDelegate.qml</file>
         <file>SubstantialTextDelegate.qml</file>
+        <file>FileView.qml</file>
+        <file>DvRescueReport.qml</file>
+        <file>ProgressTextDelegate.qml</file>
     </qresource>
 </RCC>

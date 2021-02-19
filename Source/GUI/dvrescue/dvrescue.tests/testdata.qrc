@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>xml/DVC02339 - 0_00_00_07.dv.xml</file>
+        <file>testdata/DVC02339 - 0_00_00_07.dv.xml</file>
+        <file>testdata/sample.xml</file>
     </qresource>
 </RCC>

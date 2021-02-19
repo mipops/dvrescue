@@ -5,6 +5,7 @@
 #include "qqmltablemodel_p.h"
 #include "qqmltablemodelcolumn_p.h"
 #include <datamodel.h>
+#include <mediainfo.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
     qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
     qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
     qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");
+    qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
+
     qRegisterMetaType<QAbstractTableModel*>();
 
     auto version = QtAV_Version_String();

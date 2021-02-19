@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dvrescue xmlns="https://mediaarea.net/dvrescue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://mediaarea.net/dvrescue https://mediaarea.net/dvrescue/dvrescue.xsd" version="1.1">
+	<creator>
+		<program>dvrescue</program>
+		<version>0.20.11</version>
+	</creator>
+	<media ref="D:/Projects/dvrescue-work/dvrescue.samples/dave/many_attributes.dv" format="DV" size="8616000">
+		<frames count="28" pts="00:00:00.000000" end_pts="00:00:00.934267" size="720x576" video_rate="25" chroma_subsampling="4:2:0" aspect_ratio="4/3" audio_rate="32000" channels="4">
+			<frame n="0" pos="0" pts="00:00:00.000000" tc="00:00:03:02" rdt="2008-09-28 10:29:53" arb="B"/>
+			<frame n="14" pos="2016000" pts="00:00:00.467133" tc="00:00:04:02" tc_nc="1" rdt="2008-11-14 13:02:43" rdt_nc="1" arb="0" arb_r="1">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="15" pos="2160000" pts="00:00:00.500500" tc="00:00:04:03" rdt="2008-11-14 13:02:43" arb="1">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="16" pos="2304000" pts="00:00:00.533867" tc="00:00:04:04" rdt="2008-11-14 13:02:43" arb="2">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="17" pos="2448000" pts="00:00:00.567233" tc="00:00:04:05" rdt="2008-11-14 13:02:43" arb="3">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="18" pos="2592000" pts="00:00:00.600600" tc="00:00:04:06" rdt="2008-11-14 13:02:43" arb="4">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="19" pos="2736000" pts="00:00:00.633967" tc="00:00:04:07" rdt="2008-11-14 13:02:43" arb="5">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="20" pos="2880000" pts="00:00:00.667333" tc="00:00:04:08" rdt="2008-11-14 13:02:43" arb="6">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="21" pos="3024000" pts="00:00:00.700700" tc="00:00:04:09" rdt="2008-11-14 13:02:43" arb="7">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="22" pos="3168000" pts="00:00:00.734067" tc="00:00:04:10" rdt="2008-11-14 13:02:43" arb="8">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="23" pos="3312000" pts="00:00:00.767433" tc="00:00:04:11" rdt="2008-11-14 13:02:43" arb="9">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="24" pos="3456000" pts="00:00:00.800800" tc="00:00:04:12" rdt="2008-11-14 13:02:43" arb="A">
+				<dseq n="0">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="10">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="810" n_even="810"/>
+				<aud n="54" n_even="54"/>
+			</frame>
+			<frame n="25" pos="3600000" pts="00:00:00.834167" tc="00:00:03:02" tc_nc="1" rdt="2008-09-28 10:29:53" rdt_nc="1" arb="B"/>
+			<frame n="27" pos="3888000" pts="00:00:00.900900" tc="00:00:03:02" tc_r="1" rdt="2008-09-28 10:29:53" arb="B" arb_r="1"/>
+		</frames>
+		<frames count="31" pts="00:00:00.934267" end_pts="00:00:01.968633" size="720x480" video_rate="30000/1001" chroma_subsampling="4:1:1" aspect_ratio="4/3" audio_rate="48000" channels="2" captions="y">
+			<frame n="28" pos="4032000" pts="00:00:00.934267" tc="00:38:01:05" tc_nc="1" arb="5" arb_nc="1"/>
+			<frame n="58" pos="7632000" pts="00:00:01.935267" tc="00:38:02:05" arb="B"/>
+		</frames>
+		<frames count="1" pts="00:00:01.968633" end_pts="00:00:02.002000" size="720x576" video_rate="25" chroma_subsampling="4:1:1" aspect_ratio="4/3" audio_rate="48000" channels="2">
+			<frame n="59" pos="7752000" pts="00:00:01.968633" tc="00:00:00:00" tc_nc="1" rdt="1970-01-01 00:00:00" arb="6" arb_nc="1" no_pack_aud="1"/>
+		</frames>
+		<frames count="3" pts="00:00:02.002000" end_pts="00:00:02.102100" size="720x576" video_rate="25" chroma_subsampling="4:2:0" aspect_ratio="4/3" audio_rate="48000" channels="2">
+			<frame n="60" pos="7896000" pts="00:00:02.002000" arb="F" arb_nc="1" no_pack="1" full_conceal_vid="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="61" pos="8016000" pts="00:00:02.035367" arb="F" no_pack="1" full_conceal_vid="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+			<frame n="62" pos="8136000" pts="00:00:02.068733" arb="F" no_pack="1" full_conceal_vid="1">
+				<dseq n="0">
+				</dseq>
+				<dseq n="1">
+				</dseq>
+				<dseq n="2">
+				</dseq>
+				<dseq n="3">
+				</dseq>
+				<dseq n="4">
+				</dseq>
+				<dseq n="5">
+				</dseq>
+				<dseq n="6">
+				</dseq>
+				<dseq n="7">
+				</dseq>
+				<dseq n="8">
+				</dseq>
+				<dseq n="9">
+				</dseq>
+			</frame>
+		</frames>
+		<frames count="3" pts="00:00:02.102100" end_pts="00:00:02.202200" size="720x480" video_rate="30000/1001" chroma_subsampling="4:1:1" aspect_ratio="4/3" audio_rate="48000" channels="2">
+			<frame n="63" pos="8256000" pts="00:00:02.102100" tc="00:11:05;12" tc_nc="1" rdt="2002-12-29 15:15:05" arb="F">
+				<dseq n="0">
+					<sta t="10" n="82"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="81"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="75"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="82"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="87"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="1082" n_even="407"/>
+				<aud n="72" n_even="27"/>
+			</frame>
+			<frame n="64" pos="8376000" pts="00:00:02.135467" tc="00:11:05;13" rdt="2002-12-29 15:15:05" arb="F" no_pack_aud="1" full_conceal_aud="1">
+				<dseq n="0">
+					<sta t="10" n="102"/>
+				</dseq>
+				<dseq n="1">
+					<sta t="10" n="135"/>
+				</dseq>
+				<dseq n="2">
+					<sta t="10" n="81"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="135"/>
+				</dseq>
+				<dseq n="4">
+					<sta t="10" n="86"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="135"/>
+				</dseq>
+				<dseq n="6">
+					<sta t="10" n="108"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="135"/>
+				</dseq>
+				<dseq n="8">
+					<sta t="10" n="82"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="135"/>
+				</dseq>
+				<sta t="10" n="1134" n_even="459"/>
+			</frame>
+			<frame n="65" pos="8496000" pts="00:00:02.168833" tc="00:11:05;14" rdt="2002-12-29 15:15:05" arb="F">
+				<dseq n="1">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="3">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="5">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="7">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<dseq n="9">
+					<sta t="10" n="135"/>
+					<aud n="9"/>
+				</dseq>
+				<sta t="10" n="675" n_even="0"/>
+				<aud n="45" n_even="0"/>
+			</frame>
+		</frames>
+	</media>
+</dvrescue>
