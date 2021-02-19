@@ -257,27 +257,20 @@ jobs:
 
     - name: Install wget & unzip
       run: |
-        choco install wget unzip
+        choco install wget unzip xidel
 
     - name: Install FFmpeg
+      shell: cmd
       run: |
         cd ..
-        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-02-04-13-17/ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
-        unzip ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
-        ren ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3 ffmpeg
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "//a[contains(@href, '-gpl-shared.zip')]/@href[1]" --silent > ffmpeg.url
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "(//a[contains(@href, '-gpl-shared.zip')])[1]/substring(., 0, string-length(.) - 3)" --silent > ffmpeg.name
+        set /P FFMPEG_URL=< ffmpeg.url
+        set /P FFMPEG_NAME=< ffmpeg.name
+        wget https://github.com%FFMPEG_URL%
+        unzip %FFMPEG_NAME%.zip
+        ren %FFMPEG_NAME% ffmpeg
         dir ffmpeg
-
-#        cd ..
-#        git clone https://github.com/Microsoft/vcpkg.git
-#        git checkout 2020.11
-#        cd vcpkg
-#        bootstrap-vcpkg.bat
-#        vcpkg integrate install
-#        vcpkg install ffmpeg:x64-windows
-#        cd ..
-#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
-#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
-#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |
@@ -362,27 +355,20 @@ jobs:
 
     - name: Install wget & unzip
       run: |
-        choco install wget unzip
+        choco install wget unzip xidel
 
     - name: Install FFmpeg
+      shell: cmd
       run: |
         cd ..
-        wget https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2021-02-04-13-17/ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
-        unzip ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3.zip
-        ren ffmpeg-n4.3.1-221-gd08bcbffff-win64-gpl-shared-4.3 ffmpeg
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "//a[contains(@href, '-gpl-shared.zip')]/@href[1]" --silent > ffmpeg.url
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "(//a[contains(@href, '-gpl-shared.zip')])[1]/substring(., 0, string-length(.) - 3)" --silent > ffmpeg.name
+        set /P FFMPEG_URL=< ffmpeg.url
+        set /P FFMPEG_NAME=< ffmpeg.name
+        wget https://github.com%FFMPEG_URL%
+        unzip %FFMPEG_NAME%.zip
+        ren %FFMPEG_NAME% ffmpeg
         dir ffmpeg
-#
-#        cd ..
-#        git clone https://github.com/Microsoft/vcpkg.git
-#        git checkout 2020.11
-#        cd vcpkg
-#        bootstrap-vcpkg.bat
-#        vcpkg integrate install
-#        vcpkg install ffmpeg:x64-windows
-#        cd ..
-#        xcopy /E /I vcpkg\packages\ffmpeg_x64-windows .\ffmpeg
-#        xcopy vcpkg\packages\ffmpeg_x64-windows\lib .\ffmpeg\bin
-#        dir ffmpeg
 
     - name: Download and configure qwt
       run: |

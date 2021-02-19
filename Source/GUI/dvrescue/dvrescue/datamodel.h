@@ -30,6 +30,7 @@ public:
     Q_INVOKABLE int frameByIndex(int index);
     Q_INVOKABLE bool isSubstantialFrame(int index);
     Q_INVOKABLE int getLastSubstantialFrame(int index);
+    Q_INVOKABLE QString getLastSubstantialFrameTransition(int index);
     Q_INVOKABLE int rowByFrame(int frame);
 
     struct GraphStats {
@@ -42,6 +43,8 @@ public:
     struct FrameStats {
         bool isSubstantial;
         int lastSubstantialFrame;
+        QString videoInfo;
+        QString audioInfo;
     };
 
     void getInfo(QList<std::tuple<int, GraphStats>>& stats, float x, float y, int& frame, float& oddValue, float& evenValue);
@@ -59,7 +62,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-                    int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn);
+                    int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional);
     void onDataRowCreated(const QVariantMap& map);
 
 Q_SIGNALS:
