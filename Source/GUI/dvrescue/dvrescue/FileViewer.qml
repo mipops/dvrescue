@@ -8,7 +8,10 @@ Rectangle {
     height: 100
     color: "#ffffff"
 
+    property alias fileView: fileView
     property alias selectedPath: fileView.selectedPath
+    property alias files: fileView.files
+    property alias updated: fileView.updated
 
     SelectPathDialog {
         id: selectPath

@@ -17,7 +17,12 @@ Item {
     property alias columnWidthProvider: tableView.columnWidthProvider
 
     function bringToView(index) {        
-        console.debug('bringingToView: ', index);
+        console.debug('bringingToView: ', index, 'topMargin: ', tableView.topMargin);
+
+        if(index === 0) {
+            tableView.contentY = -tableView.topMargin
+            return
+        }
 
         var expectedContentY = (index) * (delegateHeight + tableView.rowSpacing) - tableView.topMargin
         var maxContentY = model.rowCount === 0 ? 0 :

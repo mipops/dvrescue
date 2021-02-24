@@ -9,16 +9,18 @@ import Qt.labs.qmlmodels 1.0
 import MediaInfo 1.0
 
 Rectangle {    
-    property int fileInfosUpdated: 0
+    property int updated: 0
     property var fileInfos: []
     property var files: []
-    readonly property string selectedPath: tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].reportPath : ''
+    property alias tableView: tableView
+    readonly property string selectedPath: tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+    property alias currentIndex: tableView.currentIndex
 
     function add(path) {
         files.push(path);
         var mediaInfo = report.resolveRelatedInfo(path);
         fileInfos.push(mediaInfo)
-        ++fileInfosUpdated
+        ++updated
         newRow(mediaInfo.originalPath)
     }
 
@@ -36,18 +38,25 @@ Rectangle {
         id: report
     }
 
+    function forceLayout() {
+        tableView.forceLayout();
+    }
+
     onWidthChanged: {
+        tableView.forceLayout();
+    }
+    onHeightChanged: {
         tableView.forceLayout();
     }
 
     Instantiator {
-        model: fileInfosUpdated, fileInfos.length
+        model: updated, fileInfos.length
         onModelChanged: {
             console.debug('model: ', model)
         }
         delegate: MediaInfo {
-            reportPath: fileInfos[index].reportPath
-            videoPath: fileInfos[index].videoPath
+            reportPath: index >= 0 ? fileInfos[index].reportPath : ''
+            videoPath: index >= 0 ? fileInfos[index].videoPath : ''
 
             function editRow(index, propertyName, propertyValue) {
                 var rowData = dataModel.getRow(index)
@@ -110,6 +119,10 @@ Rectangle {
         dataModel.appendRow(rowEntry)
     }
 
+    function scrollToTop() {
+        tableView.view.contentY = -16
+    }
+
     onFilesChanged: {
         var newFileInfos = [];
 
@@ -122,7 +135,7 @@ Rectangle {
                              })
 
                             console.debug('tableView.view.contentY: ', tableView.view.contentY)
-                            tableView.view.contentY = -16
+                            scrollToTop();
                          }
 
                         fileInfos = newFileInfos;
