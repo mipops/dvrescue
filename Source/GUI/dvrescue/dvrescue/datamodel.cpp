@@ -475,7 +475,12 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
         }
     }
 
-    fillAttribute("Caption Parity", frameAttributes, "caption-parity");
+    map["Captions/Mismatch"] = false;
+    if(frameAttributes.hasAttribute("caption-parity")) {
+        if(frameAttributes.value("caption-parity").toString() == "mismatch") {
+            map["Captions/Mismatch"] = true;
+        }
+    }
 
     QStringList missingPacks;
     auto no_pack = frameAttributes.hasAttribute("no_pack") && frameAttributes.value("no_pack").toInt() == 1;
