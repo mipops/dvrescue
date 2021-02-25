@@ -63,6 +63,7 @@ Item {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
                                       fileViewer.fileView.add(filePath)
+                                      addRecent(filePath)
                                   })
             }
 
@@ -70,6 +71,19 @@ Item {
         }
         onExited: {
         }
+    }
+
+    property string recentFilesJSON : ''
+    property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+    function addRecent(filePath) {
+        var newRecentFiles = recentFiles.filter(item => item !== filePath)
+        newRecentFiles.unshift(filePath)
+
+        if(newRecentFiles.length > 10) {
+            newRecentFiles.pop();
+        }
+        recentFiles = newRecentFiles
+        recentFilesJSON = JSON.stringify(recentFiles)
     }
 
     QQC1.SplitView {
@@ -94,6 +108,14 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 fileView.currentIndex: fileSelector.currentIndex
+                recentsPopup.files: recentFiles
+                recentsPopup.onSelected: {
+                    fileViewer.fileView.add(filePath)
+                }
+
+                fileView.onFileAdded: {
+                    addRecent(filePath)
+                }
 
                 onSelectedPathChanged: {
                     toolsLayout.load(selectedPath)

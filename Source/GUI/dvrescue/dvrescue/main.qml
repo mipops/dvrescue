@@ -177,6 +177,7 @@ ApplicationWindow {
         id: settings;
         property alias avfctlCmd: avfctl.avfctlCmd
         property alias dvrescueCmd: dvrescue.dvrescueCmd
+        property alias recentFilesJSON: analysePage.recentFilesJSON
     }
 
     Dialog {

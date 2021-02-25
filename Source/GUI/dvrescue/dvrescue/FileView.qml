@@ -8,7 +8,9 @@ import QtQml 2.12
 import Qt.labs.qmlmodels 1.0
 import MediaInfo 1.0
 
-Rectangle {    
+Rectangle {
+    signal fileAdded(string filePath);
+
     property int updated: 0
     property var fileInfos: []
     property var files: []
@@ -22,6 +24,7 @@ Rectangle {
         fileInfos.push(mediaInfo)
         ++updated
         newRow(mediaInfo.originalPath)
+        fileAdded(mediaInfo.originalPath)
     }
 
     readonly property string fileNameColumn: "File Name"

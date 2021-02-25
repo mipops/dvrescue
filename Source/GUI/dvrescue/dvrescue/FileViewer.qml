@@ -8,6 +8,7 @@ Rectangle {
     height: 100
     color: "#ffffff"
 
+    property alias recentsPopup: recentsPopup
     property alias fileView: fileView
     property alias selectedPath: fileView.selectedPath
     property alias files: fileView.files
@@ -15,6 +16,10 @@ Rectangle {
 
     SelectPathDialog {
         id: selectPath
+    }
+
+    RecentsPopup {
+        id: recentsPopup
     }
 
     Column {
@@ -35,8 +40,13 @@ Rectangle {
 
         Button {
             text: qsTr("Recent")
-            onClicked: {
 
+            onClicked: {
+                var mapped = mapToItem(fileViewer, 0, 0);
+                recentsPopup.x = mapped.x - recentsPopup.width + width
+                recentsPopup.y = mapped.y + height
+
+                recentsPopup.open();
             }
         }
     }
