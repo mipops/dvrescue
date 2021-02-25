@@ -135,7 +135,7 @@ Rectangle {
 
             Connections {
                 target: player
-                function onPositionChanged() {
+                onPositionChanged: {
                     var relativePosition = player.position / player.duration * (1 - scroll.size)
                     if(!scroll.pressed)
                         scroll.position = relativePosition;
@@ -148,7 +148,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                text: "<<"
+                icon.source: "icons/rewind.svg"
                 onClicked: {
                     player.seekEx(0)
                 }
@@ -164,7 +164,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                text: player.playbackState === MediaPlayer.PausedState ? "Play" : "Pause"
+                icon.source: player.playbackState === MediaPlayer.PausedState ? "icons/play.svg" : "icons/stop.svg"
                 onClicked: {
                     if(player.playbackState === MediaPlayer.PausedState)
                         player.play()
@@ -183,7 +183,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                text: ">>"
+                icon.source: "icons/fastforward.svg"
                 onClicked: {
                     player.seek(player.duration - 1)
                 }
