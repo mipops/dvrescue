@@ -96,7 +96,8 @@ _get_ranges(){
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
             Ny=$((N-1)) # end frame of a sequence is the start frame of the next
-            echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_audio_pack)" "${DVRESCUE_XML}")"
+            echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
         fi
         PTSx="${PTS}"
         Nx="${N}"
@@ -132,7 +133,8 @@ _get_ranges(){
         -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_audio_pack)" "${DVRESCUE_XML}")"
+    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
 }
 
 _ranges_2_table(){
@@ -150,7 +152,7 @@ _ranges_2_table(){
             IS_FIRST=""
         fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$18; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$19}\
+        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$20}\
         {printf "| %5i | %12i | %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %2s | %4s | %3s | %3s |\n", \
         NR, PKT_POS, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
@@ -424,8 +426,8 @@ while [[ "${@}" != "" ]] ; do
                     ;;
             esac
             _get_ranges | \
-            while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
                 unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG
+            while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
