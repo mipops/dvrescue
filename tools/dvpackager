@@ -429,6 +429,7 @@ while [[ "${@}" != "" ]] ; do
                 unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
+                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     if [[ "${PKT_POS}" != "0" ]] ; then
@@ -456,7 +457,6 @@ while [[ "${@}" != "" ]] ; do
                         METADATA+=(-metadata "date=${RDT}")
                     fi
                 fi
-                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 if [[ "${SUBS}" = "Y" ]] ; then
                     SUB_INPUT=(-ss "${PTS}" -i "${DVRESCUE_TECHSUBS}")
                     ((INPUT_COUNT++))
