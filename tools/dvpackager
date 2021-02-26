@@ -425,7 +425,7 @@ while [[ "${@}" != "" ]] ; do
             esac
             _get_ranges | \
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
-                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER
+                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
@@ -449,7 +449,11 @@ while [[ "${@}" != "" ]] ; do
                     METADATA+=(-metadata "timecode=${TC}")
                 fi
                 if [[ "${EXTENSION}" != "dv" ]] ; then
-                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01")
+                    if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
+                        APAD=",apad=whole_dur=${DURATION_SECS}"
+                        _report -d "FYI: Padding a little silence at the end of $(basename "${OUTPUT_FILE}") since the source ends with frames missing audio."
+                    fi
+                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                 fi
                 if [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
