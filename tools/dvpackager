@@ -424,7 +424,7 @@ while [[ "${@}" != "" ]] ; do
             esac
             _get_ranges | \
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
-                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS
+                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
@@ -438,7 +438,8 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 if [[ "${FRAME_END}" != "-1" ]] ; then
                     FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
-                    DURATION_SECS=(-t "$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')")
+                    DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
+                    DURATION_ARG=(-t "${DURATION_SECS}")
                     END_TIME+=(-to "${END_PTS}")
                 fi
                 INPUT_COUNT="1"
@@ -474,11 +475,11 @@ while [[ "${@}" != "" ]] ; do
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_SECS[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                         -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_SECS[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
