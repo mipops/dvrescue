@@ -30,9 +30,9 @@ Options:
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
-           If two languages are provided with a comma delimter such as
+           If two languages are provided with a comma delimiter such as
            'eng,deu' then the first would be used for the first audio
-          track and the second for the second audio track, if it exists.)
+           track and the second for the second audio track, if it exists.)
  -L <code>(specify the language code to use for the caption tracks (if
            any).
  -S       (enables technical subtitle track to show timecode,
@@ -137,7 +137,7 @@ _get_ranges(){
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequnce'"
+    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequence'"
     echo "|     # | Byte Offset  | PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | St | ncTC | ncR | 1st |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
