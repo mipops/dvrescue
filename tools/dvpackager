@@ -95,7 +95,8 @@ _get_ranges(){
     unset PTSx
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
-            echo "${PTSx}|${PTS}|${Nx}|${N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+            Ny=$((N-1)) # end frame of a sequence is the start frame of the next
+            echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
         fi
         PTSx="${PTS}"
         Nx="${N}"
@@ -437,7 +438,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                 fi
                 if [[ "${FRAME_END}" != "-1" ]] ; then
-                    FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
+                    FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
                     DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
                     DURATION_ARG=(-t "${DURATION_SECS}")
                     END_TIME+=(-to "${END_PTS}")
