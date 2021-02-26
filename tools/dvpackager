@@ -310,14 +310,12 @@ case "${EXT}" in
         EXTENSION="mov"
         OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
-        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
         OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
-        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "dv")
         FORMAT="rawvideo"
@@ -426,8 +424,8 @@ while [[ "${@}" != "" ]] ; do
                     ;;
             esac
             _get_ranges | \
-                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
+                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
@@ -449,6 +447,9 @@ while [[ "${@}" != "" ]] ; do
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
+                fi
+                if [[ "${EXTENSION}" != "dv" ]] ; then
+                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01")
                 fi
                 if [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
@@ -478,11 +479,11 @@ while [[ "${@}" != "" ]] ; do
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                         -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
