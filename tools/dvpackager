@@ -452,10 +452,10 @@ while [[ "${@}" != "" ]] ; do
                         START_TIME=(-ss "${PTS}")
                     fi
                 fi
-                    FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
-                    DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
-                    DURATION_ARG=(-t "${DURATION_SECS}")
-                    END_TIME+=(-to "${END_PTS}")
+                FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
+                DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
+                DURATION_ARG=(-t "${DURATION_SECS}")
+                END_TIME+=(-to "${END_PTS}")
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
