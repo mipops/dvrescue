@@ -25,10 +25,10 @@ const int DseqSta_Size = Dseq_Size * Sta_Size;
 // DvDif_Analysis_Frame helpers
 //***************************************************************************
 
-struct frame_arb
+struct frame_seqn
 {
 public:
-    frame_arb(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) Value) : _Value(Value) {}
+    frame_seqn(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) Value) : _Value(Value) {}
     inline int Value() { return _Value & 0xF; }                                    //  0- 3
     inline bool HasValue() { return _Value & (1 << 4); }                           //  4
     inline bool NonConsecutive() { return _Value & (1 << 6); }                     //  6
