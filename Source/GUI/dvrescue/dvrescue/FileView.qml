@@ -28,7 +28,9 @@ Rectangle {
         fileAdded(mediaInfo.originalPath)
     }
 
+    readonly property string filePathColumn: "File Path"
     readonly property string fileNameColumn: "File Name"
+    readonly property string progressColumn: "Progress"
     readonly property string formatColumn: "Format"
     readonly property string fileSizeColumn: "File Size"
     readonly property string frameCountColumn: "Frame Count"
@@ -109,6 +111,7 @@ Rectangle {
 
     function newRow(path) {
         var rowEntry = {}
+        rowEntry[filePathColumn] = path
         rowEntry[fileNameColumn] = FileUtils.getFileName(path)
         rowEntry[formatColumn] = " "
         rowEntry[fileSizeColumn] = " "
@@ -118,7 +121,7 @@ Rectangle {
         rowEntry[lastTimecodeColumn] = " "
         rowEntry[firstRecordingTimeColumn] = " "
         rowEntry[lastRecordingTimeColumn] = " "
-        rowEntry["Progress"] = 0;
+        rowEntry[progressColumn] = 0;
 
         dataModel.appendRow(rowEntry)
     }
@@ -221,10 +224,20 @@ Rectangle {
                     progressColor: 'gray'
                     color: (row % 2) == 0 ? evenColor : oddColor
                     MouseArea {
+                        id: filePathMouseArea
+                        hoverEnabled: true
                         anchors.fill: parent
                         onDoubleClicked: {
                             tableView.currentIndex = row
                         }
+                    }
+
+                    ToolTip {
+                        visible: filePathMouseArea.containsMouse
+                        text: toolTip
+                        delay: 1000
+                        timeout: 3000
+                        anchors.centerIn: parent
                     }
                 }
             }
@@ -380,6 +393,7 @@ Rectangle {
         TableModelColumn {
             display: "File Name"
             decoration: "Progress"
+            toolTip: "File Path"
             property int minWidth: 250
         }
 
