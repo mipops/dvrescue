@@ -156,7 +156,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                text: "<"
+                icon.source: "icons/previous-frame.svg"
                 onClicked: {
                     player.stepBackward()
                 }
@@ -175,7 +175,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                text: ">"
+                icon.source: "icons/next-frame.svg"
                 onClicked: {
                     player.stepForward()
                 }

@@ -61,5 +61,7 @@
         <file>icons/closed-caption-start.svg</file>
         <file>icons/closed-caption-start-error.svg</file>
         <file>IconDelegate.qml</file>
+        <file>icons/next-frame.svg</file>
+        <file>icons/previous-frame.svg</file>
     </qresource>
 </RCC>
