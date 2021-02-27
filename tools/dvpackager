@@ -25,6 +25,8 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -o <dir> (provide a custom output directory)
+
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
@@ -260,12 +262,13 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:l:L:SnvuhF:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
         d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+        o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
         L) CAPTION_LANG="${OPTARG}" ;;
@@ -350,7 +353,14 @@ while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     DVFILE_DVBYTES="$(_get_dv_bytes "${DVFILE}")"
     BASENAME="$(basename "${DVFILE}")"
-    SIDECAR_DIR="${DVFILE}_dvrescue"
+    if [[ -d "${OUTPUTDIR}" ]] ; then
+        SIDECAR_DIR="${OUTPUTDIR}"
+    elif [[ -n "${OUTPUTDIR}" ]] ; then
+        _report -w "ERROR: ${OUTPUTDIR} is not a directory."
+        exit
+    else
+        SIDECAR_DIR="${DVFILE}_dvrescue"
+    fi
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
