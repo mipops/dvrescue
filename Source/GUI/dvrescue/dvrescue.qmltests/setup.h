@@ -11,14 +11,8 @@ class Setup : public QObject
 public:
 
 public Q_SLOTS:
-    void applicationAvailable()
-    {
-        qDebug() << "applicationAvailable";
-    }
-    void qmlEngineAvailable(QQmlEngine *engine)
-    {
-        qDebug() << "qmlEngineAvailable";
-    }
+    void applicationAvailable();
+    void qmlEngineAvailable(QQmlEngine *engine);
 };
 
 #endif // SETUP_H

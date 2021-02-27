@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>testdata/sample.dvrescue.xml</file>
+        <file>testdata/many_attributes.dv</file>
+        <file>testdata/many_attributes.dv.dvrescue.scc</file>
+        <file>testdata/many_attributes.dv.dvrescue.vtt</file>
+        <file>testdata/many_attributes.dv.dvrescue.xml</file>
+    </qresource>
+</RCC>

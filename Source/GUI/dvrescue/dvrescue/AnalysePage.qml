@@ -10,16 +10,6 @@ import DataModel 1.0
 import QtAVPlayerUtils 1.0
 
 Item {
-    property alias xmlPath: filePathTextField.text
-
-    FileViewer {
-        id: fileViewer
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.rightMargin: 10
-        anchors.topMargin: 10
-    }
 
     Rectangle {
         z: 100
@@ -70,11 +60,11 @@ Item {
         onDropped: {
             if(drop.urls.length !== 0)
             {
-                var url = drop.urls[0];
-                var filePath = FileUtils.getFilePath(url);
-
-                filePathTextField.text = filePath;
-                loadButton.clicked();
+                drop.urls.forEach((url) => {
+                                      var filePath = FileUtils.getFilePath(url);
+                                      fileViewer.fileView.add(filePath)
+                                      addRecent(filePath)
+                                  })
             }
 
             console.log(drop.urls)
@@ -83,203 +73,226 @@ Item {
         }
     }
 
-    RowLayout {
-        id: toolsLayout
-        anchors.top: fileViewer.bottom
-        anchors.topMargin: 5
-        anchors.left: parent.left
-        anchors.leftMargin: 0
-        anchors.right: parent.right
-        anchors.rightMargin: 0
+    property string recentFilesJSON : ''
+    property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+    function addRecent(filePath) {
+        var newRecentFiles = recentFiles.filter(item => item !== filePath)
+        newRecentFiles.unshift(filePath)
 
-        Rectangle  {
-            id: textFieldRect
-            Layout.fillWidth: true
-            height: childrenRect.height
-
-            TextField {
-                id: filePathTextField
-                selectByMouse: true
-                width: parent.width
-            }
+        if(newRecentFiles.length > 10) {
+            newRecentFiles.pop();
         }
-
-        Button {
-            text: "select file"
-            onClicked: {
-                selectPathDialog.callback = (fileUrl) => {
-                    var path = FileUtils.getFilePath(fileUrl);
-                    filePathTextField.text = path;
-                }
-                selectPathDialog.open();
-            }
-        }
-
-        Button {
-            text: "load"
-            id: loadButton
-            enabled: filePathTextField.text.length !== 0
-
-            property string dvRescueXmlExtension: ".dvrescue.xml"
-
-            onClicked: {
-
-                dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                                 plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-
-                var extension = FileUtils.getFileExtension(filePathTextField.text);
-                if(extension === 'xml') {
-                    refreshTimer.start();
-                    dataModel.populate(filePathTextField.text);
-
-                    if(filePathTextField.text.endsWith(dvRescueXmlExtension))
-                    {
-                        var videoPath = filePathTextField.text.substring(0, filePathTextField.text.length - dvRescueXmlExtension.length);
-                        if(FileUtils.exists(videoPath))
-                        {
-                            playerView.player.source = 'file:///' + videoPath;
-                            playerView.player.playPaused(0);
-                        }
-                    }
-
-                } else {
-                    var dvRescueXmlPath = filePathTextField.text + dvRescueXmlExtension
-                    if(FileUtils.exists(dvRescueXmlPath))
-                    {
-                        refreshTimer.start();
-                        dataModel.populate(dvRescueXmlPath);
-                    } else {
-                        busy.running = true;
-                        dvrescue.makeReport(filePathTextField.text).then(() => {
-                             busy.running = false;
-                             refreshTimer.start();
-                             dataModel.populate(dvRescueXmlPath);
-                        }).catch((error) => {
-                            busy.running = false;
-                        });
-                    }
-
-                    playerView.player.source = 'file:///' + filePathTextField.text;
-                    playerView.player.playPaused(0);
-                }
-            }
-        }
-
-        Rectangle  {
-            width: 200
-            height: textFieldRect.height
-            Text {
-                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                id: framesInfo
-                text: "Total frames: " + dataModel.total + ", fps: " + playerView.fps
-
-            }
-        }
+        recentFiles = newRecentFiles
+        recentFilesJSON = JSON.stringify(recentFiles)
     }
 
     QQC1.SplitView {
-        id: splitView
-        anchors.top: toolsLayout.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.fill: parent
 
         orientation: Qt.Vertical
 
         onHeightChanged: {
-            playerView.height = height / 5 * 1.5
+            fileViewColumn.height = height / 5 * 1
+            fileViewer.fileView.tableView.bringToView(0);
         }
 
-        onWidthChanged: {
-            dataView.width = width / 2
-        }
+        ColumnLayout {
+            id: fileViewColumn
+            anchors.left: parent.left
+            anchors.right: parent.right
 
-        PlayerView {
-            id: playerView
-            signal positionChanged(int frameIndex);
+            spacing: 0
 
-            onFpsChanged: {
-                if(fps !== 0) {
-                    plotsView.framePos = 0
-                } else {
-                    plotsView.framePos = -1
+            FileViewer {
+                id: fileViewer
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                fileView.currentIndex: fileSelector.currentIndex
+                recentsPopup.files: recentFiles
+                recentsPopup.onSelected: {
+                    fileViewer.fileView.add(filePath)
+                }
+
+                fileView.onFileAdded: {
+                    addRecent(filePath)
+                }
+
+                onSelectedPathChanged: {
+                    toolsLayout.load(selectedPath)
                 }
             }
 
-            property var prevDisplayPosition: -1
-            player.onPositionChanged: {
-                var displayPosition = QtAVPlayerUtils.displayPosition(player)
-                if(prevDisplayPosition === displayPosition)
-                    return;
+            RowLayout {
+                id: toolsLayout
+                Layout.fillWidth: true
 
-                prevDisplayPosition = displayPosition;
+                property string dvRescueXmlExtension: ".dvrescue.xml"
 
-                var ms = displayPosition
-                var frameIndex = ms * fps / 1000;
+                ComboBox {
+                    id: fileSelector
+                    model: fileViewer.updated, fileViewer.files
+                    Layout.fillWidth: true
+                    currentIndex: fileViewer.fileView.currentIndex
+                    onCurrentIndexChanged: {
+                        if(fileViewer.files.length < currentIndex)
+                        {
+                            var file = fileViewer.files[currentIndex]
+                            toolsLayout.load(file)
+                        }
+                    }
+                }
 
-                console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
-                playerView.positionChanged(Math.round(frameIndex));
-            }
+                function load(filePath) {
 
-            function seekToFrame(frameIndex) {
-                var position = frameIndex / playerView.fps * 1000
-                playerView.player.seekEx(position);
-            }
+                    console.debug('load: ', filePath)
+                    if(filePath.length === 0)
+                        return;
 
-            Connections {
-                target: dataView
-                onTapped: {
-                    if(framePos !== -1)
-                        playerView.seekToFrame(framePos);
+                    dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+                                     plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+
+                    var extension = FileUtils.getFileExtension(filePath);
+                    if(extension === 'xml') {
+                        refreshTimer.start();
+                        dataModel.populate(filePath);
+
+                        if(filePath.endsWith(dvRescueXmlExtension))
+                        {
+                            var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
+                            if(FileUtils.exists(videoPath))
+                            {
+                                playerView.player.source = 'file:///' + videoPath;
+                                playerView.player.playPaused(0);
+                            }
+                        }
+
+                    } else {
+                        var dvRescueXmlPath = filePath + dvRescueXmlExtension
+                        if(FileUtils.exists(dvRescueXmlPath))
+                        {
+                            refreshTimer.start();
+                            dataModel.populate(dvRescueXmlPath);
+                        } else {
+                            busy.running = true;
+                            dvrescue.makeReport(filePath).then(() => {
+                                 busy.running = false;
+                                 refreshTimer.start();
+                                 dataModel.populate(dvRescueXmlPath);
+                            }).catch((error) => {
+                                busy.running = false;
+                            });
+                        }
+
+                        playerView.player.source = 'file:///' + filePath;
+                        playerView.player.playPaused(0);
+                    }
                 }
             }
         }
 
         QQC1.SplitView {
-            id: tableAndPlots
-            orientation: Qt.Horizontal
+            id: splitView
+            anchors.left: parent.left
+            anchors.right: parent.right
 
-            DataView {
-                id: dataView
-                cppDataModel: dataModel
+            orientation: Qt.Vertical
 
-                Connections {
-                    target: playerView
-                    onPositionChanged: {
-                        dataView.framePos = frameIndex
-                        dataView.bringToView(dataView.framePos)
+            onHeightChanged: {
+                playerView.height = height / 5 * 1.5
+            }
+
+            onWidthChanged: {
+                dataView.width = width / 2
+            }
+
+            PlayerView {
+                id: playerView
+                signal positionChanged(int frameIndex);
+
+                onFpsChanged: {
+                    if(fps !== 0) {
+                        plotsView.framePos = 0
+                    } else {
+                        plotsView.framePos = -1
                     }
                 }
 
-                Component.onCompleted: {
-                    dataModel.bind(model)
+                property var prevDisplayPosition: -1
+                player.onPositionChanged: {
+                    var displayPosition = QtAVPlayerUtils.displayPosition(player)
+                    if(prevDisplayPosition === displayPosition)
+                        return;
+
+                    prevDisplayPosition = displayPosition;
+
+                    var ms = displayPosition
+                    var frameIndex = ms * fps / 1000;
+
+                    console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
+                    playerView.positionChanged(Math.round(frameIndex));
+                }
+
+                function seekToFrame(frameIndex) {
+                    var position = frameIndex / playerView.fps * 1000
+                    playerView.player.seekEx(position);
+                }
+
+                Connections {
+                    target: dataView
+                    onTapped: {
+                        if(framePos !== -1)
+                            playerView.seekToFrame(framePos);
+                    }
                 }
             }
 
-            PlotsView {
-                id: plotsView
+            QQC1.SplitView {
+                id: tableAndPlots
+                orientation: Qt.Horizontal
 
-                Connections {
-                    target: dataModel
-                    function onPopulated() {
-                        plotsView.zoomAll();
+                DataView {
+                    id: dataView
+                    cppDataModel: dataModel
+
+                    Connections {
+                        target: playerView
+                        onPositionChanged: {
+                            dataView.framePos = frameIndex
+                            dataView.bringToView(dataView.framePos)
+                        }
+                    }
+
+                    Component.onCompleted: {
+                        dataModel.bind(model)
                     }
                 }
 
-                Connections {
-                    target: playerView
-                    onPositionChanged: {
-                        plotsView.framePos = frameIndex
+                PlotsView {
+                    id: plotsView
+
+                    Connections {
+                        target: dataModel
+                        onPopulated: {
+                            plotsView.zoomAll();
+                        }
+                    }
+
+                    Connections {
+                        target: playerView
+                        onPositionChanged: {
+                            plotsView.framePos = frameIndex
+                        }
+                    }
+
+                    onPickerMoved: {
+                        var frameIndex = plotX
+                        playerView.seekToFrame(frameIndex)
                     }
                 }
 
-                onPickerMoved: {
-                    var frameIndex = plotX
-                    playerView.seekToFrame(frameIndex)
-                }
             }
-
         }
+
     }
 
     Timer {

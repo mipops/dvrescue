@@ -35,6 +35,7 @@ Rectangle {
         TextFieldEx {
             id: filterField
             readOnly: !canFilter
+            visible: canFilter
             anchors.horizontalCenter: parent.horizontalCenter
             width: root.width
             verticalAlignment: Text.AlignVCenter

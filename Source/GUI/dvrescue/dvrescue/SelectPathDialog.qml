@@ -12,9 +12,16 @@ FileDialog {
     property var callback;
 
     onAccepted: {
-        var fileUrl = selectPathDialog.fileUrl;
-        console.debug('selected file: ', fileUrl);
-        if(callback)
-            callback(fileUrl);
+        if(selectMultiple) {
+            var fileUrls = selectPathDialog.fileUrls;
+            console.debug('selected files: ', fileUrls.length);
+            if(callback)
+                callback(fileUrls);
+        } else {
+            var fileUrl = selectPathDialog.fileUrl;
+            console.debug('selected file: ', fileUrl);
+            if(callback)
+                callback(fileUrl);
+        }
     }
 }
