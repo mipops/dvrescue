@@ -452,6 +452,7 @@ while [[ "${@}" != "" ]] ; do
                 unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
+                OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     if [[ "${PKT_POS}" != "0" ]] ; then
@@ -473,7 +474,7 @@ while [[ "${@}" != "" ]] ; do
                 if [[ "${EXTENSION}" != "dv" ]] ; then
                     if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
                         APAD=",apad=whole_dur=${DURATION_SECS}"
-                        _report -d "FYI: Padding a little silence at the end of $(basename "${OUTPUT_FILE}") since the source ends with frames missing audio."
+                        _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
                     fi
                     AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                 fi
@@ -525,19 +526,19 @@ while [[ "${@}" != "" ]] ; do
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                             :
                         else
-                            _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                            _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                         fi
                     else
-                        _report -d "FYI: $(basename "${OUTPUT_FILE}") has no audio track."
+                        _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
                     fi
                 fi
-                _report -d "FYI: Packaged to ${OUTPUT_FILE}."
+                _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
             done < <(_get_ranges)
             if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVBYTES_PACKAGED}" != "${DVFILE_DVBYTES}" ]] ; then
                 _report -w "ERROR: ${BASENAME} contained ${DVFILE_DVBYTES} bytes of DV, but the outputs contain ${TOTAL_DVBYTES_PACKAGED} bytes of DV."
             fi
         fi
     else
-        echo "$(basename "${DVFILE}") is not a file, skipping."
+        echo "${BASENAME} is not a file, skipping."
     fi
 done
