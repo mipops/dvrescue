@@ -479,13 +479,13 @@ Rectangle {
         TableModelColumn {
             display: "Timecode";
             decoration: "Timecode: Jump/Repeat";
-            property int minWidth: timecodeMetrics.width + columnSpacing + timecodeMetrics.height * 2
+            property int minWidth: timecodeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
         }
 
         TableModelColumn {
             display: "Recording Time"
             decoration: "Recording Time: Jump/Repeat";
-            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2
+            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
         }
 
         TableModelColumn {
