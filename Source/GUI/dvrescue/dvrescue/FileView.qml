@@ -7,6 +7,7 @@ import QtQuick.Controls 2.12
 import QtQml 2.12
 import Qt.labs.qmlmodels 1.0
 import MediaInfo 1.0
+import FileUtils 1.0
 
 Rectangle {
     signal fileAdded(string filePath);
@@ -108,7 +109,7 @@ Rectangle {
 
     function newRow(path) {
         var rowEntry = {}
-        rowEntry[fileNameColumn] = path
+        rowEntry[fileNameColumn] = FileUtils.getFileName(path)
         rowEntry[formatColumn] = " "
         rowEntry[fileSizeColumn] = " "
         rowEntry[frameCountColumn] = " "
@@ -379,7 +380,7 @@ Rectangle {
         TableModelColumn {
             display: "File Name"
             decoration: "Progress"
-            property int minWidth: 200
+            property int minWidth: 250
         }
 
         TableModelColumn {

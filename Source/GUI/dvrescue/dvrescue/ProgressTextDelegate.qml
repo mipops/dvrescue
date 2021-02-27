@@ -44,7 +44,9 @@ Rectangle {
     TextInput {
         id: textLabel
         text: display
-        anchors.centerIn: parent
+        anchors.leftMargin: 10
+        anchors.fill: parent
+        verticalAlignment: Qt.AlignVCenter
         readOnly: true
     }
 
