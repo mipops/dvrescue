@@ -504,6 +504,7 @@ while [[ "${@}" != "" ]] ; do
                         _report -d "FYI: $(basename "${OUTPUT_FILE}") has no audio track."
                     fi
                 fi
+                _report -d "FYI: Packaged to ${OUTPUT_FILE}."
             done < <(_get_ranges)
         fi
     else
