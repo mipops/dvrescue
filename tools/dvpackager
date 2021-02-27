@@ -448,6 +448,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
             esac
+            _report -d "The results will be written to ${SIDECAR_DIR}"
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
                 unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
