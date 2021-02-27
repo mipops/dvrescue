@@ -444,12 +444,12 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Arbitrary Bits: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
 
-    map["Captions"] = "";
+    map["CC"] = "";
     if(framesAttributes.hasAttribute("captions"))
     {
         if(framesAttributes.value("captions").toString() == "y")
         {
-            map["Captions"] = "y";
+            map["CC"] = "y";
         }
         else if(framesAttributes.value("captions").toString() == "p")
         {
@@ -458,27 +458,27 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
                 auto caption = frameAttributes.value("caption");
                 if(caption == "on")
                 {
-                    map["Captions"] = "┬";
+                    map["CC"] = "┬";
                 }
                 else if(caption == "off")
                 {
-                    map["Captions"] = "┴";
+                    map["CC"] = "┴";
                 }
             }
             else
             {
                 if(captionOn)
                 {
-                    map["Captions"] = "│";
+                    map["CC"] = "│";
                 }
             }
         }
     }
 
-    map["Captions/Mismatch"] = false;
+    map["CC/Mismatch"] = false;
     if(frameAttributes.hasAttribute("caption-parity")) {
         if(frameAttributes.value("caption-parity").toString() == "mismatch") {
-            map["Captions/Mismatch"] = true;
+            map["CC/Mismatch"] = true;
         }
     }
 

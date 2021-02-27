@@ -507,7 +507,7 @@ Rectangle {
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
         property int arbitraryBitsColumn: columnsNames.indexOf("Arbitrary Bits");
-        property int captionsColumn: columnsNames.indexOf("Captions");
+        property int captionsColumn: columnsNames.indexOf("CC");
 
         property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
 
@@ -572,9 +572,9 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Captions";
-            decoration: "Captions/Mismatch"
-            property int minWidth: 20
+            display: "CC";
+            decoration: "CC/Mismatch"
+            property int minWidth: 40
         }
 
         TableModelColumn {
