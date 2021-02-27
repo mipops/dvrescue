@@ -17,6 +17,10 @@ Rectangle {
     SelectPathDialog {
         id: selectPath
         selectMultiple: true
+        nameFilters: [
+            "Report files (*.dvrescue.xml)",
+            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
+        ]
     }
 
     RecentsPopup {
