@@ -175,6 +175,18 @@ _duration_from_pts_range(){
     echo "${END_SEC}-${START_SEC}" | bc -l
 }
 
+_get_dv_bytes(){
+    if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+        INPUT_FILE="${1}"
+        FORMAT="$(mediainfo -f --inform="General;%Format%" "${INPUT_FILE}")"
+        if [[ "${FORMAT}" == "DV" ]] ; then
+            mediainfo -f --inform="General;%FileSize%" "${INPUT_FILE}" | head -n 1
+        else
+            mediainfo -f --inform="Video;%StreamSize_Encoded%" "${INPUT_FILE}" | head -n 1
+        fi
+    fi
+}
+
 _make_chapter_metadata_file(){
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${1}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${2}" | awk '{printf "%i", $1 * 100000}')"
@@ -272,6 +284,7 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
+TOTAL_DVBYTES_PACKAGED="0"
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -334,6 +347,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
 while [[ "${@}" != "" ]] ; do
     unset OUTPUTOPTS
     DVFILE="${1}"
+    DVFILE_DVBYTES="$(_get_dv_bytes "${DVFILE}")"
     BASENAME="$(basename "${DVFILE}")"
     SIDECAR_DIR="${DVFILE}_dvrescue"
     DVRESCUE_XML_TEMP="$(_maketemp)"
@@ -488,6 +502,10 @@ while [[ "${@}" != "" ]] ; do
                         -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
+                if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                    PACKAGED_DVBYTES="$(_get_dv_bytes "${OUTPUT_FILE}")"
+                    TOTAL_DVBYTES_PACKAGED="$(echo "${TOTAL_DVBYTES_PACKAGED} + ${PACKAGED_DVBYTES}" | bc -l)"
+                fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     AUD_STREAM_COUNT="$(mediainfo -f --Output="General;%AudioCount%" "${OUTPUT_FILE}")"
@@ -506,6 +524,9 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 _report -d "FYI: Packaged to ${OUTPUT_FILE}."
             done < <(_get_ranges)
+            if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVBYTES_PACKAGED}" != "${DVFILE_DVBYTES}" ]] ; then
+                _report -w "ERROR: ${BASENAME} contained ${DVFILE_DVBYTES} bytes of DV, but the outputs contain ${TOTAL_DVBYTES_PACKAGED} bytes of DV."
+            fi
         fi
     else
         echo "$(basename "${DVFILE}") is not a file, skipping."
