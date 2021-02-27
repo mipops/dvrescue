@@ -16,6 +16,7 @@ Rectangle {
 
     SelectPathDialog {
         id: selectPath
+        selectMultiple: true
     }
 
     RecentsPopup {
@@ -30,8 +31,10 @@ Rectangle {
         Button {
             text: qsTr("Add files")
             onClicked: {
-                selectPath.callback = (path) => {
-                    fileView.add(FileUtils.getFilePath(path));
+                selectPath.callback = (urls) => {
+                    urls.forEach((url) => {
+                                     fileView.add(FileUtils.getFilePath(url));
+                                 });
                 }
 
                 selectPath.open();
