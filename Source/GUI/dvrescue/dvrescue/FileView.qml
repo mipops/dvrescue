@@ -243,6 +243,47 @@ Rectangle {
             }
 
             DelegateChoice  {
+                column: 8
+
+                TextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                    color: (row % 2) == 0 ? evenColor : oddColor
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onDoubleClicked: {
+                            tableView.currentIndex = row
+                        }
+                    }
+
+                    Button {
+                        id: deleteButton
+                        anchors.right: parent.right
+                        anchors.rightMargin: 10
+                        text: "x"
+                        height: parent.height
+                        width: height
+
+                        onClicked: {
+                            files.splice(row,  1);
+                            fileInfos.splice(row, 1);
+                            dataModel.removeRow(row, 1);
+                            ++updated
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice  {
                 TextDelegate {
                     height: tableView.delegateHeight
                     implicitHeight: tableView.delegateHeight

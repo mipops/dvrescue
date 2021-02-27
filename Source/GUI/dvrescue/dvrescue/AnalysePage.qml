@@ -134,8 +134,11 @@ Item {
                     Layout.fillWidth: true
                     currentIndex: fileViewer.fileView.currentIndex
                     onCurrentIndexChanged: {
-                        var file = fileViewer.files[currentIndex]
-                        toolsLayout.load(file)
+                        if(fileViewer.files.length < currentIndex)
+                        {
+                            var file = fileViewer.files[currentIndex]
+                            toolsLayout.load(file)
+                        }
                     }
                 }
 
