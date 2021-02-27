@@ -25,14 +25,16 @@ Options:
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
 
+ -o <dir> (provide a custom output directory)
+
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
-           If two languages are provided with a comma delimter such as
+           If two languages are provided with a comma delimiter such as
            'eng,deu' then the first would be used for the first audio
-          track and the second for the second audio track, if it exists.)
+           track and the second for the second audio track, if it exists.)
  -L <code>(specify the language code to use for the caption tracks (if
            any).
  -S       (enables technical subtitle track to show timecode,
@@ -95,7 +97,9 @@ _get_ranges(){
     unset PTSx
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
-            echo "${PTSx}|${PTS}|${Nx}|${N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+            Ny=$((N-1)) # end frame of a sequence is the start frame of the next
+            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_audio_pack)" "${DVRESCUE_XML}")"
+            echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
         fi
         PTSx="${PTS}"
         Nx="${N}"
@@ -131,14 +135,16 @@ _get_ranges(){
         -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|-1|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}"
+    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_audio_pack)" "${DVRESCUE_XML}")"
+    LAST_FRAME_N="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
+    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|${LAST_FRAME_N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
 }
 
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequnce'"
-    echo "|     # | Byte Offset  | PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | St | ncTC | ncR | 1st |"
+    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequence'"
+    echo "| PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR | 1st |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
@@ -149,9 +155,9 @@ _ranges_2_table(){
             IS_FIRST=""
         fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$18; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$19}\
-        {printf "| %5i | %12i | %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %2s | %4s | %3s | %3s |\n", \
-        NR, PKT_POS, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$20}\
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
     echo
 }
@@ -170,6 +176,18 @@ _duration_from_pts_range(){
     START_SEC="$(_convert_hhmmssmmm2s "${START}")"
     END_SEC="$(_convert_hhmmssmmm2s "${END}")"
     echo "${END_SEC}-${START_SEC}" | bc -l
+}
+
+_get_dv_bytes(){
+    if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+        INPUT_FILE="${1}"
+        FORMAT="$(mediainfo -f --inform="General;%Format%" "${INPUT_FILE}")"
+        if [[ "${FORMAT}" == "DV" ]] ; then
+            mediainfo -f --inform="General;%FileSize%" "${INPUT_FILE}" | head -n 1
+        else
+            mediainfo -f --inform="Video;%StreamSize_Encoded%" "${INPUT_FILE}" | head -n 1
+        fi
+    fi
 }
 
 _make_chapter_metadata_file(){
@@ -244,12 +262,13 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdte:l:L:SnvuhF:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
         d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
         t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+        o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
         L) CAPTION_LANG="${OPTARG}" ;;
@@ -269,6 +288,7 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
+TOTAL_DVBYTES_PACKAGED="0"
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -307,14 +327,12 @@ case "${EXT}" in
         EXTENSION="mov"
         OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
-        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
         OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
         OPT_OUTPUT+=(-c:a pcm_s16le)
-        OPT_OUTPUT+=(-af aresample=async=1:min_hard_comp=0.01)
         ;;
     "dv")
         FORMAT="rawvideo"
@@ -333,8 +351,16 @@ OPT_OUTPUT+=(-f "$FORMAT")
 while [[ "${@}" != "" ]] ; do
     unset OUTPUTOPTS
     DVFILE="${1}"
+    DVFILE_DVBYTES="$(_get_dv_bytes "${DVFILE}")"
     BASENAME="$(basename "${DVFILE}")"
-    SIDECAR_DIR="${DVFILE}_dvrescue"
+    if [[ -d "${OUTPUTDIR}" ]] ; then
+        SIDECAR_DIR="${OUTPUTDIR}"
+    elif [[ -n "${OUTPUTDIR}" ]] ; then
+        _report -w "ERROR: ${OUTPUTDIR} is not a directory."
+        exit
+    else
+        SIDECAR_DIR="${DVFILE}_dvrescue"
+    fi
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
@@ -422,10 +448,12 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     ;;
             esac
-            _get_ranges | \
-            while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
-                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS
+            _report -d "The results will be written to ${SIDECAR_DIR}"
+            while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
+                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
+                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
+                OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
                 SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     if [[ "${PKT_POS}" != "0" ]] ; then
@@ -436,14 +464,20 @@ while [[ "${@}" != "" ]] ; do
                         START_TIME=(-ss "${PTS}")
                     fi
                 fi
-                if [[ "${FRAME_END}" != "-1" ]] ; then
-                    FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" | bc)"
-                    DURATION_SECS=(-t "$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')")
-                    END_TIME+=(-to "${END_PTS}")
-                fi
+                FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
+                DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
+                DURATION_ARG=(-t "${DURATION_SECS}")
+                END_TIME+=(-to "${END_PTS}")
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
+                fi
+                if [[ "${EXTENSION}" != "dv" ]] ; then
+                    if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
+                        APAD=",apad=whole_dur=${DURATION_SECS}"
+                        _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
+                    fi
+                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                 fi
                 if [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
@@ -452,7 +486,6 @@ while [[ "${@}" != "" ]] ; do
                         METADATA+=(-metadata "date=${RDT}")
                     fi
                 fi
-                OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 if [[ "${SUBS}" = "Y" ]] ; then
                     SUB_INPUT=(-ss "${PTS}" -i "${DVRESCUE_TECHSUBS}")
                     ((INPUT_COUNT++))
@@ -474,11 +507,15 @@ while [[ "${@}" != "" ]] ; do
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_SECS[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                         -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${DURATION_SECS[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                fi
+                if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                    PACKAGED_DVBYTES="$(_get_dv_bytes "${OUTPUT_FILE}")"
+                    TOTAL_DVBYTES_PACKAGED="$(echo "${TOTAL_DVBYTES_PACKAGED} + ${PACKAGED_DVBYTES}" | bc -l)"
                 fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
@@ -490,15 +527,19 @@ while [[ "${@}" != "" ]] ; do
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                             :
                         else
-                            _report -w "ERROR: In $(basename "${OUTPUT_FILE}") the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
+                            _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                         fi
                     else
-                        _report -d "FYI: $(basename "${OUTPUT_FILE}") has no audio track."
+                        _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
                     fi
                 fi
-            done
+                _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
+            done < <(_get_ranges)
+            if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVBYTES_PACKAGED}" != "${DVFILE_DVBYTES}" ]] ; then
+                _report -w "ERROR: ${BASENAME} contained ${DVFILE_DVBYTES} bytes of DV, but the outputs contain ${TOTAL_DVBYTES_PACKAGED} bytes of DV."
+            fi
         fi
     else
-        echo "$(basename "${DVFILE}") is not a file, skipping."
+        echo "${BASENAME} is not a file, skipping."
     fi
 done
