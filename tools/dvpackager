@@ -141,7 +141,7 @@ _ranges_2_table(){
     RANGES="${1}"
     echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequence'"
-    echo "|     # | Byte Offset  | PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Fr Rate    | AsRat | ChSub | SampF | Ch.s | St | ncTC | ncR | 1st |"
+    echo "| PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR | 1st |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
@@ -153,8 +153,8 @@ _ranges_2_table(){
         fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
         echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$20}\
-        {printf "| %5i | %12i | %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %5i | %4s | %2s | %4s | %3s | %3s |\n", \
-        NR, PKT_POS, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, AUDIO_RATE, CH, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
     echo
 }
