@@ -127,6 +127,25 @@ Item {
                 Layout.fillWidth: true
 
                 property string dvRescueXmlExtension: ".dvrescue.xml"
+                property int fileViewerHeight: 0
+
+                Button {
+                    visible: !fileViewer.visible
+                    text: "^"
+                    onClicked: {
+                        fileViewer.visible = true
+                        fileViewColumn.height = toolsLayout.fileViewerHeight
+                    }
+                }
+
+                Button {
+                    visible: fileViewer.visible
+                    text: ">"
+                    onClicked: {
+                        toolsLayout.fileViewerHeight = fileViewColumn.height
+                        fileViewer.visible = false
+                    }
+                }
 
                 ComboBox {
                     id: fileSelector
