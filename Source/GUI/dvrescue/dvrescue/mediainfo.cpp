@@ -112,6 +112,8 @@ void MediaInfo::setVideoPath(QString videoPath)
 
 void MediaInfo::resolve()
 {
+    qDebug() << "resolving media info: " << reportPath();
+
     if(m_thread)
     {
         qDebug() << "request interruption";

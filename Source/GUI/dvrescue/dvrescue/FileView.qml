@@ -35,6 +35,10 @@ Rectangle {
         ++updated
     }
 
+    function mediaInfoAt(index) {
+        return instantiator.objectAt(index);
+    }
+
     readonly property string filePathColumn: "File Path"
     readonly property string fileNameColumn: "File Name"
     readonly property string progressColumn: "Progress"
@@ -63,6 +67,7 @@ Rectangle {
     }
 
     Instantiator {
+        id: instantiator
         model: updated, fileInfos.length
         onModelChanged: {
             console.debug('model: ', model)
