@@ -28,6 +28,17 @@ Rectangle {
         fileAdded(mediaInfo.originalPath)
     }
 
+    function deleteEntry(row) {
+        files.splice(row,  1);
+        fileInfos.splice(row, 1);
+        dataModel.removeRow(row, 1);
+        ++updated
+    }
+
+    function mediaInfoAt(index) {
+        return instantiator.objectAt(index);
+    }
+
     readonly property string filePathColumn: "File Path"
     readonly property string fileNameColumn: "File Name"
     readonly property string progressColumn: "Progress"
@@ -56,6 +67,7 @@ Rectangle {
     }
 
     Instantiator {
+        id: instantiator
         model: updated, fileInfos.length
         onModelChanged: {
             console.debug('model: ', model)
@@ -157,6 +169,29 @@ Rectangle {
         delegateHeight: 25
         property int currentIndex: -1
 
+        Menu {
+            id: contextMenu
+            MenuItem {
+                text: "Delete"
+                onClicked: deleteEntry(currentIndex)
+            }
+
+            function showBelowControl(control) {
+                var mapped = control.mapToItem(tableView, 0, 0);
+                contextMenu.x = mapped.x
+                contextMenu.y = mapped.y + control.height
+
+                contextMenu.open()
+            }
+
+            function show(pos) {
+                contextMenu.x = pos.x
+                contextMenu.y = pos.y
+
+                contextMenu.open()
+            }
+        }
+
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
             width: tableView.columnWidths[modelData]
@@ -225,10 +260,16 @@ Rectangle {
                     color: (row % 2) == 0 ? evenColor : oddColor
                     MouseArea {
                         id: filePathMouseArea
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         hoverEnabled: true
                         anchors.fill: parent
                         onDoubleClicked: {
                             tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
                         }
                     }
 
@@ -259,9 +300,15 @@ Rectangle {
                     color: (row % 2) == 0 ? evenColor : oddColor
 
                     MouseArea {
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         anchors.fill: parent
                         onDoubleClicked: {
                             tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
                         }
                     }
 
@@ -274,10 +321,7 @@ Rectangle {
                         width: height
 
                         onClicked: {
-                            files.splice(row,  1);
-                            fileInfos.splice(row, 1);
-                            dataModel.removeRow(row, 1);
-                            ++updated
+                            deleteEntry(row);
                         }
                     }
                 }
@@ -297,9 +341,15 @@ Rectangle {
                     overlayVisible: decoration !== 1 || row == tableView.currentIndex
                     color: (row % 2) == 0 ? evenColor : oddColor
                     MouseArea {
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         anchors.fill: parent
                         onDoubleClicked: {
                             tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
                         }
                     }
                 }

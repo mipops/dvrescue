@@ -113,12 +113,18 @@ Item {
                     fileViewer.fileView.add(filePath)
                 }
 
+                function resolveMediaInfo(index, reportPath) {
+                    var mediaInfo = fileView.mediaInfoAt(index)
+                    mediaInfo.reportPath = reportPath;
+                    mediaInfo.resolve();
+                }
+
                 fileView.onFileAdded: {
                     addRecent(filePath)
                 }
 
                 onSelectedPathChanged: {
-                    toolsLayout.load(selectedPath)
+                    toolsLayout.load(selectedPath, fileView.currentIndex)
                 }
             }
 
@@ -127,6 +133,25 @@ Item {
                 Layout.fillWidth: true
 
                 property string dvRescueXmlExtension: ".dvrescue.xml"
+                property int fileViewerHeight: 0
+
+                Button {
+                    visible: !fileViewer.visible
+                    text: "^"
+                    onClicked: {
+                        fileViewer.visible = true
+                        fileViewColumn.height = toolsLayout.fileViewerHeight
+                    }
+                }
+
+                Button {
+                    visible: fileViewer.visible
+                    text: ">"
+                    onClicked: {
+                        toolsLayout.fileViewerHeight = fileViewColumn.height
+                        fileViewer.visible = false
+                    }
+                }
 
                 ComboBox {
                     id: fileSelector
@@ -137,14 +162,14 @@ Item {
                         if(fileViewer.files.length < currentIndex)
                         {
                             var file = fileViewer.files[currentIndex]
-                            toolsLayout.load(file)
+                            toolsLayout.load(file, currentIndex)
                         }
                     }
                 }
 
-                function load(filePath) {
+                function load(filePath, currentIndex) {
 
-                    console.debug('load: ', filePath)
+                    console.debug('load: ', filePath, 'currentIndex: ', currentIndex)
                     if(filePath.length === 0)
                         return;
 
@@ -178,6 +203,10 @@ Item {
                                  busy.running = false;
                                  refreshTimer.start();
                                  dataModel.populate(dvRescueXmlPath);
+
+                                 if(currentIndex !== -1 && currentIndex !== undefined) {
+                                    fileViewer.resolveMediaInfo(currentIndex, dvRescueXmlPath)
+                                 }
                             }).catch((error) => {
                                 busy.running = false;
                             });
