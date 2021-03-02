@@ -54,5 +54,14 @@
         <file>DvRescueReport.qml</file>
         <file>ProgressTextDelegate.qml</file>
         <file>RecentsPopup.qml</file>
+        <file>icons/closed-caption-end.svg</file>
+        <file>icons/closed-caption-end-error.svg</file>
+        <file>icons/closed-caption-middle.svg</file>
+        <file>icons/closed-caption-middle-error.svg</file>
+        <file>icons/closed-caption-start.svg</file>
+        <file>icons/closed-caption-start-error.svg</file>
+        <file>IconDelegate.qml</file>
+        <file>icons/next-frame.svg</file>
+        <file>icons/previous-frame.svg</file>
     </qresource>
 </RCC>

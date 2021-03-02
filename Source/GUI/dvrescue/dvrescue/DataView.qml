@@ -301,6 +301,53 @@ Rectangle {
                 }
             }
 
+            DelegateChoice {
+                column: dataModel.captionsColumn
+
+                IconDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+
+                    property string imageUrl: {
+                        if(display === '┬') {
+                            return decoration ? "icons/closed-caption-start-error.svg" : "icons/closed-caption-start.svg"
+                        } else if(display === '┴') {
+                            return decoration ? "icons/closed-caption-end-error.svg" : "icons/closed-caption-end.svg"
+                        } else if(display === '│' || display === 'y') {
+                            return decoration ? "icons/closed-caption-middle-error.svg" : "icons/closed-caption-middle.svg"
+                        }
+
+                        return null;
+                    }
+                    imageVisible: imageUrl !== null
+                    Binding on imageSource {
+                        when: imageUrl != null
+                        value: imageUrl
+                    }
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
             DelegateChoice  {
                 TextDelegate {
                     height: tableView.delegateHeight
@@ -460,6 +507,7 @@ Rectangle {
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
         property int arbitraryBitsColumn: columnsNames.indexOf("Arbitrary Bits");
+        property int captionsColumn: columnsNames.indexOf("CC");
 
         property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
 
@@ -524,13 +572,9 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Captions";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Caption Parity";
-            property int minWidth: 20
+            display: "CC";
+            decoration: "CC/Mismatch"
+            property int minWidth: 40
         }
 
         TableModelColumn {
