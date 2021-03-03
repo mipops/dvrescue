@@ -322,11 +322,6 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
 elif [[ ! -x "${FFMPEG_PATH}" ]] ; then
     _report -w "Error: The ffmpeg needed at ${FFMPEG_PATH} is not executable."
     exit 1
-else
-    FF_AUDIOFIX="$("${FFMPEG_PATH}" -v 0 -h demuxer=dv  | grep -c dvaudio_concealment)"
-    if [[ "${FF_AUDIOFIX}" == "1" ]] ; then
-        OPT_INPUT+=(-dvaudio_concealment pass)
-    fi
 fi
 
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
