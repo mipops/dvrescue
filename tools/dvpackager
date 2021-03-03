@@ -250,7 +250,24 @@ if [[ -n "${BREW_PREFIX}" && -d "${BREW_PREFIX}/bin" ]] ; then
     FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
 else
     FFMPEG_PATH="$(which ffmpeg)"
+    FFMPEG_DL="N"
 fi
+# verify that ffmpeg qualifies
+FFversion="$("${FFMPEG_PATH}" -version)"
+LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
+LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
+LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
+if [[ "${FFMPEG_DL}" = "N" ]] && ! ( \
+    [[ "${LAVFversion_maj}" -gt 58 ]] || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+   ) ; then
+    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "Please update ffmpeg or consider installing amiaopensource/amiaos/ffmpegdecklink."
+    _report -w "Using this current install of ffmpeg may result in out of sync audio."
+fi
+
 MEDIAINFO_PATH="$(which mediainfo)"
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
