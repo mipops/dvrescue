@@ -95,7 +95,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} nasm qt
+        brew install ${{ matrix.packages }} nasm qt@5
 
     - name: Set Qt5 environment path
       run: |
