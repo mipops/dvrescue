@@ -86,7 +86,7 @@ Rectangle {
             videoPath: index >= 0 ? fileInfos[index].videoPath : ''
 
             function editRow(index, propertyName, propertyValue) {
-                console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
+                // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
 
                 var rowData = dataModel.getRow(index)
                 var newRowData = JSON.parse(JSON.stringify(rowData))
