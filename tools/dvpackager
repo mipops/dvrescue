@@ -178,15 +178,10 @@ _duration_from_pts_range(){
     echo "${END_SEC}-${START_SEC}" | bc -l
 }
 
-_get_dv_bytes(){
+_count_dv_frames(){
     if [[ -f "${MEDIAINFO_PATH}" ]] ; then
         INPUT_FILE="${1}"
-        FORMAT="$(mediainfo -f --inform="General;%Format%" "${INPUT_FILE}")"
-        if [[ "${FORMAT}" == "DV" ]] ; then
-            mediainfo -f --inform="General;%FileSize%" "${INPUT_FILE}" | head -n 1
-        else
-            mediainfo -f --inform="Video;%StreamSize_Encoded%" "${INPUT_FILE}" | head -n 1
-        fi
+        mediainfo -f --inform="Video;%FrameCount%" "${INPUT_FILE}" | head -n 1
     fi
 }
 
@@ -250,7 +245,24 @@ if [[ -n "${BREW_PREFIX}" && -d "${BREW_PREFIX}/bin" ]] ; then
     FFMPEG_PATH="${BREW_PREFIX}/bin/ffmpeg-dl"
 else
     FFMPEG_PATH="$(which ffmpeg)"
+    FFMPEG_DL="N"
 fi
+# verify that ffmpeg qualifies
+FFversion="$("${FFMPEG_PATH}" -version)"
+LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
+LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
+LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
+if [[ "${FFMPEG_DL}" = "N" ]] && ! ( \
+    [[ "${LAVFversion_maj}" -gt 58 ]] || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+   ) ; then
+    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "Please update ffmpeg or consider installing amiaopensource/amiaos/ffmpegdecklink."
+    _report -w "Using this current install of ffmpeg may result in out of sync audio."
+fi
+
 MEDIAINFO_PATH="$(which mediainfo)"
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
@@ -288,7 +300,7 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
-TOTAL_DVBYTES_PACKAGED="0"
+TOTAL_DVFRAMES_PACKAGED="0"
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -305,11 +317,6 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
 elif [[ ! -x "${FFMPEG_PATH}" ]] ; then
     _report -w "Error: The ffmpeg needed at ${FFMPEG_PATH} is not executable."
     exit 1
-else
-    FF_AUDIOFIX="$("${FFMPEG_PATH}" -v 0 -h demuxer=dv  | grep -c dvaudio_concealment)"
-    if [[ "${FF_AUDIOFIX}" == "1" ]] ; then
-        OPT_INPUT+=(-dvaudio_concealment pass)
-    fi
 fi
 
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
@@ -351,7 +358,6 @@ OPT_OUTPUT+=(-f "$FORMAT")
 while [[ "${@}" != "" ]] ; do
     unset OUTPUTOPTS
     DVFILE="${1}"
-    DVFILE_DVBYTES="$(_get_dv_bytes "${DVFILE}")"
     BASENAME="$(basename "${DVFILE}")"
     if [[ -d "${OUTPUTDIR}" ]] ; then
         SIDECAR_DIR="${OUTPUTDIR}"
@@ -404,6 +410,7 @@ while [[ "${@}" != "" ]] ; do
                 fi
             fi
         fi
+        DV_FRAME_COUNT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
         _ranges_2_table "$(_get_ranges)"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
@@ -514,8 +521,8 @@ while [[ "${@}" != "" ]] ; do
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
-                    PACKAGED_DVBYTES="$(_get_dv_bytes "${OUTPUT_FILE}")"
-                    TOTAL_DVBYTES_PACKAGED="$(echo "${TOTAL_DVBYTES_PACKAGED} + ${PACKAGED_DVBYTES}" | bc -l)"
+                    PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
+                    TOTAL_DVFRAMES_PACKAGED="$(echo "${TOTAL_DVFRAMES_PACKAGED} + ${PACKAGED_DVFRAMES}" | bc -l)"
                 fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
@@ -535,8 +542,8 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
             done < <(_get_ranges)
-            if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVBYTES_PACKAGED}" != "${DVFILE_DVBYTES}" ]] ; then
-                _report -w "ERROR: ${BASENAME} contained ${DVFILE_DVBYTES} bytes of DV, but the outputs contain ${TOTAL_DVBYTES_PACKAGED} bytes of DV."
+            if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
+                _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} frames of DV, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
             fi
         fi
     else
