@@ -42,6 +42,7 @@ Rectangle {
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
+            canShowIndicator: false
             filterFont.pixelSize: 11
             textFont.pixelSize: 13
             height: tableView.getMaxDesiredHeight()
@@ -52,7 +53,7 @@ Rectangle {
 
             Rectangle {
                 id: handle
-                color: Qt.darker(parent.color, 1.05)
+                color: "transparent"
                 height: parent.height
                 width: 10
                 anchors.right: parent.right
