@@ -153,6 +153,53 @@ Rectangle {
             }
 
             DelegateChoice {
+                column: dataModel.recordingMarks
+
+                IconDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+
+                    property string imageUrl: {
+                        if(display === Qt.point(1, 1)) {
+                            return "icons/record-marker-stop+start-table.svg"
+                        } else if(display === Qt.point(1, 0)) {
+                            return "icons/record-marker-start-table.svg"
+                        } else if(display === Qt.point(0, 1)) {
+                            return "icons/record-marker-stop-table.svg"
+                        }
+
+                        return null;
+                    }
+                    imageVisible: imageUrl !== null
+                    Binding on imageSource {
+                        when: imageUrl != null
+                        value: imageUrl
+                    }
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
+            DelegateChoice {
                 column: dataModel.arbitraryBitsColumn
 
                 JumpRepeatTextDelegate {
@@ -506,6 +553,7 @@ Rectangle {
 
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
+        property int recordingMarks: columnsNames.indexOf("Recording Marks");
         property int arbitraryBitsColumn: columnsNames.indexOf("Arbitrary Bits");
         property int captionsColumn: columnsNames.indexOf("CC");
 

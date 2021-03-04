@@ -63,5 +63,11 @@
         <file>IconDelegate.qml</file>
         <file>icons/next-frame.svg</file>
         <file>icons/previous-frame.svg</file>
+        <file>icons/record-marker-start-graph.svg</file>
+        <file>icons/record-marker-start-table.svg</file>
+        <file>icons/record-marker-stop+start-graph.svg</file>
+        <file>icons/record-marker-stop+start-table.svg</file>
+        <file>icons/record-marker-stop-graph.svg</file>
+        <file>icons/record-marker-stop-table.svg</file>
     </qresource>
 </RCC>
