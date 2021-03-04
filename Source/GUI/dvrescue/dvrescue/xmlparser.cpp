@@ -82,9 +82,6 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     }
 }
 
-constexpr auto video_blocks_per_diff_seq = 135;
-constexpr auto audio_blocks_per_diff_seq = 9;
-
 void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesAttributes, bool firstFrames)
 {
     QString size;
@@ -100,8 +97,6 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             count = attribute.value().toUInt();
     }
 
-    Q_EMIT gotFrames(count);
-
     // magic from Dave
     auto diff_seq_count = 0;
     if(size == "720x576" && chroma_subsampling != "4:2:2")
@@ -115,6 +110,8 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
     auto video_error_den = diff_seq_count * video_blocks_per_diff_seq;
     auto audio_error_den = diff_seq_count * audio_blocks_per_diff_seq;
+
+    Q_EMIT gotFrames(count, diff_seq_count);
 
     assert(diff_seq_count != 0);
 
@@ -149,6 +146,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
             Q_EMIT gotFrame(frameNumber);
 
+            int staCount = 0;
             int totalSta = 0;
             int totalEvenSta = 0;
 
@@ -182,6 +180,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                             n_even = attribute.value().toUInt();
                     }
 
+                    ++staCount;
                     totalSta += n;
                     totalEvenSta += n_even;
                     Q_EMIT gotSta(frameNumber, t, n, n_even, video_error_den);
@@ -213,7 +212,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
             auto isSubstantial = !firstFrames && firstFrame;
 
-            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn, isSubstantial);
+            Q_EMIT gotFrameAttributes(frameNumber, framesAttributes, frameAttributes, diff_seq_count, staCount, totalSta, totalEvenSta, totalAud, totalAudSta, captionOn, isSubstantial);
             Q_EMIT bytesProcessed(xml.device()->pos());
 
             if(firstFrame)

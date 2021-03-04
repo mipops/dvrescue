@@ -305,7 +305,8 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+            int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+        Q_UNUSED(staCount);
         Q_UNUSED(isSubstantial);
 
         m_lastFrame = frameNumber;
@@ -336,7 +337,7 @@ void DataModel::populate(const QString &fileName)
                 float(den)
             };
 
-            qDebug() << "video frame: " << frameNumber << value.evenValue << value.oddValue;
+            // qDebug() << "video frame: " << frameNumber << value.evenValue << value.oddValue;
             m_videoValues.append(std::make_tuple(frameNumber, value));
         }
     });
@@ -359,9 +360,6 @@ void DataModel::populate(const QString &fileName)
 
     m_thread->start();
 }
-
-constexpr auto video_blocks_per_diff_seq = 135;
-constexpr auto audio_blocks_per_diff_seq = 9;
 
 void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
                            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional)
@@ -416,7 +414,6 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
 
     map["Recording Marks"] = QPoint(recStart, recEnd);
-    qDebug() << "Recording Marks" << map["Recording Marks"];
 
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
     int arbitraryBitsRepeat = 0;

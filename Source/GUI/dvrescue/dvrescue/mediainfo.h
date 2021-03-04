@@ -2,6 +2,7 @@
 #define MEDIAINFO_H
 
 #include <QObject>
+#include <QPointF>
 #include <QThread>
 #include <memory>
 
@@ -23,6 +24,21 @@ class MediaInfo : public QObject
     Q_PROPERTY(qint64 reportFileSize READ reportFileSize NOTIFY reportFileSizeChanged)
     Q_PROPERTY(qint64 bytesProcessed READ bytesProcessed NOTIFY bytesProcessedChanged)
     Q_PROPERTY(bool parsing READ parsing NOTIFY parsingChanged)
+
+    Q_PROPERTY(int staCount READ staCount WRITE setStaCount NOTIFY staCountChanged)
+    Q_PROPERTY(int staSum READ staSum WRITE setStaSum NOTIFY staSumChanged)
+    Q_PROPERTY(int evenStaSum READ evenStaSum WRITE setEvenStaSum NOTIFY evenStaSumChanged)
+    Q_PROPERTY(int audSum READ audSum WRITE setAudSum NOTIFY audSumChanged)
+    Q_PROPERTY(int evenAudSum READ evenAudSum WRITE setEvenAudSum NOTIFY evenAudSumChanged)
+    Q_PROPERTY(int totalVideoBlocks READ totalVideoBlocks WRITE setTotalVideoBlocks NOTIFY totalVideoBlocksChanged)
+    Q_PROPERTY(int totalAudioBlocks READ totalAudioBlocks WRITE setTotalAudioBlocks NOTIFY totalAudioBlocksChanged)
+
+    Q_PROPERTY(QString frameError READ frameError WRITE setFrameError NOTIFY frameErrorChanged)
+    Q_PROPERTY(QString videoBlockError READ videoBlockError WRITE setVideoBlockError NOTIFY videoBlockErrorChanged)
+    Q_PROPERTY(QPointF videoBlockErrorValue READ videoBlockErrorValue WRITE setVideoBlockErrorValue NOTIFY videoBlockErrorValueChanged)
+    Q_PROPERTY(QString audioBlockError READ audioBlockError WRITE setAudioBlockError NOTIFY audioBlockErrorChanged)
+    Q_PROPERTY(QPointF audioBlockErrorValue READ audioBlockErrorValue WRITE setAudioBlockErrorValue NOTIFY audioBlockErrorValueChanged)
+
 public:
     explicit MediaInfo(QObject *parent = nullptr);
     ~MediaInfo();
@@ -42,6 +58,23 @@ public:
     int bytesProcessed() const;
 
     bool parsing() const;
+
+    int staCount() const;
+    int staSum() const;
+    int audSum() const;
+
+    QString frameError() const;
+    QString videoBlockError() const;
+    QString audioBlockError() const;
+
+    int totalVideoBlocks() const;
+    int totalAudioBlocks() const;
+
+    int evenStaSum() const;
+    int evenAudSum() const;
+
+    QPointF videoBlockErrorValue() const;
+    QPointF audioBlockErrorValue() const;
 
 private:
     void setReportFileSize(qint64 reportFileSize);
@@ -68,6 +101,23 @@ private:
 
     bool m_parsing { false };
 
+    QString m_frameError;
+    QString m_videoBlockError;
+    QString m_audioBlockError;
+
+    int m_staCount { 0 };
+    int m_staSum { 0 };
+    int m_audSum { 0 };
+
+    int m_totalVideoBlocks { 0 };
+    int m_totalAudioBlocks { 0 };
+
+    int m_evenStaSum { 0 };
+    int m_evenAudSum { 0 };
+
+    QPointF m_videoBlockErrorValue;
+    QPointF m_audioBlockErrorValue;
+
 public Q_SLOTS:
     void resolve();
 
@@ -81,6 +131,23 @@ public Q_SLOTS:
     void setLastTimeCode(QString lastTimeCode);
     void setFirstRecordingTime(QString firstRecordingTime);
     void setLastRecordingTime(QString lastRecordingTime);
+
+    void setStaCount(int staCount);
+    void setStaSum(int staSum);
+    void setAudSum(int audSum);
+
+    void setFrameError(QString frameError);
+    void setVideoBlockError(QString videoBlockError);
+    void setAudioBlockError(QString audioBlockError);
+
+    void setTotalVideoBlocks(int totalVideoBlocks);
+    void setTotalAudioBlocks(int totalAudioBlocks);
+
+    void setEvenStaSum(int evenStaSum);
+    void setEvenAudSum(int evenAudSum);
+
+    void setVideoBlockErrorValue(QPointF videoBlockErrorValue);
+    void setAudioBlockErrorValue(QPointF audioBlockErrorValue);
 
 Q_SIGNALS:
     void reportPathChanged(QString reportPath);
@@ -96,6 +163,18 @@ Q_SIGNALS:
     void reportFileSizeChanged(int reportFileSize);
     void bytesProcessedChanged(int bytesProcessed);
     void parsingChanged(bool parsing);
+    void staCountChanged(int staCount);
+    void staSumChanged(int staSum);
+    void audSumChanged(int audSum);
+    void frameErrorChanged(QString frameError);
+    void videoBlockErrorChanged(QString videoBlockError);
+    void audioBlockErrorChanged(QString audioBlockError);
+    void totalVideoBlocksChanged(int totalVideoBlocks);
+    void totalAudioBlocksChanged(int totalAudioBlocks);
+    void evenStaSumChanged(int evenStaSum);
+    void evenAudSumChanged(int evenAudSum);
+    void videoBlockErrorValueChanged(QPointF videoBlockErrorValue);
+    void audioBlockErrorValueChanged(QPointF audioBlockErrorValue);
 };
 
 #endif // MEDIAINFO_H
