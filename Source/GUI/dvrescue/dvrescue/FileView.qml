@@ -16,7 +16,10 @@ Rectangle {
     property var fileInfos: []
     property var files: []
     property alias tableView: tableView
-    readonly property string selectedPath: tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+    readonly property string selectedPath: {
+        console.debug('selected path changed: ', tableView.currentIndex)
+        return updated, tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+    }
     property alias currentIndex: tableView.currentIndex
 
     function add(path) {
@@ -32,6 +35,10 @@ Rectangle {
         files.splice(row,  1);
         fileInfos.splice(row, 1);
         dataModel.removeRow(row, 1);
+
+        if(currentIndex >= fileInfos.length)
+            --currentIndex;
+
         ++updated
     }
 
@@ -82,16 +89,24 @@ Rectangle {
             console.debug('model: ', model)
         }
         delegate: MediaInfo {
-            reportPath: index >= 0 ? fileInfos[index].reportPath : ''
-            videoPath: index >= 0 ? fileInfos[index].videoPath : ''
+            reportPath: {
+                console.debug('reportPath: ', index, fileInfos.length)
+                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].reportPath : ''
+            }
+            videoPath: {
+                console.debug('videoPath: ', index, fileInfos.length)
+                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].videoPath : ''
+            }
 
             function editRow(index, propertyName, propertyValue) {
                 // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
-
-                var rowData = dataModel.getRow(index)
-                var newRowData = JSON.parse(JSON.stringify(rowData))
-                newRowData[propertyName] = propertyValue
-                dataModel.setRow(index, newRowData)
+                if(index >= 0 && index < fileInfos.length)
+                {
+                    var rowData = dataModel.getRow(index)
+                    var newRowData = JSON.parse(JSON.stringify(rowData))
+                    newRowData[propertyName] = propertyValue
+                    dataModel.setRow(index, newRowData)
+                }
             }
 
             onFormatChanged: {

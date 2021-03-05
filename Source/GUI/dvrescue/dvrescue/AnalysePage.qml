@@ -124,6 +124,7 @@ Item {
                 }
 
                 onSelectedPathChanged: {
+                    console.debug('selected path: ', selectedPath)
                     toolsLayout.load(selectedPath, fileView.currentIndex)
                 }
             }
@@ -170,11 +171,14 @@ Item {
                 function load(filePath, currentIndex) {
 
                     console.debug('load: ', filePath, 'currentIndex: ', currentIndex)
-                    if(filePath.length === 0)
-                        return;
 
                     dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                                      plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+
+                    if(filePath.length === 0) {
+                        playerView.player.stop()
+                        return;
+                    }
 
                     var extension = FileUtils.getFileExtension(filePath);
                     if(extension === 'xml') {

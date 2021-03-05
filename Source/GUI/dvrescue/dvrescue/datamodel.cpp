@@ -247,6 +247,9 @@ void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoC
     audioCurve->data().clear();
     audioCurve2->data().clear();
 
+    videoCurve->plot()->replotAndUpdate();
+    audioCurve->plot()->replotAndUpdate();
+
     Q_EMIT clearModel();
 }
 
