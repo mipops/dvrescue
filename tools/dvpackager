@@ -546,7 +546,7 @@ while [[ "${@}" != "" ]] ; do
                 fi
             done < <(_get_ranges)
             if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
-                _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} frames of DV, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
+                _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
             fi
         fi
     else
