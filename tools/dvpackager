@@ -300,7 +300,6 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
-TOTAL_DVFRAMES_PACKAGED="0"
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -374,6 +373,7 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_SCC_TEMP="$(_maketemp).scc"
     DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
     DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
+    TOTAL_DVFRAMES_PACKAGED="0"
     shift
     if [[ -f "${DVFILE}" ]] ; then
         if [[ "${REPORT_ONLY}" = "Y" ]] ; then
