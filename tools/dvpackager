@@ -267,7 +267,7 @@ MEDIAINFO_PATH="$(which mediainfo)"
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
 fi
-FFMPEG_VERBOSE=(-v 0)
+FFMPEG_VERBOSE=(-v quiet -stats)
 REPORT_ONLY="N"
 EXT="mkv"
 SUBS="N"
