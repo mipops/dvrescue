@@ -374,6 +374,40 @@ Rectangle {
                 }
             }
 
+            DelegateChoice {
+                column: dataModel.absoluteTrackNumberColumn
+
+                JumpRepeatTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+                    hasJump: decoration.x
+                    hasRepeat: decoration.y
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: 'red'
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            dataView.tapped(frameNumber);
+                        }
+                    }
+                }
+            }
+
             DelegateChoice  {
                 TextDelegate {
                     height: tableView.delegateHeight
@@ -539,6 +573,7 @@ Rectangle {
 
         property int videoErrorColumn: columnsNames.indexOf("Video Error %");
         property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
+        property int absoluteTrackNumberColumn: columnsNames.indexOf("Absolute Track Number")
 
         TableModelColumn {
             display: "Frame #";
@@ -607,6 +642,12 @@ Rectangle {
         TableModelColumn {
             display: "Video/Audio";
             property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
+        }
+
+        TableModelColumn {
+            display: "Absolute Track Number";
+            decoration: "Absolute Track Number: Jump/Repeat"
+            property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
         }
     }
 }
