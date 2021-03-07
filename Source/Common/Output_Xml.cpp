@@ -316,6 +316,23 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += '\"';
                 }
 
+                // Absolute track number + Blank flag
+                auto AbstBf = abst_bf(Frame->AbstBf);
+                if (AbstBf.HasAbsoluteTrackNumberValue())
+                {
+                    Text += " abst=\"";
+                    Text += to_string(AbstBf.AbsoluteTrackNumber());
+                    Text += '\"';
+                }
+                if (AbstBf.Repeat())
+                {
+                    Text += " abst_r=\"1\"";
+                }
+                if (AbstBf.NonConsecutive())
+                {
+                    Text += " abst_nc=\"1\"";
+                }
+
                 // TimeCode
                 auto TimeCode = timecode(Frame->TimeCode);
                 if (TimeCode.HasValue())
