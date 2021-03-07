@@ -6,6 +6,7 @@
 #include <QPair>
 #include <QSet>
 #include <QMap>
+#include <QVariant>
 #include <xmlparser.h>
 
 class QwtQuick2PlotCurve;
@@ -13,6 +14,23 @@ class QAbstractTableModel;
 class QJSEngine;
 class QXmlStreamAttributes;
 class QXmlStreamAttributes;
+
+struct MarkerInfo {
+    Q_GADGET
+    Q_PROPERTY(int frameNumber MEMBER frameNumber)
+    Q_PROPERTY(QString marker MEMBER marker)
+
+public:
+    MarkerInfo() {
+    }
+    MarkerInfo(int frameNumber, QString marker) : frameNumber(frameNumber), marker(marker) {
+    }
+
+    int frameNumber;
+    QString marker;
+};
+
+Q_DECLARE_METATYPE(MarkerInfo);
 
 class DataModel : public QObject
 {
@@ -27,6 +45,7 @@ public:
 
     Q_INVOKABLE QString videoInfo(float x, float y);
     Q_INVOKABLE QString audioInfo(float x, float y);
+    Q_INVOKABLE QVariantList getMarkers();
     Q_INVOKABLE int frameByIndex(int index);
     Q_INVOKABLE bool isSubstantialFrame(int index);
     Q_INVOKABLE int getLastSubstantialFrame(int index);
@@ -43,6 +62,7 @@ public:
     struct FrameStats {
         bool isSubstantial;
         int lastSubstantialFrame;
+        QString marker;
         QString videoInfo;
         QString audioInfo;
     };
@@ -68,6 +88,7 @@ private Q_SLOTS:
 Q_SIGNALS:
     void populated();
     void totalChanged(int total);
+    void updated();
 
     void clearModel();
     void gotDataRow(const QVariant& row);

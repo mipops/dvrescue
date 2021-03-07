@@ -66,6 +66,23 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
+QVariantList DataModel::getMarkers()
+{
+    QVariantList markers;
+
+    for(auto & frameTuple : m_frames) {
+        auto frameIndex = std::get<0>(frameTuple);
+        auto& frameInfo = std::get<1>(frameTuple);
+
+        if(frameInfo.marker.isEmpty())
+            continue;
+
+        markers.append(QVariant::fromValue(MarkerInfo(frameIndex, frameInfo.marker)));
+    }
+
+    return markers;
+}
+
 int DataModel::frameByIndex(int index)
 {
     if(index < 0 || index >= m_frames.size())
@@ -238,6 +255,8 @@ void DataModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *video
 
     audioCurve->plot()->plot()->setUpdatesEnabled(true);
     audioCurve->plot()->replotAndUpdate();
+
+    Q_EMIT updated();
 }
 
 void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
@@ -322,6 +341,16 @@ void DataModel::populate(const QString &fileName)
         frameStats.isSubstantial = isSubstantial;
         frameStats.lastSubstantialFrame = m_lastSubstantialFrame;
         m_rowByFrame[frameNumber] = m_frames.length() - 1;
+
+        auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
+        auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
+        if(recStart && recEnd) {
+            frameStats.marker = "icons/record-marker-stop+start-graph.svg";
+        } else if(recStart) {
+            frameStats.marker = "icons/record-marker-start-graph.svg";
+        } else if(recEnd) {
+            frameStats.marker = "icons/record-marker-stop-graph.svg";
+        }
 
         if(isSubstantial)
             m_lastSubstantialFrame = frameNumber;
