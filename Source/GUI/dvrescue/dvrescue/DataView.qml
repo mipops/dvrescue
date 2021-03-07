@@ -42,6 +42,7 @@ Rectangle {
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
+            canShowIndicator: false
             filterFont.pixelSize: 11
             textFont.pixelSize: 13
             height: tableView.getMaxDesiredHeight()
@@ -52,7 +53,7 @@ Rectangle {
 
             Rectangle {
                 id: handle
-                color: Qt.darker(parent.color, 1.05)
+                color: "transparent"
                 height: parent.height
                 width: 10
                 anchors.right: parent.right
@@ -131,6 +132,7 @@ Rectangle {
                     text: display
                     hasJump: decoration.x
                     hasRepeat: decoration.y
+                    property var editRole: edit
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayVisible: {
@@ -140,6 +142,30 @@ Rectangle {
                         return frameNumber === framePos
                     }
                     overlayColor: 'red'
+
+                    Image {
+                        id: image
+                        height: parent.height
+                        anchors.right: parent.right
+                        fillMode: Image.PreserveAspectFit
+
+                        property string imageUrl: {
+                            if(editRole === Qt.point(1, 1)) {
+                                return "icons/record-marker-stop+start-table.svg"
+                            } else if(editRole === Qt.point(1, 0)) {
+                                return "icons/record-marker-start-table.svg"
+                            } else if(editRole === Qt.point(0, 1)) {
+                                return "icons/record-marker-stop-table.svg"
+                            }
+
+                            return null;
+                        }
+                        visible: imageUrl !== null
+                        Binding on source {
+                            when: image.imageUrl != null
+                            value: image.imageUrl
+                        }
+                    }
 
                     MouseArea {
                         anchors.fill: parent
@@ -533,12 +559,8 @@ Rectangle {
         TableModelColumn {
             display: "Recording Time"
             decoration: "Recording Time: Jump/Repeat";
+            edit: "Recording Marks"
             property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
-        }
-
-        TableModelColumn {
-            display: "Recording Marks";
-            property int minWidth: 20
         }
 
         TableModelColumn {

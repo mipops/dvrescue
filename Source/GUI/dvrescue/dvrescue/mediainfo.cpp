@@ -2,6 +2,7 @@
 #include "xmlparser.h"
 #include <QDebug>
 #include <QFileInfo>
+#include <QPointF>
 #include <QXmlStreamAttribute>
 
 MediaInfo::MediaInfo(QObject *parent) : QObject(parent)
@@ -87,6 +88,66 @@ bool MediaInfo::parsing() const
     return m_parsing;
 }
 
+int MediaInfo::staCount() const
+{
+    return m_staCount;
+}
+
+int MediaInfo::staSum() const
+{
+    return m_staSum;
+}
+
+int MediaInfo::audSum() const
+{
+    return m_audSum;
+}
+
+QString MediaInfo::frameError() const
+{
+    return m_frameError;
+}
+
+QString MediaInfo::videoBlockError() const
+{
+    return m_videoBlockError;
+}
+
+QString MediaInfo::audioBlockError() const
+{
+    return m_audioBlockError;
+}
+
+int MediaInfo::totalVideoBlocks() const
+{
+    return m_totalVideoBlocks;
+}
+
+int MediaInfo::totalAudioBlocks() const
+{
+    return m_totalAudioBlocks;
+}
+
+int MediaInfo::evenStaSum() const
+{
+    return m_evenStaSum;
+}
+
+int MediaInfo::evenAudSum() const
+{
+    return m_evenAudSum;
+}
+
+QPointF MediaInfo::videoBlockErrorValue() const
+{
+    return m_videoBlockErrorValue;
+}
+
+QPointF MediaInfo::audioBlockErrorValue() const
+{
+    return m_audioBlockErrorValue;
+}
+
 void MediaInfo::setReportPath(QString reportPath)
 {
     if (m_reportPath == reportPath)
@@ -138,17 +199,21 @@ void MediaInfo::resolve()
     });
     connect(m_parser, &XmlParser::finished, [this]() {
         setParsing(false);
-
         qDebug() << "parser finished: " << reportPath();
     });
     connect(m_parser, &XmlParser::gotMedia, [this](auto ref, auto format, auto fileSize) {
+        Q_UNUSED(ref);
+
         setFormat(format);
         setFileSize(fileSize);
     });
 
-    connect(m_parser, &XmlParser::gotFrames, [this](auto count) {
+    connect(m_parser, &XmlParser::gotFrames, [this](auto count, auto diff_seq_count) {
         setFrameCount(frameCount() + count);
         setCountOfFrameSequences(countOfFrameSequences() + 1);
+
+        setTotalVideoBlocks(totalVideoBlocks() + diff_seq_count * video_blocks_per_diff_seq * count);
+        setTotalAudioBlocks(totalAudioBlocks() + diff_seq_count * audio_blocks_per_diff_seq * count);
     });
 
     connect(m_parser, &XmlParser::bytesProcessed, [this](auto bytesProcessed) {
@@ -156,8 +221,36 @@ void MediaInfo::resolve()
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+            int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+        Q_UNUSED(frameNumber);
         Q_UNUSED(isSubstantial);
+        Q_UNUSED(framesAttributes);
+        Q_UNUSED(diff_seq_count);
+        Q_UNUSED(totalSta);
+        Q_UNUSED(totalEvenSta);
+        Q_UNUSED(totalAud);
+        Q_UNUSED(totalEvenAud);
+        Q_UNUSED(captionOn);
+
+        setStaCount(this->staCount() + staCount);
+        setStaSum(this->staSum() + totalSta);
+        setAudSum(this->audSum() + totalAud);
+        setEvenStaSum(this->evenStaSum() + totalEvenSta);
+        setEvenAudSum(this->evenAudSum() + totalEvenAud);
+
+        if(frameCount() != 0) {
+            setFrameError((QString::number(float(this->staCount()) / frameCount() * 100, 'f', 3) + QString("%")));
+        }
+
+        if(totalVideoBlocks() != 0) {
+            setVideoBlockError((QString::number(float(this->staSum()) / totalVideoBlocks() * 100, 'f', 3) + QString("%")));
+            setVideoBlockErrorValue(QPointF(float(this->evenStaSum()) / totalVideoBlocks() * 2, float(this->staSum() - this->evenStaSum()) / totalVideoBlocks() * 2));
+        }
+
+        if(totalAudioBlocks() != 0) {
+            setAudioBlockError((QString::number(float(this->audSum()) / totalAudioBlocks() * 100, 'f', 3) + QString("%")));
+            setAudioBlockErrorValue(QPointF(float(this->evenAudSum()) / totalAudioBlocks() * 2, float(this->audSum() - this->evenAudSum()) / totalAudioBlocks() * 2));
+        }
 
         auto tc = frameAttributes.hasAttribute("tc") ? frameAttributes.value("tc").toString() : QString();
 
@@ -249,6 +342,114 @@ void MediaInfo::setLastRecordingTime(QString lastRecordingTime)
 
     m_lastRecordingTime = lastRecordingTime;
     Q_EMIT lastRecordingTimeChanged(m_lastRecordingTime);
+}
+
+void MediaInfo::setStaCount(int staCount)
+{
+    if (m_staCount == staCount)
+        return;
+
+    m_staCount = staCount;
+    Q_EMIT staCountChanged(m_staCount);
+}
+
+void MediaInfo::setStaSum(int staSum)
+{
+    if (m_staSum == staSum)
+        return;
+
+    m_staSum = staSum;
+    Q_EMIT staSumChanged(m_staSum);
+}
+
+void MediaInfo::setAudSum(int audSum)
+{
+    if (m_audSum == audSum)
+        return;
+
+    m_audSum = audSum;
+    Q_EMIT audSumChanged(m_audSum);
+}
+
+void MediaInfo::setFrameError(QString frameError)
+{
+    if (m_frameError == frameError)
+        return;
+
+    m_frameError = frameError;
+    Q_EMIT frameErrorChanged(m_frameError);
+}
+
+void MediaInfo::setVideoBlockError(QString videoBlockError)
+{
+    if (m_videoBlockError == videoBlockError)
+        return;
+
+    m_videoBlockError = videoBlockError;
+    Q_EMIT videoBlockErrorChanged(m_videoBlockError);
+}
+
+void MediaInfo::setAudioBlockError(QString audioBlockError)
+{
+    if (m_audioBlockError == audioBlockError)
+        return;
+
+    m_audioBlockError = audioBlockError;
+    Q_EMIT audioBlockErrorChanged(m_audioBlockError);
+}
+
+void MediaInfo::setTotalVideoBlocks(int totalVideoBlocks)
+{
+    if (m_totalVideoBlocks == totalVideoBlocks)
+        return;
+
+    m_totalVideoBlocks = totalVideoBlocks;
+    Q_EMIT totalVideoBlocksChanged(m_totalVideoBlocks);
+}
+
+void MediaInfo::setTotalAudioBlocks(int totalAudioBlocks)
+{
+    if (m_totalAudioBlocks == totalAudioBlocks)
+        return;
+
+    m_totalAudioBlocks = totalAudioBlocks;
+    Q_EMIT totalAudioBlocksChanged(m_totalAudioBlocks);
+}
+
+void MediaInfo::setEvenStaSum(int evenStaSum)
+{
+    if (m_evenStaSum == evenStaSum)
+        return;
+
+    m_evenStaSum = evenStaSum;
+    Q_EMIT evenStaSumChanged(m_evenStaSum);
+}
+
+void MediaInfo::setEvenAudSum(int evenAudSum)
+{
+    if (m_evenAudSum == evenAudSum)
+        return;
+
+    m_evenAudSum = evenAudSum;
+    Q_EMIT evenAudSumChanged(m_evenAudSum);
+}
+
+void MediaInfo::setVideoBlockErrorValue(QPointF videoBlockErrorValue)
+{
+    if (m_videoBlockErrorValue == videoBlockErrorValue)
+        return;
+
+    m_videoBlockErrorValue = videoBlockErrorValue;
+    Q_EMIT videoBlockErrorValueChanged(m_videoBlockErrorValue);
+}
+
+void MediaInfo::setAudioBlockErrorValue(QPointF audioBlockErrorValue)
+{
+    if (m_audioBlockErrorValue == audioBlockErrorValue)
+        return;
+
+    m_audioBlockErrorValue = audioBlockErrorValue;
+    Q_EMIT audioBlockErrorValueChanged(m_audioBlockErrorValue);
 }
 
 void MediaInfo::setParsing(bool parsing)

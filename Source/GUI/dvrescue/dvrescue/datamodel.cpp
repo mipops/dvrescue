@@ -247,6 +247,9 @@ void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoC
     audioCurve->data().clear();
     audioCurve2->data().clear();
 
+    videoCurve->plot()->replotAndUpdate();
+    audioCurve->plot()->replotAndUpdate();
+
     Q_EMIT clearModel();
 }
 
@@ -305,7 +308,8 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
-            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+            int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
+        Q_UNUSED(staCount);
         Q_UNUSED(isSubstantial);
 
         m_lastFrame = frameNumber;
@@ -336,7 +340,7 @@ void DataModel::populate(const QString &fileName)
                 float(den)
             };
 
-            qDebug() << "video frame: " << frameNumber << value.evenValue << value.oddValue;
+            // qDebug() << "video frame: " << frameNumber << value.evenValue << value.oddValue;
             m_videoValues.append(std::make_tuple(frameNumber, value));
         }
     });
@@ -359,9 +363,6 @@ void DataModel::populate(const QString &fileName)
 
     m_thread->start();
 }
-
-constexpr auto video_blocks_per_diff_seq = 135;
-constexpr auto audio_blocks_per_diff_seq = 9;
 
 void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
                            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional)
@@ -412,26 +413,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Recording Time: Jump/Repeat"] = QPoint(recordingTimeJump, recordingTimeRepeat);
 
-    auto hasRecStart = frameAttributes.hasAttribute("rec_start");
-    auto hasRecEnd = frameAttributes.hasAttribute("rec_end");
-    auto recordingMarks = QString();
+    auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
+    auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
 
-    if(hasRecStart || hasRecEnd)
-    {
-        auto recStart = hasRecStart ? frameAttributes.value("rec_start").toInt() : 0;
-        auto recEnd = hasRecEnd ? frameAttributes.value("rec_end").toInt() : 0;
-        if(recStart == 1 && recEnd == 1) {
-             recordingMarks = "Start & End";
-        }
-        else if(recStart == 1) {
-            recordingMarks = "Start";
-        }
-        else if(recEnd == 1) {
-            recordingMarks = "End";
-        }
-    }
-
-    map["Recording Marks"] = recordingMarks;
+    map["Recording Marks"] = QPoint(recStart, recEnd);
 
     fillAttribute("Arbitrary Bits", frameAttributes, "arb");
     int arbitraryBitsRepeat = 0;

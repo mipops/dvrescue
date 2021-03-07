@@ -16,7 +16,10 @@ Rectangle {
     property var fileInfos: []
     property var files: []
     property alias tableView: tableView
-    readonly property string selectedPath: tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+    readonly property string selectedPath: {
+        console.debug('selected path changed: ', tableView.currentIndex)
+        return updated, tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+    }
     property alias currentIndex: tableView.currentIndex
 
     function add(path) {
@@ -32,6 +35,10 @@ Rectangle {
         files.splice(row,  1);
         fileInfos.splice(row, 1);
         dataModel.removeRow(row, 1);
+
+        if(currentIndex >= fileInfos.length)
+            --currentIndex;
+
         ++updated
     }
 
@@ -41,7 +48,6 @@ Rectangle {
 
     readonly property string filePathColumn: "File Path"
     readonly property string fileNameColumn: "File Name"
-    readonly property string progressColumn: "Progress"
     readonly property string formatColumn: "Format"
     readonly property string fileSizeColumn: "File Size"
     readonly property string frameCountColumn: "Frame Count"
@@ -50,6 +56,16 @@ Rectangle {
     readonly property string lastTimecodeColumn: "Last Timecode"
     readonly property string firstRecordingTimeColumn: "First Recording Time"
     readonly property string lastRecordingTimeColumn: "Last Recording Time"
+    readonly property string frameErrorColumn: "Frame Error %"
+    readonly property string videoBlockErrorColumn: "Video Block Error %"
+    readonly property string audioBlockErrorColumn: "Audio Block Error %"
+
+    readonly property string progressRole: "Progress"
+    readonly property string frameErrorTooltipRole: "Frame Error Tooltip"
+    readonly property string videoBlockErrorTooltipRole: "Video Block Error Tooltip"
+    readonly property string audioBlockErrorTooltipRole: "Audio Block Error Tooltip"
+    readonly property string videoBlockErrorValueRole: "Video Block Error Value"
+    readonly property string audioBlockErrorValueRole: "Audio Block Error Value"
 
     DvRescueReport {
         id: report
@@ -73,14 +89,24 @@ Rectangle {
             console.debug('model: ', model)
         }
         delegate: MediaInfo {
-            reportPath: index >= 0 ? fileInfos[index].reportPath : ''
-            videoPath: index >= 0 ? fileInfos[index].videoPath : ''
+            reportPath: {
+                console.debug('reportPath: ', index, fileInfos.length)
+                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].reportPath : ''
+            }
+            videoPath: {
+                console.debug('videoPath: ', index, fileInfos.length)
+                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].videoPath : ''
+            }
 
             function editRow(index, propertyName, propertyValue) {
-                var rowData = dataModel.getRow(index)
-                var newRowData = JSON.parse(JSON.stringify(rowData))
-                newRowData[propertyName] = propertyValue
-                dataModel.setRow(index, newRowData)
+                // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
+                if(index >= 0 && index < fileInfos.length)
+                {
+                    var rowData = dataModel.getRow(index)
+                    var newRowData = JSON.parse(JSON.stringify(rowData))
+                    newRowData[propertyName] = propertyValue
+                    dataModel.setRow(index, newRowData)
+                }
             }
 
             onFormatChanged: {
@@ -108,11 +134,24 @@ Rectangle {
                 editRow(index, lastRecordingTimeColumn, lastRecordingTime)
             }
             onParsingChanged: {
-                editRow(index, "Progress", parsing === false ? 1 : 0)
+                editRow(index, progressRole, parsing === false ? 1 : 0)
             }
             onBytesProcessedChanged: {
-                editRow(index, "Progress", bytesProcessed / reportFileSize)
-                console.debug('bytesProcessed / reportFileSize: ', bytesProcessed / reportFileSize)
+                editRow(index, progressRole, bytesProcessed / reportFileSize)
+            }
+            onFrameErrorChanged: {
+                editRow(index, frameErrorColumn, frameError);
+                editRow(index, frameErrorTooltipRole, "Sta count: " + staCount + ", Frames count: " + frameCount)
+            }
+            onVideoBlockErrorChanged: {
+                editRow(index, videoBlockErrorColumn, videoBlockError);
+                editRow(index, videoBlockErrorTooltipRole, "Sta sum: " + staSum + ", Sum of video blocks: " + totalVideoBlocks)
+                editRow(index, videoBlockErrorValueRole, { x : videoBlockErrorValue.x, y : videoBlockErrorValue.y })
+            }
+            onAudioBlockErrorChanged: {
+                editRow(index, audioBlockErrorColumn, audioBlockError);
+                editRow(index, audioBlockErrorTooltipRole, "Aud sum: " + audSum + ", Sum of audio blocks: " + totalAudioBlocks)
+                editRow(index, audioBlockErrorValueRole, { x : audioBlockErrorValue.x, y : audioBlockErrorValue.y })
             }
 
             Component.onCompleted: {
@@ -133,7 +172,16 @@ Rectangle {
         rowEntry[lastTimecodeColumn] = " "
         rowEntry[firstRecordingTimeColumn] = " "
         rowEntry[lastRecordingTimeColumn] = " "
-        rowEntry[progressColumn] = 0;
+        rowEntry[frameErrorColumn] = " "
+        rowEntry[videoBlockErrorColumn] = " "
+        rowEntry[audioBlockErrorColumn] = " "
+
+        rowEntry[progressRole] = 0
+        rowEntry[frameErrorTooltipRole] = " "
+        rowEntry[videoBlockErrorTooltipRole] = " "
+        rowEntry[audioBlockErrorTooltipRole] = " "
+        rowEntry[videoBlockErrorValueRole] = { x : 0, y : 0 }
+        rowEntry[audioBlockErrorValueRole] = { x : 0, y : 0 }
 
         dataModel.appendRow(rowEntry)
     }
@@ -198,6 +246,7 @@ Rectangle {
             text: dataModel.columns[modelData].display
             canFilter: false
             canSort: false
+            canShowIndicator: false
             filterFont.pixelSize: 11
             textFont.pixelSize: 13
             height: tableView.getMaxDesiredHeight()
@@ -208,7 +257,7 @@ Rectangle {
 
             Rectangle {
                 id: handle
-                color: Qt.darker(parent.color, 1.05)
+                color: "transparent"
                 height: parent.height
                 width: 10
                 anchors.right: parent.right
@@ -323,6 +372,136 @@ Rectangle {
                         onClicked: {
                             deleteEntry(row);
                         }
+                    }
+                }
+            }
+
+            DelegateChoice  {
+                column: 9
+
+                TextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    MouseArea {
+                        id: frameErrorMouseArea
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        onDoubleClicked: {
+                            tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
+                        }
+                    }
+
+                    ToolTip {
+                        visible: frameErrorMouseArea.containsMouse
+                        text: toolTip
+                        delay: 1000
+                        timeout: 3000
+                        anchors.centerIn: parent
+                    }
+                }
+            }
+
+            DelegateChoice  {
+                column: 10
+
+                OddEvenTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    evenProgressColor: 'darkgreen'
+                    oddProgressColor: 'green'
+                    evenProgress.value: edit.x
+                    oddProgress.value: edit.y
+
+                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    MouseArea {
+                        id: videoBlockErrorMouseArea
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        onDoubleClicked: {
+                            tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
+                        }
+                    }
+
+                    ToolTip {
+                        visible: videoBlockErrorMouseArea.containsMouse
+                        text: toolTip
+                        delay: 1000
+                        timeout: 3000
+                        anchors.centerIn: parent
+                    }
+                }
+            }
+
+            DelegateChoice  {
+                column: 11
+
+                OddEvenTextDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    property color redColor: 'red'
+                    textFont.pixelSize: 13
+                    text: display
+
+                    evenProgressColor: 'darkblue'
+                    oddProgressColor: 'blue'
+                    evenProgress.value: edit.x
+                    oddProgress.value: edit.y
+
+                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    MouseArea {
+                        id: audioBlockErrorMouseArea
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        hoverEnabled: true
+                        anchors.fill: parent
+                        onDoubleClicked: {
+                            tableView.currentIndex = row
+                        }
+                        onClicked: {
+                            if(mouse.button == Qt.RightButton) {
+                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                            }
+                        }
+                    }
+
+                    ToolTip {
+                        visible: audioBlockErrorMouseArea.containsMouse
+                        text: toolTip
+                        delay: 1000
+                        timeout: 3000
+                        anchors.centerIn: parent
                     }
                 }
             }
@@ -533,6 +712,29 @@ Rectangle {
         TableModelColumn {
             display: "Last Recording Time"
             decoration: "Progress"
+            property int minWidth: 40
+        }
+
+        TableModelColumn {
+            display: "Frame Error %"
+            decoration: "Progress"
+            toolTip: "Frame Error Tooltip"
+            property int minWidth: 40
+        }
+
+        TableModelColumn {
+            display: "Video Block Error %"
+            decoration: "Progress"
+            edit: "Video Block Error Value"
+            toolTip: "Video Block Error Tooltip"
+            property int minWidth: 40
+        }
+
+        TableModelColumn {
+            display: "Audio Block Error %"
+            decoration: "Progress"
+            edit: "Audio Block Error Value"
+            toolTip: "Audio Block Error Tooltip"
             property int minWidth: 40
         }
     }

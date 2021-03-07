@@ -95,7 +95,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} nasm qt
+        brew install ${{ matrix.packages }} nasm qt@5
 
     - name: Set Qt5 environment path
       run: |
@@ -188,7 +188,6 @@ jobs:
 
     - name: Install compiler and FFmpeg dependencies
       run: |
-        sudo add-apt-repository ppa:jonathonf/ffmpeg-4
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
                                 libavcodec-dev \

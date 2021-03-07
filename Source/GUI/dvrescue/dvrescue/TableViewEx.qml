@@ -32,16 +32,15 @@ Item {
             return;
 
         if(maxContentY >= 0) {
-            console.debug('adjusting contentY...');
+            // console.debug('adjusting contentY...');
             tableView.contentY = Math.min(expectedContentY, maxContentY)
-            console.debug('adjusting contentY... done: ', tableView.contentY);
+            // console.debug('adjusting contentY... done: ', tableView.contentY);
         }
     }
 
     clip: true
 
     function forceLayout() {
-        console.debug('forceLayout')
         tableView.forceLayout();
     }
 
@@ -63,10 +62,6 @@ Item {
             spacing: tableView.columnSpacing
             x: 0
             z: 2
-
-            onWidthChanged: {
-                console.debug('rowLayout.width: ', width)
-            }
 
             Repeater {
                 id: header

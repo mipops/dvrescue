@@ -17,6 +17,7 @@ Rectangle {
         width: parent.width
         height: parent.height
         anchors.centerIn: parent
+        fillMode: Image.PreserveAspectFit
     }
 
     Rectangle {
