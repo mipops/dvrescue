@@ -21,7 +21,20 @@
     <xsd:sequence>
       <xsd:element name="program" type="xsd:string" minOccurs="1" maxOccurs="1"/>
       <xsd:element name="version" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="library" type="libraryType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="libraryType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        References the name and versioning of libraries used by the application listed as creator.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="version" type="xsd:string"/>
+        </xsd:extension>
+    </xsd:simpleContent>
   </xsd:complexType>
 
   <xsd:element name="media" type="mediaType"/>
