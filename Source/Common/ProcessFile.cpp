@@ -253,3 +253,8 @@ void UpdateCerr(const string& Content)
     cerr << Content;
     cerr << setw(Content_Previous_Size - Content.size()) << ' ' << '\r';
 }
+
+string MediaInfo_Version()
+{
+    return Ztring(MediaInfo::Option_Static(__T("Info_Version"), String())).SubString(__T(" - v"), String()).To_UTF8();
+}

@@ -109,6 +109,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         "\t<creator>\n"
         "\t\t<program>dvrescue</program>\n"
         "\t\t<version>" Program_Version "</version>\n"
+        "\t\t<library version=\"" + MediaInfo_Version() + "\">MediaInfoLib</library>\n"
         "\t</creator>\n";
 
     for (const auto& File : PerFile)
