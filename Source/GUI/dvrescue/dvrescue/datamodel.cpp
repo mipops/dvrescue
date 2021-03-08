@@ -580,6 +580,17 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto audio_error_concealment = QPointF(totalEvenAud, totalAud - totalEvenAud) / audio_block_count * 2;
     map["Audio Error"] = audio_error_concealment;
 
+    fillAttribute("Absolute Track Number", frameAttributes, "abst");
+    int abstRepeat = 0;
+    if(frameAttributes.hasAttribute("abst_r"))
+        abstRepeat = frameAttributes.value("abst_r").toInt();
+
+    auto abstJump = 0;
+    if(frameAttributes.hasAttribute("abst_nc"))
+        abstJump = frameAttributes.value("abst_nc").toInt();
+
+    map["Absolute Track Number: Jump/Repeat"] = QPoint(abstJump, abstRepeat);
+
     Q_EMIT dataRowCreated(map);
 }
 
