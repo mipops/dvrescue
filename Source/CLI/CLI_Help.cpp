@@ -6,6 +6,7 @@
 
 //---------------------------------------------------------------------------
 #include "CLI/CLI_Help.h"
+#include "Common/ProcessFile.h"
 #include <ostream>
 using namespace std;
 //---------------------------------------------------------------------------
@@ -99,9 +100,11 @@ return_value NameVersion(ostream& Out)
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-const char* NameVersion_Text()
+string NameVersion_Text()
 {
     return
-        "DVRescue v." Program_Version " by MIPoPS"
+        "DVRescue v." Program_Version
+        " (MediaInfoLib v." + MediaInfo_Version() + ")"
+        " by MIPoPS"
         ;
 }

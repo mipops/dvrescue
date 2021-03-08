@@ -10,7 +10,7 @@ if [ "${?}" -ne 0 ] ; then
     error "simple/version" "command failed"
 fi
 
-if [[ ! "${cmd_stdout}" =~ ^DVRescue\ v\.([0-9A-Za-z]+\.)+[0-9A-Za-z]+\ by\ MIPoPS\.$ ]] ; then
+if [[ ! "${cmd_stdout}" =~ ^DVRescue\ v\.([0-9A-Za-z]+\.)+[0-9A-Za-z]+\ \(MediaInfoLib\ v\.([0-9A-Za-z]+\.)+[0-9A-Za-z]+\)\ by\ MIPoPS\.$ ]] ; then
     error "simple/version" "invalid version string"
 fi
 

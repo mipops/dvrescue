@@ -22,4 +22,4 @@ return_value    NameVersion(ostream& Out);
 // Info
 //***************************************************************************
 
-const char*     NameVersion_Text();
+string          NameVersion_Text();
