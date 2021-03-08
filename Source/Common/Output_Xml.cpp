@@ -316,6 +316,23 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += '\"';
                 }
 
+                // Absolute track number + Blank flag
+                auto AbstBf = abst_bf(Frame->AbstBf);
+                if (AbstBf.HasAbsoluteTrackNumberValue())
+                {
+                    Text += " abst=\"";
+                    Text += to_string(AbstBf.AbsoluteTrackNumber());
+                    Text += '\"';
+                }
+                if (AbstBf.Repeat())
+                {
+                    Text += " abst_r=\"1\"";
+                }
+                if (AbstBf.NonConsecutive())
+                {
+                    Text += " abst_nc=\"1\"";
+                }
+
                 // TimeCode
                 auto TimeCode = timecode(Frame->TimeCode);
                 if (TimeCode.HasValue())
@@ -366,18 +383,18 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // Arb
-                auto Arb = frame_arb(Frame->Arb);
-                if (Arb.HasValue())
+                frame_seqn Seqn(Frame->Arb);
+                if (Seqn.HasValue())
                 {
-                    Text += string(" arb=\"") + uint4_to_hex4(Arb.Value()) + "\"";
+                    Text += string(" seqn=\"") + uint4_to_hex4(Seqn.Value()) + "\"";
                 }
-                if (Arb.Repeat())
+                if (Seqn.Repeat())
                 {
-                    Text += " arb_r=\"1\"";
+                    Text += " seqn_r=\"1\"";
                 }
-                if (Arb.NonConsecutive())
+                if (Seqn.NonConsecutive())
                 {
-                    Text += " arb_nc=\"1\"";
+                    Text += " seqn_nc=\"1\"";
                 }
 
                 // Captions

@@ -137,8 +137,22 @@ char uint4_to_hex4(int Value)
 
 bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 {
-    return Frame.Video_STA_Errors || Frame.Audio_Data_Errors
-        || ((Frame.TimeCode >> 30) & 0x1) || ((Frame.RecordedDateTime1 >> 30) & 0x1) || (Frame.Arb & (1 << 6)); // Non consecutive
+    timecode TimeCode(Frame.TimeCode);
+    rec_date_time RecDateTime(Frame.RecordedDateTime1, Frame.RecordedDateTime2);
+    frame_seqn Seqn(Frame.Arb);
+    abst_bf AbstBf = (Frame.AbstBf);
+    return false
+        || Frame.Video_STA_Errors
+        || Frame.Audio_Data_Errors
+        || TimeCode.NonConsecutive()
+        || TimeCode.Repeat()
+        || RecDateTime.NonConsecutive()
+        || RecDateTime.Repeat()
+        || Seqn.NonConsecutive()
+        // || Seqn.Repeat()
+        || AbstBf.NonConsecutive()
+        || AbstBf.Repeat()
+        ;
 }
 
 computed_errors::computed_errors()
