@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1.1">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="https://mediaarea.net/dvrescue" targetNamespace="https://mediaarea.net/dvrescue" elementFormDefault="qualified" version="1.2">
   <xsd:annotation>
     <xsd:documentation xml:lang="en">
       This is the dvrescue XML Schema. A dvrescue XML stores information about the metadata, continuity, errors, and
@@ -21,7 +21,20 @@
     <xsd:sequence>
       <xsd:element name="program" type="xsd:string" minOccurs="1" maxOccurs="1"/>
       <xsd:element name="version" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="library" type="libraryType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="libraryType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        References the name and versioning of libraries used by the application listed as creator.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:simpleContent>
+        <xsd:extension base="xsd:string">
+          <xsd:attribute name="version" type="xsd:string"/>
+        </xsd:extension>
+    </xsd:simpleContent>
   </xsd:complexType>
 
   <xsd:element name="media" type="mediaType"/>
@@ -52,6 +65,13 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
         File size, in bytes.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="error" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Provides an error message is there is an issue parsing the file.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -237,6 +257,27 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="abst" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The ABSolute Track number for frame element, which references its corresponding tape position.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="abst_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if absolute track number is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="abst_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if absolute track number is non-consecutive.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="tc" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
@@ -296,21 +337,42 @@
     <xsd:attribute name="arb" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Arbitrary data.
+          Arbitrary data. This attribute is deprecated and superseded by @seqn as IEC61834-4-amd1{ed1.0} references to this values as 'sequence number' (not to be confused with 'DIF sequence number').
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="arb_r" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if arbitrary data is repeating.
+          Boolean that indicates if arbitrary data is repeating. This attribute is deprecated and superseded by @seqn_r.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="arb_nc" type="xsd:boolean">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if arbitrary data is non-consecutive.
+          Boolean that indicates if arbitrary data is non-consecutive. This attribute is deprecated and superseded by @seqn_nc.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="seqn" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Sequence number. DVRescue represents this four bit value in hexadecimal. For 525-60 systems values of 0, 2, 4, 6, 8, and A imply the frame is a colour frame A and values of 1, 3, 5, 7, 9, and B imply the frame is a colour frame B. For 625-50 systems values of 0, 4, and 8 imply the frame is field 1 and field 2, values of 1, 5, and 9 imply the frame is field 3 and field 4, values of 2, 6, and A imply the frame is field 5 and field 6, and values of 3, 7, and B imply the frame is field 7 and field 8. Values of C, D, and E are not used and a value of F implies that there is no sequence number information. Generally sequence numbers are recorded in a repeating pattern of 0 through B sequentially.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="seqn_r" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if the sequence number is repeating.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="seqn_nc" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if the sequence number is non-consecutive.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
