@@ -3,6 +3,7 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 1.4 as QQC1
 import QwtQuick2 1.0
+import QtGraphicalEffects 1.0
 
 Rectangle {
     id: root
@@ -13,6 +14,7 @@ Rectangle {
     property alias oddAudioCurve: oddAudioCurve
 
     signal pickerMoved(int displayX, int plotX);
+    signal markerClicked(int frameIndex);
 
     function zoomAll() {
         zoomAllButton.clicked();
@@ -21,6 +23,7 @@ Rectangle {
     property int framePos: -1
 
     Item {
+        z: 10
         id: markersView
         anchors.left: parent.left
         anchors.leftMargin: videoPlot.canvasItem.x /* + videoPlotPicker.transform(Qt.point(0, 0)).x */
@@ -34,11 +37,54 @@ Rectangle {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
 
-            delegate: Image {
-                source: marker
-                height: markersView.height
-                x: videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(frameNumber, 0)).x - width / 2 /*- videoPlotPicker.transform(Qt.point(0, 0)).x*/
-                fillMode: Image.PreserveAspectFit
+            delegate: Item {
+                x: scroll.position, videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(frameNumber, 0)).x - width / 2 /*- videoPlotPicker.transform(Qt.point(0, 0)).x*/
+                height: image.height
+                width: image.width
+                z: mouseTracker.containsMouse ? 1 : 0
+
+                Image {
+                    id: image
+                    source: marker
+                    height: markersView.height
+                    fillMode: Image.PreserveAspectFit
+                    visible: true
+                }
+
+                Glow {
+                    id: glow
+                    anchors.fill: image
+                    radius: 4
+                    samples: 17
+                    color: "white"
+                    source: image
+                    visible: mouseTracker.containsMouse
+                }
+
+                DropShadow {
+                    anchors.fill: glow
+                    horizontalOffset: 3
+                    verticalOffset: 3
+                    radius: 8.0
+                    samples: 17
+                    color: "#80000000"
+                    source: glow
+                    visible: mouseTracker.containsMouse
+                }
+
+                ToolTip {
+                    visible: mouseTracker.containsMouse
+                    text: "timecode: " + timecode + ", recording time: " + recordingTime
+                }
+
+                MouseArea {
+                    id: mouseTracker
+                    anchors.fill: image
+                    hoverEnabled: true
+                    onClicked: {
+                        markerClicked(frameNumber)
+                    }
+                }
             }
 
             model: ListModel {

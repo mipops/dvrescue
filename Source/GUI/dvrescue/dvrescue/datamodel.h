@@ -19,6 +19,8 @@ struct MarkerInfo {
     Q_GADGET
     Q_PROPERTY(int frameNumber MEMBER frameNumber)
     Q_PROPERTY(QString marker MEMBER marker)
+    Q_PROPERTY(QString recordingTime MEMBER recordingTime)
+    Q_PROPERTY(QString timecode MEMBER timecode)
 
 public:
     MarkerInfo() {
@@ -28,6 +30,8 @@ public:
 
     int frameNumber;
     QString marker;
+    QString recordingTime;
+    QString timecode;
 };
 
 Q_DECLARE_METATYPE(MarkerInfo);
@@ -63,6 +67,8 @@ public:
         bool isSubstantial;
         int lastSubstantialFrame;
         QString marker;
+        QString recordingTime;
+        QString timecode;
         QString videoInfo;
         QString audioInfo;
     };

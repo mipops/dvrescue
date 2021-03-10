@@ -77,7 +77,11 @@ QVariantList DataModel::getMarkers()
         if(frameInfo.marker.isEmpty())
             continue;
 
-        markers.append(QVariant::fromValue(MarkerInfo(frameIndex, frameInfo.marker)));
+        auto markerInfo = MarkerInfo(frameIndex, frameInfo.marker);
+        markerInfo.recordingTime = frameInfo.recordingTime;
+        markerInfo.timecode = frameInfo.timecode;
+
+        markers.append(QVariant::fromValue(markerInfo));
     }
 
     return markers;
@@ -397,6 +401,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
                            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional)
 {
     Q_UNUSED(isSubstantional);
+    auto& frameStats = std::get<1>(m_frames.back());
 
     // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
 
@@ -421,6 +426,8 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Timestamp"] = timestamp;
 
     fillAttribute("Timecode", frameAttributes, "tc");
+    frameStats.timecode = map["Timecode"].toString();
+
     int timecodeRepeat = 0;
     if(frameAttributes.hasAttribute("tc_r"))
         timecodeRepeat = frameAttributes.value("tc_r").toInt();
@@ -432,6 +439,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
 
     fillAttribute("Recording Time", frameAttributes, "rdt");
+    frameStats.recordingTime = map["Recording Time"].toString();
     int recordingTimeRepeat = 0;
     if(frameAttributes.hasAttribute("rdt_r"))
         recordingTimeRepeat = frameAttributes.value("rdt_r").toInt();
@@ -588,7 +596,6 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     auto audio = channels + " " + audioRate;
 
-    auto& frameStats = std::get<1>(m_frames.back());
     frameStats.videoInfo = video;
     frameStats.audioInfo = audio;
 
