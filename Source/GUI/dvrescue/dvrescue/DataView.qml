@@ -467,7 +467,6 @@ Rectangle {
                 value += Math.max(headerItem.desiredWidth, minWidth)
             }
 
-            console.debug('new totalDesiredWidth: ', value, 'tableView.width: ', tableView.width)
             return value;
         }
 
@@ -504,7 +503,6 @@ Rectangle {
             columnWidths = newColumnWidths
 
             tableView.view.contentWidth = totalWidth
-            console.debug('tableView.view.contentWidth: ', tableView.view.contentWidth)
         }
 
         property var columnWidths: ({})

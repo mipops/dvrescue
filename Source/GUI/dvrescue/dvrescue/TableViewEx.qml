@@ -52,10 +52,6 @@ Item {
         flickableDirection: Flickable.VerticalFlick
         topMargin: columnsHeader.implicitHeight
 
-        onWidthChanged: {
-            console.debug('tableView.width: ', width)
-        }
-
         Row {
             id: columnsHeader
             y: tableView.contentY
