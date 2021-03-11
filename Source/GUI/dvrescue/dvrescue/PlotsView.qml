@@ -20,96 +20,50 @@ Rectangle {
         zoomAllButton.clicked();
     }
 
+    property int markerHeight: 30
+    property int markerMargin: 4
     property int framePos: -1
+    property date updateTrigger: scroll.position, videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, new Date()
 
-    Item {
-        z: 10
-        id: markersView
+    MarkersView {
+        id: recMarkers
+
+        height: markerHeight + markerMargin
+        updateTrigger: root.updateTrigger
+
         anchors.left: parent.left
-        anchors.leftMargin: videoPlot.canvasItem.x /* + videoPlotPicker.transform(Qt.point(0, 0)).x */
-        width: videoPlot.canvasItem.width /* - videoPlotPicker.transform(Qt.point(0, 0)).x */
+        anchors.leftMargin: videoPlot.canvasItem.x
         anchors.top: parent.top
-        height: 30
         clip: true
+        width: videoPlot.canvasItem.width
+        z: 10
+    }
 
-        Repeater {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
+    Connections {
+        target: dataModel
+        onUpdated: {
+            var markers = dataModel.getMarkers();
+            console.debug('markers: ', JSON.stringify(markers, 0, 4))
 
-            delegate: Item {
-                x: scroll.position, videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(frameNumber, 0)).x - width / 2 /*- videoPlotPicker.transform(Qt.point(0, 0)).x*/
-                height: image.height
-                width: image.width
-                z: mouseTracker.containsMouse ? 2 : (frameNumber === framePos ? 1 : 0)
-
-                Image {
-                    id: image
-                    source: marker
-                    height: markersView.height
-                    fillMode: Image.PreserveAspectFit
-                    visible: true
+            recMarkers.markersModel.clear();
+            tc_nMarkers.markersModel.clear();
+            for(var i = 0; i < markers.length; ++i) {
+                var marker = markers[i];
+                if(marker.type === 'rec') {
+                    recMarkers.markersModel.append(marker);
                 }
-
-                Glow {
-                    id: glow
-                    anchors.fill: image
-                    radius: 4
-                    samples: 17
-                    color: "white"
-                    source: image
-                    visible: mouseTracker.containsMouse || frameNumber === framePos
-                }
-
-                DropShadow {
-                    anchors.fill: glow
-                    horizontalOffset: 3
-                    verticalOffset: 3
-                    radius: 8.0
-                    samples: 17
-                    color: "#80000000"
-                    source: glow
-                    visible: mouseTracker.containsMouse
-                }
-
-                DefaultToolTip {
-                    visible: mouseTracker.containsMouse
-                    text: "timecode: " + timecode + ", recording time: " + recordingTime
-                }
-
-                MouseArea {
-                    id: mouseTracker
-                    anchors.fill: image
-                    hoverEnabled: true
-                    onClicked: {
-                        markerClicked(frameNumber)
-                    }
-                }
-            }
-
-            model: ListModel {
-                id: markersModel
-            }
-        }
-
-        Connections {
-            target: dataModel
-            onUpdated: {
-                var markers = dataModel.getMarkers();
-                console.debug('markers: ', JSON.stringify(markers, 0, 4))
-
-                markersModel.clear();
-                for(var i = 0; i < markers.length; ++i) {
-                    markersModel.append(markers[i]);
+                else if(marker.type === 'tc_n') {
+                    tc_nMarkers.markersModel.append(marker);
                 }
             }
         }
     }
 
+
     QQC1.SplitView {
         id: plotsSplitView
 
-        anchors.top: markersView.bottom
+        anchors.top: recMarkers.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: scrollLayout.top
@@ -120,78 +74,104 @@ Rectangle {
             videoLayout.height = plotsSplitView.height / 5 * 3.5
         }
 
-        RowLayout {
+        Item {
             id: videoLayout
 
-            QwtQuick2Plot {
-                id: videoPlot
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            RowLayout {
+                id: videoRow
+                anchors.fill: videoLayout
+                anchors.bottomMargin: markerHeight + markerMargin
 
-                canvasItem.clip: true
-                xBottomAxisTitle: "frames, N"
-                xBottomAxisColor: "darkgray"
-                xBottomAxisEnabled: false
-                yLeftAxisTitle: "video error concealment (%)"
-                yLeftAxisColor: "darkgray"
+                QwtQuick2Plot {
+                    id: videoPlot
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
 
-                Component.onCompleted: {
-                    yLeftAxisFont.bold = false
-                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
-                    xBottomAxisFont.bold = false
-                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
-                }
+                    canvasItem.clip: true
+                    xBottomAxisTitle: "frames, N"
+                    xBottomAxisColor: "darkgray"
+                    xBottomAxisEnabled: false
+                    yLeftAxisTitle: "video error concealment (%)"
+                    yLeftAxisColor: "darkgray"
 
-                Rectangle {
-                    parent: videoPlot.canvasItem
-                    width: 1
-                    height: parent.height
-                    color: 'red'
-                    x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
-                }
-
-                PlotPicker {
-                    id: videoPlotPicker
-                    visible: dataModel.total !== 0
-                    overlayTextFormatter: function(p) {
-                        return dataModel.videoInfo(p.x, p.y);
+                    Component.onCompleted: {
+                        yLeftAxisFont.bold = false
+                        yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                        xBottomAxisFont.bold = false
+                        xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
                     }
-                    onXChanged: if(active && visible) pickerMoved(x, point.x)
-                    onActiveChanged: if(active && visible) pickerMoved(x, point.x)
-                    onZoomed: scroll.setCustomZoom(x1, x2)
-                    onMoved: scroll.move(x1)
+
+                    Rectangle {
+                        parent: videoPlot.canvasItem
+                        width: 1
+                        height: parent.height
+                        color: 'red'
+                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
+                    }
+
+                    PlotPicker {
+                        id: videoPlotPicker
+                        visible: dataModel.total !== 0
+                        overlayTextFormatter: function(p) {
+                            return dataModel.videoInfo(p.x, p.y);
+                        }
+                        onXChanged: if(active && visible) pickerMoved(x, point.x)
+                        onActiveChanged: if(active && visible) pickerMoved(x, point.x)
+                        onZoomed: scroll.setCustomZoom(x1, x2)
+                        onMoved: scroll.move(x1)
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: evenVideoCurve
+                        title: "even";
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "darkgreen"
+                        titleColor: "darkgray"
+                    }
+
+                    QwtQuick2PlotCurve {
+                        id: oddVideoCurve
+                        title: "odd";
+                        curveStyle: QwtQuick2PlotCurve.Sticks
+                        color: "green"
+                        titleColor: "darkgray"
+                    }
+
+                    QwtQuick2PlotGrid {
+                        enableXMin: true
+                        enableYMin: true
+                        majorPenColor: 'darkGray'
+                        majorPenStyle: Qt.DotLine
+                        minorPenColor: 'gray'
+                        minorPenStyle: Qt.DotLine
+                    }
                 }
 
-                QwtQuick2PlotCurve {
-                    id: evenVideoCurve
-                    title: "even";
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "darkgreen"
-                    titleColor: "darkgray"
-                }
-
-                QwtQuick2PlotCurve {
-                    id: oddVideoCurve
-                    title: "odd";
-                    curveStyle: QwtQuick2PlotCurve.Sticks
-                    color: "green"
-                    titleColor: "darkgray"
-                }
-
-                QwtQuick2PlotGrid {
-                    enableXMin: true
-                    enableYMin: true
-                    majorPenColor: 'darkGray'
-                    majorPenStyle: Qt.DotLine
-                    minorPenColor: 'gray'
-                    minorPenStyle: Qt.DotLine
+                QwtQuick2PlotLegend {
+                    plotItem: videoPlot
+                    width: 50
+                    height: 50
                 }
             }
 
-            QwtQuick2PlotLegend {
-                plotItem: videoPlot
-                width: 50
-                height: 50
+            MarkersView {
+                anchors.top: videoRow.bottom
+                anchors.left: parent.left
+                anchors.leftMargin: videoPlot.canvasItem.x
+                id: tc_nMarkers
+                imageRotation: 180
+                enableColorize: true
+                colorizeColor: 'orange'
+
+                height: markerHeight + markerMargin
+                updateTrigger: root.updateTrigger
+                tooltipFormatter: function(name, timecode, recordingTime) {
+                    return name + " " + "to ${tc}, Recording Time = ${rdt}".replace("${tc}", timecode).replace("${rdt}", recordingTime)
+                }
+
+                clip: true
+                width: videoPlot.canvasItem.width
+                z: 10
             }
         }
 

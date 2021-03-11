@@ -18,18 +18,20 @@ class QXmlStreamAttributes;
 struct MarkerInfo {
     Q_GADGET
     Q_PROPERTY(int frameNumber MEMBER frameNumber)
-    Q_PROPERTY(QString marker MEMBER marker)
+    Q_PROPERTY(QString name MEMBER name)
+    Q_PROPERTY(QString type MEMBER type)
+    Q_PROPERTY(QString icon MEMBER icon)
     Q_PROPERTY(QString recordingTime MEMBER recordingTime)
     Q_PROPERTY(QString timecode MEMBER timecode)
 
 public:
     MarkerInfo() {
     }
-    MarkerInfo(int frameNumber, QString marker) : frameNumber(frameNumber), marker(marker) {
-    }
 
     int frameNumber;
-    QString marker;
+    QString type;
+    QString name;
+    QString icon;
     QString recordingTime;
     QString timecode;
 };
@@ -64,9 +66,9 @@ public:
     };
 
     struct FrameStats {
-        bool isSubstantial;
-        int lastSubstantialFrame;
-        QString marker;
+        bool isSubstantial { false };
+        int lastSubstantialFrame { -1 };
+        QMap<QString, std::pair<QString, QString>> markers;
         QString recordingTime;
         QString timecode;
         QString videoInfo;
