@@ -66,6 +66,27 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
+QVariantList DataModel::getMarkers()
+{
+    QVariantList markers;
+
+    for(auto & frameTuple : m_frames) {
+        auto frameIndex = std::get<0>(frameTuple);
+        auto& frameInfo = std::get<1>(frameTuple);
+
+        if(frameInfo.marker.isEmpty())
+            continue;
+
+        auto markerInfo = MarkerInfo(frameIndex, frameInfo.marker);
+        markerInfo.recordingTime = frameInfo.recordingTime;
+        markerInfo.timecode = frameInfo.timecode;
+
+        markers.append(QVariant::fromValue(markerInfo));
+    }
+
+    return markers;
+}
+
 int DataModel::frameByIndex(int index)
 {
     if(index < 0 || index >= m_frames.size())
@@ -238,6 +259,8 @@ void DataModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *video
 
     audioCurve->plot()->plot()->setUpdatesEnabled(true);
     audioCurve->plot()->replotAndUpdate();
+
+    Q_EMIT updated();
 }
 
 void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
@@ -323,6 +346,16 @@ void DataModel::populate(const QString &fileName)
         frameStats.lastSubstantialFrame = m_lastSubstantialFrame;
         m_rowByFrame[frameNumber] = m_frames.length() - 1;
 
+        auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
+        auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
+        if(recStart && recEnd) {
+            frameStats.marker = "icons/record-marker-stop+start-graph.svg";
+        } else if(recStart) {
+            frameStats.marker = "icons/record-marker-start-graph.svg";
+        } else if(recEnd) {
+            frameStats.marker = "icons/record-marker-stop-graph.svg";
+        }
+
         if(isSubstantial)
             m_lastSubstantialFrame = frameNumber;
 
@@ -368,6 +401,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
                            int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantional)
 {
     Q_UNUSED(isSubstantional);
+    auto& frameStats = std::get<1>(m_frames.back());
 
     // qDebug() << "DataModel::onGotFrame: " << QThread::currentThread();
 
@@ -392,6 +426,8 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Timestamp"] = timestamp;
 
     fillAttribute("Timecode", frameAttributes, "tc");
+    frameStats.timecode = map["Timecode"].toString();
+
     int timecodeRepeat = 0;
     if(frameAttributes.hasAttribute("tc_r"))
         timecodeRepeat = frameAttributes.value("tc_r").toInt();
@@ -403,6 +439,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
 
     fillAttribute("Recording Time", frameAttributes, "rdt");
+    frameStats.recordingTime = map["Recording Time"].toString();
     int recordingTimeRepeat = 0;
     if(frameAttributes.hasAttribute("rdt_r"))
         recordingTimeRepeat = frameAttributes.value("rdt_r").toInt();
@@ -559,7 +596,6 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     auto audio = channels + " " + audioRate;
 
-    auto& frameStats = std::get<1>(m_frames.back());
     frameStats.videoInfo = video;
     frameStats.audioInfo = audio;
 

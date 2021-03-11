@@ -28,6 +28,7 @@ Item {
         z: 100
         width: Math.min(parent.width, parent.height) / 3
         height: width;
+        visible: running
         running: false
         anchors.centerIn: parent
     }
@@ -319,6 +320,10 @@ Item {
 
                     onPickerMoved: {
                         var frameIndex = plotX
+                        playerView.seekToFrame(frameIndex)
+                    }
+
+                    onMarkerClicked: {
                         playerView.seekToFrame(frameIndex)
                     }
                 }

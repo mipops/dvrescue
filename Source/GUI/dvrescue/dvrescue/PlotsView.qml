@@ -3,8 +3,10 @@ import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 1.4 as QQC1
 import QwtQuick2 1.0
+import QtGraphicalEffects 1.0
 
 Rectangle {
+    id: root
     color: "transparent"
     property alias evenVideoCurve: evenVideoCurve
     property alias oddVideoCurve: oddVideoCurve
@@ -12,6 +14,7 @@ Rectangle {
     property alias oddAudioCurve: oddAudioCurve
 
     signal pickerMoved(int displayX, int plotX);
+    signal markerClicked(int frameIndex);
 
     function zoomAll() {
         zoomAllButton.clicked();
@@ -19,12 +22,96 @@ Rectangle {
 
     property int framePos: -1
 
+    Item {
+        z: 10
+        id: markersView
+        anchors.left: parent.left
+        anchors.leftMargin: videoPlot.canvasItem.x /* + videoPlotPicker.transform(Qt.point(0, 0)).x */
+        width: videoPlot.canvasItem.width /* - videoPlotPicker.transform(Qt.point(0, 0)).x */
+        anchors.top: parent.top
+        height: 30
+        clip: true
+
+        Repeater {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+
+            delegate: Item {
+                x: scroll.position, videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(frameNumber, 0)).x - width / 2 /*- videoPlotPicker.transform(Qt.point(0, 0)).x*/
+                height: image.height
+                width: image.width
+                z: mouseTracker.containsMouse ? 2 : (frameNumber === framePos ? 1 : 0)
+
+                Image {
+                    id: image
+                    source: marker
+                    height: markersView.height
+                    fillMode: Image.PreserveAspectFit
+                    visible: true
+                }
+
+                Glow {
+                    id: glow
+                    anchors.fill: image
+                    radius: 4
+                    samples: 17
+                    color: "white"
+                    source: image
+                    visible: mouseTracker.containsMouse || frameNumber === framePos
+                }
+
+                DropShadow {
+                    anchors.fill: glow
+                    horizontalOffset: 3
+                    verticalOffset: 3
+                    radius: 8.0
+                    samples: 17
+                    color: "#80000000"
+                    source: glow
+                    visible: mouseTracker.containsMouse
+                }
+
+                DefaultToolTip {
+                    visible: mouseTracker.containsMouse
+                    text: "timecode: " + timecode + ", recording time: " + recordingTime
+                }
+
+                MouseArea {
+                    id: mouseTracker
+                    anchors.fill: image
+                    hoverEnabled: true
+                    onClicked: {
+                        markerClicked(frameNumber)
+                    }
+                }
+            }
+
+            model: ListModel {
+                id: markersModel
+            }
+        }
+
+        Connections {
+            target: dataModel
+            onUpdated: {
+                var markers = dataModel.getMarkers();
+                console.debug('markers: ', JSON.stringify(markers, 0, 4))
+
+                markersModel.clear();
+                for(var i = 0; i < markers.length; ++i) {
+                    markersModel.append(markers[i]);
+                }
+            }
+        }
+    }
+
     QQC1.SplitView {
         id: plotsSplitView
 
+        anchors.top: markersView.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: parent.top
         anchors.bottom: scrollLayout.top
 
         orientation: Qt.Vertical
@@ -60,7 +147,7 @@ Rectangle {
                     width: 1
                     height: parent.height
                     color: 'red'
-                    x: videoPlotPicker.transform(Qt.point(framePos, 0)).x
+                    x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
                 }
 
                 PlotPicker {
@@ -136,7 +223,7 @@ Rectangle {
                     width: 1
                     height: parent.height
                     color: 'red'
-                    x: audioPlotPicker.transform(Qt.point(framePos, 0)).x
+                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(framePos, 0)).x
                 }
 
                 PlotPicker {

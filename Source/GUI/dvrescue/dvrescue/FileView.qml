@@ -322,11 +322,9 @@ Rectangle {
                         }
                     }
 
-                    ToolTip {
+                    DefaultToolTip {
                         visible: filePathMouseArea.containsMouse
                         text: toolTip
-                        delay: 1000
-                        timeout: 3000
                         anchors.centerIn: parent
                     }
                 }
@@ -406,11 +404,9 @@ Rectangle {
                         }
                     }
 
-                    ToolTip {
+                    DefaultToolTip {
                         visible: frameErrorMouseArea.containsMouse
                         text: toolTip
-                        delay: 1000
-                        timeout: 3000
                         anchors.centerIn: parent
                     }
                 }
@@ -451,11 +447,9 @@ Rectangle {
                         }
                     }
 
-                    ToolTip {
+                    DefaultToolTip {
                         visible: videoBlockErrorMouseArea.containsMouse
                         text: toolTip
-                        delay: 1000
-                        timeout: 3000
                         anchors.centerIn: parent
                     }
                 }
@@ -496,11 +490,9 @@ Rectangle {
                         }
                     }
 
-                    ToolTip {
+                    DefaultToolTip {
                         visible: audioBlockErrorMouseArea.containsMouse
                         text: toolTip
-                        delay: 1000
-                        timeout: 3000
                         anchors.centerIn: parent
                     }
                 }

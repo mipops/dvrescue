@@ -245,7 +245,7 @@ Rectangle {
                         }
                     }
 
-                    ToolTip {
+                    DefaultToolTip {
                         visible: videoAudioMouseArea.containsMouse && isSubstantialFrame
                         text: isSubstantialFrame ? (cppDataModel.getLastSubstantialFrameTransition(sourceRow)) : ""
                         anchors.centerIn: parent

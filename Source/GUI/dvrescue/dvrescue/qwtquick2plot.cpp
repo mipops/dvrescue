@@ -30,8 +30,10 @@ QwtQuick2Plot::QwtQuick2Plot(QQuickItem* parent) : QQuickPaintedItem(parent)
     m_qwtPlot = new QwtPlot();
     m_qwtPlot->setAutoReplot(false);
 
-    updatePlotSize();
-    replotAndUpdate();
+    QTimer::singleShot(0, [&]() {
+        updatePlotSize();
+        replotAndUpdate();
+    });
 }
 
 QwtQuick2Plot::~QwtQuick2Plot()

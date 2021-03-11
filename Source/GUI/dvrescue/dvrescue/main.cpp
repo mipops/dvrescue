@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
+    qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
     qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
@@ -27,9 +28,12 @@ int main(int argc, char *argv[])
     qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
     qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
     qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");
-    qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
 
+    qRegisterMetaType<MarkerInfo>();
+    qRegisterMetaType<QList<MarkerInfo>>();
     qRegisterMetaType<QAbstractTableModel*>();
+    qRegisterMetaType<QProcess::ProcessState>();
+    qRegisterMetaType<QProcess::ExitStatus>();
 
     auto version = QtAV_Version_String();
     QApplication app(argc, argv);
@@ -37,9 +41,6 @@ int main(int argc, char *argv[])
     app.setOrganizationName("dvrescue");
     app.setOrganizationDomain("dvrescue.com");
     app.setApplicationName("dvrescue");
-
-    qRegisterMetaType<QProcess::ProcessState>();
-    qRegisterMetaType<QProcess::ExitStatus>();
 
     QQuickStyle::setStyle("Material");
 
