@@ -41,7 +41,7 @@ Rectangle {
                 x: scroll.position, videoPlot.canvasItem.width, videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(frameNumber, 0)).x - width / 2 /*- videoPlotPicker.transform(Qt.point(0, 0)).x*/
                 height: image.height
                 width: image.width
-                z: mouseTracker.containsMouse ? 1 : 0
+                z: mouseTracker.containsMouse ? 2 : (frameNumber === framePos ? 1 : 0)
 
                 Image {
                     id: image
@@ -58,7 +58,7 @@ Rectangle {
                     samples: 17
                     color: "white"
                     source: image
-                    visible: mouseTracker.containsMouse
+                    visible: mouseTracker.containsMouse || frameNumber === framePos
                 }
 
                 DropShadow {
