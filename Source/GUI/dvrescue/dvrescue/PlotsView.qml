@@ -72,7 +72,7 @@ Rectangle {
                     visible: mouseTracker.containsMouse
                 }
 
-                ToolTip {
+                DefaultToolTip {
                     visible: mouseTracker.containsMouse
                     text: "timecode: " + timecode + ", recording time: " + recordingTime
                 }

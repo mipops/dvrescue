@@ -69,5 +69,6 @@
         <file>icons/record-marker-stop+start-table.svg</file>
         <file>icons/record-marker-stop-graph.svg</file>
         <file>icons/record-marker-stop-table.svg</file>
+        <file>DefaultToolTip.qml</file>
     </qresource>
 </RCC>
