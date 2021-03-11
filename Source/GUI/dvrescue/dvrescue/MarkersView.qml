@@ -53,9 +53,9 @@ Item {
                 radius: 4
                 samples: 17
                 rotation: imageRotation
-                color: "white"
+                color: mouseTracker.containsMouse || frameNumber === framePos ? "white" : "gray"
                 source: colorOverlay.visible ? colorOverlay : image
-                visible: mouseTracker.containsMouse || frameNumber === framePos
+                visible: true
             }
 
             DropShadow {
