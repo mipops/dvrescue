@@ -74,14 +74,23 @@ QVariantList DataModel::getMarkers()
         auto frameIndex = std::get<0>(frameTuple);
         auto& frameInfo = std::get<1>(frameTuple);
 
-        if(frameInfo.marker.isEmpty())
+        if(frameInfo.markers.empty())
             continue;
 
-        auto markerInfo = MarkerInfo(frameIndex, frameInfo.marker);
-        markerInfo.recordingTime = frameInfo.recordingTime;
-        markerInfo.timecode = frameInfo.timecode;
+        for(auto& key : frameInfo.markers.keys()) {
+            auto type = key;
+            auto nameAndIcon = frameInfo.markers.value(key);
 
-        markers.append(QVariant::fromValue(markerInfo));
+            auto markerInfo = MarkerInfo();
+            markerInfo.frameNumber = frameIndex;
+            markerInfo.name = nameAndIcon.first;
+            markerInfo.type = type;
+            markerInfo.icon = nameAndIcon.second;
+            markerInfo.recordingTime = frameInfo.recordingTime;
+            markerInfo.timecode = frameInfo.timecode;
+
+            markers.append(QVariant::fromValue(markerInfo));
+        }
     }
 
     return markers;
@@ -327,7 +336,7 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
-        m_frames.append(std::make_tuple(frameNumber, FrameStats { false, -1, QString(), QString() }));
+        m_frames.append(std::make_tuple(frameNumber, FrameStats() ));
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
@@ -349,11 +358,11 @@ void DataModel::populate(const QString &fileName)
         auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
         auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
         if(recStart && recEnd) {
-            frameStats.marker = "icons/record-marker-stop+start-graph.svg";
+            frameStats.markers["rec"] = std::pair("Recording Start&End", "icons/record-marker-stop+start-graph.svg");
         } else if(recStart) {
-            frameStats.marker = "icons/record-marker-start-graph.svg";
+            frameStats.markers["rec"] = std::pair("Recording Start", "icons/record-marker-start-graph.svg");
         } else if(recEnd) {
-            frameStats.marker = "icons/record-marker-stop-graph.svg";
+            frameStats.markers["rec"] = std::pair("Recording End", "icons/record-marker-stop-graph.svg");
         }
 
         if(isSubstantial)
@@ -433,8 +442,10 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
         timecodeRepeat = frameAttributes.value("tc_r").toInt();
 
     auto timecodeJump = 0;
-    if(frameAttributes.hasAttribute("tc_nc"))
+    if(frameAttributes.hasAttribute("tc_nc")) {
         timecodeJump = frameAttributes.value("tc_nc").toInt();
+        frameStats.markers["tc_n"] = std::make_pair("Timecode: Jump", "icons/record-marker-stop+start-graph.svg");
+    }
 
     map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
 

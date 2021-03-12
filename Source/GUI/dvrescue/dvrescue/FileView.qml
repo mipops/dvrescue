@@ -555,7 +555,6 @@ Rectangle {
                 value += Math.max(headerItem.desiredWidth, minWidth)
             }
 
-            console.debug('new totalDesiredWidth: ', value, 'tableView.width: ', tableView.width)
             return value;
         }
 
