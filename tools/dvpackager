@@ -467,7 +467,9 @@ while [[ "${@}" != "" ]] ; do
                         START_BYTE=(-skip_initial_bytes "${PKT_POS}")
                     fi
                 else
-                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                    if [[ "${PTS}" = "00:00:00.000000" ]] ; then
+                        :
+                    else
                         START_TIME=(-ss "${PTS}")
                     fi
                 fi
