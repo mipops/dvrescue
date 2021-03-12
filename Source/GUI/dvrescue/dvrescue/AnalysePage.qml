@@ -10,6 +10,7 @@ import DataModel 1.0
 import QtAVPlayerUtils 1.0
 
 Item {
+    id: root
 
     Rectangle {
         z: 100
@@ -87,156 +88,44 @@ Item {
         recentFilesJSON = JSON.stringify(recentFiles)
     }
 
+    SelectPathDialog {
+        id: selectPath
+        selectMultiple: true
+        nameFilters: [
+            "Report files (*.dvrescue.xml)",
+            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
+        ]
+    }
+
+    RecentsPopup {
+        id: recentsPopup
+        files: recentFiles
+        onSelected: {
+            fileViewer.fileView.add(filePath)
+        }
+    }
+
     QQC1.SplitView {
+        id: splitView
         anchors.fill: parent
 
         orientation: Qt.Vertical
 
         onHeightChanged: {
-            fileViewColumn.height = height / 5 * 1
-            fileViewer.fileView.tableView.bringToView(0);
+            playerViewSplitView.height = height / 5 * 1.5
         }
 
-        ColumnLayout {
-            id: fileViewColumn
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            spacing: 0
-
-            FileViewer {
-                id: fileViewer
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                fileView.currentIndex: fileSelector.currentIndex
-                recentsPopup.files: recentFiles
-                recentsPopup.onSelected: {
-                    fileViewer.fileView.add(filePath)
-                }
-
-                function resolveMediaInfo(index, reportPath) {
-                    var mediaInfo = fileView.mediaInfoAt(index)
-                    mediaInfo.reportPath = reportPath;
-                    mediaInfo.resolve();
-                }
-
-                fileView.onFileAdded: {
-                    addRecent(filePath)
-                }
-
-                onSelectedPathChanged: {
-                    console.debug('selected path: ', selectedPath)
-                    toolsLayout.load(selectedPath, fileView.currentIndex)
-                }
-            }
-
-            RowLayout {
-                id: toolsLayout
-                Layout.fillWidth: true
-
-                property string dvRescueXmlExtension: ".dvrescue.xml"
-                property int fileViewerHeight: 0
-
-                Button {
-                    visible: !fileViewer.visible
-                    text: "^"
-                    onClicked: {
-                        fileViewer.visible = true
-                        fileViewColumn.height = toolsLayout.fileViewerHeight
-                    }
-                }
-
-                Button {
-                    visible: fileViewer.visible
-                    text: ">"
-                    onClicked: {
-                        toolsLayout.fileViewerHeight = fileViewColumn.height
-                        fileViewer.visible = false
-                    }
-                }
-
-                ComboBox {
-                    id: fileSelector
-                    model: fileViewer.updated, fileViewer.files
-                    Layout.fillWidth: true
-                    currentIndex: fileViewer.fileView.currentIndex
-                    onCurrentIndexChanged: {
-                        if(fileViewer.files.length < currentIndex)
-                        {
-                            var file = fileViewer.files[currentIndex]
-                            toolsLayout.load(file, currentIndex)
-                        }
-                    }
-                }
-
-                function load(filePath, currentIndex) {
-
-                    console.debug('load: ', filePath, 'currentIndex: ', currentIndex)
-
-                    dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                                     plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-
-                    if(filePath.length === 0) {
-                        playerView.player.stop()
-                        return;
-                    }
-
-                    var extension = FileUtils.getFileExtension(filePath);
-                    if(extension === 'xml') {
-                        refreshTimer.start();
-                        dataModel.populate(filePath);
-
-                        if(filePath.endsWith(dvRescueXmlExtension))
-                        {
-                            var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
-                            if(FileUtils.exists(videoPath))
-                            {
-                                playerView.player.source = 'file:///' + videoPath;
-                                playerView.player.playPaused(0);
-                            }
-                        }
-
-                    } else {
-                        var dvRescueXmlPath = filePath + dvRescueXmlExtension
-                        if(FileUtils.exists(dvRescueXmlPath))
-                        {
-                            refreshTimer.start();
-                            dataModel.populate(dvRescueXmlPath);
-                        } else {
-                            busy.running = true;
-                            dvrescue.makeReport(filePath).then(() => {
-                                 busy.running = false;
-                                 refreshTimer.start();
-                                 dataModel.populate(dvRescueXmlPath);
-
-                                 if(currentIndex !== -1 && currentIndex !== undefined) {
-                                    fileViewer.resolveMediaInfo(currentIndex, dvRescueXmlPath)
-                                 }
-                            }).catch((error) => {
-                                busy.running = false;
-                            });
-                        }
-
-                        playerView.player.source = 'file:///' + filePath;
-                        playerView.player.playPaused(0);
-                    }
-                }
-            }
+        onWidthChanged: {
+            dataView.width = width / 2
         }
 
         QQC1.SplitView {
-            id: splitView
-            anchors.left: parent.left
-            anchors.right: parent.right
+            id: playerViewSplitView
 
-            orientation: Qt.Vertical
-
-            onHeightChanged: {
-                playerView.height = height / 5 * 1.5
-            }
+            orientation: Qt.Horizontal
 
             onWidthChanged: {
-                dataView.width = width / 2
+                playerView.width = width / 2
             }
 
             PlayerView {
@@ -280,57 +169,187 @@ Item {
                 }
             }
 
-            QQC1.SplitView {
-                id: tableAndPlots
-                orientation: Qt.Horizontal
+            ColumnLayout {
+                id: fileViewColumn
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
 
-                DataView {
-                    id: dataView
-                    cppDataModel: dataModel
+                spacing: 0
 
-                    Connections {
-                        target: playerView
-                        onPositionChanged: {
-                            dataView.framePos = frameIndex
-                            dataView.bringToView(dataView.framePos)
-                        }
+                FileViewer {
+                    id: fileViewer
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    fileView.currentIndex: fileSelector.currentIndex
+
+                    function resolveMediaInfo(index, reportPath) {
+                        var mediaInfo = fileView.mediaInfoAt(index)
+                        mediaInfo.reportPath = reportPath;
+                        mediaInfo.resolve();
                     }
 
-                    Component.onCompleted: {
-                        dataModel.bind(model)
-                    }
-                }
-
-                PlotsView {
-                    id: plotsView
-
-                    Connections {
-                        target: dataModel
-                        onPopulated: {
-                            plotsView.zoomAll();
-                        }
+                    fileView.onFileAdded: {
+                        addRecent(filePath)
                     }
 
-                    Connections {
-                        target: playerView
-                        onPositionChanged: {
-                            plotsView.framePos = frameIndex
-                        }
-                    }
-
-                    onPickerMoved: {
-                        var frameIndex = plotX
-                        playerView.seekToFrame(frameIndex)
-                    }
-
-                    onMarkerClicked: {
-                        playerView.seekToFrame(frameIndex)
+                    onSelectedPathChanged: {
+                        console.debug('selected path: ', selectedPath)
+                        toolsLayout.load(selectedPath, fileView.currentIndex)
                     }
                 }
 
+                RowLayout {
+                    id: toolsLayout
+                    Layout.fillWidth: true
+
+                    property string dvRescueXmlExtension: ".dvrescue.xml"
+                    property int fileViewerHeight: 0
+
+                    Button {
+                        text: qsTr("Add files")
+                        onClicked: {
+                            selectPath.callback = (urls) => {
+                                urls.forEach((url) => {
+                                                 fileViewer.fileView.add(FileUtils.getFilePath(url));
+                                             });
+                            }
+
+                            selectPath.open();
+                        }
+                    }
+
+                    Button {
+                        text: qsTr("Recent")
+
+                        onClicked: {
+                            var mapped = mapToItem(root, 0, 0);
+                            recentsPopup.x = mapped.x - recentsPopup.width + width
+                            recentsPopup.y = mapped.y + height
+
+                            recentsPopup.open();
+                        }
+                    }
+
+                    ComboBox {
+                        id: fileSelector
+                        model: fileViewer.updated, fileViewer.files
+                        Layout.fillWidth: true
+                        currentIndex: fileViewer.fileView.currentIndex
+                        onCurrentIndexChanged: {
+                            if(fileViewer.files.length < currentIndex)
+                            {
+                                var file = fileViewer.files[currentIndex]
+                                toolsLayout.load(file, currentIndex)
+                            }
+                        }
+                    }
+
+                    function load(filePath, currentIndex) {
+
+                        console.debug('load: ', filePath, 'currentIndex: ', currentIndex)
+
+                        dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
+                                        plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+
+                        if(filePath.length === 0) {
+                            playerView.player.stop()
+                            return;
+                        }
+
+                        var extension = FileUtils.getFileExtension(filePath);
+                        if(extension === 'xml') {
+                            refreshTimer.start();
+                            dataModel.populate(filePath);
+
+                            if(filePath.endsWith(dvRescueXmlExtension))
+                            {
+                                var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
+                                if(FileUtils.exists(videoPath))
+                                {
+                                    playerView.player.source = 'file:///' + videoPath;
+                                    playerView.player.playPaused(0);
+                                }
+                            }
+
+                        } else {
+                            var dvRescueXmlPath = filePath + dvRescueXmlExtension
+                            if(FileUtils.exists(dvRescueXmlPath))
+                            {
+                                refreshTimer.start();
+                                dataModel.populate(dvRescueXmlPath);
+                            } else {
+                                busy.running = true;
+                                dvrescue.makeReport(filePath).then(() => {
+                                                                       busy.running = false;
+                                                                       refreshTimer.start();
+                                                                       dataModel.populate(dvRescueXmlPath);
+
+                                                                       if(currentIndex !== -1 && currentIndex !== undefined) {
+                                                                           fileViewer.resolveMediaInfo(currentIndex, dvRescueXmlPath)
+                                                                       }
+                                                                   }).catch((error) => {
+                                                                                busy.running = false;
+                                                                            });
+                            }
+
+                            playerView.player.source = 'file:///' + filePath;
+                            playerView.player.playPaused(0);
+                        }
+                    }
+                }
             }
+
         }
 
+        QQC1.SplitView {
+            id: tableAndPlots
+            orientation: Qt.Horizontal
+
+            DataView {
+                id: dataView
+                cppDataModel: dataModel
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        dataView.framePos = frameIndex
+                        dataView.bringToView(dataView.framePos)
+                    }
+                }
+
+                Component.onCompleted: {
+                    dataModel.bind(model)
+                }
+            }
+
+            PlotsView {
+                id: plotsView
+
+                Connections {
+                    target: dataModel
+                    onPopulated: {
+                        plotsView.zoomAll();
+                    }
+                }
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        plotsView.framePos = frameIndex
+                    }
+                }
+
+                onPickerMoved: {
+                    var frameIndex = plotX
+                    playerView.seekToFrame(frameIndex)
+                }
+
+                onMarkerClicked: {
+                    playerView.seekToFrame(frameIndex)
+                }
+            }
+
+        }
     }
 
     Timer {
