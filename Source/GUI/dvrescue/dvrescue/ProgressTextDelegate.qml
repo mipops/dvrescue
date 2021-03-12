@@ -13,11 +13,13 @@ Rectangle {
     property alias textFont: textLabel.font
     property alias progress: progress
     property color progressColor: 'transparent'
+    property int leftOffset: 0
 
     ProgressBar {
         id: progress
 
         anchors.left: parent.left
+        anchors.leftMargin: leftOffset
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
@@ -37,6 +39,7 @@ Rectangle {
 
     Rectangle {
         anchors.fill: textLabel
+        anchors.leftMargin: leftOffset
         color: textDelegate.color
         opacity: 0.5
     }
@@ -44,7 +47,7 @@ Rectangle {
     TextInput {
         id: textLabel
         text: display
-        anchors.leftMargin: 10
+        anchors.leftMargin: 10 + leftOffset
         anchors.fill: parent
         verticalAlignment: Qt.AlignVCenter
         readOnly: true
@@ -53,6 +56,7 @@ Rectangle {
     Rectangle {
         id: overlay
         anchors.fill: parent
+        anchors.leftMargin: leftOffset
         opacity: 0.5
         visible: false
     }

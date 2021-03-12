@@ -303,6 +303,7 @@ Rectangle {
                     property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
+                    leftOffset: deleteButton.width + 4
 
                     overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
                     overlayVisible: decoration !== 1 || row == tableView.currentIndex
@@ -330,6 +331,20 @@ Rectangle {
                         text: toolTip
                         anchors.centerIn: parent
                     }
+
+                    Button {
+                        id: deleteButton
+                        anchors.left: parent.left
+                        anchors.leftMargin: 2
+                        text: "x"
+                        height: parent.height
+                        width: height
+
+                        onClicked: {
+                            deleteEntry(row);
+                        }
+                    }
+
                 }
             }
 
@@ -359,19 +374,6 @@ Rectangle {
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
-                        }
-                    }
-
-                    Button {
-                        id: deleteButton
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        text: "x"
-                        height: parent.height
-                        width: height
-
-                        onClicked: {
-                            deleteEntry(row);
                         }
                     }
                 }
