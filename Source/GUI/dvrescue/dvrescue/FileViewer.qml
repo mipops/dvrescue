@@ -8,57 +8,13 @@ Rectangle {
     height: 100
     color: "#ffffff"
 
-    property alias recentsPopup: recentsPopup
     property alias fileView: fileView
     property alias selectedPath: fileView.selectedPath
     property alias files: fileView.files
     property alias updated: fileView.updated
 
-    SelectPathDialog {
-        id: selectPath
-        selectMultiple: true
-        nameFilters: [
-            "Report files (*.dvrescue.xml)",
-            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
-        ]
-    }
-
-    RecentsPopup {
-        id: recentsPopup
-    }
-
     ColumnLayout {
         anchors.fill: parent
-
-        Row {
-            id: buttons
-            Layout.alignment: Qt.AlignHCenter
-
-            Button {
-                text: qsTr("Add files")
-                onClicked: {
-                    selectPath.callback = (urls) => {
-                        urls.forEach((url) => {
-                                         fileView.add(FileUtils.getFilePath(url));
-                                     });
-                    }
-
-                    selectPath.open();
-                }
-            }
-
-            Button {
-                text: qsTr("Recent")
-
-                onClicked: {
-                    var mapped = mapToItem(fileViewer, 0, 0);
-                    recentsPopup.x = mapped.x - recentsPopup.width + width
-                    recentsPopup.y = mapped.y + height
-
-                    recentsPopup.open();
-                }
-            }
-        }
 
         FileView {
             id: fileView

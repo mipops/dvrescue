@@ -10,6 +10,7 @@ import DataModel 1.0
 import QtAVPlayerUtils 1.0
 
 Item {
+    id: root
 
     Rectangle {
         z: 100
@@ -85,6 +86,23 @@ Item {
         }
         recentFiles = newRecentFiles
         recentFilesJSON = JSON.stringify(recentFiles)
+    }
+
+    SelectPathDialog {
+        id: selectPath
+        selectMultiple: true
+        nameFilters: [
+            "Report files (*.dvrescue.xml)",
+            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
+        ]
+    }
+
+    RecentsPopup {
+        id: recentsPopup
+        files: recentFiles
+        onSelected: {
+            fileViewer.fileView.add(filePath)
+        }
     }
 
     QQC1.SplitView {
@@ -163,10 +181,6 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     fileView.currentIndex: fileSelector.currentIndex
-                    recentsPopup.files: recentFiles
-                    recentsPopup.onSelected: {
-                        fileViewer.fileView.add(filePath)
-                    }
 
                     function resolveMediaInfo(index, reportPath) {
                         var mediaInfo = fileView.mediaInfoAt(index)
@@ -192,20 +206,27 @@ Item {
                     property int fileViewerHeight: 0
 
                     Button {
-                        visible: !fileViewer.visible
-                        text: "^"
+                        text: qsTr("Add files")
                         onClicked: {
-                            fileViewer.visible = true
-                            fileViewColumn.height = toolsLayout.fileViewerHeight
+                            selectPath.callback = (urls) => {
+                                urls.forEach((url) => {
+                                                 fileViewer.fileView.add(FileUtils.getFilePath(url));
+                                             });
+                            }
+
+                            selectPath.open();
                         }
                     }
 
                     Button {
-                        visible: fileViewer.visible
-                        text: ">"
+                        text: qsTr("Recent")
+
                         onClicked: {
-                            toolsLayout.fileViewerHeight = fileViewColumn.height
-                            fileViewer.visible = false
+                            var mapped = mapToItem(root, 0, 0);
+                            recentsPopup.x = mapped.x - recentsPopup.width + width
+                            recentsPopup.y = mapped.y + height
+
+                            recentsPopup.open();
                         }
                     }
 
