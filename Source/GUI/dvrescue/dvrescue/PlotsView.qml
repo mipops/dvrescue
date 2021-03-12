@@ -165,8 +165,8 @@ Rectangle {
 
                 height: markerHeight + markerMargin
                 updateTrigger: root.updateTrigger
-                tooltipFormatter: function(name, timecode, recordingTime) {
-                    return name + " " + "to ${tc}, Recording Time = ${rdt}".replace("${tc}", timecode).replace("${rdt}", recordingTime)
+                tooltipFormatter: function(name, timecode, recordingTime, frameNumber) {
+                    return name + " " + "to ${tc}, Recording Time = ${rdt}".replace("${tc}", timecode).replace("${rdt}", recordingTime) + ", Frame: " + frameNumber
                 }
 
                 clip: true
