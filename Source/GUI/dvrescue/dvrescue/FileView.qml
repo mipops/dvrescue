@@ -29,6 +29,9 @@ Rectangle {
         ++updated
         newRow(mediaInfo.originalPath)
         fileAdded(mediaInfo.originalPath)
+
+        if(fileInfos.length === 1)
+            tableView.bringToView(0)
     }
 
     function deleteEntry(row) {
@@ -249,7 +252,7 @@ Rectangle {
             canShowIndicator: false
             filterFont.pixelSize: 11
             textFont.pixelSize: 13
-            height: tableView.getMaxDesiredHeight()
+            height: tableView.columnWidths, tableView.getMaxDesiredHeight()
 
             onFilterTextChanged: {
                 sortFilterTableModel.setFilterText(modelData, filterText);

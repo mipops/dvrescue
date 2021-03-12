@@ -27,42 +27,44 @@ Rectangle {
         id: recentsPopup
     }
 
-    Column {
-        id: buttons
-        anchors.right: parent.right
-        anchors.top: parent.top
+    ColumnLayout {
+        anchors.fill: parent
 
-        Button {
-            text: qsTr("Add files")
-            onClicked: {
-                selectPath.callback = (urls) => {
-                    urls.forEach((url) => {
-                                     fileView.add(FileUtils.getFilePath(url));
-                                 });
+        Row {
+            id: buttons
+            Layout.alignment: Qt.AlignHCenter
+
+            Button {
+                text: qsTr("Add files")
+                onClicked: {
+                    selectPath.callback = (urls) => {
+                        urls.forEach((url) => {
+                                         fileView.add(FileUtils.getFilePath(url));
+                                     });
+                    }
+
+                    selectPath.open();
                 }
+            }
 
-                selectPath.open();
+            Button {
+                text: qsTr("Recent")
+
+                onClicked: {
+                    var mapped = mapToItem(fileViewer, 0, 0);
+                    recentsPopup.x = mapped.x - recentsPopup.width + width
+                    recentsPopup.y = mapped.y + height
+
+                    recentsPopup.open();
+                }
             }
         }
 
-        Button {
-            text: qsTr("Recent")
+        FileView {
+            id: fileView
 
-            onClicked: {
-                var mapped = mapToItem(fileViewer, 0, 0);
-                recentsPopup.x = mapped.x - recentsPopup.width + width
-                recentsPopup.y = mapped.y + height
-
-                recentsPopup.open();
-            }
+            Layout.fillHeight: true
+            Layout.fillWidth: true
         }
-    }
-
-    FileView {
-        id: fileView
-        anchors.left: parent.left
-        anchors.right: buttons.left
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
     }
 }
