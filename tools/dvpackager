@@ -98,7 +98,7 @@ _get_ranges(){
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
             Ny=$((N-1)) # end frame of a sequence is the start frame of the next
-            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_audio_pack|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_pack_aud|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
             echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
         fi
         PTSx="${PTS}"
@@ -135,7 +135,7 @@ _get_ranges(){
         -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_audio_pack|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
     LAST_FRAME_N="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
     echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|${LAST_FRAME_N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
 }
@@ -411,6 +411,18 @@ while [[ "${@}" != "" ]] ; do
             fi
         fi
         DV_FRAME_COUNT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
+        SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
+        if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
+            MOV_INPUT_OPT=(-ignore_editlist true)
+            MOV_SHOWINFO="$("${FFMPEG_PATH}" "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
+            MOV_PTS_0="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*0" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_PTS_1="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*1" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_PTS_2="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*2" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_PTS_TIME_0="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*0" | grep -o "pts_time:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_PTS_TIME_1="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*1" | grep -o "pts_time:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_PTS_TIME_2="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*2" | grep -o "pts_time:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
+            MOV_FIRST_FRAME_CHECK="$(echo "if ((${MOV_PTS_2} - ${MOV_PTS_0})/2 == ${MOV_PTS_1}) 1 else 0" | bc -l)"
+        fi
         _ranges_2_table "$(_get_ranges)"
         #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
@@ -457,24 +469,35 @@ while [[ "${@}" != "" ]] ; do
             esac
             _report -d "The results will be written to ${SIDECAR_DIR}"
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
-                unset START_TIME END_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD
+                unset START_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
-                SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
+                if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
+                    if [[ "${MOV_FIRST_FRAME_CHECK}" == "0" ]] ; then
+                        _report -d "Noting that the first few frames use uneven timestamps [$MOV_PTS_TIME_0,$MOV_PTS_TIME_1,$MOV_PTS_TIME_2]"
+                        MOV_PTS_OFFSET="$(echo "(${MOV_PTS_TIME_1} - (1/(${VIDEO_RATE})) )" | bc -l | awk '{printf "%f", $0}')"
+                        _report -d "Will apply a pts offset of ${MOV_PTS_OFFSET} to correlate between the timestamps of the encoding and the timestamps of the container."
+                    fi
+                    MOV_INPUT_RATE_OPT=(-r "${VIDEO_RATE}") # apply input framerate after pts offset coherency check
+                fi
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     if [[ "${PKT_POS}" != "0" ]] ; then
                         START_BYTE=(-skip_initial_bytes "${PKT_POS}")
                     fi
                 else
-                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                    if [[ "${PTS}" = "00:00:00.000000" ]] ; then
+                        :
+                    elif [[ -n "${MOV_PTS_OFFSET}" ]] ; then
+                        PTS_OFFED="$(echo "$(_convert_hhmmssmmm2s "${PTS}") + ${MOV_PTS_OFFSET}" | bc -l | awk '{printf "%.9f\n", $0}')"
+                        START_TIME=(-ss "${PTS_OFFED}")
+                    else
                         START_TIME=(-ss "${PTS}")
                     fi
                 fi
                 FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
                 DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
                 DURATION_ARG=(-t "${DURATION_SECS}")
-                END_TIME+=(-to "${END_PTS}")
                 INPUT_COUNT="1"
                 if [[ -n "${TC}" ]] && [[ "${EXTENSION}" != "dv" ]] ; then
                     METADATA+=(-metadata "timecode=${TC}")
@@ -494,14 +517,18 @@ while [[ "${@}" != "" ]] ; do
                     fi
                 fi
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    SUB_INPUT=(-ss "${PTS}" -i "${DVRESCUE_TECHSUBS}")
+                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                        SUB_INPUT=(-ss "${PTS}")
+                    fi
+                    SUB_INPUT+=(-i "${DVRESCUE_TECHSUBS}")
                     ((INPUT_COUNT++))
                     if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
-                        SUB_INPUT+=(-ss "${PTS}" -i "${DVRESCUE_SCC_VTT}")
+                        if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                            SUB_INPUT+=(-ss "${PTS}")
+                        fi
+                        SUB_INPUT+=(-i "${DVRESCUE_SCC_VTT}")
                         ((INPUT_COUNT++))
                     fi
-                else
-                    unset SUB_INPUT
                 fi
 
                 if [[ "${EXTENSION}" != "dv" ]] ; then
@@ -516,8 +543,8 @@ while [[ "${@}" != "" ]] ; do
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
-                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
-                        -copyts "${END_TIME[@]}" -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
+                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${MOV_INPUT_OPT[@]}" "${MOV_INPUT_RATE_OPT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
+                       -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
