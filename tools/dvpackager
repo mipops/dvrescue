@@ -98,7 +98,7 @@ _get_ranges(){
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
             Ny=$((N-1)) # end frame of a sequence is the start frame of the next
-            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_audio_pack|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_pack_aud|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
             echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
         fi
         PTSx="${PTS}"
@@ -135,7 +135,7 @@ _get_ranges(){
         -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_audio_pack|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
     LAST_FRAME_N="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
     echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|${LAST_FRAME_N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
 }
