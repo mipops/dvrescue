@@ -1,23 +1,25 @@
-<svg id="recording-marker-stop_start-graph" data-name="recording-marker-stop+start-graph" xmlns="http://www.w3.org/2000/svg" width="646" height="1496" viewBox="0 0 646 1496">
-  <defs>
-    <style>
-      .cls-1, .cls-4 {
-        fill: #3cc537;
-      }
-
-      .cls-1, .cls-2 {
-        fill-rule: evenodd;
-      }
-
-      .cls-2, .cls-3 {
-        fill: #c83737;
-      }
-    </style>
-  </defs>
-  <path class="cls-1" d="M6756,44h504a70,70,0,0,1,70,70v916.4a70,70,0,0,1-70,70H6756a70,70,0,0,1-70-70V114A70,70,0,0,1,6756,44Z" transform="translate(-6685 -44)"/>
-  <path id="Triangle_1" data-name="Triangle 1" class="cls-1" d="M7069.72,1503.96c-26.92,46.77-94.41,46.77-121.34,0l-251.27-436.52c-26.86-46.67,6.83-104.924,60.67-104.924h502.54c53.85,0,87.53,58.254,60.67,104.924Z" transform="translate(-6685 -44)"/>
-  <path class="cls-2" d="M6755,44h183a70,70,0,0,1,70,70v915.99a70,70,0,0,1-70,70H6755a70,70,0,0,1-70-70V114A70,70,0,0,1,6755,44Z" transform="translate(-6685 -44)"/>
-  <rect class="cls-3" x="234" y="1" width="89" height="1055"/>
-  <path id="Triangle_1-2" data-name="Triangle 1" class="cls-2" d="M7069.72,1503.96a70.006,70.006,0,0,1-121.34,0l-251.27-436.52c-26.86-46.67,6.83-104.924,60.67-104.924h502.54c53.85,0,87.53,58.254,60.67,104.924,0,0-69.05,119.96-134.76,234.11C7126.6,1405.15,7069.72,1503.96,7069.72,1503.96ZM7719,1055m-711-92,1,577,16-3h5l6-3,5-2,9-6,10-9,9-10,10-18,4-7,15-27,8-14,11-19,28-47,36-63,16-28,17-30,21-36,25-45,22-37,6-11,5-9,24-41,4-7,7-15,1-9,1-3v-2l1-4-1-12-1-6-1-4-8-17-6-9-8-8-13-8-13-6-10-2" transform="translate(-6685 -44)"/>
-  <rect class="cls-4" x="326" y="679" width="320" height="313"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="recording-marker-stop_start-graph"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 646 1496"
+	 style="enable-background:new 0 0 646 1496;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#3CC537;}
+	.st1{fill-rule:evenodd;clip-rule:evenodd;fill:#C83737;}
+	.st2{fill:#C83737;}
+	.st3{fill:#3CC537;}
+</style>
+<path class="st0" d="M45.7,0h324.8c24.9,0,45.1,31.3,45.1,70l0,0v916.4c0,38.7-20.2,70-45.1,70H45.7c-24.9,0-45.1-31.3-45.1-70V70
+	C0.6,31.3,20.8,0,45.7,0z"/>
+<path id="Triangle_1" class="st0" d="M247.9,1460c-17.3,46.8-60.8,46.8-78.2,0L7.8,1023.4c-17.3-46.7,4.4-104.9,39.1-104.9h323.8
+	c34.7,0,56.4,58.3,39.1,104.9L247.9,1460z"/>
+<path class="st1" d="M45.1,0H163c24.9,0,45.1,31.3,45.1,70l0,0v916c0,38.7-20.2,70-45.1,70H45.1C20.2,1056,0,1024.6,0,986V70
+	C0,31.3,20.2,0,45.1,0z"/>
+<rect x="150.8" y="1" class="st2" width="57.3" height="1055"/>
+<path id="Triangle_1-2" class="st1" d="M247.9,1460c-12.4,33.5-40,45-61.6,25.7c-6.9-6.2-12.6-15-16.6-25.7L7.8,1023.4
+	c-17.3-46.7,4.4-104.9,39.1-104.9h323.8c34.7,0,56.4,58.3,39.1,104.9c0,0-44.5,120-86.8,234.1C284.5,1361.2,247.9,1460,247.9,1460z
+	 M208.1,919l0.6,577l10.3-3h3.2l3.9-3l3.2-2l5.8-6l6.4-9l5.8-10l6.4-18l2.6-7l9.7-27l5.2-14l7.1-19l18-47l23.2-63l10.3-28l11-30
+	l13.5-36l16.1-45l14.2-37l3.9-11l3.2-9l15.5-41l2.6-7l4.5-15l0.6-9l0.6-3v-2l0.6-4l-0.6-12l-0.6-6l-0.6-4l-5.2-17l-3.9-9l-5.2-8
+	l-8.4-8l-8.4-6l-6.4-2"/>
+<rect x="210.1" y="679" class="st3" width="206.2" height="313"/>
 </svg>
