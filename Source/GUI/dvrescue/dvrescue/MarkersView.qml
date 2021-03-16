@@ -72,7 +72,8 @@ Item {
 
             DefaultToolTip {
                 visible: mouseTracker.containsMouse
-                text: tooltipFormatter ? tooltipFormatter(name, timecode, recordingTime) : name + " " + "timecode: " + timecode + ", recording time: " + recordingTime
+                text: tooltipFormatter ? tooltipFormatter(name, timecode, recordingTime, frameNumber)
+                                       : name + " " + "Timecode: " + timecode + ", Recording Time: " + recordingTime + ", Frame: " + frameNumber
             }
 
             MouseArea {
