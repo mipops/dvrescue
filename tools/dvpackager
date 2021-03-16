@@ -517,7 +517,7 @@ while [[ "${@}" != "" ]] ; do
                     fi
                     AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                 fi
-                if [[ "${RDT:0:4}" -ge 1995 ]] ; then
+                if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
                         METADATA+=(-metadata "DATE_RECORDED=${RDT}")
                     elif [[ "${EXTENSION}" = "mov" ]] ; then
