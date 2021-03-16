@@ -1,0 +1,17 @@
+<svg id="last-frame" xmlns="http://www.w3.org/2000/svg" width="2439.57" height="1732.412" viewBox="0 0 2439.57 1732.412">
+  <defs>
+    <style>
+      .cls-1, .cls-2 {
+        stroke: #000;
+        stroke-width: 124.76px;
+      }
+
+      .cls-2 {
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <rect id="Rounded_Rectangle_1" data-name="Rounded Rectangle 1" class="cls-1" x="62.38" y="62.692" width="239" height="1595" rx="100" ry="100"/>
+  <path id="Triangle_1" data-name="Triangle 1" class="cls-2" d="M1804.03,1118.81c-61.79-39.35-61.71-129.583.16-168.809L2912.27,247.4c66.62-42.239,153.62,5.671,153.55,84.55l-1.36,1407.344c-0.07,78.88-87.17,126.62-153.71,84.25Z" transform="translate(-688.62 -169.308)"/>
+  <path id="Triangle_1-2" data-name="Triangle 1" class="cls-2" d="M899.025,1118.81c-61.787-39.35-61.7-129.583.163-168.809L2007.27,247.4c66.62-42.239,153.62,5.671,153.55,84.55l-1.36,1407.344c-0.07,78.88-87.17,126.62-153.71,84.25Z" transform="translate(-688.62 -169.308)"/>
+</svg>

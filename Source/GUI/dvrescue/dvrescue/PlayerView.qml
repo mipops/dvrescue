@@ -148,7 +148,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/rewind.svg"
+                icon.source: "icons/first-frame.svg"
                 onClicked: {
                     player.seekEx(0)
                 }
@@ -183,7 +183,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/fastforward.svg"
+                icon.source: "icons/last-frame.svg"
                 onClicked: {
                     player.seek(player.duration - 1)
                 }

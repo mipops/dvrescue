@@ -71,5 +71,7 @@
         <file>icons/record-marker-stop-table.svg</file>
         <file>DefaultToolTip.qml</file>
         <file>MarkersView.qml</file>
+        <file>icons/first-frame.svg</file>
+        <file>icons/last-frame.svg</file>
     </qresource>
 </RCC>
