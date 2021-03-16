@@ -1,0 +1,13 @@
+<svg id="expand" xmlns="http://www.w3.org/2000/svg" width="1792.076" height="1539.668" viewBox="0 0 1792.076 1539.668">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: #000;
+        stroke-width: 124.76px;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <path id="Rounded_Rectangle_1" data-name="Rounded Rectangle 1" class="cls-1" d="M2541.76,1736.2l-33.4,20.13a99.991,99.991,0,0,1-137.27-34.01L1650.88,527.611a100.009,100.009,0,0,1,34.01-137.27l33.41-20.135a100,100,0,0,1,137.27,34.014l720.2,1194.71A99.993,99.993,0,0,1,2541.76,1736.2Z" transform="translate(-860.464 -293.432)"/>
+  <path id="Rounded_Rectangle_1-2" data-name="Rounded Rectangle 1" class="cls-1" d="M971.24,1736.2l33.4,20.13a99.991,99.991,0,0,0,137.27-34.01L1862.12,527.611a100.009,100.009,0,0,0-34.01-137.27l-33.41-20.135a100,100,0,0,0-137.27,34.014l-720.2,1194.71A100,100,0,0,0,971.24,1736.2Z" transform="translate(-860.464 -293.432)"/>
+</svg>

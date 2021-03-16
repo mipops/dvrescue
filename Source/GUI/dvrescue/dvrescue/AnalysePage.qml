@@ -205,8 +205,8 @@ Item {
                     property string dvRescueXmlExtension: ".dvrescue.xml"
                     property int fileViewerHeight: 0
 
-                    Button {
-                        text: qsTr("Add files")
+                    CustomButton {
+                        icon.source: "icons/add-files.svg"
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
@@ -218,8 +218,8 @@ Item {
                         }
                     }
 
-                    Button {
-                        text: qsTr("Recent")
+                    CustomButton {
+                        icon.source: "icons/recent.svg"
 
                         onClicked: {
                             var mapped = mapToItem(root, 0, 0);

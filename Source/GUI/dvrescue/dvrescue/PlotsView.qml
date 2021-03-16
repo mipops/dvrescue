@@ -260,21 +260,10 @@ Rectangle {
         height: zoomInButton.height
         property int zoomFactor: 2
 
-        Button {
+        CustomButton {
             id: zoomInButton
-            implicitHeight: 38
-            implicitWidth: 60
-            background: Item {}
             icon.source: "icons/button-zoom-in.svg"
-            icon.width: width
-            icon.height: height
-            icon.color: "white"
-            padding: 0
-            topInset: 0
-            leftInset: 0
-            bottomInset: 0
-            rightInset: 0
-            // text: "+"
+
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
@@ -284,21 +273,9 @@ Rectangle {
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
             }
         }
-        Button {
+        CustomButton {
             id: zoomAllButton
-            implicitHeight: 38
-            implicitWidth: 60
-            background: Item {}
             icon.source: "icons/button-fit-to-screen.svg"
-            icon.width: width
-            icon.height: height
-            icon.color: "white"
-            padding: 0
-            topInset: 0
-            leftInset: 0
-            bottomInset: 0
-            rightInset: 0
-            // text: "|"
 
             onClicked: {
                 scroll.size = 1
@@ -308,21 +285,9 @@ Rectangle {
             }
         }
 
-        Button {
+        CustomButton {
             id: customZoomButton
-            implicitHeight: 38
-            implicitWidth: 60
-            background: Item {}
             icon.source: "icons/button-custom-range.svg"
-            icon.width: width
-            icon.height: height
-            icon.color: "white"
-            padding: 0
-            topInset: 0
-            leftInset: 0
-            bottomInset: 0
-            rightInset: 0
-            // text: "Custom"
 
             Connections {
                 target: dataModel
@@ -389,21 +354,10 @@ Rectangle {
             }
         }
 
-        Button {
+        CustomButton {
             id: zoomOutButton
-            implicitHeight: 38
-            implicitWidth: 60
-            background: Item {}
             icon.source: "icons/button-zoom-out.svg"
-            icon.width: width
-            icon.height: height
-            icon.color: "white"
-            padding: 0
-            topInset: 0
-            leftInset: 0
-            bottomInset: 0
-            rightInset: 0
-            // text: "-"
+
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
