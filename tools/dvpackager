@@ -45,6 +45,7 @@ Options:
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
 
  -F <path> (provide a custom ffmpeg path)
+ -M <path> (provide a custom mediainfo path)
 
  For example, the following command:
 
@@ -181,7 +182,9 @@ _duration_from_pts_range(){
 _count_dv_frames(){
     if [[ -f "${MEDIAINFO_PATH}" ]] ; then
         INPUT_FILE="${1}"
-        mediainfo -f --inform="Video;%FrameCount%" "${INPUT_FILE}" | head -n 1
+        "${MEDIAINFO_PATH}" -f --inform="Video;%FrameCount%" "${INPUT_FILE}" | head -n 1
+    else
+        _report -w "Warning: Missing mediainfo, dvpackager can still package but some verification checks can not run."
     fi
 }
 
@@ -263,10 +266,6 @@ if [[ "${FFMPEG_DL}" = "N" ]] && ! ( \
     _report -w "Using this current install of ffmpeg may result in out of sync audio."
 fi
 
-MEDIAINFO_PATH="$(which mediainfo)"
-if [[ -z "${MEDIAINFO_PATH}" ]] ; then
-    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized. Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download."
-fi
 FFMPEG_VERBOSE=(-v quiet -stats)
 REPORT_ONLY="N"
 EXT="mkv"
@@ -274,7 +273,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:M:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -289,6 +288,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:" opt ; do
         v) unset FFMPEG_VERBOSE ;;
         u) UNPACKAGER="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
+        M) MEDIAINFO_PATH="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -300,6 +300,14 @@ OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
+
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    MEDIAINFO_PATH="$(which mediainfo)"
+fi
+if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
+    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
+    _report -d "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
+fi
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -553,10 +561,10 @@ while [[ "${@}" != "" ]] ; do
                 fi
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
-                    AUD_STREAM_COUNT="$(mediainfo -f --Output="General;%AudioCount%" "${OUTPUT_FILE}")"
+                    AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}")"
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
-                        VID_DUR="$(mediainfo -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
-                        AUD_DUR="$(mediainfo -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                        VID_DUR="$("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
+                        AUD_DUR="$("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1)"
                         DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                             :
