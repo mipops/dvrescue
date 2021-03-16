@@ -332,13 +332,15 @@ Rectangle {
                         anchors.centerIn: parent
                     }
 
-                    Button {
+                    CustomButton {
                         id: deleteButton
                         anchors.left: parent.left
                         anchors.leftMargin: 2
-                        text: "x"
-                        height: parent.height
-                        width: height
+
+                        icon.color: "black"
+                        icon.source: "icons/exit.svg"
+                        implicitHeight: parent.height
+                        implicitWidth: implicitHeight
 
                         onClicked: {
                             deleteEntry(row);

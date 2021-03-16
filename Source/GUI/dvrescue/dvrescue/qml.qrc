@@ -73,5 +73,9 @@
         <file>MarkersView.qml</file>
         <file>icons/first-frame.svg</file>
         <file>icons/last-frame.svg</file>
+        <file>icons/add-files.svg</file>
+        <file>icons/exit.svg</file>
+        <file>icons/recent.svg</file>
+        <file>CustomButton.qml</file>
     </qresource>
 </RCC>
