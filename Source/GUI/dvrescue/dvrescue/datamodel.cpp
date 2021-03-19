@@ -466,16 +466,32 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
 
     map["Recording Marks"] = QPoint(recStart, recEnd);
 
-    fillAttribute("Arbitrary Bits", frameAttributes, "arb");
-    int arbitraryBitsRepeat = 0;
-    if(frameAttributes.hasAttribute("arb_r"))
-        arbitraryBitsRepeat = frameAttributes.value("arb_r").toInt();
+    if(frameAttributes.hasAttribute("seqn"))
+    {
+        fillAttribute("Sequence Number", frameAttributes, "seqn");
+        int arbitraryBitsRepeat = 0;
+        if(frameAttributes.hasAttribute("seqn_r"))
+            arbitraryBitsRepeat = frameAttributes.value("seqn_r").toInt();
 
-    auto arbitraryBitsJump = 0;
-    if(frameAttributes.hasAttribute("arb_nc"))
-        arbitraryBitsJump = frameAttributes.value("arb_nc").toInt();
+        auto arbitraryBitsJump = 0;
+        if(frameAttributes.hasAttribute("seqn_nc"))
+            arbitraryBitsJump = frameAttributes.value("seqn_nc").toInt();
 
-    map["Arbitrary Bits: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
+        map["Sequence Number: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
+    }
+    else // backward compatibility...
+    {
+        fillAttribute("Sequence Number", frameAttributes, "arb");
+        int arbitraryBitsRepeat = 0;
+        if(frameAttributes.hasAttribute("arb_r"))
+            arbitraryBitsRepeat = frameAttributes.value("arb_r").toInt();
+
+        auto arbitraryBitsJump = 0;
+        if(frameAttributes.hasAttribute("arb_nc"))
+            arbitraryBitsJump = frameAttributes.value("arb_nc").toInt();
+
+        map["Sequence Number: Jump/Repeat"] = QPoint(arbitraryBitsJump, arbitraryBitsRepeat);
+    }
 
     map["CC"] = "";
     if(framesAttributes.hasAttribute("captions"))

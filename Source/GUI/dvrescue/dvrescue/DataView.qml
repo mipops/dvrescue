@@ -179,7 +179,7 @@ Rectangle {
             }
 
             DelegateChoice {
-                column: dataModel.arbitraryBitsColumn
+                column: dataModel.sequenceNumberColumn
 
                 JumpRepeatTextDelegate {
                     height: tableView.delegateHeight
@@ -564,7 +564,7 @@ Rectangle {
 
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
-        property int arbitraryBitsColumn: columnsNames.indexOf("Arbitrary Bits");
+        property int sequenceNumberColumn: columnsNames.indexOf("Sequence Number");
         property int captionsColumn: columnsNames.indexOf("CC");
 
         property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
@@ -621,8 +621,8 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Arbitrary Bits";
-            decoration: "Arbitrary Bits: Jump/Repeat"
+            display: "Sequence Number";
+            decoration: "Sequence Number: Jump/Repeat"
             property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
         }
 
