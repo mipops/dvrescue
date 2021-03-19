@@ -265,6 +265,33 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             else
                 C.XmlFile = File;
         }
+        else if (!strncmp(argv_ansi[i], "--", 2))
+        {
+            //Library options, we may accept either --option value or --option=value
+            String Option(argv[i] + 2);
+            auto EqualPos = Option.find('=');
+            String Value;
+            if (EqualPos != string::npos)
+            {
+                Value.assign(Option, EqualPos + 1);
+                Option.resize(EqualPos);
+                EqualPos = 0;
+            }
+            else
+            {
+                if (++i >= argc)
+                {
+                    if (C.Err)
+                        *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                    return ReturnValue_ERROR;
+                }
+                Value.assign(argv[i]);
+                EqualPos = 1;
+            }
+            String Result = MediaInfoLib::MediaInfo::Option_Static(Option, Value);
+            if (C.Err && !Result.empty())
+                *C.Err << "Warning: issue with " << argv_ansi[i - EqualPos];
+        }
         else
         {
             if (C.WebvttFile || C.XmlFile || !Merge_OutputFileName.empty())
