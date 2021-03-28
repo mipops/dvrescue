@@ -47,6 +47,7 @@ Options:
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
  -D <path> (provide a custom dvrescue path)
+ -X <path> (provide a custom xmlstarlet path)
 
  For example, the following command:
 
@@ -100,7 +101,7 @@ _get_ranges(){
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
         if [[ -n "${PTSx}" ]] ; then
             Ny=$((N-1)) # end frame of a sequence is the start frame of the next
-            LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_pack_aud|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+            LAST_FRAME_NO_AUDIO="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_pack_aud|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
             echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
         fi
         PTSx="${PTS}"
@@ -119,7 +120,7 @@ _get_ranges(){
         FRAMES_ENDPTSx="${FRAMES_ENDPTS}"
         COUNT_FRAMEx="${COUNT_FRAME}"
         PKT_POSx="${PKT_POS}"
-    done < <(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
+    done < <("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
         -v "@pts" -o "|" \
         -v "${RELATIVE_FRAMES_END}/@end_pts" -o "|" \
         -v "@n" -o "|" \
@@ -137,8 +138,8 @@ _get_ranges(){
         -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
-    LAST_FRAME_NO_AUDIO="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
-    LAST_FRAME_N="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
+    LAST_FRAME_NO_AUDIO="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
+    LAST_FRAME_N="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
     echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|${LAST_FRAME_N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
 }
 
@@ -274,7 +275,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:M:D:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -291,6 +292,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:D:" opt ; do
         F) FFMPEG_PATH="${OPTARG}" ;;
         M) MEDIAINFO_PATH="${OPTARG}" ;;
         D) DVRESCUE_PATH="${OPTARG}" ;;
+        X) XMLSTARLET_PATH="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -322,6 +324,13 @@ if [[ -z "${DVRESCUE_PATH}" ]] ; then
 fi
 if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
     _report -w "The dvrescue command-line tool is not found."
+    exit 1
+fi
+if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+    XMLSTARLET_PATH="$(which xmlstarlet)"
+fi
+if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+    _report -w "The xmlstarlet command-line tool is not found."
     exit 1
 fi
 
@@ -403,7 +412,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
             echo -n "Packaging ${BASENAME}"
         fi
         # check if the dvrescue xml is already made
-        FIRST_OFFSET="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]/d:frames[1]/d:frame[1]" -v "@pos" -n "${DVRESCUE_XML}" 2>/dev/null)"
+        FIRST_OFFSET="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]/d:frames[1]/d:frame[1]" -v "@pos" -n "${DVRESCUE_XML}" 2>/dev/null)"
         if [[ -z "${FIRST_OFFSET}" || ( "${SUBS}" = "Y" && ! -f "${DVRESCUE_TECHSUBS}" ) ]] ; then
             echo -n ", making dvrescue xml file"
             if [[ "${SUBS}" = "Y" ]] ; then
@@ -412,7 +421,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
             fi
             "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
-            ERROR="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${DVRESCUE_XML_TEMP}")"
+            ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${DVRESCUE_XML_TEMP}")"
             if [[ -n "${ERROR}" ]] ; then
                 echo ". Error: ${BASENAME} (${ERROR})."
                 exit 1
@@ -431,8 +440,8 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 fi
             fi
         fi
-        DV_FRAME_COUNT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
-        SOURCE_FORMAT="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
+        DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
+        SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
             MOV_INPUT_OPT=(-ignore_editlist true)
             MOV_SHOWINFO="$("${FFMPEG_PATH}" "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
@@ -445,7 +454,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
             MOV_FIRST_FRAME_CHECK="$(echo "if ((${MOV_PTS_2} - ${MOV_PTS_0})/2 == ${MOV_PTS_1}) 1 else 0" | bc -l)"
         fi
         _ranges_2_table "$(_get_ranges)"
-        #DVRESCUE_VERSION="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
+        #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         if [[ "$REPORT_ONLY" != "Y" ]] ; then
             case "${EXT}" in
