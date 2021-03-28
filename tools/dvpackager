@@ -46,6 +46,7 @@ Options:
 
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
+ -D <path> (provide a custom dvrescue path)
 
  For example, the following command:
 
@@ -273,7 +274,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:M:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:M:D:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -289,6 +290,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:" opt ; do
         u) UNPACKAGER="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
         M) MEDIAINFO_PATH="${OPTARG}" ;;
+        D) DVRESCUE_PATH="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -314,6 +316,13 @@ fi
 if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
     _report -d "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
+fi
+if [[ -z "${DVRESCUE_PATH}" ]] ; then
+    DVRESCUE_PATH="$(which dvrescue)"
+fi
+if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
+    _report -w "The dvrescue command-line tool is not found."
+    exit 1
 fi
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
@@ -402,7 +411,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 OUTPUTOPTS+=(--cc-format scc)
                 OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
             fi
-            dvrescue "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
+            "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
             ERROR="$(xmlstarlet sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${DVRESCUE_XML_TEMP}")"
             if [[ -n "${ERROR}" ]] ; then
                 echo ". Error: ${BASENAME} (${ERROR})."
