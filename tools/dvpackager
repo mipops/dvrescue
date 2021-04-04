@@ -403,25 +403,35 @@ OPT_OUTPUT+=(-f "$FORMAT")
     else
         SIDECAR_DIR="${DVFILE}_dvrescue"
     fi
-    if [[ -z "${DVRESCUE_XML}" || ! -f "${DVRESCUE_XML}" ]] ; then
-        DVRESCUE_XML_TEMP="$(_maketemp)"
+    if [[ -z "${DVRESCUE_XML}" ]] ; then
         DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-        OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
-        XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
+        if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+            DVRESCUE_XML_TEMP="$(_maketemp)"
+            OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
+            XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
+        else
+            XML_TO_CHECK="${DVRESCUE_XML}"
+        fi
     else
         XML_TO_CHECK="${DVRESCUE_XML}"
     fi
-    if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_TECHSUBS}" || ! -f "${DVRESCUE_TECHSUBS}" ) ]] ; then
-        DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
-        DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
-        OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
-    fi
-    if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_SCC}" || ! -f "${DVRESCUE_SCC}" ) ]] ; then
-        DVRESCUE_SCC_TEMP="$(_maketemp).scc"
-        DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
-        DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
-        OUTPUTOPTS+=(--cc-format scc)
-        OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
+    if [[ "${SUBS}" = "Y" ]]; then
+        if [[ -z "${DVRESCUE_TECHSUBS}" ]] ; then
+            DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
+            if [[ ! -f "${DVRESCUE_TECHSUBS}" ]] ; then
+                DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
+                OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
+            fi
+        fi
+        if [[ -z "${DVRESCUE_SCC}" ]] ; then
+            DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
+            DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
+            if [[ ! -f "${DVRESCUE_SCC}" ]] ; then
+                DVRESCUE_SCC_TEMP="$(_maketemp).scc"
+                OUTPUTOPTS+=(--cc-format scc)
+                OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
+            fi
+        fi
     fi
     TOTAL_DVFRAMES_PACKAGED="0"
     if [[ -f "${DVFILE}" ]] ; then
@@ -430,9 +440,9 @@ OPT_OUTPUT+=(-f "$FORMAT")
         else
             echo -n "Packaging ${BASENAME}"
         fi
-        # check if the dvrescue xml is already made
-        echo ", making dvrescue outputs"
         if [[ "${#OUTPUTOPTS[@]}" != 0 ]]; then
+            # if dvrescue outputs are needed then let's make them
+            echo ", making dvrescue outputs"
             "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}"
         fi
         ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${XML_TO_CHECK}")"
