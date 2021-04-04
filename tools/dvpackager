@@ -444,7 +444,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
             echo ", making dvrescue outputs"
             "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}"
         fi
-        ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${XML_TO_CHECK}")"
+        ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" "${XML_TO_CHECK}")"
         if [[ -n "${ERROR}" ]] ; then
             echo ". Error: ${BASENAME} (${ERROR})."
             exit 1
@@ -467,7 +467,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
             fi
         fi
         DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
-        SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
+        SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" "${DVRESCUE_XML}" 2>/dev/null)"
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
             MOV_INPUT_OPT=(-ignore_editlist true)
             MOV_SHOWINFO="$("${FFMPEG_PATH}" "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
