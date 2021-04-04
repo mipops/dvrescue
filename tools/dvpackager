@@ -92,16 +92,13 @@ _maketemp(){
 _get_ranges(){
     if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
         RANGE_MATCH="d:dvrescue/d:media/d:frames[1]/d:frame[1]"
-        RELATIVE_FRAMES_START="../../d:frames[last()]"
-        RELATIVE_FRAMES_END="../../d:frames[last()]"
+        RELATIVE_FRAMES="../../d:frames[last()]"
     elif [[ -n "${1}" ]] ; then
         RANGE_MATCH="${1}"
-        RELATIVE_FRAMES_START="parent::d:frames"
-        RELATIVE_FRAMES_END="parent::d:frames"
+        RELATIVE_FRAMES="parent::d:frames"
     else
         RANGE_MATCH="${MATCH_FRAMES}"
-        RELATIVE_FRAMES_START="parent::d:frames"
-        RELATIVE_FRAMES_END="parent::d:frames"
+        RELATIVE_FRAMES="parent::d:frames"
     fi
     unset PTSx
     while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
@@ -128,20 +125,20 @@ _get_ranges(){
         PKT_POSx="${PKT_POS}"
     done < <("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
         -v "@pts" -o "|" \
-        -v "${RELATIVE_FRAMES_END}/@end_pts" -o "|" \
+        -v "${RELATIVE_FRAMES}/@end_pts" -o "|" \
         -v "@n" -o "|" \
         -v "@tc" -o "|" \
         -v "@rdt" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@size" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@video_rate" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@chroma_subsampling" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@aspect_ratio" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@audio_rate" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@channels" -o "|" \
+        -v "${RELATIVE_FRAMES}/@size" -o "|" \
+        -v "${RELATIVE_FRAMES}/@video_rate" -o "|" \
+        -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
+        -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
+        -v "${RELATIVE_FRAMES}/@audio_rate" -o "|" \
+        -v "${RELATIVE_FRAMES}/@channels" -o "|" \
         -v "@rec_start" -o "|" \
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
-        -v "${RELATIVE_FRAMES_START}/@end_pts" -o "|" \
+        -v "${RELATIVE_FRAMES}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
         -v "@pos" -n "${DVRESCUE_XML}")
     LAST_FRAME_NO_AUDIO="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
