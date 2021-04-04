@@ -48,6 +48,12 @@ Options:
  -M <path> (provide a custom mediainfo path)
  -D <path> (provide a custom dvrescue path)
  -X <path> (provide a custom xmlstarlet path)
+ -x <path> (provide a custom path to a DVRescue XML that corresponds to the
+            input file)
+ -V <path> (provide a custom path to a DVRescue technical subtitle file that
+            corresponds to the input file, ignored if -S is not set)
+ -C <path> (provide a custom path to a DVRescue SCC that corresponds to the
+           input file, ignored if -S is not set)
 
  For example, the following command:
 
@@ -275,7 +281,7 @@ SUBS="N"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
@@ -293,6 +299,9 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:" opt ; do
         M) MEDIAINFO_PATH="${OPTARG}" ;;
         D) DVRESCUE_PATH="${OPTARG}" ;;
         X) XMLSTARLET_PATH="${OPTARG}" ;;
+        x) DVRESCUE_XML="${OPTARG}" ;;
+        V) DVRESCUE_TECHSUBS="${OPTARG}" ;;
+        C) DVRESCUE_SCC="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -397,13 +406,26 @@ OPT_OUTPUT+=(-f "$FORMAT")
     else
         SIDECAR_DIR="${DVFILE}_dvrescue"
     fi
+    if [[ -z "${DVRESCUE_XML}" || ! -f "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML_TEMP="$(_maketemp)"
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+        OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
+        XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
+    else
+        XML_TO_CHECK="${DVRESCUE_XML}"
+    fi
+    if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_TECHSUBS}" || ! -f "${DVRESCUE_TECHSUBS}" ) ]] ; then
     DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
     DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
+        OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
+    fi
+    if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_SCC}" || ! -f "${DVRESCUE_SCC}" ) ]] ; then
     DVRESCUE_SCC_TEMP="$(_maketemp).scc"
     DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
     DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
+        OUTPUTOPTS+=(--cc-format scc)
+        OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
+    fi
     TOTAL_DVFRAMES_PACKAGED="0"
     if [[ -f "${DVFILE}" ]] ; then
         if [[ "${REPORT_ONLY}" = "Y" ]] ; then
@@ -412,16 +434,11 @@ OPT_OUTPUT+=(-f "$FORMAT")
             echo -n "Packaging ${BASENAME}"
         fi
         # check if the dvrescue xml is already made
-        FIRST_OFFSET="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]/d:frames[1]/d:frame[1]" -v "@pos" -n "${DVRESCUE_XML}" 2>/dev/null)"
-        if [[ -z "${FIRST_OFFSET}" || ( "${SUBS}" = "Y" && ! -f "${DVRESCUE_TECHSUBS}" ) ]] ; then
-            echo -n ", making dvrescue xml file"
-            if [[ "${SUBS}" = "Y" ]] ; then
-                OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
-                OUTPUTOPTS+=(--cc-format scc)
-                OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
+            echo ", making dvrescue outputs"
+            if [[ "${#OUTPUTOPTS[@]}" != 0 ]]; then
+            "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}"
             fi
-            "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}" --xml-output "${DVRESCUE_XML_TEMP}"
-            ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${DVRESCUE_XML_TEMP}")"
+            ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${XML_TO_CHECK}")"
             if [[ -n "${ERROR}" ]] ; then
                 echo ". Error: ${BASENAME} (${ERROR})."
                 exit 1
@@ -430,16 +447,19 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 if [[ ! -d "${SIDECAR_DIR}" ]] ; then
                     mkdir -p "${SIDECAR_DIR}"
                 fi
+                if [[ -s "${DVRESCUE_XML_TEMP}" ]] ; then
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
+                fi
                 if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
                     mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
                 fi
                 if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
                     mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
+                fi
+                if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
                     "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
                 fi
             fi
-        fi
         DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
         SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
