@@ -81,7 +81,7 @@ if [ "${#}" = 0 ] ; then
 fi
 
 _maketemp(){
-    mktemp -q "/tmp/$(basename "${0}").XXXXXX"
+    mktemp -q -t "$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
         _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
