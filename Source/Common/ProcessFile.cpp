@@ -238,6 +238,8 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
         if (Dseq >= PerFrame_Captions_PerSeq_PerField.size())
             PerFrame_Captions_PerSeq_PerField.resize(Dseq + 1);
         auto& PerSeq = PerFrame_Captions_PerSeq_PerField[Dseq];
+        PerSeq.PTS = FrameData->PTS / 1000000000.0;
+        PerSeq.DUR = FrameData->DUR / 1000000000.0;
         auto& FieldData = PerSeq.FieldData[i];
         if (FieldData.empty() || FieldData.back().StartFrameNumber + FieldData.back().Captions.size() != FrameNumber)
             FieldData.emplace_back(FrameNumber);

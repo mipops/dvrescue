@@ -110,7 +110,7 @@ return_value Output_Webvtt(ostream& Out, std::vector<file*>& PerFile, ostream* E
                 // Empty line
                 Text += '\n';
 
-                auto TimeStamp2 = (FrameNumber + 1) / File->FrameRate;
+                auto TimeStamp2 = Frame->PTS / 1000000000.0;
                 seconds_to_timestamp(TimeStamp2_String, TimeStamp2, 3, true);
 
                 Text += TimeStamp_String;
