@@ -407,22 +407,22 @@ OPT_OUTPUT+=(-f "$FORMAT")
         SIDECAR_DIR="${DVFILE}_dvrescue"
     fi
     if [[ -z "${DVRESCUE_XML}" || ! -f "${DVRESCUE_XML}" ]] ; then
-    DVRESCUE_XML_TEMP="$(_maketemp)"
-    DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+        DVRESCUE_XML_TEMP="$(_maketemp)"
+        DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
         OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
         XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
     else
         XML_TO_CHECK="${DVRESCUE_XML}"
     fi
     if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_TECHSUBS}" || ! -f "${DVRESCUE_TECHSUBS}" ) ]] ; then
-    DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
-    DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
+        DVRESCUE_TECHSUBS_TEMP="$(_maketemp).vtt"
+        DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
         OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
     fi
     if [[ "${SUBS}" = "Y" && ( -z "${DVRESCUE_SCC}" || ! -f "${DVRESCUE_SCC}" ) ]] ; then
-    DVRESCUE_SCC_TEMP="$(_maketemp).scc"
-    DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
-    DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
+        DVRESCUE_SCC_TEMP="$(_maketemp).scc"
+        DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
+        DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
         OUTPUTOPTS+=(--cc-format scc)
         OUTPUTOPTS+=(--cc-output "${DVRESCUE_SCC_TEMP}")
     fi
@@ -434,32 +434,32 @@ OPT_OUTPUT+=(-f "$FORMAT")
             echo -n "Packaging ${BASENAME}"
         fi
         # check if the dvrescue xml is already made
-            echo ", making dvrescue outputs"
-            if [[ "${#OUTPUTOPTS[@]}" != 0 ]]; then
+        echo ", making dvrescue outputs"
+        if [[ "${#OUTPUTOPTS[@]}" != 0 ]]; then
             "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}"
+        fi
+        ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${XML_TO_CHECK}")"
+        if [[ -n "${ERROR}" ]] ; then
+            echo ". Error: ${BASENAME} (${ERROR})."
+            exit 1
+        else
+            # check if the sidecar directory is there
+            if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+                mkdir -p "${SIDECAR_DIR}"
             fi
-            ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" -n "${XML_TO_CHECK}")"
-            if [[ -n "${ERROR}" ]] ; then
-                echo ". Error: ${BASENAME} (${ERROR})."
-                exit 1
-            else
-                # check if the sidecar directory is there
-                if [[ ! -d "${SIDECAR_DIR}" ]] ; then
-                    mkdir -p "${SIDECAR_DIR}"
-                fi
-                if [[ -s "${DVRESCUE_XML_TEMP}" ]] ; then
+            if [[ -s "${DVRESCUE_XML_TEMP}" ]] ; then
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
-                fi
-                if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
-                    mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
-                fi
-                if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
-                    mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
-                fi
-                if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
-                    "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
-                fi
             fi
+            if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
+                mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
+            fi
+            if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
+                mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
+            fi
+            if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
+                "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
+            fi
+        fi
         DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
         SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" -n "${DVRESCUE_XML}" 2>/dev/null)"
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
