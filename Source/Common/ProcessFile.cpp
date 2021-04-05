@@ -205,7 +205,7 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
     // DV frame
     if (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
     {
-        if (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-") // Only for stdin
+        if (!Merge_OutputFileName.empty() && (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-")) // Only for stdin
             Merge.AddFrame(Merge_FilePos, FrameData);
         return;
     }

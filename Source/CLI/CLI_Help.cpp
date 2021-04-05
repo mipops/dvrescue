@@ -78,6 +78,9 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "        7: information per frame if there is a problem + summary.\n"
         "        9: information per frame + summary.\n"
         "\n"
+        "    --timeout value\n"
+        "        Time out limit for the pipe input (\"-\" file name) set to value (in seconds)\n"
+        "\n"
         "If no output file name is provided, XML output is displayed on console output."
         "\n"
         << endl;
