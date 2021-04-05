@@ -104,7 +104,7 @@ _get_ranges(){
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
 
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
-        --var "p=(${RANGE_MATCH_FS:-x})[1]/@n - 1" \
+        --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
         -v "@pts" -o "|" \
         --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
         -v "@n" -o "|" \
