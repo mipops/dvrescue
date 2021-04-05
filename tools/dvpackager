@@ -89,8 +89,10 @@ _maketemp(){
 }
 
 _get_ranges(){
+    FRAME_MATCH="d:dvrescue/d:media/d:frames"
     if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
-        RANGE_MATCH="d:dvrescue/d:media/d:frames[1]/d:frame[1]"
+        FRAME_MATCH="${FRAME_MATCH}[1]"
+        RANGE_MATCH="d:frame[1]"
         RELATIVE_FRAMES="../../d:frames[last()]"
     elif [[ -n "${1}" ]] ; then
         RANGE_MATCH="${1}"
@@ -99,34 +101,16 @@ _get_ranges(){
         RANGE_MATCH="${MATCH_FRAMES}"
         RELATIVE_FRAMES="parent::d:frames"
     fi
-    unset PTSx
-    while IFS="|" read PTS END_PTS N TC RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_S RDT_NC TC_NC FRAMES_ENDPTS COUNT_FRAME PKT_POS ; do
-        if [[ -n "${PTSx}" ]] ; then
-            Ny=$((N-1)) # end frame of a sequence is the start frame of the next
-            LAST_FRAME_NO_AUDIO="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[@n='${Ny}']/@no_pack|//d:frame[@n='${Ny}']/@no_pack_aud|//d:frame[@n='${Ny}']/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
-            echo "${PTSx}|${PTS}|${Nx}|${Ny}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
-        fi
-        PTSx="${PTS}"
-        Nx="${N}"
-        TCx="${TC}"
-        RDTx="${RDT}"
-        SIZEx="${SIZE}"
-        VIDEO_RATEx="${VIDEO_RATE}"
-        CH_SUBx="${CH_SUB}"
-        ARx="${AR}"
-        AUDIO_RATEx="${AUDIO_RATE}"
-        CHx="${CH}"
-        REC_Sx="${REC_S}"
-        RDT_NCx="${RDT_NC}"
-        TC_NCx="${TC_NC}"
-        FRAMES_ENDPTSx="${FRAMES_ENDPTS}"
-        COUNT_FRAMEx="${COUNT_FRAME}"
-        PKT_POSx="${PKT_POS}"
-    done < <("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "${RANGE_MATCH}" \
+    RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
+
+    "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
+        --var "p=(${RANGE_MATCH_FS:-x})[1]/@n - 1" \
         -v "@pts" -o "|" \
-        -v "${RELATIVE_FRAMES}/@end_pts" -o "|" \
+        --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
         -v "@n" -o "|" \
+        --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
         -v "@tc" -o "|" \
+        -v "@pos" -o "|" \
         -v "@rdt" -o "|" \
         -v "${RELATIVE_FRAMES}/@size" -o "|" \
         -v "${RELATIVE_FRAMES}/@video_rate" -o "|" \
@@ -137,12 +121,13 @@ _get_ranges(){
         -v "@rec_start" -o "|" \
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
-        -v "${RELATIVE_FRAMES}/@end_pts" -o "|" \
         -v "count(preceding-sibling::d:frame)" -o "|" \
-        -v "@pos" -n "${DVRESCUE_XML}")
-    LAST_FRAME_NO_AUDIO="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "count(//d:frame[last()]/@no_pack|//d:frame[last()]/@no_pack_aud|//d:frame[last()]/@no_sourceorcontrol_aud)" "${DVRESCUE_XML}")"
-    LAST_FRAME_N="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "//d:frames[last()]/d:frame[last()]/@n" "${DVRESCUE_XML}")"
-    echo "${PTSx}|${FRAMES_ENDPTSx}|${Nx}|${LAST_FRAME_N}|${TCx}|${PKT_POSx}|${RDTx}|${SIZEx}|${VIDEO_RATEx}|${CH_SUBx}|${ARx}|${AUDIO_RATEx}|${CHx}|${REC_Sx}|${RDT_NCx}|${TC_NCx}|${COUNT_FRAMEx}|${LAST_FRAME_NO_AUDIO}"
+        --if "\$p" \
+            -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
+        --else \
+            -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
+        --break \
+        -n "${DVRESCUE_XML}"
 }
 
 _ranges_2_table(){
@@ -196,7 +181,7 @@ _make_chapter_metadata_file(){
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${1}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${2}" | awk '{printf "%i", $1 * 100000}')"
     echo ";FFMETADATA1"
-    _get_ranges "d:dvrescue/d:media/d:frames/d:frame[1]|d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']" | \
+    _get_ranges "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']|d:frame[@tc_nc='1']" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
@@ -240,7 +225,7 @@ _report(){
     echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
-MATCH_FRAMES="d:dvrescue/d:media/d:frames/d:frame[1]|"
+MATCH_FRAMES="d:frame[1]|"
 if [[ -d "/usr/local/opt/ffmpegdecklink" ]] ; then
     BREW_PREFIX="/usr/local/opt/ffmpegdecklink"
 elif [[ -d "/home/linuxbrew/.linuxbrew/opt/ffmpegdecklink" ]] ; then
@@ -280,9 +265,9 @@ OPTIND=1
 while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rec_start='1']|" ;;
-        d) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@rdt_nc='1']|" ;;
-        t) MATCH_FRAMES+="d:dvrescue/d:media/d:frames/d:frame[@tc_nc='1']|" ;;
+        s) MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
+        d) MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
+        t) MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
