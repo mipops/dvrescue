@@ -10,7 +10,7 @@ import QtQuick.Controls 1.4 as QQC1
 
 ApplicationWindow {
     id: root
-    width: 1920
+    width: 1600
     height: 1280
     visible: true
     title: qsTr("DVRescue")
@@ -49,7 +49,6 @@ ApplicationWindow {
             // text: qsTr("Analysis")
             checkable: true;
             property int index: 1
-            checked: true
             icon.source: "icons/menu-analysis.svg"
         }
         NavButton {
@@ -57,6 +56,7 @@ ApplicationWindow {
             // text: qsTr("Package")
             checkable: true;
             property int index: 2
+            checked: true
             icon.source: "icons/menu-package.svg"
         }
         NavButton {
@@ -160,8 +160,8 @@ ApplicationWindow {
             id: analysePage
         }
 
-        Rectangle {
-            color: 'blue'
+        PackagePage {
+            id: packagePage
         }
     }
 
@@ -192,6 +192,7 @@ ApplicationWindow {
         property string avfctlCmd
         property string dvrescueCmd
         property alias recentFilesJSON: analysePage.recentFilesJSON
+        property alias recentPackageFilesJSON: packagePage.recentFilesJSON
     }
 
     Dialog {
@@ -251,9 +252,17 @@ ApplicationWindow {
 
     Window {
         id: debugView
-        visible: false
+        visible: true
         width: root.width / 2
         height: root.height
+
+        function logCommand(launcher) {
+            commandsLogs.logCommand(launcher)
+        }
+
+        function logResult(result) {
+            commandsLogs.logResult(result)
+        }
 
         Component.onCompleted: {
             x = root.width
@@ -261,7 +270,7 @@ ApplicationWindow {
         }
 
         Rectangle {
-            width: parent.width / 2
+            anchors.fill: parent
             color: "#ccffffff"
 
             TabBar {
@@ -278,6 +287,7 @@ ApplicationWindow {
             }
 
             StackLayout {
+                id: stack
                 anchors.top: tabBar.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
@@ -288,6 +298,7 @@ ApplicationWindow {
                     TextArea {
                         id: commandsLogs
                         selectByMouse: true
+                        wrapMode: TextEdit.WrapAnywhere
 
                         function logCommand(launcher) {
                             console.debug('logging command: ', launcher.program() + ' ' + launcher.arguments().join(' '))

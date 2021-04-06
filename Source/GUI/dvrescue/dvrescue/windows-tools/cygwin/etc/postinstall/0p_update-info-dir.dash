@@ -1,0 +1,29 @@
+#!/bin/dash
+
+# If an .info file has been added/removed/replaced in /usr/share/info since the
+# last time this script ran, rebuild the info directory.  We don't simply check
+# /usr/share/info's mtime, as that isn't correctly maintained on a FAT
+# filesystem.
+
+ls -n /usr/share/info/*info* | md5sum >/usr/share/info/.stamp.tmp
+
+if [ "$(cat /usr/share/info/.stamp.tmp)" != "$(cat /usr/share/info/.stamp)" ] ; then
+    echo "Rebuilding info directory"
+    rm -f /usr/share/info/dir.info /usr/share/info/dir
+    for f in /usr/share/info/*; do
+        case "$f" in
+            *\**)
+                ;;
+            */dir|*/dir.info*)
+                ;;
+            *-[0123456789]*)
+                ;;
+            *)
+                install-info $f /usr/share/info/dir
+                ;;
+        esac
+    done
+    mv /usr/share/info/.stamp.tmp /usr/share/info/.stamp
+else
+    rm /usr/share/info/.stamp.tmp
+fi

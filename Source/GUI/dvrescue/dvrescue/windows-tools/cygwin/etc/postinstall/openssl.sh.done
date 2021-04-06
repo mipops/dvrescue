@@ -1,0 +1,12 @@
+if [ ! -f /etc/pki/tls/ct_log_list.cnf ]
+then
+    /usr/bin/mkdir -p /etc/pki/tls
+    /usr/bin/cp /etc/defaults/etc/pki/tls/ct_log_list.cnf /etc/pki/tls/ct_log_list.cnf
+fi
+
+if [ ! -f /etc/pki/tls/openssl.cnf ]
+then
+    /usr/bin/mkdir -p /etc/pki/tls
+    /usr/bin/cp /etc/defaults/etc/pki/tls/openssl.cnf /etc/pki/tls/openssl.cnf
+fi
+

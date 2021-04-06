@@ -1,0 +1,6 @@
+if [ ! -f /etc/nanorc ]
+then
+    /usr/bin/mkdir -p /etc
+    /usr/bin/cp /etc/defaults/etc/nanorc /etc/nanorc
+fi
+

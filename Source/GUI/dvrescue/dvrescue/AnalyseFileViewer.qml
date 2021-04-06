@@ -16,7 +16,7 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
-        FileView {
+        AnalyseFileView {
             id: fileView
 
             Layout.fillHeight: true

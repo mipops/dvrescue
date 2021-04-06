@@ -1,0 +1,14 @@
+if [ ! -e "/etc/man_db.conf" ]
+then
+    /usr/bin/mkdir -p "/etc"
+    /usr/bin/cp "/etc/defaults/etc/man_db.conf" "/etc/man_db.conf"
+else
+        if [ -f /etc/man_db.conf  -a  -x /usr/bin/diff ]
+        then
+            /usr/bin/mkdir -p "/var/cache/setup/etc"
+            /usr/bin/rm -f "/var/cache/setup//etc/man_db.conf.diff"
+            /usr/bin/diff -wut "/etc/man_db.conf" "/etc/defaults/etc/man_db.conf" > "/var/cache/setup//etc/man_db.conf.diff" ||
+              echo "Defaults for /etc/man_db.conf differ from actual file, please check /var/cache/setup//etc/man_db.conf.diff"
+        fi
+fi
+

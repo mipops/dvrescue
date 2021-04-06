@@ -1,0 +1,22 @@
+# This file should contain a single keyword, the crypto policy to
+# be applied by default to applications. The available policies are 
+# restricted to the following profiles.
+#
+# * LEGACY: Ensures maximum compatibility with legacy systems (64-bit
+#   security).
+#
+# * DEFAULT: A reasonable default for today's standards (80-bit security).
+#
+# * NEXT: Policy which will become DEFAULT in some upcoming release of the
+#   operating system (112-bit security plus restriction of TLS to version 1.2
+#   and newer).
+#
+# * FUTURE: A level that will provide security on a conservative level that is
+#   believed to withstand any near-term future attacks (128-bit security).
+#
+# * FIPS: Policy that enables only FIPS 140-2 approved or allowed algorithms.
+#
+# After modifying this file, you need to run update-crypto-policies
+# for the changes to propagate.
+#
+DEFAULT

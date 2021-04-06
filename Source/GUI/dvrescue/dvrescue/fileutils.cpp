@@ -3,6 +3,8 @@
 #include <QStringList>
 #include <QTextStream>
 #include <QUrl>
+#include <QFileInfo>
+#include <QDebug>
 
 FileUtils::FileUtils(QObject *parent) : QObject(parent)
 {
@@ -113,4 +115,28 @@ bool FileUtils::remove(const QString &filePath)
 bool FileUtils::copy(const QString &target, const QString &destination)
 {
     return QFile::copy(target, destination);
+}
+
+QString FileUtils::find(const QString &what)
+{
+    QByteArray pEnv = qgetenv("PATH");
+    const QStringList rawPaths = QString::fromLocal8Bit(pEnv.constData()).split(QDir::listSeparator(), QString::SkipEmptyParts);
+
+    QStringList searchPaths;
+    searchPaths.reserve(rawPaths.size());
+    for (const QString &rawPath : rawPaths) {
+        QString cleanPath = QDir::cleanPath(rawPath);
+        if (cleanPath.size() > 1 && cleanPath.endsWith(QLatin1Char('/')))
+            cleanPath.truncate(cleanPath.size() - 1);
+        searchPaths.push_back(cleanPath);
+    }
+
+    const QDir currentDir = QDir::current();
+    for (const QString &searchPath : searchPaths) {
+        const QString candidate = currentDir.absoluteFilePath(searchPath + QLatin1Char('/') + what);
+        qDebug() << "checking path: " << candidate;
+        if (QFileInfo::exists(candidate))
+            return QUrl::fromLocalFile(candidate).toString();
+    }
+    return QString();
 }

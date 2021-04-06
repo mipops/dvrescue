@@ -36,7 +36,21 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QProcess::ExitStatus>();
 
     auto version = QtAV_Version_String();
+
     QApplication app(argc, argv);
+
+#ifdef Q_OS_WIN
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath =
+            QDir::toNativeSeparators(appDirPath + "/" + "cygwin/bin") + ";" +
+            QDir::toNativeSeparators(appDirPath + "/" + "scripts") + ";" +
+            QDir::toNativeSeparators(appDirPath + "/" + "tools") + ";";
+
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+#endif //
 
     app.setOrganizationName("dvrescue");
     app.setOrganizationDomain("dvrescue.com");

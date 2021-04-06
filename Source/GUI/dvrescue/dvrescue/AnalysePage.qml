@@ -187,7 +187,7 @@ Item {
 
                 spacing: 0
 
-                FileViewer {
+                AnalyseFileViewer {
                     id: fileViewer
                     Layout.fillWidth: true
                     Layout.fillHeight: true

@@ -20,6 +20,7 @@ public:
     Q_INVOKABLE QString read(const QString& filePath);
     Q_INVOKABLE bool remove(const QString& filePath);
     Q_INVOKABLE bool copy(const QString& target, const QString& destination);
+    Q_INVOKABLE QString find(const QString& what);
 public Q_SLOTS:
 };
 
