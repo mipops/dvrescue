@@ -72,6 +72,8 @@ public:
     };
     struct captions_data
     {
+        double PTS;
+        double DUR;
         vector<captions_fielddata> FieldData[2];
     };
     vector<captions_data> PerFrame_Captions_PerSeq_PerField;

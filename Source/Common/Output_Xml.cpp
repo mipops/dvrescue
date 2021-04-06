@@ -207,13 +207,13 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += '\"';
                 }
                 {
-                    auto TimeStamp_Begin = FrameNumber / File->FrameRate;
+                    auto TimeStamp_Begin = Frame->PTS / 1000000000.0; // FrameNumber / File->FrameRate;
                     Text += " pts=\"";
                     seconds_to_timestamp(Text, TimeStamp_Begin, 6);
                     Text += '\"';
                 }
                 {
-                    auto TimeStamp_End = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) / File->FrameRate;
+                    auto TimeStamp_End = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->PTS : (File->PerFrame.back()->PTS + File->PerFrame.back()->DUR)) / 1000000000.0; //(PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) / File->FrameRate;
                     Text += " end_pts=\"";
                     seconds_to_timestamp(Text, TimeStamp_End, 6);
                     Text += '\"';
@@ -296,7 +296,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
 
             if (ShowFrame)
             {
-                auto TimeStamp = FrameNumber / File->FrameRate;
+                auto TimeStamp = Frame->PTS / 1000000000.0;
 
                 Text += "\t\t\t<frame";
                 {

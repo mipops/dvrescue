@@ -168,7 +168,7 @@ struct decoded_data
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-static return_value Output_Captions_Decode(const string& ScreenOutName, const string& SrtOutName, double FrameRate, const vector<file::captions_fielddata>& PerFrame_Captions, int Field, ostream* Err)
+static return_value Output_Captions_Decode(const string& ScreenOutName, const string& SrtOutName, double FrameTimestamp, double FrameDuration, const vector<file::captions_fielddata>& PerFrame_Captions, int Field, ostream* Err)
 {
     auto ToReturn = ReturnValue_OK;
 
@@ -177,15 +177,12 @@ static return_value Output_Captions_Decode(const string& ScreenOutName, const st
 
     // File header
     auto handle = ccdecoder_line21_alloc();
-    auto FrameDuration = 1 / FrameRate;
 
     // By Frame - For each line
     for (const auto& Frame : PerFrame_Captions)
     {
         for (const auto& Caption : Frame.Captions)
         {
-            auto FrameNumber = Frame.StartFrameNumber + &Caption - &*Frame.Captions.begin();
-            auto FrameTimestamp = FrameNumber / FrameRate;
             auto status = ccdecoder_line21_parse(handle, (uint8_t*)&Caption.Data[0], 2, Field ? ccdecoder_fromfield2 : ccdecoder_fromfield1, FrameTimestamp, FrameTimestamp, FrameDuration);
             if (status&ccdecoder_haschanged)
             {
@@ -232,9 +229,7 @@ static return_value Output_Captions_Decode(const string& ScreenOutName, const st
                     if (handle->transports[transport_pos]->captions[caption_pos] && handle->transports[transport_pos]->captions[caption_pos]->status&ccdecoder_haschanged)
                         if (handle->transports[transport_pos]->captions[caption_pos]->user)
                         {
-                            auto FrameNumber = PerFrame_Captions.back().StartFrameNumber + PerFrame_Captions.back().Captions.size();
-                            auto FrameTimestamp = FrameNumber / FrameRate;
-                            auto Data = ccdecoder_subrip_parse((ccdecoder_subrip_handle*)handle->transports[transport_pos]->captions[caption_pos]->user, handle->transports[transport_pos]->captions[caption_pos], FrameTimestamp);
+                            auto Data = ccdecoder_subrip_parse((ccdecoder_subrip_handle*)handle->transports[transport_pos]->captions[caption_pos]->user, handle->transports[transport_pos]->captions[caption_pos], FrameTimestamp + FrameDuration);
                             if (Data)
                             {
                                 if (caption_pos >= DecodedData[1].size())
@@ -299,7 +294,7 @@ return_value Output_Captions_Decode(const string& ScreenOutName, const string& S
                 if (!SrtOutNameWithDseq.empty() && File->PerFrame_Captions_PerSeq_PerField.size() > 1)
                     InjectBeforeExtension(SrtOutNameWithDseq, ".dseq", i);
 
-                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Decode(ScreenOutNameWithDseq, SrtOutNameWithDseq, File->FrameRate, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], j, Err))
+                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Decode(ScreenOutNameWithDseq, SrtOutNameWithDseq, File->PerFrame_Captions_PerSeq_PerField[i].PTS, File->PerFrame_Captions_PerSeq_PerField[i].DUR, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], j, Err))
                     ToReturn = ReturnValue_ERROR;
             }
         }
