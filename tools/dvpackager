@@ -205,13 +205,18 @@ _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings
     local GREEN="$(tput setaf 2)"  # Green    - For Declarations
     local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local MAGENTA="$(tput setaf 5)" # Magenta - For Verbose Statements
     local NC="$(tput sgr0)"        # No Color
     local COLOR=""
     local STARTMESSAGE=""
     local ECHOOPT=""
+    local VERBOSE_CHECK=false
     OPTIND=1
-    while getopts "qdwstn" opt ; do
+    while getopts "vqdwstn" opt ; do
         case "${opt}" in
+            v) VERBOSE_CHECK=true ;
+               COLOR="${MAGENTA}" ;
+               STARTMESSAGE+="#" ;; # only output the message if DV_VERBOSE=true
             q) COLOR="${BLUE}" ;;                        # question mode, use color blue
             d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
             w) COLOR="${RED}" ;;                         # warning mode, use color red
@@ -222,7 +227,9 @@ _report(){
     done
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
-    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+    if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
+        echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+    fi
 }
 
 MATCH_FRAMES="d:frame[1]|"
@@ -256,6 +263,7 @@ if [[ "${FFMPEG_DL}" = "N" ]] && ! ( \
 fi
 
 FFMPEG_VERBOSE=(-v quiet -stats)
+DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mkv"
 SUBS="N"
@@ -274,7 +282,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
         L) CAPTION_LANG="${OPTARG}" ;;
         n) REPORT_ONLY="Y" ;;
         S) SUBS="Y" ;;
-        v) unset FFMPEG_VERBOSE ;;
+        v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
         u) UNPACKAGER="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
         M) MEDIAINFO_PATH="${OPTARG}" ;;
@@ -434,26 +442,35 @@ OPT_OUTPUT+=(-f "$FORMAT")
             echo ". Error: ${BASENAME} (${ERROR})."
             exit 1
         else
+            _report -v "No xmlstarlet error"
             # check if the sidecar directory is there
             if [[ ! -d "${SIDECAR_DIR}" ]] ; then
+                _report -v "Trying to make a directory at ${SIDECAR_DIR}"
                 mkdir -p "${SIDECAR_DIR}"
             fi
             if [[ -s "${DVRESCUE_XML_TEMP}" ]] ; then
+                _report -v "Trying to move the temporary xml from ${DVRESCUE_XML_TEMP} to ${DVRESCUE_XML}"
                 mv "${DVRESCUE_XML_TEMP}" "${DVRESCUE_XML}"
             fi
             if [[ -s "${DVRESCUE_TECHSUBS_TEMP}" ]] ; then
+                _report -v "Trying to move the temporary vtt tfrom ${DVRESCUE_TECHSUBS_TEMP} ${DVRESCUE_TECHSUBS}"
                 mv "${DVRESCUE_TECHSUBS_TEMP}" "${DVRESCUE_TECHSUBS}"
             fi
             if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
+                _report -v "Trying to move the temporary scc from ${DVRESCUE_SCC_TEMP} to ${DVRESCUE_SCC}"
                 mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
             fi
             if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
+                _report -v "Trying to convert the scc to vtt"
                 "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
             fi
         fi
         DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
+        _report -v "DV_FRAME_COUNT=(${DV_FRAME_COUNT})"
         SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" "${DVRESCUE_XML}" 2>/dev/null)"
+        _report -v "SOURCE_FORMAT=(${SOURCE_FORMAT})"
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
+            _report -v "Performing test of QuickTime PTS coherency."
             MOV_INPUT_OPT=(-ignore_editlist true)
             MOV_SHOWINFO="$("${FFMPEG_PATH}" "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
             MOV_PTS_0="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*0" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
@@ -463,7 +480,9 @@ OPT_OUTPUT+=(-f "$FORMAT")
             MOV_PTS_TIME_1="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*1" | grep -o "pts_time:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
             MOV_PTS_TIME_2="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*2" | grep -o "pts_time:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
             MOV_FIRST_FRAME_CHECK="$(echo "if ((${MOV_PTS_2} - ${MOV_PTS_0})/2 == ${MOV_PTS_1}) 1 else 0" | bc -l)"
+            _report -v "MOV_FIRST_FRAME_CHECK=(${MOV_FIRST_FRAME_CHECK}), MOV_SHOWINFO=(${MOV_SHOWINFO})"
         fi
+        _report -v "Trying to present a table of ranges"
         _ranges_2_table "$(_get_ranges)"
         #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
         #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
@@ -581,6 +600,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${START_BYTE[@]} -i ${DVFILE} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
                         "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
@@ -595,12 +615,14 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 # quick track duration check on the result
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
+                    _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
                         VID_DUR="$("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
                         AUD_DUR="$("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
                         DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
+                        _report -v "VID_DUR=(${VID_DUR}), AUD_DIR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
-                            :
+                            _report -v "DUR_DIFF is within an acceptable range."
                         else
                             _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                         fi
