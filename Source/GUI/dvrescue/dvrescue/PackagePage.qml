@@ -216,8 +216,36 @@ Item {
         }
     }
 
-    Button {
+    Rectangle {
+        color: 'white'
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.top: toolsLayout.bottom
+        anchors.bottom: parent.bottom
+    }
+
+    Row {
+        id: settingsRow
+        anchors.top: toolsLayout.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        CheckBox {
+            id: d
+            text: "-d"
+        }
+        CheckBox {
+            id: t
+            text: "-t"
+        }
+        CheckBox {
+            id: s
+            text: "-S"
+        }
+    }
+
+
+    Button {
+        anchors.top: settingsRow.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         text: "go"
         onClicked: {
@@ -227,7 +255,15 @@ Item {
             }
 
             busy.running = true;
-            packagerCtl.exec("-s " + path, (launcher) => {
+            var params = "-s " + path;
+            if(d.checked)
+                params = "-d " + params;
+            if(t.checked)
+                params = "-t " + params;
+            if(s.checked)
+                params = "-S " + params;
+
+            packagerCtl.exec(params, (launcher) => {
                 debugView.logCommand(launcher)
                 launcher.outputChanged.connect((outputString) => {
                     debugView.logResult(outputString);
