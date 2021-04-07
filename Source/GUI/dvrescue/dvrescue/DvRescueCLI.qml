@@ -4,17 +4,7 @@ import Launcher 0.1
 import FileUtils 1.0
 
 Item {
-    property string dvRescueName: Qt.platform.os === "windows" ? "DVRescue.exe" : "dvrescue"
-
-    property string detectedDvRescueCmd: StandardPaths.findExecutable(dvRescueName);
-    onDetectedDvRescueCmdChanged: {
-        console.debug('detectedDvRescueCmd: ', detectedDvRescueCmd)
-    }
-
-    property string dvrescueCmd: detectedDvRescueCmd ? FileUtils.getFilePath(detectedDvRescueCmd) : ''
-    onDvrescueCmdChanged: {
-        console.debug('dvrescueCmd: ', dvrescueCmd)
-    }
+    property string cmd
 
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
@@ -53,7 +43,7 @@ Item {
                 arguments[i] = arguments[i].replace("file.dv", file);
             }
 
-            launcher.execute(dvrescueCmd, arguments);
+            launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
         })

@@ -51,6 +51,9 @@ QString FileUtils::getFileName(const QString &filePath)
 
 QString FileUtils::getFilePath(const QString &urlOrPath)
 {
+    if(urlOrPath.isEmpty())
+        return urlOrPath;
+
     QUrl url(urlOrPath);
 
     return url.toLocalFile();

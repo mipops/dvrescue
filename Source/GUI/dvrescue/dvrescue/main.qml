@@ -62,10 +62,10 @@ ApplicationWindow {
         NavButton {
             // text: qsTr("Settings")
             onClicked: {
-                avfctlField.text = avfctl.avfctlCmd
+                avfctlField.text = settings.avfctlCmd
                 avfctlField.forceActiveFocus();
 
-                dvrescueField.text = dvrescue.dvrescueCmd
+                dvrescueField.text = settings.dvrescueCmd
                 avfctlDialog.open();
             }
             icon.source: "icons/menu-settings.svg"
@@ -167,16 +167,30 @@ ApplicationWindow {
 
     AvfCtl {
         id: avfctl
+        cmd: settings.avfctlCmd
+
+        Component.onCompleted: {
+            console.debug('avfctl completed...');
+        }
     }
 
     DvRescueCLI {
         id: dvrescue
+        cmd: settings.dvrescueCmd
+
+        Component.onCompleted: {
+            console.debug('dvrescuecli completed...');
+        }
+    }
+
+    PathResolver {
+        id: pathResolver
     }
 
     Settings {
         id: settings;
-        property alias avfctlCmd: avfctl.avfctlCmd
-        property alias dvrescueCmd: dvrescue.dvrescueCmd
+        property string avfctlCmd
+        property string dvrescueCmd
         property alias recentFilesJSON: analysePage.recentFilesJSON
     }
 
@@ -205,8 +219,8 @@ ApplicationWindow {
 
         standardButtons: Dialog.Cancel | Dialog.Ok
         onAccepted: {
-            avfctl.avfctlCmd = avfctlField.text
-            dvrescue.dvrescueCmd = dvrescueField.text
+            settings.avfctlCmd = avfctlField.text
+            settings.dvrescueCmd = dvrescueField.text
         }
         anchors.centerIn: parent
     }
@@ -317,6 +331,23 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    Component.onCompleted: {
+        console.debug('main.qml completed')
+
+        if(!settings.avfctlCmd)
+            settings.avfctlCmd = pathResolver.resolve("avfctl")
+        if(!settings.dvrescueCmd)
+            settings.dvrescueCmd = pathResolver.resolve("dvrescue")
+
+        console.debug('checking tools...')
+        if(settings.avfctlCmd.length === 0 || settings.dvrescueCmd.length === 0) {
+            avfctlField.text = settings.avfctlCmd
+            dvrescueField.text = settings.dvrescueCmd
+
+            avfctlDialog.visible = true
         }
     }
 }
