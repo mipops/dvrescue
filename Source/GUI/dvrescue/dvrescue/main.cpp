@@ -42,6 +42,22 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("dvrescue.com");
     app.setApplicationName("dvrescue");
 
+    QCommandLineParser parser;
+    parser.setApplicationDescription("dvrescue: GUI");
+
+    QCommandLineOption resetSettingsOption(QStringList() << "r" << "resetsettings", "reset application settings");
+    parser.addOption(resetSettingsOption);
+
+    parser.process(app.arguments());
+    if(parser.isSet(resetSettingsOption)) {
+        qDebug() << "resetting settings...";
+        QSettings settings;
+        auto allKeys = settings.allKeys();
+        for(auto& key : allKeys) {
+            settings.remove(key);
+        }
+    }
+
     QQuickStyle::setStyle("Material");
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
