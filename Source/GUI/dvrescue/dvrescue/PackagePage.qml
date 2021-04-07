@@ -191,7 +191,7 @@ Item {
             var getDvRescueShPromise = getCygwinPath(cygpath, dvRescueSh).then((r) => { console.debug('getDvRescueShPromise: ', r.outputText); dvRescueSh = r.outputText });
             var getFfmpegShPromise = getCygwinPath(cygpath, ffmpegSh).then((r) => { console.debug('getFfmpegShPromise: ', r.outputText); ffmpegSh = r.outputText });
             var getXmlShPromise = getCygwinPath(cygpath, xmlSh).then((r) => { console.debug('getXmlShPromise: ', r.outputText); xmlSh = r.outputText });
-            var getMediaInfoShPromise = getCygwinPath(cygpath, xmlSh).then((r) => { console.debug('getMediaInfoShPromise: ', r.outputText); xmlSh = r.outputText });
+            var getMediaInfoShPromise = getCygwinPath(cygpath, xmlSh).then((r) => { console.debug('getMediaInfoShPromise: ', r.outputText); mediaInfoSh = r.outputText });
 
             console.debug('Promise.all...');
             var waitAll = Promise.all([getDvRescueShPromise, getFfmpegShPromise, getXmlShPromise, getMediaInfoShPromise]).then(() => {
@@ -230,6 +230,10 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
 
         CheckBox {
+            id: s
+            text: "-s"
+        }
+        CheckBox {
             id: d
             text: "-d"
         }
@@ -238,7 +242,7 @@ Item {
             text: "-t"
         }
         CheckBox {
-            id: s
+            id: sBig
             text: "-S"
         }
 
@@ -261,13 +265,16 @@ Item {
             }
 
             busy.running = true;
-            var params = "-s " + path;
+            var params = path;
             if(d.checked)
                 params = "-d " + params;
             if(t.checked)
                 params = "-t " + params;
             if(s.checked)
+                params = "-s " + params;
+            if(sBig.checked)
                 params = "-S " + params;
+
             if(additional.text.length !== 0)
                 params = additional.text + " " + params
 
