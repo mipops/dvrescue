@@ -241,6 +241,12 @@ Item {
             id: s
             text: "-S"
         }
+
+        TextField {
+            id: additional
+            width: 400
+            placeholderText: "additional options..."
+        }
     }
 
 
@@ -262,6 +268,8 @@ Item {
                 params = "-t " + params;
             if(s.checked)
                 params = "-S " + params;
+            if(additional.text.length !== 0)
+                params = additional.text + " " + params
 
             packagerCtl.exec(params, (launcher) => {
                 debugView.logCommand(launcher)
