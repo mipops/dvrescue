@@ -30,6 +30,28 @@ Item {
         }
     }
 
+    Rectangle {
+        z: 100
+        color: 'darkgray'
+        opacity: 0.5
+        anchors.fill: parent
+        visible: busy.running
+
+        MouseArea {
+            anchors.fill: parent
+        }
+    }
+
+    BusyIndicator {
+        id: busy
+        z: 100
+        width: Math.min(parent.width, parent.height) / 3
+        height: width;
+        visible: running
+        running: false
+        anchors.centerIn: parent
+    }
+
     property string recentFilesJSON : ''
     property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
     function addRecent(filePath) {
@@ -204,6 +226,7 @@ Item {
                 path = "/cygdrive/" + path.replace(":", "");
             }
 
+            busy.running = true;
             packagerCtl.exec("-s " + path, (launcher) => {
                 debugView.logCommand(launcher)
                 launcher.outputChanged.connect((outputString) => {
@@ -211,6 +234,9 @@ Item {
                 })
             }).then(() => {
                 console.debug('executed....')
+                busy.running = false;
+            }).catch((error) => {
+                busy.running = false;
             });
         }
     }
