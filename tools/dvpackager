@@ -265,7 +265,7 @@ fi
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
 REPORT_ONLY="N"
-EXT="mkv"
+EXT="mov"
 SUBS="N"
 
 # command-line options to set media id and original variables
