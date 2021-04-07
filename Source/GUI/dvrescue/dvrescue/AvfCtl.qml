@@ -1,8 +1,20 @@
 import QtQuick 2.0
 import Launcher 0.1
+import Qt.labs.platform 1.1
+import FileUtils 1.0
 
 Item {
-    property string avfctlCmd: "plink dave -batch /Users/test/Downloads/dvrescue-git/tools/avfctl/avfctl"
+    property string avfctlName: Qt.platform.os === "windows" ? "avfctl.exe" : "avfctl"
+
+    property string detectedAvfctlCmd: StandardPaths.findExecutable(avfctlCmd);
+    onDetectedAvfctlCmdChanged: {
+        console.debug('detectedAvfctlCmd: ', detectedAvfctlCmd)
+    }
+
+    property string avfctlCmd: detectedAvfctlCmd ? FileUtils.getFilePath(detectedAvfctlCmd) : ''
+    onAvfctlCmdChanged: {
+        console.debug('avfctlCmd: ', avfctlCmd)
+    }
 
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
