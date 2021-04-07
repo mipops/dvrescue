@@ -174,7 +174,7 @@ Item {
             console.debug('Promise.all...');
             var waitAll = Promise.all([getDvRescueShPromise, getFfmpegShPromise, getXmlShPromise, getMediaInfoShPromise]).then(() => {
                 console.debug('Promise.all finished...');
-                extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
                                .replace("{xml}", xmlSh).replace("{ffmpeg}", ffmpegSh).replace("{dvrescue}", dvRescueSh).replace("{mediainfo}", mediaInfoSh)
             })
         }
