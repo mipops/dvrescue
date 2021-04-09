@@ -334,6 +334,9 @@ void DataModel::populate(const QString &fileName)
         qDebug() << "parser finished";
         Q_EMIT populated();
     });
+    connect(m_parser, &XmlParser::error, [this](const QString& errorString) {
+        Q_EMIT error(errorString);
+    });
 
     connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
         m_frames.append(std::make_tuple(frameNumber, FrameStats() ));

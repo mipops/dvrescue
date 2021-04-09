@@ -11,33 +11,45 @@ XmlParser::XmlParser(QObject *parent) : QObject(parent)
 
 void XmlParser::exec(QIODevice *device)
 {
-    QXmlStreamReader xml(device);
-    if(xml.readNextStartElement())
-    {
-        if(xml.name() == "dvrescue")
+    try {
+
+        QXmlStreamReader xml(device);
+        if(xml.readNextStartElement())
         {
-            if(xml.readNextStartElement())
+            if(xml.name() == "dvrescue")
             {
-                qDebug() << "name: " << xml.name();
+                if(xml.readNextStartElement())
+                {
+                    qDebug() << "name: " << xml.name();
 
-                if(xml.name() == "creator") {
+                    if(xml.name() == "creator") {
 
+                    }
+
+                    xml.skipCurrentElement();
                 }
 
-                xml.skipCurrentElement();
-            }
+                if(xml.readNextStartElement())
+                {
+                    qDebug() << "name: " << xml.name();
 
-            if(xml.readNextStartElement())
-            {
-                qDebug() << "name: " << xml.name();
+                    if(xml.name() == "media") {
+                        parseMedia(xml);
+                    }
 
-                if(xml.name() == "media") {
-                    parseMedia(xml);
+                    xml.skipCurrentElement();
                 }
-
-                xml.skipCurrentElement();
             }
         }
+
+    }
+
+    catch(std::exception& ex) {
+        Q_EMIT error(ex.what());
+    }
+
+    catch(...) {
+        Q_EMIT error("unexpected error");
     }
 
     Q_EMIT finished();
@@ -114,6 +126,8 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     Q_EMIT gotFrames(count, diff_seq_count);
 
     assert(diff_seq_count != 0);
+    if(diff_seq_count == 0)
+        throw std::exception("diff_seq_count = 0");
 
     auto captionOn = false;
     auto firstFrame = true;
