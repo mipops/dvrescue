@@ -110,7 +110,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     }
 
     // magic from Dave
-    auto diff_seq_count = 0;
+    auto diff_seq_count = 12;
     if(size == "720x576" && chroma_subsampling != "4:2:2")
         diff_seq_count = 12;
     else if(size == "720x480" && chroma_subsampling != "4:2:2")
@@ -124,10 +124,6 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     auto audio_error_den = diff_seq_count * audio_blocks_per_diff_seq;
 
     Q_EMIT gotFrames(count, diff_seq_count);
-
-    assert(diff_seq_count != 0);
-    if(diff_seq_count == 0)
-        throw std::exception("diff_seq_count = 0");
 
     auto captionOn = false;
     auto firstFrame = true;
