@@ -105,7 +105,7 @@ Rectangle {
                         parent: videoPlot.canvasItem
                         width: 1
                         height: parent.height
-                        color: 'red'
+                        color: 'purple'
                         x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
                     }
 
@@ -202,7 +202,7 @@ Rectangle {
                     parent: audioPlot.canvasItem
                     width: 1
                     height: parent.height
-                    color: 'red'
+                    color: 'purple'
                     x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(framePos, 0)).x
                 }
 
