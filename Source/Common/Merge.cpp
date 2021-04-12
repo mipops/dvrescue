@@ -60,13 +60,23 @@ namespace
     string TC_String(TimeCode const& TC)
     {
         if (!TC.HasValue())
-            return "XX:XX";
+            return "XX:XX:XX:XX";
 
         auto ToReturn = TC.ToString();
-        if (ToReturn.size() > 6)
-            ToReturn.erase(0, 6);
-        else
-            ToReturn = "     ";
+        if (ToReturn.empty())
+            ToReturn.resize(11, ' ');
+
+        return ToReturn;
+    }
+
+    string Abst_String(int const& Abst)
+    {
+        if (Abst == numeric_limits<int>::max())
+            return "      ";
+
+        auto ToReturn = to_string(Abst);
+        if (ToReturn.size() < 6)
+            ToReturn.insert(0, 6 - ToReturn.size(), ' ');
 
         return ToReturn;
     }
@@ -91,6 +101,7 @@ namespace
     {
         bitset<Status_Max>  Status;
         TimeCode            TC;
+        int                 Abst = numeric_limits<int>::max();
         uint8_t*            BlockStatus = nullptr;
         size_t              BlockStatus_Count = 0;
         uint8_t             RepeatCount = 0;
@@ -225,7 +236,7 @@ namespace
         bool ManageRepeatedFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
         bool AppendFrameToList(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
         bool ManagePartialFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
-        bool SyncStart();
+        bool TcSyncStart();
         bool SyncEnd();
         bool Process();
         bool Stats();
@@ -323,7 +334,7 @@ bool dv_merge_private::Init()
 
     if (Verbosity > 5)
     {
-        cout << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|SS:FF|U|S";
+        cout << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|Abst  |HH:MM:SS:FF|U|S";
         if (Input_Count > 1)
         {
             cout << 't'; // "Status"
@@ -380,6 +391,13 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     auto& Frames = Input.Segments.back().Frames;
     auto BlockStatus_Count = FrameData->BlockStatus_Count;
     per_frame CurrentFrame;
+
+    // Absolute track number
+    abst_bf AbstBf_Temp(FrameData->AbstBf);
+    if (AbstBf_Temp.HasAbsoluteTrackNumberValue())
+    {
+        CurrentFrame.Abst = AbstBf_Temp.AbsoluteTrackNumber();
+    }
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData->TimeCode);
@@ -454,7 +472,7 @@ bool dv_merge_private::ManagePartialFrame(size_t InputPos, const MediaInfo_Event
 }
 
 //---------------------------------------------------------------------------
-bool dv_merge_private::SyncStart()
+bool dv_merge_private::TcSyncStart()
 {
     auto Input_Count = Merge_InputFileNames.size();
 
@@ -564,7 +582,7 @@ bool dv_merge_private::Process()
         i = 0;
         Segment_Pos++;
         Frame_Pos = 0;
-        if (SyncStart())
+        if (TcSyncStart())
             return true;
     }
     if (Segment_Pos >= Inputs[0].Segments.size() || Frame_Pos >= Frames_Status_Max)
@@ -662,6 +680,7 @@ bool dv_merge_private::Process()
     // Find a prefered frame
     size_t Prefered_Frame = -1;
     size_t Prefered_TC = -1;
+    size_t Prefered_Abst = -1;
     for (size_t i = 0; i < Input_Count; i++)
     {
         auto& Input = Inputs[i];
@@ -671,11 +690,37 @@ bool dv_merge_private::Process()
             Prefered_Frame = i;
         if (Prefered_TC == -1 && !Frame.Status[Status_TimeCodeIssue] && Frame.TC.HasValue())
             Prefered_TC = i;
+        if (Prefered_Abst != -2 && Frame.Abst != numeric_limits<int>::max())
+        {
+            if (Prefered_Abst == -1)
+                Prefered_Abst = i;
+            else
+            {
+                auto& Input2 = Inputs[Prefered_Abst];
+                auto& Frames2 = Input2.Segments[Segment_Pos].Frames;
+                auto& Frame2 = Frames2[Frame_Pos];
+                if (Frame2.Abst != Frame.Abst)
+                    Prefered_Abst = -2; // Incoherency
+            }
+        }
     }
 
     if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
     {
         auto& Out = (Verbosity <= 7 && !(!IsMissing && !IsOK)) ? CurrentLine : cout;
+        if (Prefered_Abst == -2)
+        {
+            Out << " ??????";
+        }
+        else if (Prefered_Abst != -1)
+        {
+            auto& Input = Inputs[Prefered_Abst];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            Out << ' ' << Abst_String(Frame.Abst);
+        }
+        else
+            Out << "       ";
         if (Prefered_TC != -1)
         {
             auto& Input = Inputs[Prefered_TC];
@@ -684,7 +729,7 @@ bool dv_merge_private::Process()
             Out << ' ' << TC_String(Frame.TC);
         }
         else
-            Out << " ??:??";
+            Out << " ??:??:??:??";
         if (Prefered_Frame != -1)
             Out << ' ' << Prefered_Frame;
         else if (IsMissing)
@@ -857,6 +902,25 @@ bool dv_merge_private::Process()
         }
     }
 
+    if (Verbosity > 5 && Prefered_Abst == -2)
+    {
+        cout << ", abst";
+        for (size_t i = 0; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Abst == numeric_limits<int>::max())
+            {
+                cout << " missin"; // missing but only 6 chars for abst
+            }
+            else
+            {
+                cout << ' ' << Abst_String(Frame.Abst);
+            }
+        }
+    }
+    
     if (Verbosity > 5 && !IsOK)
     {
         bool HasTimeCodeIssue = false;
@@ -879,7 +943,7 @@ bool dv_merge_private::Process()
                     auto& Input = Inputs[i];
                     auto& Frames = Input.Segments[Segment_Pos].Frames;
                     auto& Frame = Frames[Frame_Pos];
-                    cout << (Frame.Status[Status_TimeCodeIssue] ? "??:??" : TC_String(Frame.TC));
+                    cout << (Frame.Status[Status_TimeCodeIssue] ? "??:??:??:??" : TC_String(Frame.TC));
                 }
             }
         }
@@ -909,7 +973,7 @@ void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Ana
         return;
     if (ManagePartialFrame(InputPos, FrameData))
         return;
-    if (SyncStart())
+    if (TcSyncStart())
         return;
 
     // Processing
