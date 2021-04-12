@@ -19,6 +19,7 @@ message('QML_ROOT_PATH: ' $$QML_ROOT_PATH)
 DISTFILES += \
     tests/tst_deviceslist.qml \
     tests/tst_fileview.qml \
+    tests/tst_navbar.qml \
     tests/tst_parsing.qml \
     tests/tst_popup.qml
 
