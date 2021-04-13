@@ -11,33 +11,45 @@ XmlParser::XmlParser(QObject *parent) : QObject(parent)
 
 void XmlParser::exec(QIODevice *device)
 {
-    QXmlStreamReader xml(device);
-    if(xml.readNextStartElement())
-    {
-        if(xml.name() == "dvrescue")
+    try {
+
+        QXmlStreamReader xml(device);
+        if(xml.readNextStartElement())
         {
-            if(xml.readNextStartElement())
+            if(xml.name() == "dvrescue")
             {
-                qDebug() << "name: " << xml.name();
+                if(xml.readNextStartElement())
+                {
+                    qDebug() << "name: " << xml.name();
 
-                if(xml.name() == "creator") {
+                    if(xml.name() == "creator") {
 
+                    }
+
+                    xml.skipCurrentElement();
                 }
 
-                xml.skipCurrentElement();
-            }
+                if(xml.readNextStartElement())
+                {
+                    qDebug() << "name: " << xml.name();
 
-            if(xml.readNextStartElement())
-            {
-                qDebug() << "name: " << xml.name();
+                    if(xml.name() == "media") {
+                        parseMedia(xml);
+                    }
 
-                if(xml.name() == "media") {
-                    parseMedia(xml);
+                    xml.skipCurrentElement();
                 }
-
-                xml.skipCurrentElement();
             }
         }
+
+    }
+
+    catch(std::exception& ex) {
+        Q_EMIT error(ex.what());
+    }
+
+    catch(...) {
+        Q_EMIT error("unexpected error");
     }
 
     Q_EMIT finished();
@@ -98,7 +110,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     }
 
     // magic from Dave
-    auto diff_seq_count = 0;
+    auto diff_seq_count = 12;
     if(size == "720x576" && chroma_subsampling != "4:2:2")
         diff_seq_count = 12;
     else if(size == "720x480" && chroma_subsampling != "4:2:2")
@@ -112,8 +124,6 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     auto audio_error_den = diff_seq_count * audio_blocks_per_diff_seq;
 
     Q_EMIT gotFrames(count, diff_seq_count);
-
-    assert(diff_seq_count != 0);
 
     auto captionOn = false;
     auto firstFrame = true;

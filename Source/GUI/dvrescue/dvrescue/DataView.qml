@@ -11,6 +11,7 @@ Rectangle {
     property alias model: dataModel
     property var cppDataModel;
     property int framePos: -1
+    property color rowHighlightColor: 'purple'
 
     signal tapped(int framePos);
 
@@ -93,7 +94,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
                     hasJump: decoration.x
@@ -106,7 +106,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         anchors.fill: parent
@@ -127,7 +127,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
                     hasJump: decoration.x
@@ -141,7 +140,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     Image {
                         id: image
@@ -186,7 +185,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
                     hasJump: decoration.x
@@ -199,7 +197,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         anchors.fill: parent
@@ -220,7 +218,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
 
@@ -234,7 +231,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         id: videoAudioMouseArea
@@ -261,7 +258,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: edit ? "100%" : display
 
@@ -272,7 +268,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     evenProgressColor: edit ? 'yellow' : 'darkgreen'
                     oddProgressColor: edit ? 'yellow' : 'green'
@@ -298,7 +294,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: edit ? "100%" : display
 
@@ -309,7 +304,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     evenProgressColor: edit ? 'yellow' : 'darkblue'
                     oddProgressColor: edit ? 'yellow' : 'blue'
@@ -335,7 +330,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
 
                     property string imageUrl: {
                         if(display === '┬') {
@@ -361,7 +355,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         anchors.fill: parent
@@ -382,7 +376,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
                     hasJump: decoration.x
@@ -395,7 +388,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         anchors.fill: parent
@@ -414,7 +407,6 @@ Rectangle {
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
                     textFont.pixelSize: 13
                     text: display
 
@@ -425,7 +417,7 @@ Rectangle {
                         // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
                         return frameNumber === framePos
                     }
-                    overlayColor: 'red'
+                    overlayColor: rowHighlightColor
 
                     MouseArea {
                         anchors.fill: parent

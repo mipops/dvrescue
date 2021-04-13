@@ -77,5 +77,6 @@
         <file>icons/exit.svg</file>
         <file>icons/recent.svg</file>
         <file>CustomButton.qml</file>
+        <file>PathResolver.qml</file>
     </qresource>
 </RCC>

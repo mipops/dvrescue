@@ -25,6 +25,8 @@ private:
 Q_SIGNALS:
     void bytesProcessed(qint64 value);
     void finished();
+    void error(const QString& errorString);
+
     void gotMedia(QString ref, QString format, int size);
     void gotFrame(uint frameNumber);
     void gotFrames(uint count, uint diff_per_seq_count);

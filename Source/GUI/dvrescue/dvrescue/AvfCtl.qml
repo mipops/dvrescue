@@ -1,8 +1,10 @@
 import QtQuick 2.0
 import Launcher 0.1
+import Qt.labs.platform 1.1
+import FileUtils 1.0
 
 Item {
-    property string avfctlCmd: "plink dave -batch /Users/test/Downloads/dvrescue-git/tools/avfctl/avfctl"
+    property string cmd
 
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
@@ -39,7 +41,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -cmd stop -device " + index);
+            launcher.execute(cmd + " -cmd stop -device " + index);
             if(callback)
                 callback(launcher)
         })
@@ -68,7 +70,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -cmd rew -device " + index);
+            launcher.execute(cmd + " -cmd rew -device " + index);
             if(callback)
                 callback(launcher)
         })
@@ -97,7 +99,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -cmd ff -device " + index);
+            launcher.execute(cmd + " -cmd ff -device " + index);
             if(callback)
                 callback(launcher)
         })
@@ -126,7 +128,7 @@ Item {
                 launcher.destroy();
             });
 
-            var grabCommand = avfctlCmd + " -cmd capture " + filePath + " -device " + index;
+            var grabCommand = cmd + " -cmd capture " + filePath + " -device " + index;
             console.debug('executing grab: ', grabCommand);
             launcher.execute(grabCommand);
             if(callback)
@@ -157,7 +159,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -cmd play -device " + index);
+            launcher.execute(cmd + " -cmd play -device " + index);
             if(callback)
                 callback(launcher)
         })
@@ -184,7 +186,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(avfctlCmd + " -list_devices");
+            launcher.execute(cmd + " -list_devices");
             if(callback)
                 callback(launcher)
         })

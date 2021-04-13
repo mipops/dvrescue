@@ -1,2 +1,7 @@
 <!DOCTYPE RCC>
-<RCC version="1.0"/>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>Icons/menu-analysis.svg</file>
+        <file>Icons/menu-transfer.svg</file>
+    </qresource>
+</RCC>

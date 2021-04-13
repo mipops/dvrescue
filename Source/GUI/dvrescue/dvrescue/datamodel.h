@@ -95,6 +95,7 @@ private Q_SLOTS:
 
 Q_SIGNALS:
     void populated();
+    void error(const QString& errorString);
     void totalChanged(int total);
     void updated();
 

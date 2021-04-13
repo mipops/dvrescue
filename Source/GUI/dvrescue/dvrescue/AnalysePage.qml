@@ -7,10 +7,17 @@ import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import DataModel 1.0
+import QtQuick.Dialogs 1.3
 import QtAVPlayerUtils 1.0
 
 Item {
     id: root
+
+    MessageDialog {
+        id: errorDialog
+        icon: StandardIcon.Critical
+        title: "Error on parsing xml"
+    }
 
     Rectangle {
         z: 100
@@ -45,6 +52,10 @@ Item {
             refreshTimer.stop();
             dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                               plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+        }
+        onError: {
+            errorDialog.text = "error message: " + errorString
+            errorDialog.open()
         }
 
         Component.onCompleted: {

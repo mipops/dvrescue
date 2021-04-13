@@ -334,6 +334,9 @@ void DataModel::populate(const QString &fileName)
         qDebug() << "parser finished";
         Q_EMIT populated();
     });
+    connect(m_parser, &XmlParser::error, [this](const QString& errorString) {
+        Q_EMIT error(errorString);
+    });
 
     connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
         m_frames.append(std::make_tuple(frameNumber, FrameStats() ));
@@ -373,34 +376,25 @@ void DataModel::populate(const QString &fileName)
     });
 
     connect(m_parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
-        // qDebug() << "got sta: " << frameNumber << t << n << n_even;
-        if(t == 10) {
-            GraphStats value = {
-                int(frameNumber),
-                float(n_even) / den * 100,
-                -float(n - n_even) / den * 100,
-                float(den)
-            };
+        GraphStats value = {
+            int(frameNumber),
+            float(n_even) / den * 100,
+            -float(n - n_even) / den * 100,
+            float(den)
+        };
 
-            // qDebug() << "video frame: " << frameNumber << value.evenValue << value.oddValue;
-            m_videoValues.append(std::make_tuple(frameNumber, value));
-        }
+        m_videoValues.append(std::make_tuple(frameNumber, value));
     });
     connect(m_parser, &XmlParser::gotAud, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         Q_UNUSED(t);
-        // qDebug() << "got aud: " << frameNumber << t << n << n_even;
+        GraphStats value = {
+            int(frameNumber),
+            float(n_even) / den * 100,
+            -float(n - n_even) / den * 100,
+            float(den)
+        };
 
-        // if(t == 10) {
-            GraphStats value = {
-                int(frameNumber),
-                float(n_even) / den * 100,
-                -float(n - n_even) / den * 100,
-                float(den)
-            };
-
-            // qDebug() << "audio frame: " << frameNumber;
-            m_audioValues.append(std::make_tuple(frameNumber, value));
-        // }
+        m_audioValues.append(std::make_tuple(frameNumber, value));
     });
 
     m_thread->start();
