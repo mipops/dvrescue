@@ -19,6 +19,7 @@ extern vector<string> Merge_InputFileNames;
 extern string Merge_OutputFileName;
 extern string MergeInfo_OutputFileName;
 extern uint8_t Verbosity;
+extern uint8_t UseAbst;
 struct MediaInfo_Event_DvDif_Analysis_Frame_1;
 struct MediaInfo_Event_Global_Demux_4;
 
