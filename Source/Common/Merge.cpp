@@ -775,7 +775,7 @@ bool dv_merge_private::Process()
     {
         if (Verbosity <= 7)
             Count_Last_OK_Frames++;
-        else
+        else if (Prefered_Abst != -2)
             cout << '\n';
     }
 
@@ -904,6 +904,8 @@ bool dv_merge_private::Process()
 
     if (Verbosity > 5 && Prefered_Abst == -2)
     {
+        if (IsOK)
+            cout << setw(Inputs.size() + 1) << ' ';
         cout << ", abst";
         for (size_t i = 0; i < Input_Count; i++)
         {
@@ -912,7 +914,7 @@ bool dv_merge_private::Process()
             auto& Frame = Frames[Frame_Pos];
             if (Frame.Abst == numeric_limits<int>::max())
             {
-                cout << " missin"; // missing but only 6 chars for abst
+                cout << Frame.Status[Status_FrameMissing] ? "       " : " missin"; // missing abst but only 6 chars for abst
             }
             else
             {
@@ -951,8 +953,8 @@ bool dv_merge_private::Process()
 
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
         fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
-    if (Verbosity > 5 && !IsOK)
-        cout << endl;
+    if (Verbosity > 5 && (!IsOK || Prefered_Abst == -2))
+        cout << '\n';
 
     Frame_Pos++;
     return false;
