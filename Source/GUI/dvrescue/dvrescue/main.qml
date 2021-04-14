@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
+import SettingsUtils 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
 
@@ -63,9 +64,12 @@ ApplicationWindow {
             // text: qsTr("Settings")
             onClicked: {
                 avfctlField.text = settings.avfctlCmd
-                avfctlField.forceActiveFocus();
-
                 dvrescueField.text = settings.dvrescueCmd
+                xmlStarletField.text = settings.xmlStarletCmd
+                mediaInfoField.text = settings.mediaInfoCmd
+                ffmpegField.text = settings.ffmpegCmd
+
+                avfctlField.forceActiveFocus();
                 avfctlDialog.open();
             }
             icon.source: "icons/menu-settings.svg"
@@ -162,6 +166,11 @@ ApplicationWindow {
 
         PackagePage {
             id: packagePage
+
+            dvrescueCmd: settings.dvrescueCmd
+            xmlStarletCmd: settings.xmlStarletCmd
+            mediaInfoCmd: settings.mediaInfoCmd
+            ffmpegCmd: settings.mediaInfoCmd
         }
     }
 
@@ -191,8 +200,19 @@ ApplicationWindow {
         id: settings;
         property string avfctlCmd
         property string dvrescueCmd
+        onDvrescueCmdChanged: {
+            console.debug('dvrescueCmd = ', dvrescueCmd)
+        }
+
+        property string xmlStarletCmd
+        property string mediaInfoCmd
+        property string ffmpegCmd
         property alias recentFilesJSON: analysePage.recentFilesJSON
         property alias recentPackageFilesJSON: packagePage.recentFilesJSON
+
+        Component.onCompleted: {
+            console.debug('settings initialized')
+        }
     }
 
     Dialog {
@@ -205,7 +225,7 @@ ApplicationWindow {
                 id: avfctlField
                 width: 480
 
-                placeholderText: "avfctl tool path..."
+                placeholderText: "avfctl path..."
                 selectByMouse: true
             }
 
@@ -213,7 +233,31 @@ ApplicationWindow {
                 id: dvrescueField
                 width: 480
 
-                placeholderText: "dvrescue tool path..."
+                placeholderText: "dvrescue path..."
+                selectByMouse: true
+            }
+
+            TextField {
+                id: ffmpegField
+                width: 480
+
+                placeholderText: "ffmpeg path..."
+                selectByMouse: true
+            }
+
+            TextField {
+                id: mediaInfoField
+                width: 480
+
+                placeholderText: "mediainfo path..."
+                selectByMouse: true
+            }
+
+            TextField {
+                id: xmlStarletField
+                width: 480
+
+                placeholderText: "xmlstarlet path..."
                 selectByMouse: true
             }
         }
@@ -222,6 +266,9 @@ ApplicationWindow {
         onAccepted: {
             settings.avfctlCmd = avfctlField.text
             settings.dvrescueCmd = dvrescueField.text
+            settings.ffmpegCmd = ffmpegField.text
+            settings.mediaInfoCmd = mediaInfoField.text
+            settings.xmlStarletCmd = xmlStarletField.text
         }
         anchors.centerIn: parent
     }
@@ -348,17 +395,44 @@ ApplicationWindow {
     Component.onCompleted: {
         console.debug('main.qml completed')
 
+        var keys = SettingsUtils.keys();
+        for(var i = 0; i < keys.length; ++i) {
+            var key = keys[i]
+            console.debug('setting key: ', key, 'value: ', settings.value(key))
+        }
+
         if(!settings.avfctlCmd)
             settings.avfctlCmd = pathResolver.resolve("avfctl")
         if(!settings.dvrescueCmd)
             settings.dvrescueCmd = pathResolver.resolve("dvrescue")
+        if(!settings.ffmpegCmd)
+            settings.ffmpegCmd = pathResolver.resolve("ffmpeg")
+        if(!settings.mediaInfoCmd)
+            settings.mediaInfoCmd = pathResolver.resolve("mediainfo")
+        if(!settings.xmlStarletCmd)
+            settings.xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
 
         console.debug('checking tools...')
-        if(settings.avfctlCmd.length === 0 || settings.dvrescueCmd.length === 0) {
+        if(settings.avfctlCmd.length === 0 || settings.dvrescueCmd.length === 0 ||
+           settings.ffmpegCmd.length === 0 || settings.mediaInfoCmd.length === 0 || settings.xmlStarletCmd.length === 0)
+        {
             avfctlField.text = settings.avfctlCmd
             dvrescueField.text = settings.dvrescueCmd
+            ffmpegField.text = settings.ffmpegCmd
+            mediaInfoField.text = settings.mediaInfoCmd
+            xmlStarletField.text = settings.xmlStarletCmd
 
             avfctlDialog.visible = true
+        }
+    }
+
+    Component.onDestruction: {
+        console.debug('main.qml destructed');
+
+        var keys = SettingsUtils.keys();
+        for(var i = 0; i < keys.length; ++i) {
+            var key = keys[i]
+            console.debug('setting key: ', key, 'value: ', settings.value(key))
         }
     }
 }

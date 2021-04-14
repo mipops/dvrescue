@@ -61,6 +61,13 @@ QString FileUtils::getFilePath(const QString &urlOrPath)
     return url.toLocalFile();
 }
 
+QString FileUtils::getFileDir(const QString &filePath)
+{
+    QFileInfo fileInfo(filePath);
+
+    return fileInfo.absoluteDir().absolutePath();
+}
+
 QString FileUtils::getFileExtension(const QString &filePath)
 {
     QFileInfo info(filePath);

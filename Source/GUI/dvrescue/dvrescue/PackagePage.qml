@@ -8,6 +8,11 @@ import Launcher 0.1
 Item {
     id: root
 
+    property string dvrescueCmd
+    property string xmlStarletCmd
+    property string mediaInfoCmd
+    property string ffmpegCmd
+
     DropArea {
         id: dropArea;
         anchors.fill: parent
@@ -54,6 +59,10 @@ Item {
 
     property string recentFilesJSON : ''
     property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+    onRecentFilesChanged: {
+        console.debug('PackagePage: recentFiles = ', JSON.stringify(recentFiles, 0, 4))
+    }
+
     function addRecent(filePath) {
         var newRecentFiles = recentFiles.filter(item => item !== filePath)
         newRecentFiles.unshift(filePath)
@@ -199,6 +208,9 @@ Item {
                 extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
                                .replace("{xml}", xmlSh).replace("{ffmpeg}", ffmpegSh).replace("{dvrescue}", dvRescueSh).replace("{mediainfo}", mediaInfoSh)
             })
+        } else {
+            extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                           .replace("{xml}", xmlStarletCmd).replace("{ffmpeg}", ffmpegCmd).replace("{dvrescue}", dvrescueCmd).replace("{mediainfo}", mediaInfoCmd)
         }
 
         return true;
@@ -277,6 +289,11 @@ Item {
 
             if(additional.text.length !== 0)
                 params = additional.text + " " + params
+
+            if(Qt.platform.os === "windows") {
+                packagerCtl.paths = [ FileUtils.getFileDir(dvrescueCmd), FileUtils.getFileDir(xmlStarletCmd),
+                                      FileUtils.getFileDir(mediaInfoCmd), FileUtils.getFileDir(ffmpegCmd) ]
+            }
 
             packagerCtl.exec(params, (launcher) => {
                 debugView.logCommand(launcher)

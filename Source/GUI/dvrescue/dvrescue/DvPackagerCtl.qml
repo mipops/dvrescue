@@ -5,6 +5,7 @@ import FileUtils 1.0
 
 Item {
     property string dvpackagerName: "dvpackager"
+    property var paths: []
 
     property string detectedDvPackagerCmd: FileUtils.find(dvpackagerName);
     onDetectedDvPackagerCmdChanged: {
@@ -49,6 +50,10 @@ Item {
 
             console.debug('dvPackagerCmd: ', dvPackagerCmd);
             var cmd = makeCmd(dvPackagerCmd)
+
+            if(paths.length !== 0)
+                launcher.setPaths(paths);
+
             launcher.execute(cmd + " " + args);
             if(callback)
                 callback(launcher)

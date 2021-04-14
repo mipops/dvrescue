@@ -1,4 +1,5 @@
 #include "fileutils.h"
+#include "settingsutils.h"
 #include "qtavplayerutils.h"
 #include "launcher.h"
 #include "sortfiltertablemodel.h"
@@ -79,6 +80,14 @@ int main(int argc, char *argv[])
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<FileUtils>("SettingsUtils", 1, 0, "SettingsUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        SettingsUtils *utils = new SettingsUtils();
         return utils;
     });
 

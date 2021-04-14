@@ -11,6 +11,7 @@ HEADERS += \
     $$PWD/qqmltablemodelcolumn_p.h \
     $$PWD/qtavplayerutils.h \
     $$PWD/qwtquick2plot.h \
+    $$PWD/settingsutils.h \
     $$PWD/xmlparser.h \
     $$PWD/plotdata.h \
     $$PWD/sortfiltertablemodel.h
@@ -24,6 +25,7 @@ SOURCES += \
     $$PWD/qqmltablemodelcolumn.cpp \
     $$PWD/qtavplayerutils.cpp \
     $$PWD/qwtquick2plot.cpp \
+    $$PWD/settingsutils.cpp \
     $$PWD/xmlparser.cpp \
     $$PWD/plotdata.cpp \
     $$PWD/sortfiltertablemodel.cpp
