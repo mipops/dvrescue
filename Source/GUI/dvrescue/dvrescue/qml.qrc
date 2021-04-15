@@ -81,5 +81,7 @@
         <file>PackageFileView.qml</file>
         <file>DvPackagerCtl.qml</file>
         <file>PathResolver.qml</file>
+        <file>ToolsDialog.qml</file>
+        <file>ValidatedTextField.qml</file>
     </qresource>
 </RCC>

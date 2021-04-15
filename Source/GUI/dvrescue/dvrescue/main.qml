@@ -63,14 +63,7 @@ ApplicationWindow {
         NavButton {
             // text: qsTr("Settings")
             onClicked: {
-                avfctlField.text = settings.avfctlCmd
-                dvrescueField.text = settings.dvrescueCmd
-                xmlStarletField.text = settings.xmlStarletCmd
-                mediaInfoField.text = settings.mediaInfoCmd
-                ffmpegField.text = settings.ffmpegCmd
-
-                avfctlField.forceActiveFocus();
-                avfctlDialog.open();
+                toolsDialog.show();
             }
             icon.source: "icons/menu-settings.svg"
         }
@@ -215,62 +208,26 @@ ApplicationWindow {
         }
     }
 
-    Dialog {
-        id: avfctlDialog
-        title: "Please, specify tool locations.."
-        contentWidth: 480
+    ToolsDialog {
+        id: toolsDialog
 
-        Column {
-            TextField {
-                id: avfctlField
-                width: 480
-
-                placeholderText: "avfctl path..."
-                selectByMouse: true
-            }
-
-            TextField {
-                id: dvrescueField
-                width: 480
-
-                placeholderText: "dvrescue path..."
-                selectByMouse: true
-            }
-
-            TextField {
-                id: ffmpegField
-                width: 480
-
-                placeholderText: "ffmpeg path..."
-                selectByMouse: true
-            }
-
-            TextField {
-                id: mediaInfoField
-                width: 480
-
-                placeholderText: "mediainfo path..."
-                selectByMouse: true
-            }
-
-            TextField {
-                id: xmlStarletField
-                width: 480
-
-                placeholderText: "xmlstarlet path..."
-                selectByMouse: true
-            }
-        }
-
-        standardButtons: Dialog.Cancel | Dialog.Ok
         onAccepted: {
-            settings.avfctlCmd = avfctlField.text
-            settings.dvrescueCmd = dvrescueField.text
-            settings.ffmpegCmd = ffmpegField.text
-            settings.mediaInfoCmd = mediaInfoField.text
-            settings.xmlStarletCmd = xmlStarletField.text
+            settings.avfctlCmd = avfctlCmd
+            settings.dvrescueCmd = dvrescueCmd
+            settings.ffmpegCmd = ffmpegCmd
+            settings.mediaInfoCmd = mediaInfoCmd
+            settings.xmlStarletCmd = xmlStarletCmd
         }
-        anchors.centerIn: parent
+
+        function show() {
+            avfctlCmd = settings.avfctlCmd
+            dvrescueCmd = settings.dvrescueCmd
+            xmlStarletCmd = settings.xmlStarletCmd
+            mediaInfoCmd = settings.mediaInfoCmd
+            ffmpegCmd = settings.ffmpegCmd
+
+            open();
+        }
     }
 
     SelectPathDialog {
@@ -413,16 +370,10 @@ ApplicationWindow {
             settings.xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
 
         console.debug('checking tools...')
-        if(settings.avfctlCmd.length === 0 || settings.dvrescueCmd.length === 0 ||
-           settings.ffmpegCmd.length === 0 || settings.mediaInfoCmd.length === 0 || settings.xmlStarletCmd.length === 0)
+        if(!toolsDialog.areToolsSpecified([settings.avfctlCmd, settings.dvrescueCmd, settings.ffmpegCmd,
+                                           settings.mediaInfoCmd, settings.xmlStarletCmd]))
         {
-            avfctlField.text = settings.avfctlCmd
-            dvrescueField.text = settings.dvrescueCmd
-            ffmpegField.text = settings.ffmpegCmd
-            mediaInfoField.text = settings.mediaInfoCmd
-            xmlStarletField.text = settings.xmlStarletCmd
-
-            avfctlDialog.visible = true
+            toolsDialog.show()
         }
     }
 
