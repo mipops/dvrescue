@@ -26,6 +26,7 @@ public:
     }
 
 Q_SIGNALS:
+    void errorOccurred(const QByteArray& error);
     void outputChanged(const QByteArray& output);
     void errorChanged(const QByteArray& output);
     void workingDirectoryChanged(const QString& dir);

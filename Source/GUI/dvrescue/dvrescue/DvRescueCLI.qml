@@ -25,6 +25,16 @@ Item {
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
             });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
             launcher.processFinished.connect(() => {
                 console.debug('got from dvrescue: \n' + outputText);
                 try {

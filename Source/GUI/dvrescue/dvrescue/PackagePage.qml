@@ -304,6 +304,7 @@ Item {
                 console.debug('executed....')
                 busy.running = false;
             }).catch((error) => {
+                debugView.logResult(error);
                 busy.running = false;
             });
         }

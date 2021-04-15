@@ -36,6 +36,16 @@ Item {
             launcher.outputChanged.connect((outputStringt) => {
                 outputText += outputStringt;
             });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
             launcher.processFinished.connect(() => {
                 console.debug('got from dvpackager: \n' + outputText);
                 try {

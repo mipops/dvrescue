@@ -12,6 +12,13 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     // m_process.setProcessChannelMode(QProcess::MergedChannels);
 
     m_process = new QProcess();
+    connect(m_process, &QProcess::errorOccurred, this, [&]{
+        auto error = m_process->errorString().toUtf8();
+
+        qDebug() << "error occurred at thread " << QThread::currentThread() << ": " << error;
+        Q_EMIT errorOccurred(error);
+    });
+
     connect(m_process, &QProcess::readyReadStandardOutput, [&] {
         QByteArray output = m_process->readAllStandardOutput();
 
@@ -36,7 +43,8 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     });
 
     /*
-    connect(&m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
+    connect(m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
+        qDebug() << "state changed: " << state;
         if(state == QProcess::NotRunning)
             Q_EMIT processFinished();
     });
