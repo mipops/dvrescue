@@ -6,6 +6,7 @@ HEADERS += \
     $$PWD/datamodel.h \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
+    $$PWD/logging.h \
     $$PWD/mediainfo.h \
     $$PWD/qqmltablemodel_p.h \
     $$PWD/qqmltablemodelcolumn_p.h \
@@ -20,6 +21,7 @@ SOURCES += \
     $$PWD/datamodel.cpp \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \
+    $$PWD/logging.cpp \
     $$PWD/mediainfo.cpp \
     $$PWD/qqmltablemodel.cpp \
     $$PWD/qqmltablemodelcolumn.cpp \
@@ -31,6 +33,7 @@ SOURCES += \
     $$PWD/sortfiltertablemodel.cpp
 
 INCLUDEPATH += $$PWD
+INCLUDEPATH += $$PWD/3rdparty
 
 DISTFILES += \
     $$PWD/qwt.pri \

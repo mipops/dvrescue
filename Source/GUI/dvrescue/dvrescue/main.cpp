@@ -7,6 +7,7 @@
 #include "qqmltablemodelcolumn_p.h"
 #include <datamodel.h>
 #include <mediainfo.h>
+#include <logging.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
@@ -35,6 +36,9 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QAbstractTableModel*>();
     qRegisterMetaType<QProcess::ProcessState>();
     qRegisterMetaType<QProcess::ExitStatus>();
+    qRegisterMetaType<QProcess::ProcessError>();
+
+    Logging logging;
 
     auto version = QtAV_Version_String();
 
@@ -63,6 +67,9 @@ int main(int argc, char *argv[])
     QCommandLineOption resetSettingsOption(QStringList() << "r" << "resetsettings", "reset application settings");
     parser.addOption(resetSettingsOption);
 
+    QCommandLineOption enableLoggingOption(QStringList() << "l" << "log", "enable file logging");
+    parser.addOption(enableLoggingOption);
+
     parser.process(app.arguments());
     if(parser.isSet(resetSettingsOption)) {
         qDebug() << "resetting settings...";
@@ -71,6 +78,10 @@ int main(int argc, char *argv[])
         for(auto& key : allKeys) {
             settings.remove(key);
         }
+    }
+    if(parser.isSet(enableLoggingOption)) {
+        qDebug() << "enable file logging...";
+        logging.enable();
     }
 
     QQuickStyle::setStyle("Material");
