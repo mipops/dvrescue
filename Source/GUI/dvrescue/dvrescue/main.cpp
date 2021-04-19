@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
         logging.enable();
     }
 
+    qDebug() << "PATH: " << qEnvironmentVariable("PATH");
     QQuickStyle::setStyle("Material");
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
