@@ -225,10 +225,8 @@ void Launcher::applyEnvironment()
             winPaths.append(QDir::toNativeSeparators(path));
         }
         m_paths = winPaths;
-        auto newPath = m_paths.join(";") + ";" + paths;
-#else
-        auto newPath = m_paths.join(":") + ":" + paths;
 #endif
+        auto newPath = m_paths.join(QDir::listSeparator()) + QDir::listSeparator() + paths;
 
         qDebug() << "new paths: " << newPath;
         env.insert("PATH", newPath);
