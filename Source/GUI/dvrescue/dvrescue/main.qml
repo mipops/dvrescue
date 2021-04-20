@@ -50,6 +50,7 @@ ApplicationWindow {
             // text: qsTr("Analysis")
             checkable: true;
             property int index: 1
+            checked: true
             icon.source: "icons/menu-analysis.svg"
         }
         NavButton {
@@ -57,7 +58,6 @@ ApplicationWindow {
             // text: qsTr("Package")
             checkable: true;
             property int index: 2
-            checked: true
             icon.source: "icons/menu-package.svg"
         }
         NavButton {
