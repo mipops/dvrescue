@@ -256,7 +256,6 @@ ApplicationWindow {
 
     Window {
         id: debugView
-        visible: true
         width: root.width / 2
         height: root.height
 
