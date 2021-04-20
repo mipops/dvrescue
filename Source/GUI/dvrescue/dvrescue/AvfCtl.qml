@@ -29,6 +29,16 @@ Item {
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
             });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);
                 try {
@@ -57,6 +67,16 @@ Item {
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
             });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);
@@ -87,6 +107,16 @@ Item {
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
             });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);
                 try {
@@ -115,6 +145,16 @@ Item {
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
             });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);
@@ -147,6 +187,16 @@ Item {
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
             });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);
                 try {
@@ -173,6 +223,16 @@ Item {
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
             });
             launcher.processFinished.connect(() => {
                 console.debug('got from avfctl: \n' + outputText);

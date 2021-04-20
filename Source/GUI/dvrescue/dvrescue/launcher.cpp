@@ -3,6 +3,8 @@
 #include <QThread>
 #include <QProcess>
 #include <QGuiApplication>
+#include <QFileInfo>
+#include <QDir>
 
 Launcher::Launcher(QObject *parent) : QObject(parent)
 {
@@ -10,6 +12,13 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     // m_process.setProcessChannelMode(QProcess::MergedChannels);
 
     m_process = new QProcess();
+    connect(m_process, &QProcess::errorOccurred, this, [&]{
+        auto error = m_process->errorString().toUtf8();
+
+        qDebug() << "error occurred at thread " << QThread::currentThread() << ": " << error;
+        Q_EMIT errorOccurred(error);
+    });
+
     connect(m_process, &QProcess::readyReadStandardOutput, [&] {
         QByteArray output = m_process->readAllStandardOutput();
 
@@ -34,7 +43,8 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     });
 
     /*
-    connect(&m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
+    connect(m_process, &QProcess::stateChanged, [&](QProcess::ProcessState state) {
+        qDebug() << "state changed: " << state;
         if(state == QProcess::NotRunning)
             Q_EMIT processFinished();
     });
@@ -71,12 +81,7 @@ Launcher::~Launcher()
 void Launcher::execute(const QString &cmd)
 {
     qDebug() << "launching cmd: " << cmd;
-
-    if(!m_workingDirectory.isEmpty())
-    {
-        qDebug() << "setting working directory: " << m_workingDirectory;
-        m_process->setWorkingDirectory(m_workingDirectory);
-    }
+    applyEnvironment();
 
     if(m_useThread) {
         qDebug() << "in a separate thread...";
@@ -136,17 +141,17 @@ void Launcher::execute(const QString &cmd)
 void Launcher::execute(const QString &app, const QStringList arguments)
 {
     qDebug() << "launching process: " << app;
-
-    if(!m_workingDirectory.isEmpty())
-    {
-        qDebug() << "setting working directory: " << m_workingDirectory;
-        m_process->setWorkingDirectory(m_workingDirectory);
-    }
+    applyEnvironment();
 
     m_process->setProgram(app);
     m_process->setArguments(arguments);
 
     m_process->start();
+}
+
+void Launcher::setPaths(const QStringList paths)
+{
+    m_paths = paths;
 }
 
 void Launcher::write(const QByteArray &data)
@@ -197,6 +202,37 @@ QStringList Launcher::arguments() const
 void Launcher::kill()
 {
     m_process->kill();
+}
+
+void Launcher::applyEnvironment()
+{
+    if(!m_workingDirectory.isEmpty())
+    {
+        qDebug() << "setting working directory: " << m_workingDirectory;
+        m_process->setWorkingDirectory(m_workingDirectory);
+    }
+
+    if(!m_paths.empty())
+    {
+        qDebug() << "injecting paths: " << m_paths;
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+        auto paths = env.value("PATH");
+
+#ifdef Q_OS_WIN
+        QStringList winPaths;
+        for(auto path : m_paths) {
+            winPaths.append(QDir::toNativeSeparators(path));
+        }
+        m_paths = winPaths;
+#endif
+        auto newPath = m_paths.join(QDir::listSeparator()) + QDir::listSeparator() + paths;
+
+        qDebug() << "new paths: " << newPath;
+        env.insert("PATH", newPath);
+
+        m_process->setProcessEnvironment(env);
+    }
 }
 
 QString Launcher::workingDirectory() const

@@ -1,0 +1,6 @@
+if [ ! -f /etc/pkcs11/pkcs11.conf ]
+then
+    /usr/bin/mkdir -p /etc/pkcs11
+    /usr/bin/cp /etc/defaults/etc/pkcs11/pkcs11.conf /etc/pkcs11/pkcs11.conf
+fi
+

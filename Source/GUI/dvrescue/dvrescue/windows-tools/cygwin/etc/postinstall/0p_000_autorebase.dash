@@ -1,0 +1,18 @@
+#!/bin/dash
+export PATH=/bin
+b=/var/cache/rebase
+if [ -e ${b}/peflags ] ; then
+    noaslr=--noaslr
+    peflags=peflags
+    rm -f ${b}/peflags
+else
+    noaslr=''
+    peflags=''
+fi
+if [ ! -e ${b}/fullrebase.done ] ; then
+    rebase-trigger fullrebase
+    rebaselst --rebuild update --cleardb $noaslr rebase $peflags
+    mv ${b}/fullrebase ${b}/fullrebase.done
+else
+    rebaselst update $noaslr rebase $peflags
+fi

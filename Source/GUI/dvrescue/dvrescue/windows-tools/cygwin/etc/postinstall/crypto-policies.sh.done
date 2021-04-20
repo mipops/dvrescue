@@ -1,0 +1,7 @@
+if [ ! -f /etc/crypto-policies/config ]
+then
+    /usr/bin/mkdir -p /etc/crypto-policies
+    /usr/bin/cp /etc/defaults/etc/crypto-policies/config /etc/crypto-policies/config
+fi
+
+/usr/bin/update-crypto-policies

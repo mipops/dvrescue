@@ -1,0 +1,18 @@
+if [ -f /var/cache/man/index.db ] ; then
+    if [ -f /var/cache/man/.index-synchronously ] || [ "$1" = "background" ] ; then
+        printf "  ManDB index update starting...\n"
+        tf=$(/usr/bin/mktemp -p /var/log mandb-index-XXXXXXXX.log)
+        exec 3> $tf
+        /usr/bin/mv --backup=simple $tf /var/log/mandb-index.log
+        printf "ManDB update started: $(/usr/bin/date -Iseconds)\n" >&3 
+        /usr/bin/mandb <&- >&3 2>&1
+        printf "ManDB update finished: $(/usr/bin/date -Iseconds)\n" >&3 
+	exec  3>&-
+        printf "  ... ManDB index update complete.\n"
+    else
+        printf "  ManDB index update commencing in background...\n"
+        /usr/bin/cygstart --hide /usr/bin/dash $0 background
+    fi
+else
+    printf "  ManDB index not available.\n"
+fi

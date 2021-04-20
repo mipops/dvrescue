@@ -1,0 +1,30 @@
+#!/usr/bin/sh
+# To the extent possible under law, the author(s) have dedicated all
+# copyright and related and neighboring rights to this software to the
+# public domain worldwide. This software is distributed without any warranty.
+# You should have received a copy of the CC0 Public Domain Dedication along
+# with this software.
+# If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+
+# base-files version 4.3-2
+
+MANIFEST="/etc/preremove/base-files-manifest.lst"
+
+[ -f ${MANIFEST} ] || (echo "Unable to find manifest file." && exit 1)
+
+while read f; do
+  fSrc="/etc/defaults/${f}"
+  fDest="/${f}"
+  if [ ! -e ${fDest} ]; then
+    echo "Installing the default version of ${fDest} from ${fSrc}."
+    /usr/bin/mkdir -p $(dirname ${fDest})
+    /usr/bin/cp ${fSrc} ${fDest}
+  else
+    echo "Not installing the default version of ${fDest} (default is in ${fSrc})."
+    if [ -f ${fDest} -a -x /bin/diff ]; then
+      /bin/diff -wut ${fDest} ${fSrc}
+    fi
+  fi
+done < ${MANIFEST}
+
+exit 0

@@ -5,12 +5,13 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
+import SettingsUtils 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
 
 ApplicationWindow {
     id: root
-    width: 1920
+    width: 1600
     height: 1280
     visible: true
     title: qsTr("DVRescue")
@@ -62,11 +63,7 @@ ApplicationWindow {
         NavButton {
             // text: qsTr("Settings")
             onClicked: {
-                avfctlField.text = settings.avfctlCmd
-                avfctlField.forceActiveFocus();
-
-                dvrescueField.text = settings.dvrescueCmd
-                avfctlDialog.open();
+                toolsDialog.show();
             }
             icon.source: "icons/menu-settings.svg"
         }
@@ -160,8 +157,13 @@ ApplicationWindow {
             id: analysePage
         }
 
-        Rectangle {
-            color: 'blue'
+        PackagePage {
+            id: packagePage
+
+            dvrescueCmd: settings.dvrescueCmd
+            xmlStarletCmd: settings.xmlStarletCmd
+            mediaInfoCmd: settings.mediaInfoCmd
+            ffmpegCmd: settings.ffmpegCmd
         }
     }
 
@@ -191,38 +193,41 @@ ApplicationWindow {
         id: settings;
         property string avfctlCmd
         property string dvrescueCmd
+        onDvrescueCmdChanged: {
+            console.debug('dvrescueCmd = ', dvrescueCmd)
+        }
+
+        property string xmlStarletCmd
+        property string mediaInfoCmd
+        property string ffmpegCmd
         property alias recentFilesJSON: analysePage.recentFilesJSON
+        property alias recentPackageFilesJSON: packagePage.recentFilesJSON
+
+        Component.onCompleted: {
+            console.debug('settings initialized')
+        }
     }
 
-    Dialog {
-        id: avfctlDialog
-        title: "Please, specify tool locations.."
-        contentWidth: 480
+    ToolsDialog {
+        id: toolsDialog
 
-        Column {
-            TextField {
-                id: avfctlField
-                width: 480
-
-                placeholderText: "avfctl tool path..."
-                selectByMouse: true
-            }
-
-            TextField {
-                id: dvrescueField
-                width: 480
-
-                placeholderText: "dvrescue tool path..."
-                selectByMouse: true
-            }
-        }
-
-        standardButtons: Dialog.Cancel | Dialog.Ok
         onAccepted: {
-            settings.avfctlCmd = avfctlField.text
-            settings.dvrescueCmd = dvrescueField.text
+            settings.avfctlCmd = avfctlCmd
+            settings.dvrescueCmd = dvrescueCmd
+            settings.ffmpegCmd = ffmpegCmd
+            settings.mediaInfoCmd = mediaInfoCmd
+            settings.xmlStarletCmd = xmlStarletCmd
         }
-        anchors.centerIn: parent
+
+        function show() {
+            avfctlCmd = settings.avfctlCmd
+            dvrescueCmd = settings.dvrescueCmd
+            xmlStarletCmd = settings.xmlStarletCmd
+            mediaInfoCmd = settings.mediaInfoCmd
+            ffmpegCmd = settings.ffmpegCmd
+
+            open();
+        }
     }
 
     SelectPathDialog {
@@ -251,9 +256,16 @@ ApplicationWindow {
 
     Window {
         id: debugView
-        visible: false
         width: root.width / 2
         height: root.height
+
+        function logCommand(launcher) {
+            commandsLogs.logCommand(launcher)
+        }
+
+        function logResult(result) {
+            commandsLogs.logResult(result)
+        }
 
         Component.onCompleted: {
             x = root.width
@@ -261,7 +273,7 @@ ApplicationWindow {
         }
 
         Rectangle {
-            width: parent.width / 2
+            anchors.fill: parent
             color: "#ccffffff"
 
             TabBar {
@@ -278,6 +290,7 @@ ApplicationWindow {
             }
 
             StackLayout {
+                id: stack
                 anchors.top: tabBar.bottom
                 anchors.left: parent.left
                 anchors.right: parent.right
@@ -288,6 +301,7 @@ ApplicationWindow {
                     TextArea {
                         id: commandsLogs
                         selectByMouse: true
+                        wrapMode: TextEdit.WrapAnywhere
 
                         function logCommand(launcher) {
                             console.debug('logging command: ', launcher.program() + ' ' + launcher.arguments().join(' '))
@@ -337,17 +351,38 @@ ApplicationWindow {
     Component.onCompleted: {
         console.debug('main.qml completed')
 
+        var keys = SettingsUtils.keys();
+        for(var i = 0; i < keys.length; ++i) {
+            var key = keys[i]
+            console.debug('setting key: ', key, 'value: ', settings.value(key))
+        }
+
         if(!settings.avfctlCmd)
             settings.avfctlCmd = pathResolver.resolve("avfctl")
         if(!settings.dvrescueCmd)
             settings.dvrescueCmd = pathResolver.resolve("dvrescue")
+        if(!settings.ffmpegCmd)
+            settings.ffmpegCmd = pathResolver.resolve("ffmpeg")
+        if(!settings.mediaInfoCmd)
+            settings.mediaInfoCmd = pathResolver.resolve("mediainfo")
+        if(!settings.xmlStarletCmd)
+            settings.xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
 
         console.debug('checking tools...')
-        if(settings.avfctlCmd.length === 0 || settings.dvrescueCmd.length === 0) {
-            avfctlField.text = settings.avfctlCmd
-            dvrescueField.text = settings.dvrescueCmd
+        if(!toolsDialog.areToolsSpecified([settings.avfctlCmd, settings.dvrescueCmd, settings.ffmpegCmd,
+                                           settings.mediaInfoCmd, settings.xmlStarletCmd]))
+        {
+            toolsDialog.show()
+        }
+    }
 
-            avfctlDialog.visible = true
+    Component.onDestruction: {
+        console.debug('main.qml destructed');
+
+        var keys = SettingsUtils.keys();
+        for(var i = 0; i < keys.length; ++i) {
+            var key = keys[i]
+            console.debug('setting key: ', key, 'value: ', settings.value(key))
         }
     }
 }

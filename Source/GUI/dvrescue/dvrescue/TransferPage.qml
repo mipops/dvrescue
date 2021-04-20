@@ -20,7 +20,7 @@ Rectangle {
         y: 120
     }
 
-    FileViewer {
+    AnalyseFileViewer {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top

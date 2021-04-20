@@ -1,4 +1,5 @@
 #include "fileutils.h"
+#include "settingsutils.h"
 #include "qtavplayerutils.h"
 #include "launcher.h"
 #include "sortfiltertablemodel.h"
@@ -6,6 +7,7 @@
 #include "qqmltablemodelcolumn_p.h"
 #include <datamodel.h>
 #include <mediainfo.h>
+#include <logging.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
@@ -34,9 +36,26 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QAbstractTableModel*>();
     qRegisterMetaType<QProcess::ProcessState>();
     qRegisterMetaType<QProcess::ExitStatus>();
+    qRegisterMetaType<QProcess::ProcessError>();
+
+    Logging logging;
 
     auto version = QtAV_Version_String();
+
     QApplication app(argc, argv);
+
+#ifdef Q_OS_WIN
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath =
+            QDir::toNativeSeparators(appDirPath + "/" + "cygwin/bin") + ";" +
+            QDir::toNativeSeparators(appDirPath + "/" + "scripts") + ";" +
+            QDir::toNativeSeparators(appDirPath + "/" + "tools") + ";";
+
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+#endif //
 
     app.setOrganizationName("dvrescue");
     app.setOrganizationDomain("dvrescue.com");
@@ -48,6 +67,9 @@ int main(int argc, char *argv[])
     QCommandLineOption resetSettingsOption(QStringList() << "r" << "resetsettings", "reset application settings");
     parser.addOption(resetSettingsOption);
 
+    QCommandLineOption enableLoggingOption(QStringList() << "l" << "log", "enable file logging");
+    parser.addOption(enableLoggingOption);
+
     parser.process(app.arguments());
     if(parser.isSet(resetSettingsOption)) {
         qDebug() << "resetting settings...";
@@ -57,7 +79,12 @@ int main(int argc, char *argv[])
             settings.remove(key);
         }
     }
+    if(parser.isSet(enableLoggingOption)) {
+        qDebug() << "enable file logging...";
+        logging.enable();
+    }
 
+    qDebug() << "PATH: " << qEnvironmentVariable("PATH");
     QQuickStyle::setStyle("Material");
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
@@ -65,6 +92,14 @@ int main(int argc, char *argv[])
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<FileUtils>("SettingsUtils", 1, 0, "SettingsUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        SettingsUtils *utils = new SettingsUtils();
         return utils;
     });
 
