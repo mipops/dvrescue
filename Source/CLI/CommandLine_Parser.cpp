@@ -194,6 +194,30 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             else
                 MergeInfo_OutputFileName = argv_ansi[i];
         }
+        else if (!strcmp(argv_ansi[i], "--use-abst"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value (y or n) after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            switch (argv_ansi[i][0])
+            {
+                case 'n':
+                    UseAbst = 0;
+                    break;
+                case 'y':
+                    UseAbst = 1;
+                    break;
+                default:
+                    if (C.Err)
+                        *C.Err << "Error: invalid value " << argv_ansi[i] << " (must be y or n).\n";
+                    ReturnValue = ReturnValue_ERROR;
+                    continue;
+            }
+        }
         else if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v"))
         {
             if (++i >= argc)

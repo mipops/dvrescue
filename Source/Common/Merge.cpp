@@ -15,6 +15,7 @@
 #include <iomanip>
 #include <map>
 #include <bitset>
+#include <set>
 #include "TimeCode.h"
 #include "CLI/CLI_Help.h"
 using namespace ZenLib;
@@ -26,6 +27,7 @@ string Merge_OutputFileName;
 ofstream Out;
 string MergeInfo_OutputFileName;
 uint8_t Verbosity = 5;
+uint8_t UseAbst = 0;
 //---------------------------------------------------------------------------
 
 namespace
@@ -585,8 +587,79 @@ bool dv_merge_private::Process()
         if (TcSyncStart())
             return true;
     }
-    if (Segment_Pos >= Inputs[0].Segments.size() || Frame_Pos >= Frames_Status_Max)
+    size_t MaxSegmentSize = 0;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        if (MaxSegmentSize < Inputs[i].Segments.size())
+            MaxSegmentSize = Inputs[i].Segments.size();
+    }
+    if (Segment_Pos >= MaxSegmentSize || Frame_Pos >= Frames_Status_Max)
         return true;
+    for (size_t i = 0; i < Input_Count; i++)
+    {
+        Inputs[i].Segments.resize(MaxSegmentSize);
+    }
+
+    // Check abst coherency
+    if (UseAbst && Inputs.size() == 2) // Currently limited to 2 inputs
+    {
+        set<int> abst_List;
+        for (size_t i = 0; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Abst != numeric_limits<int>::max())
+                abst_List.insert(Frame.Abst);
+        }
+        if (abst_List.size() > 1)
+        {
+            // Find the reference input: if no previous frame it is the one with the smallest abst, else the one with missing frames before the current one
+            size_t RefInput = -1;
+            if (Frame_Pos)
+            {
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    if (!Inputs[i].Segments[Segment_Pos].Frames[Frame_Pos - 1].Status[Status_FrameMissing])
+                    {
+                        RefInput = i;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                int MinAbst = numeric_limits<int>::max();
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    if (MinAbst > Inputs[i].Segments[Segment_Pos].Frames[0].Abst)
+                    {
+                        MinAbst = Inputs[i].Segments[Segment_Pos].Frames[0].Abst;
+                        RefInput = i;
+                    }
+                }
+            }
+
+            if (RefInput != -1)
+            {
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    if (i == RefInput)
+                        continue;
+                    auto& Input = Inputs[i];
+                    auto& Frames = Input.Segments[Segment_Pos].Frames;
+                    auto& Frame = Frames[Frame_Pos];
+                    Input.Segments.insert(Input.Segments.begin() + Segment_Pos, per_segment());
+                    auto& Frames1 = Input.Segments[Segment_Pos].Frames;
+                    auto& Frames2 = Input.Segments[Segment_Pos + 1].Frames;
+                    Frames1.insert(Frames1.begin(), Frames2.begin(), Frames2.begin() + Frame_Pos);
+                    Frames2.erase(Frames2.begin(), Frames2.begin() + Frame_Pos);
+                }
+            }
+
+            return true;
+        }
+    }
 
     // Check if there is a single frame available for this time code
     size_t IsMissing = Input_Count;
@@ -775,7 +848,7 @@ bool dv_merge_private::Process()
     {
         if (Verbosity <= 7)
             Count_Last_OK_Frames++;
-        else
+        else if (Prefered_Abst != -2)
             cout << '\n';
     }
 
@@ -904,6 +977,8 @@ bool dv_merge_private::Process()
 
     if (Verbosity > 5 && Prefered_Abst == -2)
     {
+        if (IsOK)
+            cout << setw(Inputs.size() + 1) << ' ';
         cout << ", abst";
         for (size_t i = 0; i < Input_Count; i++)
         {
@@ -912,7 +987,7 @@ bool dv_merge_private::Process()
             auto& Frame = Frames[Frame_Pos];
             if (Frame.Abst == numeric_limits<int>::max())
             {
-                cout << " missin"; // missing but only 6 chars for abst
+                cout << Frame.Status[Status_FrameMissing] ? "       " : " missin"; // missing abst but only 6 chars for abst
             }
             else
             {
@@ -951,8 +1026,8 @@ bool dv_merge_private::Process()
 
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
         fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
-    if (Verbosity > 5 && !IsOK)
-        cout << endl;
+    if (Verbosity > 5 && (!IsOK || Prefered_Abst == -2))
+        cout << '\n';
 
     Frame_Pos++;
     return false;
