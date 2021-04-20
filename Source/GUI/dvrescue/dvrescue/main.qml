@@ -163,7 +163,7 @@ ApplicationWindow {
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd
             mediaInfoCmd: settings.mediaInfoCmd
-            ffmpegCmd: settings.mediaInfoCmd
+            ffmpegCmd: settings.ffmpegCmd
         }
     }
 
