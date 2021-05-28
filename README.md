@@ -2,6 +2,8 @@
 
 Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation.
 
+The documentation website is being developed, and is available at: https://mipops.github.io/dvrescue/
+
 DVRescue was presented at the Association of Moving Image Archivists 2019 conference. Slides from the presentation are available [here](https://docs.google.com/presentation/d/1JFYHaKMZWHd8LFOVWmGuxdLNgFOiSXcoSxCMB-TXCvA/edit?usp=sharing).
 
 A status update of DVRescue was presented at the Association of Moving Image Archivists 2020 conference. The presentation video can be viewed [here](https://youtu.be/YGPIqJ4_ssI).
