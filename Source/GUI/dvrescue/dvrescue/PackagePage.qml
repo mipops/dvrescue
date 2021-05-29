@@ -24,8 +24,8 @@ Item {
             {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
-                                      // fileViewer.fileView.add(filePath)
-                                      addRecent(filePath)
+                                      var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
+                                      fileView.add(filePath)
                                   })
             }
 

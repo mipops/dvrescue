@@ -18,6 +18,7 @@ public:
     Q_INVOKABLE QString getCompleteFileExtension(const QString& filePath);
     Q_INVOKABLE QString toLocalUrl(const QString& filePath);
     Q_INVOKABLE bool exists(const QString& filePath);
+    Q_INVOKABLE QStringList ls(const QString& dir);
     Q_INVOKABLE QString read(const QString& filePath);
     Q_INVOKABLE bool remove(const QString& filePath);
     Q_INVOKABLE bool copy(const QString& target, const QString& destination);

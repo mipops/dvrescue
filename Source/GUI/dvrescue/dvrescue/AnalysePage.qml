@@ -75,8 +75,8 @@ Item {
             {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
+                                      var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
                                       fileViewer.fileView.add(filePath)
-                                      addRecent(filePath)
                                   })
             }
 

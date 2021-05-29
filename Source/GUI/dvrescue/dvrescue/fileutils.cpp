@@ -95,6 +95,12 @@ bool FileUtils::exists(const QString &filePath)
     return info.exists();
 }
 
+QStringList FileUtils::ls(const QString &dirPath)
+{
+    QDir dir(dirPath);
+    return dir.entryList();
+}
+
 QString FileUtils::read(const QString &filePath)
 {
     QString content;
