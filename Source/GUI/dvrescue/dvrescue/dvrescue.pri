@@ -8,6 +8,7 @@ HEADERS += \
     $$PWD/fileutils.h \
     $$PWD/logging.h \
     $$PWD/mediainfo.h \
+    $$PWD/mediaplayer.h \
     $$PWD/qqmltablemodel_p.h \
     $$PWD/qqmltablemodelcolumn_p.h \
     $$PWD/qtavplayerutils.h \
@@ -23,6 +24,7 @@ SOURCES += \
     $$PWD/fileutils.cpp \
     $$PWD/logging.cpp \
     $$PWD/mediainfo.cpp \
+    $$PWD/mediaplayer.cpp \
     $$PWD/qqmltablemodel.cpp \
     $$PWD/qqmltablemodelcolumn.cpp \
     $$PWD/qtavplayerutils.cpp \

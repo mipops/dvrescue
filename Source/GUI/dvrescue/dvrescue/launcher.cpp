@@ -129,6 +129,9 @@ void Launcher::execute(const QString &cmd)
         qDebug() << "starting command" << cmd;
 
         auto appAndArguments = cmd.split(" ", QString::SkipEmptyParts);
+        if(appAndArguments.length() == 0)
+            return;
+
         m_process->setProgram(appAndArguments[0]);
         if(appAndArguments.size() > 1) {
             appAndArguments.removeFirst();

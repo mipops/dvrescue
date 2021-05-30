@@ -2,7 +2,8 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
-import QtAV 1.7
+import QtMultimedia 5.12
+import MediaPlayer 1.0
 
 Rectangle {
     property alias player: player
@@ -11,8 +12,18 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
+        VideoOutput {
+            id: videoOutput
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            objectName: "videoOutput"
+        }
+
         MediaPlayer {
             id: player
+            videoOutput: videoOutput
+
+            /*
             autoLoad: true
 
             onStatusChanged: {
@@ -92,8 +103,12 @@ Rectangle {
                     }
                 })
             }
+            */
 
             function playPaused(ms) {
+                player.play();
+
+                /*
                 waitForStateChanged(MediaPlayer.PlayingState, () => { player.play() }).then(() => {
                     return waitForStateChanged(MediaPlayer.PausedState, () => { player.pause() })
                 }).then(() => {
@@ -106,18 +121,23 @@ Rectangle {
                         player.stepForward();
                     }
                 })
+                */
             }
 
+            /*
             Component.onCompleted: {
                 QtAVPlayerUtils.setPauseOnEnd(player);
             }
+            */
         }
 
+        /*
         VideoOutput2 {
             Layout.fillHeight: true
             Layout.fillWidth: true
             source: player
         }
+        */
 
         ScrollBar {
             id: scroll

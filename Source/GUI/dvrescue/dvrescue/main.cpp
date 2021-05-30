@@ -5,6 +5,7 @@
 #include "sortfiltertablemodel.h"
 #include "qqmltablemodel_p.h"
 #include "qqmltablemodelcolumn_p.h"
+#include "mediaplayer.h"
 #include <datamodel.h>
 #include <mediainfo.h>
 #include <logging.h>
@@ -13,7 +14,6 @@
 #include <qwtquick2plot.h>
 #include <QQmlParserStatus>
 #include <QQuickStyle>
-#include <QtAV>
 
 int main(int argc, char *argv[])
 {
@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
+    qmlRegisterType<MediaPlayer>("MediaPlayer", 1, 0, "MediaPlayer");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
     qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
@@ -39,8 +40,6 @@ int main(int argc, char *argv[])
     qRegisterMetaType<QProcess::ProcessError>();
 
     Logging logging;
-
-    auto version = QtAV_Version_String();
 
     QApplication app(argc, argv);
 

@@ -1,4 +1,7 @@
-macx:contains(DEFINES, USE_BREW) {
+USE_BREW = $$(USE_BREW)
+
+macx:!isEmpty(USE_BREW):equals(USE_BREW, true) {
+    message("use qwt from brew")
     message("use ffmpeg from brew")
 
     PKGCONFIG += libavdevice libavcodec libavfilter libavformat libpostproc
