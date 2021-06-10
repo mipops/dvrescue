@@ -37,7 +37,7 @@ For detailed instructions and training videos on cleaning decks, please see the 
 
 ### 1.4mm Philips screwdriver
 
-<img alt="screwdriver" src="{{ site.baseurl }}/images/1.4mm_Phillips_Screwdriver.png">  
+<img alt="screwdriver" src="{{ site.baseurl }}/images/onePointFourmm_Phillips_Screwdriver.png">  
 
 This screwdriver is compatible with the screws securing the cassette shells for DV formats. If a tape breaks or is contaminated, you will need to use this to open the cassette and perform repairs or cleaning. Often, the screwdriver that came with an eyeglasses repair kit will be the correct size.
 
