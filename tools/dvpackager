@@ -252,6 +252,11 @@ _count_dv_frames(){
     fi
 }
 
+_get_track2_dcoffset(){
+    # 1: input dv 2: byte offset 3: duration to read
+    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "DC offset:" | cut -d ":" -f2- | sed 's/ //g'
+}
+
 _make_chapter_metadata_file(){
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${1}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${2}" | awk '{printf "%i", $1 * 100000}')"
@@ -653,7 +658,8 @@ OPT_OUTPUT+=(-f "$FORMAT")
                         AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                     else
                         AUDIO_INPUT_COUNT="0"
-                        unset AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER
+                        unset AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2
+                        TRACK_2_AUDIO="0"
                         while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa COUNT_FRAMESa LAST_FRAME_NO_AUDIOa ; do
                             ((AUDIO_INPUT_COUNT++))
                             unset SRa APADa
@@ -665,6 +671,8 @@ OPT_OUTPUT+=(-f "$FORMAT")
                             AUDIO_INPUTS+=(-t "${DURATION_SECSa}" -i "${DVFILE}")
                             AUDIO_STREAM_IN="[${AUDIO_INPUT_COUNT}:a:0]"
                             AUDIO_STREAM_OUT="[${AUDIO_INPUT_COUNT}at]"
+                            AUDIO_STREAM_IN_T2="[${AUDIO_INPUT_COUNT}:a:1]"
+                            AUDIO_STREAM_OUT_T2="[${AUDIO_INPUT_COUNT}at2]"
                             if [[ "${AUDIO_RATEa}" != "48000" ]] ; then
                                 SRa="48000:"
                             fi
@@ -674,9 +682,26 @@ OPT_OUTPUT+=(-f "$FORMAT")
                             fi
                             AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
                             AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
+                            if [[ "${CHa}" = "4" ]] ; then
+                                DC_OFFSET="$(_get_track2_dcoffset "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
+                                _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. DC Offset is ${DC_OFFSET}."
+                                if [[ "${DC_OFFSET}" != "0.000000" ]] ; then
+                                    ((TRACK_2_AUDIO++))
+                                fi
+                                AUDIO_RESAMPLE_FILTER_T2+="${AUDIO_STREAM_IN_T2}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT_T2};"
+                            else
+                                AUDIO_RESAMPLE_FILTER_T2+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT_T2};"
+                            fi
+                            AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
                         done < <(echo "${AUDIO_RANGE_SUBLIST}")
+                        if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
                         AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
                         AUDIO_MAP=(-map "[aud]")
+                        else
+                            _report -v "Adding a second stereo track, as audio was detect in the 3rd or 4th channels of the input dv."
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud_t2]")
+                            AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
+                        fi
                         INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                     fi
                 fi
