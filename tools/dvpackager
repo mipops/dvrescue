@@ -695,8 +695,8 @@ OPT_OUTPUT+=(-f "$FORMAT")
                             AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
                         done < <(echo "${AUDIO_RANGE_SUBLIST}")
                         if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
-                        AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
-                        AUDIO_MAP=(-map "[aud]")
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
+                            AUDIO_MAP=(-map "[aud]")
                         else
                             _report -v "Adding a second stereo track, as audio was detect in the 3rd or 4th channels of the input dv."
                             AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud_t2]")
