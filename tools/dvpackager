@@ -89,6 +89,16 @@ _maketemp(){
 }
 
 _get_ranges(){
+    OPTIND=1
+    unset IN_FRAME OUT_FRAME
+    while getopts "ai:o:" opt ; do
+        case "${opt}" in
+          a) NO_AUDIO_BREAK="Y" ;;
+          i) IN_FRAME="${OPTARG}" ;;
+          o) OUT_FRAME="${OPTARG}" ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
     FRAME_MATCH="d:dvrescue/d:media/d:frames"
     if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
         FRAME_MATCH="${FRAME_MATCH}[1]"
@@ -100,6 +110,12 @@ _get_ranges(){
     else
         RANGE_MATCH="${MATCH_FRAMES}"
         RELATIVE_FRAMES="parent::d:frames"
+    fi
+    if [[ -n "${OUT_FRAME}" ]] ; then
+        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+    fi
+    if [[ -n "${IN_FRAME}" ]] ; then
+        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
 
