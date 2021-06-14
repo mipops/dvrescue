@@ -645,12 +645,12 @@ OPT_OUTPUT+=(-f "$FORMAT")
                     AUDIO_RANGE_SUBLIST="$(_get_ranges -i "${FRAME_START}" -o "${FRAME_END}")"
                     AUDIO_SUBLIST_COUNT="$(echo -n "${AUDIO_RANGE_SUBLIST}" | grep -c '^')"
                     if [[ "${AUDIO_SUBLIST_COUNT}" = "1" ]] ; then
-                    AUDIO_MAP=(-map 0:a?)
-                    if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
-                        APAD=",apad=whole_dur=${DURATION_SECS}"
-                        _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
-                    fi
-                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
+                        AUDIO_MAP=(-map 0:a?)
+                        if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
+                            APAD=",apad=whole_dur=${DURATION_SECS}"
+                            _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
+                        fi
+                        AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                     else
                         AUDIO_INPUT_COUNT="0"
                         unset AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER
