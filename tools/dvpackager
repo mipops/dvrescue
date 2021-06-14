@@ -144,6 +144,17 @@ _get_ranges(){
             -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
         --break \
         -n "${DVRESCUE_XML}"
+    # output is pipe-delimited and in this order:
+    # 1-2 start pts, end pts
+    # 3-4 start frame, end frame
+    # 5. timecode
+    # 6. offset
+    # 7. recording timestamp
+    # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+    # 12-13 sampling rate, channel count
+    # 14-16 rec start, recording time jump, timecode jump
+    # 17 count preceding frames
+    # 18 if ends with missing audio metadata
 }
 
 _ranges_2_table(){
