@@ -294,15 +294,18 @@ DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mov"
 SUBS="N"
+REC_START="0"
+RDT_NC="0"
+TC_NC="0"
 
 # command-line options to set media id and original variables
 OPTIND=1
 while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
-        d) MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
-        t) MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
+        s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
+        d) RDT_NC="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
+        t) TC_NC="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
