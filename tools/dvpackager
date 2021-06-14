@@ -392,13 +392,13 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
+        OPT_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
+        OPT_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "dv")
@@ -593,6 +593,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
                     METADATA+=(-metadata "timecode=${TC}")
                 fi
                 if [[ "${EXTENSION}" != "dv" ]] ; then
+                    AUDIO_MAP=(-map 0:a?)
                     if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
                         APAD=",apad=whole_dur=${DURATION_SECS}"
                         _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
@@ -630,9 +631,9 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${START_BYTE[@]} -i ${DVFILE} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${START_BYTE[@]} -i ${DVFILE} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${AUDIO_MAP[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${MOV_INPUT_OPT[@]}" "${MOV_INPUT_RATE_OPT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                        -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
