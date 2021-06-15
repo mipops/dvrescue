@@ -116,11 +116,15 @@ _get_ranges(){
         RANGE_MATCH="${MATCH_FRAMES}"
         RELATIVE_FRAMES="parent::d:frames"
     fi
-    if [[ -n "${OUT_FRAME}" ]] ; then
-        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
-    fi
-    if [[ -n "${IN_FRAME}" ]] ; then
-        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+    if [[ -n "${IN_FRAME}" && "${IN_FRAME}" = "${OUT_FRAME}" ]] ; then
+        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
+    else
+        if [[ -n "${OUT_FRAME}" ]] ; then
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+        fi
+        if [[ -n "${IN_FRAME}" ]] ; then
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+        fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
 
