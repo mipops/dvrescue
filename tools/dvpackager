@@ -736,6 +736,9 @@ OPT_OUTPUT+=(-f "$FORMAT")
                     _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                     CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                     CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                    if [[ -n "${AR}" ]] ; then
+                        METADATA+=(-aspect "${AR}")
+                    fi
                 fi
                 ((INPUT_COUNT++))
 
