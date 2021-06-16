@@ -54,6 +54,11 @@ Options:
             corresponds to the input file, ignored if -S is not set)
  -C <path> (provide a custom path to a DVRescue SCC that corresponds to the
            input file, ignored if -S is not set)
+ -3        (by default, dvpacakager will resample audio to 48000 Hz sampling
+            rate when muxing to a container. Enable this option to keep the
+            sampling rate in its native format. Setting this may result in
+            more output files as each change in sampling rate will require a
+            new output file. Automatically enabled when '-e dv'.)
 
  For example, the following command:
 
@@ -89,6 +94,16 @@ _maketemp(){
 }
 
 _get_ranges(){
+    OPTIND=1
+    unset IN_FRAME OUT_FRAME
+    while getopts "ai:o:" opt ; do
+        case "${opt}" in
+          a) NO_AUDIO_BREAK="Y" ;;
+          i) IN_FRAME="${OPTARG}" ;;
+          o) OUT_FRAME="${OPTARG}" ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
     FRAME_MATCH="d:dvrescue/d:media/d:frames"
     if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
         FRAME_MATCH="${FRAME_MATCH}[1]"
@@ -100,6 +115,16 @@ _get_ranges(){
     else
         RANGE_MATCH="${MATCH_FRAMES}"
         RELATIVE_FRAMES="parent::d:frames"
+    fi
+    if [[ -n "${IN_FRAME}" && "${IN_FRAME}" = "${OUT_FRAME}" ]] ; then
+        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
+    else
+        if [[ -n "${OUT_FRAME}" ]] ; then
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+        fi
+        if [[ -n "${IN_FRAME}" ]] ; then
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+        fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
 
@@ -128,6 +153,17 @@ _get_ranges(){
             -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
         --break \
         -n "${DVRESCUE_XML}"
+    # output is pipe-delimited and in this order:
+    # 1-2 start pts, end pts
+    # 3-4 start frame, end frame
+    # 5. timecode
+    # 6. offset
+    # 7. recording timestamp
+    # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+    # 12-13 sampling rate, channel count
+    # 14-16 rec start, recording time jump, timecode jump
+    # 17 count preceding frames
+    # 18 if ends with missing audio metadata
 }
 
 _ranges_2_table(){
@@ -150,6 +186,49 @@ _ranges_2_table(){
         PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
     echo
+}
+
+_ranges_drop_audio(){
+    _get_values(){
+        LINE="${1}"
+        RANGE="${2}"
+        echo "${LINE}" | cut -d "|" -f "${RANGE}"
+    }
+    RANGES="${1}"
+    FIRST=""
+    while read RANGE_LINE ; do
+        if [[ -z "$FIRST" ]] ; then
+            FIRST="${RANGE_LINE}"
+            PREV="${RANGE_LINE}"
+        else
+            if [[ \
+                "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
+                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+               ]] ; then
+                PREV="${RANGE_LINE}"
+                continue
+            else
+                echo -n "$(_get_values "${FIRST}" "1")|"
+                echo -n "$(_get_values "${PREV}" "2")|"
+                echo -n "$(_get_values "${FIRST}" "3")|"
+                echo -n "$(_get_values "${PREV}" "4")|"
+                echo -n "$(_get_values "${FIRST}" "5-11")|"
+                echo -n "48000|2|"
+                echo "$(_get_values "${FIRST}" "14-")"
+                FIRST="${RANGE_LINE}"
+                PREV="${RANGE_LINE}"
+            fi
+        fi
+    done < <(echo "${RANGES}")
+    echo -n "$(_get_values "${FIRST}" "1")|"
+    echo -n "$(_get_values "${PREV}" "2")|"
+    echo -n "$(_get_values "${FIRST}" "3")|"
+    echo -n "$(_get_values "${PREV}" "4")|"
+    echo -n "$(_get_values "${FIRST}" "5-11")|"
+    echo -n "48000|2|"
+    echo "$(_get_values "${FIRST}" "14-")"
 }
 
 _convert_hhmmssmmm2s(){
@@ -175,6 +254,11 @@ _count_dv_frames(){
     else
         _report -w "Warning: Missing mediainfo, dvpackager can still package but some verification checks can not run."
     fi
+}
+
+_get_track2_dcoffset(){
+    # 1: input dv 2: byte offset 3: duration to read
+    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "DC offset:" | cut -d ":" -f2- | sed 's/ //g'
 }
 
 _make_chapter_metadata_file(){
@@ -267,15 +351,18 @@ DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mov"
 SUBS="N"
+REC_START="0"
+RDT_NC="0"
+TC_NC="0"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
+while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:3" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
-        d) MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
-        t) MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
+        s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
+        d) RDT_NC="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
+        t) TC_NC="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
@@ -291,6 +378,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:" opt ; do
         x) DVRESCUE_XML="${OPTARG}" ;;
         V) DVRESCUE_TECHSUBS="${OPTARG}" ;;
         C) DVRESCUE_SCC="${OPTARG}" ;;
+        3) FORCE_NATIVE_SAMPLE_RATE="Y" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -362,13 +450,13 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
+        OPT_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        OPT_OUTPUT+=(-map 0:v:0 -map 0:a?)
+        OPT_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "dv")
@@ -530,6 +618,7 @@ OPT_OUTPUT+=(-f "$FORMAT")
             _report -d "The results will be written to ${SIDECAR_DIR}"
             while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO ; do
                 unset START_TIME METADATA START_BYTE FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
+                unset AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
                 PTS_START_FILENAME_SAFE="${PTS//:/-}"
                 OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
                 OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
@@ -563,11 +652,62 @@ OPT_OUTPUT+=(-f "$FORMAT")
                     METADATA+=(-metadata "timecode=${TC}")
                 fi
                 if [[ "${EXTENSION}" != "dv" ]] ; then
-                    if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
-                        APAD=",apad=whole_dur=${DURATION_SECS}"
-                        _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
+                    AUDIO_RANGE_SUBLIST="$(_get_ranges -i "${FRAME_START}" -o "${FRAME_END}")"
+                    AUDIO_SUBLIST_COUNT="$(echo -n "${AUDIO_RANGE_SUBLIST}" | grep -c '^')"
+                    if [[ "${AUDIO_SUBLIST_COUNT}" = "1" ]] ; then
+                        AUDIO_MAP=(-map 0:a?)
+                        if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
+                            APAD=",apad=whole_dur=${DURATION_SECS}"
+                            _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
+                        fi
+                        AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
+                    else
+                        AUDIO_INPUT_COUNT="0"
+                        TRACK_2_AUDIO="0"
+                        while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa COUNT_FRAMESa LAST_FRAME_NO_AUDIOa ; do
+                            ((AUDIO_INPUT_COUNT++))
+                            unset SRa APADa
+                            FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
+                            DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
+                            if [[ "${PKT_POSa}" != "0" ]] ; then
+                                AUDIO_INPUTS+=(-skip_initial_bytes "${PKT_POSa}")
+                            fi
+                            AUDIO_INPUTS+=(-t "${DURATION_SECSa}" -i "${DVFILE}")
+                            AUDIO_STREAM_IN="[${AUDIO_INPUT_COUNT}:a:0]"
+                            AUDIO_STREAM_OUT="[${AUDIO_INPUT_COUNT}at]"
+                            AUDIO_STREAM_IN_T2="[${AUDIO_INPUT_COUNT}:a:1]"
+                            AUDIO_STREAM_OUT_T2="[${AUDIO_INPUT_COUNT}at2]"
+                            if [[ "${AUDIO_RATEa}" != "48000" ]] ; then
+                                SRa="48000:"
+                            fi
+                            if [[ "${LAST_FRAME_NO_AUDIOa}" != "0" ]] ; then
+                                APADa=",apad=whole_dur=${DURATION_SECSa}"
+                                _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio."
+                            fi
+                            AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
+                            AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
+                            if [[ "${CHa}" = "4" ]] ; then
+                                DC_OFFSET="$(_get_track2_dcoffset "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
+                                _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. DC Offset is ${DC_OFFSET}."
+                                if [[ "${DC_OFFSET}" != "0.000000" ]] ; then
+                                    ((TRACK_2_AUDIO++))
+                                fi
+                                AUDIO_RESAMPLE_FILTER_T2+="${AUDIO_STREAM_IN_T2}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT_T2};"
+                            else
+                                AUDIO_RESAMPLE_FILTER_T2+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT_T2};"
+                            fi
+                            AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
+                        done < <(echo "${AUDIO_RANGE_SUBLIST}")
+                        if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
+                            AUDIO_MAP=(-map "[aud]")
+                        else
+                            _report -v "Adding a second stereo track, as audio was detect in the 3rd or 4th channels of the input dv."
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud_t2]")
+                            AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
+                        fi
+                        INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                     fi
-                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
                 fi
                 if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
@@ -596,13 +736,16 @@ OPT_OUTPUT+=(-f "$FORMAT")
                     _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                     CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                     CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                    if [[ -n "${AR}" ]] ; then
+                        METADATA+=(-aspect "${AR}")
+                    fi
                 fi
                 ((INPUT_COUNT++))
 
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${START_BYTE[@]} -i ${DVFILE} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
-                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${START_BYTE[@]} -i ${DVFILE} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${START_BYTE[@]}" -i "${DVFILE}" "${AUDIO_INPUTS[@]}" \
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${AUDIO_MAP[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${MOV_INPUT_OPT[@]}" "${MOV_INPUT_RATE_OPT[@]}" "${START_TIME[@]}" -i "${DVFILE}" \
                        -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
@@ -634,7 +777,11 @@ OPT_OUTPUT+=(-f "$FORMAT")
                 if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
                     _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                 fi
-            done < <(_get_ranges)
+            done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
+                        _get_ranges
+                    else
+                        _ranges_drop_audio "$(_get_ranges)"
+                    fi)
             if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
                 _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
             fi
