@@ -130,6 +130,7 @@ _get_ranges(){
 
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
         --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+        --var "b=number((${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos)" \
         -v "@pts" -o "|" \
         --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
         -v "@n" -o "|" \
@@ -151,26 +152,28 @@ _get_ranges(){
             -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
         --else \
             -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
-        --break \
+        --break -o "|" \
+        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break \
         -n "${DVRESCUE_XML}"
     # output is pipe-delimited and in this order:
     # 1-2 start pts, end pts
     # 3-4 start frame, end frame
     # 5. timecode
-    # 6. offset
+    # 6. offset start
     # 7. recording timestamp
     # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
     # 12-13 sampling rate, channel count
     # 14-16 rec start, recording time jump, timecode jump
     # 17 count preceding frames
     # 18 if ends with missing audio metadata
+    # 19 offset end
 }
 
 _ranges_2_table(){
     RANGES="${1}"
     echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequence'"
-    echo "| PTS Range                         | Duration | Frame Range     | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR | 1st |"
+    echo "| PTS Range                         | Duration | Frame Range     | Byte Range              | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR | 1st |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
@@ -181,9 +184,9 @@ _ranges_2_table(){
             IS_FIRST=""
         fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$20}\
-        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$20; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$21}\
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %10i - %10i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
     echo
 }
