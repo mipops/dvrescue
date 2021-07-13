@@ -33,28 +33,26 @@ class MediaPlayer : public QObject
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged);
 
-    Q_ENUMS(PlaybackState)
-    Q_ENUMS(Status)
 public:
     enum PlaybackState {
         StoppedState,
         PlayingState,
         PausedState
     };
+    Q_ENUM(PlaybackState)
 
     enum Status
     {
-        UnknownMediaStatus,
         NoMedia,
-        LoadingMedia, // when source is set
-        LoadedMedia, // if auto load and source is set. player is stopped state
-        StalledMedia, // insufficient buffering or other interruptions (timeout, user interrupt)
-        BufferingMedia, // NOT IMPLEMENTED
-        BufferedMedia, // when playing //NOT IMPLEMENTED
-        EndOfMedia, // Playback has reached the end of the current media. The player is in the StoppedState.
-        InvalidMedia // what if loop > 0 or stopPosition() is not mediaStopPosition()?
+        LoadingMedia,
+        SeekingMedia,
+        LoadedMedia,
+        EndOfMedia,
+        InvalidMedia
     };
+    Q_ENUM(Status)
 
     explicit MediaPlayer(QObject *parent = nullptr);
 
@@ -62,11 +60,12 @@ public:
     void setVideoOutput(QDeclarativeVideoOutput *newVideoOutput);
 
     Q_INVOKABLE void play();
-    Status status() const;
-    void setStatus(Status status);
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE void seek(quint64 pos);
 
+    Status status() const;
     PlaybackState playbackState() const;
-    void setPlaybackState(PlaybackState playbackState);
+    qint64 duration() const;
 
     const QUrl &source() const;
     void setSource(const QUrl &newSource);
@@ -74,12 +73,11 @@ public:
 Q_SIGNALS:
     void videoOutputChanged();
     void positionChanged();
-
-    void statusChanged();
-
-    void playbackStateChanged();
-
-    void sourceChanged();
+    void statusChanged(MediaPlayer::Status status);
+    void playbackStateChanged(MediaPlayer::PlaybackState state);
+    void durationChanged(qint64 duration);
+    void sourceChanged(const QUrl &url);
+    void seekFinished();
 
 private:
     QAVPlayer p;
@@ -89,9 +87,6 @@ private:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     Source mediaSource;
 #endif //
-    Status m_status;
-    PlaybackState m_playbackState;
-    QUrl m_source;
 };
 
 #endif // MEDIAPLAYER_H

@@ -42,7 +42,23 @@ private:
 
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent)
 {
-
+    connect(&p, &QAVPlayer::stateChanged, [this](auto state) {
+        Q_EMIT playbackStateChanged((PlaybackState) state);
+    });
+    connect(&p, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
+        Q_EMIT statusChanged((Status) mediaStatus);
+    });
+    connect(&p, &QAVPlayer::seeked, [this](auto pos) {
+        Q_UNUSED(pos);
+        qDebug() << "seek finished at" << pos;
+        Q_EMIT seekFinished();
+    });
+    connect(&p, &QAVPlayer::durationChanged, [this](auto duration) {
+        Q_EMIT durationChanged(duration);
+    });
+    connect(&p, &QAVPlayer::sourceChanged, [this](auto source) {
+        Q_EMIT sourceChanged(source);
+    });
 }
 
 QDeclarativeVideoOutput *MediaPlayer::videoOutput() const
@@ -66,6 +82,8 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
 #endif
 
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](const QAVVideoFrame &frame) {
+        qDebug() << "got frame";
+
         QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
         switch (frame.frame()->format)
         {
@@ -100,49 +118,41 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
 
 void MediaPlayer::play()
 {
-    p.setSource(m_source);
     p.play();
+}
+
+void MediaPlayer::pause()
+{
+    p.pause();
+}
+
+void MediaPlayer::seek(quint64 pos)
+{
+    qDebug() << "seek to " << pos;
+    p.seek(pos);
 }
 
 MediaPlayer::Status MediaPlayer::status() const
 {
-    return m_status;
-}
-
-void MediaPlayer::setStatus(Status newStatus)
-{
-    if(m_status != newStatus) {
-        m_status = newStatus;
-        Q_EMIT statusChanged();
-    }
+    return (Status) p.mediaStatus();
 }
 
 MediaPlayer::PlaybackState MediaPlayer::playbackState() const
 {
-    return m_playbackState;
+    return (PlaybackState)  p.state();
 }
 
-void MediaPlayer::setPlaybackState(PlaybackState newPlaybackState)
+qint64 MediaPlayer::duration() const
 {
-    if(m_playbackState != newPlaybackState) {
-        m_playbackState = newPlaybackState;
-        Q_EMIT playbackStateChanged();
-    }
+    return p.duration();
 }
 
 const QUrl &MediaPlayer::source() const
 {
-    return m_source;
+    return p.source();
 }
 
 void MediaPlayer::setSource(const QUrl &newSource)
 {
-    if (m_source == newSource)
-        return;
-    m_source = newSource;
-
-    setPlaybackState(PlaybackState::StoppedState);
-    setStatus(Status::LoadedMedia);
-
-    Q_EMIT sourceChanged();
+    p.setSource(newSource);
 }

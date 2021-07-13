@@ -25,19 +25,25 @@ Rectangle {
 
             /*
             autoLoad: true
+            */
 
             onStatusChanged: {
                 console.debug('status: ', status);
-                if(status === MediaPlayer.Loaded)
+                if(status === MediaPlayer.Loaded) {
+                    console.debug('status: MediaPlayer.Loaded');
                     fps = QtAVPlayerUtils.fps(player);
-                else if(status === MediaPlayer.UnknownStatus || status === MediaPlayer.NoMedia)
+                }
+                else if(status === MediaPlayer.NoMedia || status === MediaPlayer.InvalidMedia) {
+                    console.debug('status: MediaPlayer.NoMedia || MediaPlayer.InvalidMedia');
                     fps =  0;
+                }
             }
 
             onPlaybackStateChanged: {
                 console.debug('state: ', playbackState);
             }
 
+            /*
             function waitForStateChanged(expectedState, action) {
 
                 var promise = new Promise((resolve, reject) => {
@@ -106,7 +112,7 @@ Rectangle {
             */
 
             function playPaused(ms) {
-                player.play();
+                player.pause();
 
                 /*
                 waitForStateChanged(MediaPlayer.PlayingState, () => { player.play() }).then(() => {
@@ -149,7 +155,10 @@ Rectangle {
             onPositionChanged: {
                 if(pressed) {
                     console.debug('position: ', position / (1 - size))
-                    player.seek(player.duration * (position / (1 - size)))
+                    var newSeekPos = player.duration * (position / (1 - size));
+                    console.debug('new seek pos: ', newSeekPos)
+
+                    player.seek(newSeekPos)
                 }
             }
 
