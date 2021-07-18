@@ -43,7 +43,6 @@ Rectangle {
                 console.debug('state: ', playbackState);
             }
 
-            /*
             function waitForStateChanged(expectedState, action) {
 
                 var promise = new Promise((resolve, reject) => {
@@ -82,68 +81,10 @@ Rectangle {
                 return promise
             }
 
-            function waitForStepFinished(action) {
-                var promise = new Promise((resolve, reject) => {
-                                                  var stepFinishedHandler;
-                                                  stepFinishedHandler = (value) => {
-                                                      player.stepFinished.disconnect(stepFinishedHandler)
-                                                      resolve();
-                                                  };
-
-                                                  player.stepFinished.connect(stepFinishedHandler);
-                                                  Qt.callLater(() => {
-                                                        if(action)
-                                                            action();
-                                                  })
-                                              });
-                return promise
-            }
-
-            function seekEx(ms) {
-                return waitForSeekFinished(() => { player.seek(ms) }).then(() => {
-                    var displayPosition = QtAVPlayerUtils.displayPosition(player);
-                    if(displayPosition > ms) {
-                        player.stepBackward();
-                    } else if(displayPosition < ms) {
-                        player.stepForward();
-                    }
-                })
-            }
-            */
-
             function playPaused(ms) {
                 player.pause();
-
-                /*
-                waitForStateChanged(MediaPlayer.PlayingState, () => { player.play() }).then(() => {
-                    return waitForStateChanged(MediaPlayer.PausedState, () => { player.pause() })
-                }).then(() => {
-                    return waitForSeekFinished(() => { player.seek(ms) })
-                }).then(() => {
-                    var displayPosition = QtAVPlayerUtils.displayPosition(player);
-                    if(displayPosition > ms) {
-                        player.stepBackward();
-                    } else if(displayPosition < ms) {
-                        player.stepForward();
-                    }
-                })
-                */
             }
-
-            /*
-            Component.onCompleted: {
-                QtAVPlayerUtils.setPauseOnEnd(player);
-            }
-            */
         }
-
-        /*
-        VideoOutput2 {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            source: player
-        }
-        */
 
         ScrollBar {
             id: scroll
@@ -158,6 +99,7 @@ Rectangle {
                     var newSeekPos = player.duration * (position / (1 - size));
                     console.debug('new seek pos: ', newSeekPos)
 
+                    player.waitForSeekFinished().then(() => { console.debug('seek finished') });
                     player.seek(newSeekPos)
                 }
             }
@@ -166,6 +108,7 @@ Rectangle {
                 target: player
                 onPositionChanged: {
                     var relativePosition = player.position / player.duration * (1 - scroll.size)
+                    console.debug('relativePosition: ', relativePosition);
                     if(!scroll.pressed)
                         scroll.position = relativePosition;
                 }
@@ -179,7 +122,7 @@ Rectangle {
                 enabled: player.status !== MediaPlayer.NoMedia
                 icon.source: "icons/first-frame.svg"
                 onClicked: {
-                    player.seekEx(0)
+                    player.seek(0)
                 }
             }
 

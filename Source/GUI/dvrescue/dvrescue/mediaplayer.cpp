@@ -43,22 +43,35 @@ private:
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent)
 {
     connect(&p, &QAVPlayer::stateChanged, [this](auto state) {
+        qDebug() << "MediaPlayer => state changed" << (PlaybackState) state;
         Q_EMIT playbackStateChanged((PlaybackState) state);
     });
     connect(&p, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
+        qDebug() << "MediaPlayer => status changed" << (Status) mediaStatus;
         Q_EMIT statusChanged((Status) mediaStatus);
     });
     connect(&p, &QAVPlayer::seeked, [this](auto pos) {
         Q_UNUSED(pos);
-        qDebug() << "seek finished at" << pos;
+        qDebug() << "MediaPlayer => seek finished at" << pos;
         Q_EMIT seekFinished();
     });
     connect(&p, &QAVPlayer::durationChanged, [this](auto duration) {
+        qDebug() << "MediaPlayer => duration changed" << duration;
         Q_EMIT durationChanged(duration);
     });
     connect(&p, &QAVPlayer::sourceChanged, [this](auto source) {
+        qDebug() << "MediaPlayer => source changed" << source;
         Q_EMIT sourceChanged(source);
     });
+
+    t.setInterval(100);
+    connect(&t, &QTimer::timeout, [this]() {
+        if(p.position() != prevPos) {
+            prevPos = p.position();
+            Q_EMIT positionChanged();
+        }
+    });
+    t.start();
 }
 
 QDeclarativeVideoOutput *MediaPlayer::videoOutput() const
@@ -147,7 +160,12 @@ qint64 MediaPlayer::duration() const
     return p.duration();
 }
 
-const QUrl &MediaPlayer::source() const
+qint64 MediaPlayer::position() const
+{
+    return p.position();
+}
+
+QUrl MediaPlayer::source() const
 {
     return p.source();
 }

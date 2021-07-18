@@ -158,6 +158,7 @@ Item {
                     if(prevDisplayPosition === displayPosition)
                         return;
 
+                    console.debug('player.onPositionChanged: ', displayPosition)
                     prevDisplayPosition = displayPosition;
 
                     var ms = displayPosition
@@ -169,7 +170,7 @@ Item {
 
                 function seekToFrame(frameIndex) {
                     var position = frameIndex / playerView.fps * 1000
-                    playerView.player.seekEx(position);
+                    playerView.player.seek(position);
                 }
 
                 Connections {

@@ -2,6 +2,7 @@
 #define MEDIAPLAYER_H
 
 #include <QObject>
+#include <QTimer>
 #include <QtAVPlayer/qavplayer.h>
 #include <QtAVPlayer/qavaudiooutput.h>
 
@@ -33,7 +34,8 @@ class MediaPlayer : public QObject
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged);
+    Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+    Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
 
 public:
     enum PlaybackState {
@@ -66,9 +68,10 @@ public:
     Status status() const;
     PlaybackState playbackState() const;
     qint64 duration() const;
+    qint64 position() const;
 
-    const QUrl &source() const;
-    void setSource(const QUrl &newSource);
+    QUrl source() const;
+    void setSource(const QUrl& newSource);
 
 Q_SIGNALS:
     void videoOutputChanged();
@@ -84,6 +87,8 @@ private:
     QAVAudioOutput audioOutput;
     QDeclarativeVideoOutput *m_videoOutput;
 
+    QTimer t;
+    qint64 prevPos { 0 };
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     Source mediaSource;
 #endif //
