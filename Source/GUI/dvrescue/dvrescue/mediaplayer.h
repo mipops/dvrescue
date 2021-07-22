@@ -36,7 +36,7 @@ class MediaPlayer : public QObject
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
-
+    Q_PROPERTY(qreal videoFrameRate READ videoFrameRate NOTIFY videoFrameRateChanged)
 public:
     enum PlaybackState {
         StoppedState,
@@ -69,6 +69,7 @@ public:
     PlaybackState playbackState() const;
     qint64 duration() const;
     qint64 position() const;
+    qreal videoFrameRate() const;
 
     QUrl source() const;
     void setSource(const QUrl& newSource);
@@ -81,9 +82,10 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void sourceChanged(const QUrl &url);
     void seekFinished();
+    void videoFrameRateChanged(qreal frameRate);
 
 private:
-    QAVPlayer p;
+    QAVPlayer* player;
     QAVAudioOutput audioOutput;
     QDeclarativeVideoOutput *m_videoOutput;
 

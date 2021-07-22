@@ -40,34 +40,38 @@ private:
     MapMode m_mode = NotMapped;
 };
 
-MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent)
-{
-    connect(&p, &QAVPlayer::stateChanged, [this](auto state) {
+MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlayer(this))
+{    
+    connect(player, &QAVPlayer::stateChanged, [this](auto state) {
         qDebug() << "MediaPlayer => state changed" << (PlaybackState) state;
         Q_EMIT playbackStateChanged((PlaybackState) state);
     });
-    connect(&p, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
+    connect(player, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
         qDebug() << "MediaPlayer => status changed" << (Status) mediaStatus;
         Q_EMIT statusChanged((Status) mediaStatus);
     });
-    connect(&p, &QAVPlayer::seeked, [this](auto pos) {
+    connect(player, &QAVPlayer::seeked, [this](auto pos) {
         Q_UNUSED(pos);
         qDebug() << "MediaPlayer => seek finished at" << pos;
         Q_EMIT seekFinished();
     });
-    connect(&p, &QAVPlayer::durationChanged, [this](auto duration) {
+    connect(player, &QAVPlayer::durationChanged, [this](auto duration) {
         qDebug() << "MediaPlayer => duration changed" << duration;
         Q_EMIT durationChanged(duration);
     });
-    connect(&p, &QAVPlayer::sourceChanged, [this](auto source) {
+    connect(player, &QAVPlayer::sourceChanged, [this](auto source) {
         qDebug() << "MediaPlayer => source changed" << source;
         Q_EMIT sourceChanged(source);
+    });
+    connect(player, &QAVPlayer::videoFrameRateChanged, [this](auto frameRate) {
+        qDebug() << "MediaPlayer => video frame rate changed" << frameRate;
+        Q_EMIT videoFrameRateChanged(frameRate);
     });
 
     t.setInterval(100);
     connect(&t, &QTimer::timeout, [this]() {
-        if(p.position() != prevPos) {
-            prevPos = p.position();
+        if(player->position() != prevPos) {
+            prevPos = player->position();
             Q_EMIT positionChanged();
         }
     });
@@ -94,7 +98,7 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     auto videoSurface = vo->videoSurface();
 #endif
 
-    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](const QAVVideoFrame &frame) {
+    QObject::connect(player, &QAVPlayer::videoFrame, [videoSurface](const QAVVideoFrame &frame) {
         qDebug() << "got frame";
 
         QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
@@ -122,7 +126,7 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
         }
     });
 
-    QObject::connect(&p, &QAVPlayer::audioFrame, &p, [this](const QAVAudioFrame &frame) {
+    QObject::connect(player, &QAVPlayer::audioFrame, [this](const QAVAudioFrame &frame) {
         audioOutput.play(frame);
     });
 
@@ -131,46 +135,51 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
 
 void MediaPlayer::play()
 {
-    p.play();
+    player->play();
 }
 
 void MediaPlayer::pause()
 {
-    p.pause();
+    player->pause();
 }
 
 void MediaPlayer::seek(quint64 pos)
 {
     qDebug() << "seek to " << pos;
-    p.seek(pos);
+    player->seek(pos);
 }
 
 MediaPlayer::Status MediaPlayer::status() const
 {
-    return (Status) p.mediaStatus();
+    return (Status) player->mediaStatus();
 }
 
 MediaPlayer::PlaybackState MediaPlayer::playbackState() const
 {
-    return (PlaybackState)  p.state();
+    return (PlaybackState) player->state();
 }
 
 qint64 MediaPlayer::duration() const
 {
-    return p.duration();
+    return player->duration();
 }
 
 qint64 MediaPlayer::position() const
 {
-    return p.position();
+    return player->position();
+}
+
+qreal MediaPlayer::videoFrameRate() const
+{
+    return player->videoFrameRate();
 }
 
 QUrl MediaPlayer::source() const
 {
-    return p.source();
+    return player->source();
 }
 
 void MediaPlayer::setSource(const QUrl &newSource)
 {
-    p.setSource(newSource);
+    player->setSource(newSource);
 }

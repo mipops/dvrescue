@@ -8,6 +8,9 @@ import MediaPlayer 1.0
 Rectangle {
     property alias player: player
     property real fps: 0
+    onFpsChanged: {
+        console.debug('fps: ', fps)
+    }
 
     ColumnLayout {
         anchors.fill: parent

@@ -16,7 +16,6 @@ qint64 QtAVPlayerUtils::displayPosition(QObject *qmlPlayer)
 
 qreal QtAVPlayerUtils::fps(QObject *qmlPlayer)
 {
-    // auto player = qmlPlayer->findChild<QAVPlayer*>();
-    // return player->statistics().video.frame_rate;
-    return 25;
+    auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
+    return player ? (player->videoFrameRate() ? 1.0 / player->videoFrameRate() : 0) : 0;
 }
