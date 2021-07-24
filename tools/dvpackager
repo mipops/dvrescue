@@ -687,7 +687,6 @@ if [[ -f "${DVFILE}" ]] ; then
                             APADa=",apad=whole_dur=${DURATION_SECSa}"
                             _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio."
                         fi
-                        AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
                         AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
                         if [[ "${CHa}" = "4" ]] ; then
                             DC_OFFSET="$(_get_track2_dcoffset "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
@@ -695,8 +694,14 @@ if [[ -f "${DVFILE}" ]] ; then
                             if [[ "${DC_OFFSET}" != "0.000000" ]] ; then
                                 ((TRACK_2_AUDIO++))
                             fi
+                            AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
                             AUDIO_RESAMPLE_FILTER_T2+="${AUDIO_STREAM_IN_T2}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT_T2};"
+                        elif [[ "${CHa}" = "0" ]] ; then
+                            # since there is no audio, create some
+                            AUDIO_RESAMPLE_FILTER+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT};"
+                            AUDIO_RESAMPLE_FILTER_T2+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT_T2};"
                         else
+                            AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
                             AUDIO_RESAMPLE_FILTER_T2+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT_T2};"
                         fi
                         AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
