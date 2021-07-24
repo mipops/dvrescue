@@ -130,7 +130,7 @@ _get_ranges(){
 
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
         --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
-        --var "b=number((${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos)" \
+        --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
         -v "@pts" -o "|" \
         --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
         -v "@n" -o "|" \
