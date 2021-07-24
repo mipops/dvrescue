@@ -144,8 +144,8 @@ _get_ranges(){
             --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
         -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
         -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
-        -v "${RELATIVE_FRAMES}/@audio_rate" -o "|" \
-        -v "${RELATIVE_FRAMES}/@channels" -o "|" \
+        --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
+        --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
         -v "@rec_start" -o "|" \
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
