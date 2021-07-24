@@ -139,7 +139,9 @@ _get_ranges(){
         -v "@pos" -o "|" \
         -v "@rdt" -o "|" \
         -v "${RELATIVE_FRAMES}/@size" -o "|" \
-        -v "${RELATIVE_FRAMES}/@video_rate" -o "|" \
+        --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
+            --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
+            --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
         -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
         -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
         -v "${RELATIVE_FRAMES}/@audio_rate" -o "|" \
