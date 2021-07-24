@@ -233,7 +233,9 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${PREV}" "4")|"
     echo -n "$(_get_values "${FIRST}" "5-11")|"
     echo -n "48000|2|"
-    echo "$(_get_values "${FIRST}" "14-")"
+    echo -n "$(_get_values "${FIRST}" "14-18")|"
+    echo -n "$(_get_values "${PREV}" "19")|"
+    echo "$(_get_values "${FIRST}" "20-")"
 }
 
 _convert_hhmmssmmm2s(){
