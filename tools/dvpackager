@@ -130,7 +130,10 @@ _get_ranges(){
 
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
         --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+        --var "n=@n" \
         --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
+        --var "firstframeaudiopack_n=${RELATIVE_FRAMES}/d:frame[not(@no_pack)][not(@no_pack_aud)][not(@no_sourceorcontrol_aud)][@n>=\$n][1]/@n" \
+        --var "beforethataudiopack_n=${RELATIVE_FRAMES}/d:frame[not(@no_pack)][not(@no_pack_aud)][not(@no_sourceorcontrol_aud)][@n>=\$n][1]/preceding-sibling::d:frame[@no_pack|@no_pack_aud|@no_sourceorcontrol_aud][1]/@n" \
         -v "@pts" -o "|" \
         --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
         -v "@n" -o "|" \
@@ -155,7 +158,8 @@ _get_ranges(){
         --else \
             -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
         --break -o "|" \
-        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break \
+        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+        --if "\$firstframeaudiopack_n != @n" -v "\$beforethataudiopack_n" -b \
         -n "${DVRESCUE_XML}"
     # output is pipe-delimited and in this order:
     # 1-2 start pts, end pts
@@ -169,6 +173,7 @@ _get_ranges(){
     # 17 count preceding frames
     # 18 if ends with missing audio metadata
     # 19 offset end
+    # 20 frame number of first frame per sequence with audio pack, empty is the first frame has an audio pack
 }
 
 _ranges_2_table(){
@@ -186,7 +191,7 @@ _ranges_2_table(){
             IS_FIRST=""
         fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$20; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$21}\
+        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$21; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$22}\
         {printf "| %15s - %15s | %8.3f | %6i - %6i | %10i - %10i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
         PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
     done
@@ -623,7 +628,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 ;;
         esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO PKT_POS_END ; do
+        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO PKT_POS_END FIRST_FR_N_AUDIO_PACK ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
@@ -672,7 +677,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa COUNT_FRAMESa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa ; do
+                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa COUNT_FRAMESa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa FIRST_FR_N_AUDIO_PACKa ; do
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
