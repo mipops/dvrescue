@@ -93,7 +93,7 @@ _maketemp(){
     fi
 }
 
-_get_ranges(){
+_get_ranges_unprocessed(){
     OPTIND=1
     unset IN_FRAME OUT_FRAME
     while getopts "ai:o:" opt ; do
@@ -176,6 +176,10 @@ _get_ranges(){
     # 20 frame number of first frame per sequence with audio pack, empty is the first frame has an audio pack
 }
 
+_get_ranges(){
+    _ranges_seperate_first_frames_with_no_audio_pack "$(_get_ranges_unprocessed)"
+}
+
 _ranges_2_table(){
     RANGES="${1}"
     echo
@@ -241,6 +245,52 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${FIRST}" "14-18")|"
     echo -n "$(_get_values "${PREV}" "19")|"
     echo "$(_get_values "${FIRST}" "20-")"
+}
+
+_ranges_seperate_first_frames_with_no_audio_pack(){
+    _get_values(){
+        LINE="${1}"
+        RANGE="${2}"
+        echo "${LINE}" | cut -d "|" -f "${RANGE}" | head -n 1
+    }
+    RANGES="${1}"
+    while read RANGE_LINE ; do
+        # frame number of first frame with audio pack is the 20th + 1
+        LAST_FRAME_IN_SECTION_NO_AUDIO_PACK="$(_get_values "${RANGE_LINE}" "20")"
+        COUNT_FRAMES="$(_get_values "${RANGE_LINE}" "17")"
+        if [[ -z "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}" ]] ; then
+            echo "${RANGE_LINE}"
+        else
+            _report -v "${RANGE_LINE}"
+            _report -v "x${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}x z${COUNT_FRAMES}z"
+            FIRST_FRAME_AUD_PACK_N="$(echo "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK} + 1" | bc -l)"
+            GOOD_AUDIO_FRAME="$(_get_ranges_unprocessed -i "${FIRST_FRAME_AUD_PACK_N}" -o "${FIRST_FRAME_AUD_PACK_N}")"
+            PRIOR_BAD_AUDIO_FRAME="$(_get_ranges_unprocessed -i "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}" -o "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}")"
+            # split range_line so initial silent frames are in the first part and remaining frames with audio in second part
+            echo -n "$(_get_values "${RANGE_LINE}" "1")|"
+            echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "1")|"
+            echo -n "$(_get_values "${RANGE_LINE}" "3")|"
+            echo -n "$(_get_values "${PRIOR_BAD_AUDIO_FRAME}" "3")|"
+            echo -n "$(_get_values "${RANGE_LINE}" "5-11")|"
+            echo -n "0|0|"
+            echo -n "$(_get_values "${RANGE_LINE}" "14-18")|"
+            echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "6")|"
+            echo "$(_get_values "${RANGE_LINE}" "20-")"
+            # second part
+            if [[ -n "${GOOD_AUDIO_FRAME}" ]] ; then
+                echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "1")|"
+                echo -n "$(_get_values "${RANGE_LINE}" "2")|"
+                echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "3")|"
+                echo -n "$(_get_values "${RANGE_LINE}" "4")|"
+                echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "5-18")|"
+                echo -n "$(_get_values "${RANGE_LINE}" "19")|"
+                echo "$(_get_values "${GOOD_AUDIO_FRAME}" "20-")"
+            else
+                :
+                # need to handle case whene a segment starts with no audio pack but first frame with one is not reported.
+            fi
+        fi
+    done < <(echo "${RANGES}")
 }
 
 _convert_hhmmssmmm2s(){
