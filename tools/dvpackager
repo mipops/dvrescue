@@ -115,19 +115,22 @@ _get_ranges_unprocessed(){
     else
         RANGE_MATCH="${MATCH_FRAMES}"
         RELATIVE_FRAMES="parent::d:frames"
+        RELATIVE_FRAMES_LAST_FRAME="d:frame[last()]"
     fi
     if [[ -n "${IN_FRAME}" && "${IN_FRAME}" = "${OUT_FRAME}" ]] ; then
         RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
+        RELATIVE_FRAMES_LAST_FRAME="$(echo "${RELATIVE_FRAMES_LAST_FRAME}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
     else
         if [[ -n "${OUT_FRAME}" ]] ; then
             RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+            RELATIVE_FRAMES_LAST_FRAME="$(echo "${RELATIVE_FRAMES_LAST_FRAME}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
         fi
         if [[ -n "${IN_FRAME}" ]] ; then
             RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+            RELATIVE_FRAMES_LAST_FRAME="$(echo "${RELATIVE_FRAMES_LAST_FRAME}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
         fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
-
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
         --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
         --var "n=@n" \
@@ -135,9 +138,9 @@ _get_ranges_unprocessed(){
         --var "firstframeaudiopack_n=${RELATIVE_FRAMES}/d:frame[not(@no_pack)][not(@no_pack_aud)][not(@no_sourceorcontrol_aud)][@n>=\$n][1]/@n" \
         --var "beforethataudiopack_n=${RELATIVE_FRAMES}/d:frame[not(@no_pack)][not(@no_pack_aud)][not(@no_sourceorcontrol_aud)][@n>=\$n][1]/preceding-sibling::d:frame[@no_pack|@no_pack_aud|@no_sourceorcontrol_aud][1]/@n" \
         -v "@pts" -o "|" \
-        --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
+        --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "  /@end_pts" -b -o "|" \
         -v "@n" -o "|" \
-        --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
+        --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/${RELATIVE_FRAMES_LAST_FRAME}/@n" -b -o "|" \
         -v "@tc" -o "|" \
         -v "@pos" -o "|" \
         -v "@rdt" -o "|" \
@@ -156,7 +159,7 @@ _get_ranges_unprocessed(){
         --if "\$p" \
             -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
         --else \
-            -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
+            -v "count(${RELATIVE_FRAMES}/${RELATIVE_FRAMES_LAST_FRAME}/@no_pack|${RELATIVE_FRAMES}/${RELATIVE_FRAMES_LAST_FRAME}/@no_pack_aud|${RELATIVE_FRAMES}/${RELATIVE_FRAMES_LAST_FRAME}/@no_sourceorcontrol_aud)" \
         --break -o "|" \
         --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
         --if "\$firstframeaudiopack_n != @n" -v "\$beforethataudiopack_n" -b \
@@ -177,7 +180,8 @@ _get_ranges_unprocessed(){
 }
 
 _get_ranges(){
-    _ranges_seperate_first_frames_with_no_audio_pack "$(_get_ranges_unprocessed)"
+    # PASS ALL ARGS TO SUBFUNCTION
+    _ranges_seperate_first_frames_with_no_audio_pack "$(_get_ranges_unprocessed "$@")"
 }
 
 _ranges_2_table(){
@@ -261,23 +265,22 @@ _ranges_seperate_first_frames_with_no_audio_pack(){
         if [[ -z "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}" ]] ; then
             echo "${RANGE_LINE}"
         else
-            _report -v "${RANGE_LINE}"
-            _report -v "x${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}x z${COUNT_FRAMES}z"
             FIRST_FRAME_AUD_PACK_N="$(echo "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK} + 1" | bc -l)"
             GOOD_AUDIO_FRAME="$(_get_ranges_unprocessed -i "${FIRST_FRAME_AUD_PACK_N}" -o "${FIRST_FRAME_AUD_PACK_N}")"
-            PRIOR_BAD_AUDIO_FRAME="$(_get_ranges_unprocessed -i "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}" -o "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}")"
-            # split range_line so initial silent frames are in the first part and remaining frames with audio in second part
-            echo -n "$(_get_values "${RANGE_LINE}" "1")|"
-            echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "1")|"
-            echo -n "$(_get_values "${RANGE_LINE}" "3")|"
-            echo -n "$(_get_values "${PRIOR_BAD_AUDIO_FRAME}" "3")|"
-            echo -n "$(_get_values "${RANGE_LINE}" "5-11")|"
-            echo -n "0|0|"
-            echo -n "$(_get_values "${RANGE_LINE}" "14-18")|"
-            echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "6")|"
-            echo "$(_get_values "${RANGE_LINE}" "20-")"
-            # second part
             if [[ -n "${GOOD_AUDIO_FRAME}" ]] ; then
+                # if the frame after the one with no pack is not found in the xml then we don't know the attributes of the frame to read from TODO
+                PRIOR_BAD_AUDIO_FRAME="$(_get_ranges_unprocessed -i "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}" -o "${LAST_FRAME_IN_SECTION_NO_AUDIO_PACK}")"
+                # split range_line so initial silent frames are in the first part and remaining frames with audio in second part
+                echo -n "$(_get_values "${RANGE_LINE}" "1")|"
+                echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "1")|"
+                echo -n "$(_get_values "${RANGE_LINE}" "3")|"
+                echo -n "$(_get_values "${PRIOR_BAD_AUDIO_FRAME}" "3")|"
+                echo -n "$(_get_values "${RANGE_LINE}" "5-11")|"
+                echo -n "0|0|"
+                echo -n "$(_get_values "${RANGE_LINE}" "14-18")|"
+                echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "6")|"
+                echo "$(_get_values "${RANGE_LINE}" "20-")"
+                # second part
                 echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "1")|"
                 echo -n "$(_get_values "${RANGE_LINE}" "2")|"
                 echo -n "$(_get_values "${GOOD_AUDIO_FRAME}" "3")|"
@@ -287,7 +290,8 @@ _ranges_seperate_first_frames_with_no_audio_pack(){
                 echo "$(_get_values "${GOOD_AUDIO_FRAME}" "20-")"
             else
                 :
-                # need to handle case whene a segment starts with no audio pack but first frame with one is not reported.
+                # need to handle case whene a segment starts with no audio pack but first frame with one is not reported. Fall back to RANGE_LINE for now.
+                echo "${RANGE_LINE}"
             fi
         fi
     done < <(echo "${RANGES}")
@@ -633,6 +637,10 @@ if [[ -f "${DVFILE}" ]] ; then
         _report -v "MOV_FIRST_FRAME_CHECK=(${MOV_FIRST_FRAME_CHECK}), MOV_SHOWINFO=(${MOV_SHOWINFO})"
     fi
     _report -v "Trying to present a table of ranges"
+    
+    _get_ranges -i 1 -o 1163
+    exit
+    
     _ranges_2_table "$(_get_ranges)"
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
@@ -714,7 +722,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 AUDIO_RANGE_SUBLIST="$(_get_ranges -i "${FRAME_START}" -o "${FRAME_END}")"
-                _report -v "The audio range sublist is"
+                _report -v "The audio range sublist from frame #${FRAME_START} to #${FRAME_END} is"
                 _report -v "${AUDIO_RANGE_SUBLIST}"
                 AUDIO_SUBLIST_COUNT="$(echo -n "${AUDIO_RANGE_SUBLIST}" | grep -c '^')"
                 if [[ "${AUDIO_SUBLIST_COUNT}" = "1" ]] ; then
@@ -843,9 +851,9 @@ if [[ -f "${DVFILE}" ]] ; then
                 _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
             fi
         done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
-                    _get_ranges
+                    _get_ranges_unprocessed
                 else
-                    _ranges_drop_audio "$(_get_ranges)"
+                    _ranges_drop_audio "$(_get_ranges_unprocessed)"
                 fi)
         if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
