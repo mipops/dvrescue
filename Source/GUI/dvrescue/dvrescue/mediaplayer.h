@@ -63,6 +63,7 @@ public:
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
+    Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(quint64 pos);
 
     Status status() const;

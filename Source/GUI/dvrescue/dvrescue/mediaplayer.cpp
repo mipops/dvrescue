@@ -98,7 +98,7 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     auto videoSurface = vo->videoSurface();
 #endif
 
-    QObject::connect(player, &QAVPlayer::videoFrame, [videoSurface](const QAVVideoFrame &frame) {
+    QObject::connect(player, &QAVPlayer::videoFrame, player, [videoSurface](const QAVVideoFrame &frame) {
         qDebug() << "got frame";
 
         QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
@@ -114,19 +114,18 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
             pf = QVideoFrame::Format_NV12;
             break;
         default:
-            qDebug() << "frame.frame()->format: " << frame.frame()->format;
+            if (frame)
+                qDebug() << "format not supported: " << frame.frame()->format;
         }
 
-        if(pf != QVideoFrame::Format_Invalid) {
-            QVideoFrame videoFrame(new PlanarVideoBuffer(frame), frame.size(), pf);
-            if (!videoSurface->isActive())
-                videoSurface->start({videoFrame.size(), videoFrame.pixelFormat(), videoFrame.handleType()});
-            if (videoSurface->isActive())
-                videoSurface->present(videoFrame);
-        }
+        QVideoFrame videoFrame(new PlanarVideoBuffer(frame), frame.size(), pf);
+        if (!videoSurface->isActive())
+            videoSurface->start({videoFrame.size(), videoFrame.pixelFormat(), videoFrame.handleType()});
+        if (videoSurface->isActive())
+            videoSurface->present(videoFrame);
     });
 
-    QObject::connect(player, &QAVPlayer::audioFrame, [this](const QAVAudioFrame &frame) {
+    QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
         audioOutput.play(frame);
     });
 
@@ -141,6 +140,11 @@ void MediaPlayer::play()
 void MediaPlayer::pause()
 {
     player->pause();
+}
+
+void MediaPlayer::stop()
+{
+    player->stop();
 }
 
 void MediaPlayer::seek(quint64 pos)
