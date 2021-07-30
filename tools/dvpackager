@@ -149,7 +149,6 @@ _get_ranges(){
         -v "@rec_start" -o "|" \
         -v "@rdt_nc" -o "|" \
         -v "@tc_nc" -o "|" \
-        -v "count(preceding-sibling::d:frame)" -o "|" \
         --if "\$p" \
             -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
         --else \
@@ -166,29 +165,22 @@ _get_ranges(){
     # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
     # 12-13 sampling rate, channel count
     # 14-16 rec start, recording time jump, timecode jump
-    # 17 count preceding frames
-    # 18 if ends with missing audio metadata
-    # 19 offset end
+    # 17 if ends with missing audio metadata
+    # 18 offset end
 }
 
 _ranges_2_table(){
     RANGES="${1}"
     echo
-    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value', 1st='first frame is sequence'"
-    echo "| PTS Range                         | Duration | Frame Range     | Byte Range              | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR | 1st |"
+    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
+    echo "| PTS Range                         | Duration | Frame Range       | Byte Range              | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
-        COUNT_FRAMES="$(echo "${RANGE_LINE}" | cut -d "|" -f 17)"
-        if [[ "${COUNT_FRAMES}" = "0" ]] ; then
-            IS_FIRST="Y"
-        else
-            IS_FIRST=""
-        fi
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}|${IS_FIRST}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$20; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16; IS_FIRST=$21}\
-        {printf "| %15s - %15s | %8.3f | %6i - %6i | %10i - %10i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC, IS_FIRST }'
+        echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC }'
     done
     echo
 }
@@ -233,9 +225,9 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${PREV}" "4")|"
     echo -n "$(_get_values "${FIRST}" "5-11")|"
     echo -n "48000|2|"
-    echo -n "$(_get_values "${FIRST}" "14-18")|"
-    echo -n "$(_get_values "${PREV}" "19")|"
-    echo "$(_get_values "${FIRST}" "20-")"
+    echo -n "$(_get_values "${FIRST}" "14-17")|"
+    echo -n "$(_get_values "${PREV}" "18")|"
+    echo "$(_get_values "${FIRST}" "19-")"
 }
 
 _convert_hhmmssmmm2s(){
@@ -269,21 +261,40 @@ _get_track2_dcoffset(){
 }
 
 _make_chapter_metadata_file(){
-    CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${1}" | awk '{printf "%i", $1 * 100000}')"
-    CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${2}" | awk '{printf "%i", $1 * 100000}')"
+    OPTIND=1
+    while getopts "i:o:s:e:r" opt ; do
+        case "${opt}" in
+            i) CHAPTER_FRAME_IN="${OPTARG}" ;;
+            o) CHAPTER_FRAME_OUT="${OPTARG}" ;;
+            s) CHAPTER_PTS_IN="${OPTARG}" ;;
+            e) CHAPTER_PTS_OUT="${OPTARG}" ;;
+            r) REPORT=true ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
+    CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
+    CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
     echo ";FFMETADATA1"
-    _get_ranges "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']|d:frame[@tc_nc='1']" | \
+    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
          START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
          END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
          if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
+             unset CHAP_TITLE
+             if [[ -n ${TC} ]] ; then
+                 CHAP_TITLE+="${TC}"
+             fi
+             if [[ -n ${RDT} ]] ; then
+                 CHAP_TITLE+=" - ${RDT}"
+             fi
+             _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
              echo "[CHAPTER]"
              echo "TIMEBASE=1/100000"
              echo "START=${START_CHAPTER_OFFSET}"
              echo "END=${END_CHAPTER_OFFSET}"
-             echo "title=${TC} - ${RDT}"
+             echo "title=${CHAP_TITLE}"
          fi
     done
 }
@@ -319,7 +330,7 @@ _report(){
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
     if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
-        echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
     fi
 }
 
@@ -577,7 +588,6 @@ if [[ -f "${DVFILE}" ]] ; then
     _ranges_2_table "$(_get_ranges)"
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-    if [[ "$REPORT_ONLY" != "Y" ]] ; then
         case "${EXT}" in
             "mov")
                 if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
@@ -619,7 +629,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 ;;
         esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC COUNT_FRAMES LAST_FRAME_NO_AUDIO PKT_POS_END ; do
+        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
@@ -668,7 +678,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa COUNT_FRAMESa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa ; do
+                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa ; do
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
@@ -739,7 +749,8 @@ if [[ -f "${DVFILE}" ]] ; then
 
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
-                _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+                _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
+                _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                 CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                 CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
                 if [[ -n "${AR}" ]] ; then
@@ -747,7 +758,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 fi
             fi
             ((INPUT_COUNT++))
-
+            if [[ "$REPORT_ONLY" != "Y" ]] ; then
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
@@ -783,15 +794,15 @@ if [[ -f "${DVFILE}" ]] ; then
             if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
                 _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
             fi
+            fi
         done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
                     _get_ranges
                 else
                     _ranges_drop_audio "$(_get_ranges)"
                 fi)
-        if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
+        if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
         fi
-    fi
 else
     echo "${BASENAME} is not a file, skipping."
 fi
