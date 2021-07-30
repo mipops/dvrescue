@@ -592,7 +592,6 @@ if [[ -f "${DVFILE}" ]] ; then
     _ranges_2_table "$(_get_ranges)"
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-    if [[ "$REPORT_ONLY" != "Y" ]] ; then
         case "${EXT}" in
             "mov")
                 if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
@@ -763,7 +762,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 fi
             fi
             ((INPUT_COUNT++))
-
+            if [[ "$REPORT_ONLY" != "Y" ]] ; then
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
@@ -799,15 +798,15 @@ if [[ -f "${DVFILE}" ]] ; then
             if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
                 _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
             fi
+            fi
         done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
                     _get_ranges
                 else
                     _ranges_drop_audio "$(_get_ranges)"
                 fi)
-        if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
+        if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
         fi
-    fi
 else
     echo "${BASENAME} is not a file, skipping."
 fi
