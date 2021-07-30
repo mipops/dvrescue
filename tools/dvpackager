@@ -324,27 +324,6 @@ _report(){
 }
 
 MATCH_FRAMES="d:frame[1]|"
-FFMPEG_PATH="$(which ffmpeg)"
-# verify that ffmpeg is installed and qualifies
-if [[ -z "${FFMPEG_PATH}" ]] ; then
-    echo "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
-    exit 1
-fi
-FFversion="$("${FFMPEG_PATH}" -version)"
-LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
-LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
-LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
-LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
-if ! ( \
-    [[ "${LAVFversion_maj}" -gt 58 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
-   ) ; then
-    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
-    _report -w "Please update ffmpeg."
-    _report -w "Using this current install of ffmpeg may result in out of sync audio."
-fi
-
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
 REPORT_ONLY="N"
@@ -391,6 +370,31 @@ if [[ "${UNPACKAGER}" != "Y" && "${@}" != "" ]] ; then
     _usage
     exit 0
 fi
+
+# if FFMPEG_PATH wasn't provided as an argument then see if one is installed
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    FFMPEG_PATH="$(which ffmpeg)"
+fi
+# verify that ffmpeg is installed and qualifies
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    echo "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
+    exit 1
+fi
+FFversion="$("${FFMPEG_PATH}" -version)"
+LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
+LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
+LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
+if ! ( \
+    [[ "${LAVFversion_maj}" -gt 58 ]] || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+   ) ; then
+    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "Please update ffmpeg."
+    _report -w "Using this current install of ffmpeg may result in out of sync audio."
+fi
+
 MATCH_FRAMES="${MATCH_FRAMES%?}"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
