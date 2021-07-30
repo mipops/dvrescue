@@ -377,7 +377,7 @@ if [[ -z "${FFMPEG_PATH}" ]] ; then
 fi
 # verify that ffmpeg is installed and qualifies
 if [[ -z "${FFMPEG_PATH}" ]] ; then
-    echo "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
+    _report -v "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
     exit 1
 fi
 FFversion="$("${FFMPEG_PATH}" -version)"
