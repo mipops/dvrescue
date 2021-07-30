@@ -261,10 +261,21 @@ _get_track2_dcoffset(){
 }
 
 _make_chapter_metadata_file(){
-    CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${1}" | awk '{printf "%i", $1 * 100000}')"
-    CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${2}" | awk '{printf "%i", $1 * 100000}')"
+    OPTIND=1
+    while getopts "i:o:s:e:r" opt ; do
+        case "${opt}" in
+            i) CHAPTER_FRAME_IN="${OPTARG}" ;;
+            o) CHAPTER_FRAME_OUT="${OPTARG}" ;;
+            s) CHAPTER_PTS_IN="${OPTARG}" ;;
+            e) CHAPTER_PTS_OUT="${OPTARG}" ;;
+            r) REPORT=true ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
+    CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
+    CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
     echo ";FFMETADATA1"
-    _get_ranges "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']|d:frame[@tc_nc='1']" | \
+    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']|d:frame[@tc_nc='1']" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
@@ -742,7 +753,7 @@ if [[ -f "${DVFILE}" ]] ; then
 
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
-                _make_chapter_metadata_file "${PTS}" "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+                _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                 CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                 CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
                 if [[ -n "${AR}" ]] ; then
