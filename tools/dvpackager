@@ -275,7 +275,7 @@ _make_chapter_metadata_file(){
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
     echo ";FFMETADATA1"
-    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']|d:frame[@tc_nc='1']" | \
+    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
