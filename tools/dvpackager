@@ -289,6 +289,7 @@ _make_chapter_metadata_file(){
              if [[ -n ${RDT} ]] ; then
                  CHAP_TITLE+=" - ${RDT}"
              fi
+             _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
              echo "[CHAPTER]"
              echo "TIMEBASE=1/100000"
              echo "START=${START_CHAPTER_OFFSET}"
@@ -753,6 +754,7 @@ if [[ -f "${DVFILE}" ]] ; then
 
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
+                _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
                 _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
                 CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
                 CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
