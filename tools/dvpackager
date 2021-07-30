@@ -173,13 +173,13 @@ _ranges_2_table(){
     RANGES="${1}"
     echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
-    echo "| PTS Range                         | Duration | Frame Range     | Byte Range              | Timecode    | Recording Timestamp | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
+    echo "| PTS Range                         | Duration | Frame Range       | Byte Range              | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
     echo "${RANGES}" | while read RANGE_LINE ; do
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
         echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %15s - %15s | %8.3f | %6i - %6i | %10i - %10i | %11s | %19s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
         PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC }'
     done
     echo
