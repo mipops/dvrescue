@@ -214,7 +214,20 @@ _ranges_drop_audio(){
                 echo -n "$(_get_values "${FIRST}" "3")|"
                 echo -n "$(_get_values "${PREV}" "4")|"
                 echo -n "$(_get_values "${FIRST}" "5-11")|"
-                echo -n "48000|2|"
+                SR_F="$(_get_values "${FIRST}" "12")"
+                SR_P="$(_get_values "${PREV}" "12")"
+                if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+                    echo -n "48000|"
+                else
+                    echo -n "${SR_F}|"
+                fi
+                CH_F="$(_get_values "${FIRST}" "13")"
+                CH_P="$(_get_values "${PREV}" "13")"
+                if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
+                    echo -n "4|"
+                else
+                    echo -n "2|"
+                fi
                 echo "$(_get_values "${FIRST}" "14-")"
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
@@ -226,7 +239,20 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${FIRST}" "3")|"
     echo -n "$(_get_values "${PREV}" "4")|"
     echo -n "$(_get_values "${FIRST}" "5-11")|"
-    echo -n "48000|2|"
+    SR_F="$(_get_values "${FIRST}" "12")"
+    SR_P="$(_get_values "${PREV}" "12")"
+    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+        echo -n "48000|"
+    else
+        echo -n "${SR_F}|"
+    fi
+    CH_F="$(_get_values "${FIRST}" "13")"
+    CH_P="$(_get_values "${PREV}" "13")"
+    if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
+        echo -n "4|"
+    else
+        echo -n "2|"
+    fi
     echo -n "$(_get_values "${FIRST}" "14-17")|"
     echo -n "$(_get_values "${PREV}" "18")|"
     echo "$(_get_values "${FIRST}" "19-")"
