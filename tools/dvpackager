@@ -32,9 +32,11 @@ Options:
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
-           If two languages are provided with a comma delimiter such as
-           'eng,deu' then the first would be used for the first audio
-           track and the second for the second audio track, if it exists.)
+           If multiple languages are provided with a comma delimiter such as
+           'eng,spa,fra,nor' then they are used for each audio track in order.
+           Note that usually could be one or two stereo tracks, but if -m is 
+           enabled then it is possible for two or four mono tracks, each
+           with it's own language code.)
  -L <code>(specify the language code to use for the caption tracks (if
            any).
  -m       (By default, audio will be handled in stereo pairs, enabling this
@@ -465,11 +467,19 @@ fi
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
+LANG3="$(echo "${LANGUAGES}" | cut -d "," -f3 )"
+LANG4="$(echo "${LANGUAGES}" | cut -d "," -f4 )"
 if [[ -n "${LANG1}" ]] ; then
     OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
 fi
 if [[ -n "${LANG2}" ]] ; then
     OPT_OUTPUT+=(-metadata:s:a:1 language="${LANG2}")
+fi
+if [[ -n "${LANG3}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:2 language="${LANG3}")
+fi
+if [[ -n "${LANG4}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:3 language="${LANG4}")
 fi
 
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
