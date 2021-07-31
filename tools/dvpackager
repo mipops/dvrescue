@@ -32,11 +32,15 @@ Options:
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
-           If two languages are provided with a comma delimiter such as
-           'eng,deu' then the first would be used for the first audio
-           track and the second for the second audio track, if it exists.)
+           If multiple languages are provided with a comma delimiter such as
+           'eng,spa,fra,nor' then they are used for each audio track in order.
+           Note that usually could be one or two stereo tracks, but if -m is 
+           enabled then it is possible for two or four mono tracks, each
+           with it's own language code.)
  -L <code>(specify the language code to use for the caption tracks (if
            any).
+ -m       (By default, audio will be handled in stereo pairs, enabling this
+           option will arrange the audio into tracks with mono channels.)
  -S       (enables technical subtitle track to show timecode,
            recording time, and dv error data and a caption track if
            there are captions to represent in the source DV)
@@ -212,7 +216,20 @@ _ranges_drop_audio(){
                 echo -n "$(_get_values "${FIRST}" "3")|"
                 echo -n "$(_get_values "${PREV}" "4")|"
                 echo -n "$(_get_values "${FIRST}" "5-11")|"
-                echo -n "48000|2|"
+                SR_F="$(_get_values "${FIRST}" "12")"
+                SR_P="$(_get_values "${PREV}" "12")"
+                if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+                    echo -n "48000|"
+                else
+                    echo -n "${SR_F}|"
+                fi
+                CH_F="$(_get_values "${FIRST}" "13")"
+                CH_P="$(_get_values "${PREV}" "13")"
+                if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
+                    echo -n "4|"
+                else
+                    echo -n "2|"
+                fi
                 echo "$(_get_values "${FIRST}" "14-")"
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
@@ -224,7 +241,20 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${FIRST}" "3")|"
     echo -n "$(_get_values "${PREV}" "4")|"
     echo -n "$(_get_values "${FIRST}" "5-11")|"
-    echo -n "48000|2|"
+    SR_F="$(_get_values "${FIRST}" "12")"
+    SR_P="$(_get_values "${PREV}" "12")"
+    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+        echo -n "48000|"
+    else
+        echo -n "${SR_F}|"
+    fi
+    CH_F="$(_get_values "${FIRST}" "13")"
+    CH_P="$(_get_values "${PREV}" "13")"
+    if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
+        echo -n "4|"
+    else
+        echo -n "2|"
+    fi
     echo -n "$(_get_values "${FIRST}" "14-17")|"
     echo -n "$(_get_values "${PREV}" "18")|"
     echo "$(_get_values "${FIRST}" "19-")"
@@ -346,7 +376,7 @@ TC_NC="0"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:3" opt ; do
+while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
@@ -356,6 +386,7 @@ while getopts ":fsdto:e:l:L:SnvuhF:M:D:X:x:V:C:3" opt ; do
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
         L) CAPTION_LANG="${OPTARG}" ;;
+        m) MONO_CHANNELS="Y" ;;
         n) REPORT_ONLY="Y" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
@@ -436,11 +467,19 @@ fi
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
+LANG3="$(echo "${LANGUAGES}" | cut -d "," -f3 )"
+LANG4="$(echo "${LANGUAGES}" | cut -d "," -f4 )"
 if [[ -n "${LANG1}" ]] ; then
     OPT_OUTPUT+=(-metadata:s:a:0 language="${LANG1}")
 fi
 if [[ -n "${LANG2}" ]] ; then
     OPT_OUTPUT+=(-metadata:s:a:1 language="${LANG2}")
+fi
+if [[ -n "${LANG3}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:2 language="${LANG3}")
+fi
+if [[ -n "${LANG4}" ]] ; then
+    OPT_OUTPUT+=(-metadata:s:a:3 language="${LANG4}")
 fi
 
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
@@ -674,7 +713,24 @@ if [[ -f "${DVFILE}" ]] ; then
                         APAD=",apad=whole_dur=${DURATION_SECS}"
                         _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
                     fi
-                    AUDIO_FILTER=(-af "aresample=async=1:min_hard_comp=0.01${APAD}")
+                    _report -v "Prepping a mapping for ${CH} channel input (${MONO_CHANNELS})."
+                    if [[ "${CH}" = "2" ]] ; then
+                        if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
+                            AUDIO_MAP=(-map "[c1]" -map "[c2]")
+                        else
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud]")
+                            AUDIO_MAP=(-map "[aud]")
+                        fi
+                    elif [[ "${CH}" = "4" ]] ; then
+                        if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2];[0:a:1]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l2][r2];[l2]aformat=channel_layouts=mono[c3];[r2]aformat=channel_layouts=mono[c4]")
+                            AUDIO_MAP=(-map "[c1]" -map "[c2]" -map "[c3]" -map "[c4]")
+                        else
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud1];[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud2]")
+                            AUDIO_MAP=(-map "[aud1]" -map "[aud2]")
+                        fi
+                    fi
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
@@ -715,12 +771,22 @@ if [[ -f "${DVFILE}" ]] ; then
                         AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
                     done < <(echo "${AUDIO_RANGE_SUBLIST}")
                     if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
-                        AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
-                        AUDIO_MAP=(-map "[aud]")
+                        if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1,channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
+                            AUDIO_MAP=(-map "[c1]" -map "[c2]")
+                        else
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud]")
+                            AUDIO_MAP=(-map "[aud]")
+                        fi
                     else
                         _report -v "Adding a second stereo track, as audio was detect in the 3rd or 4th channels of the input dv."
-                        AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud_t2]")
-                        AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
+                        if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1,channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1,channelsplit[l2][r2];[l2]aformat=channel_layouts=mono[c3];[r2]aformat=channel_layouts=mono[c4]")
+                            AUDIO_MAP=(-map "[c1]" -map "[c2]" -map "[c3]" -map "[c4]")
+                        else
+                            AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_RESAMPLE_FILTER_T2}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud];${AUDIO_CONCAT_FILTER_T2}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1[aud_t2]")
+                            AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
+                        fi
                     fi
                     INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                 fi
