@@ -4,8 +4,6 @@
 
 QtAVPlayerUtils::QtAVPlayerUtils(QObject *parent) : QObject(parent)
 {
-    qRegisterMetaType<MediaPlayer::Status>();
-    qRegisterMetaType<MediaPlayer::PlaybackState>();
 }
 
 qint64 QtAVPlayerUtils::displayPosition(QObject *qmlPlayer)

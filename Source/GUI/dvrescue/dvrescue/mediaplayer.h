@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <QTimer>
-#include <QtAVPlayer/qavplayer.h>
+#include <QUrl>
+#include <QtQml/QQmlParserStatus>
 #include <QtAVPlayer/qavaudiooutput.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
@@ -26,35 +27,36 @@ public:
 };
 #endif
 
+class QAVPlayer;
 class QDeclarativeVideoOutput;
-class MediaPlayer : public QObject
+class MediaPlayer : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
+
     Q_PROPERTY(QDeclarativeVideoOutput* videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
-    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
+    Q_PROPERTY(MediaStatus status READ status NOTIFY statusChanged)
+    Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qreal videoFrameRate READ videoFrameRate NOTIFY videoFrameRateChanged)
 public:
-    enum PlaybackState {
+    enum State {
         StoppedState,
         PlayingState,
         PausedState
     };
-    Q_ENUM(PlaybackState)
+    Q_ENUM(State)
 
-    enum Status
+    enum MediaStatus
     {
         NoMedia,
-        LoadingMedia,
-        SeekingMedia,
         LoadedMedia,
         EndOfMedia,
         InvalidMedia
     };
-    Q_ENUM(Status)
+    Q_ENUM(MediaStatus)
 
     explicit MediaPlayer(QObject *parent = nullptr);
 
@@ -66,8 +68,8 @@ public:
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(quint64 pos);
 
-    Status status() const;
-    PlaybackState playbackState() const;
+    MediaStatus status() const;
+    State state() const;
     qint64 duration() const;
     qint64 position() const;
     qreal videoFrameRate() const;
@@ -78,8 +80,8 @@ public:
 Q_SIGNALS:
     void videoOutputChanged();
     void positionChanged();
-    void statusChanged(MediaPlayer::Status status);
-    void playbackStateChanged(MediaPlayer::PlaybackState state);
+    void statusChanged(MediaPlayer::MediaStatus status);
+    void stateChanged(MediaPlayer::State state);
     void durationChanged(qint64 duration);
     void sourceChanged(const QUrl &url);
     void seekFinished();
@@ -95,6 +97,11 @@ private:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     Source mediaSource;
 #endif //
+
+    // QQmlParserStatus interface
+public:
+    void classBegin();
+    void componentComplete();
 };
 
 #endif // MEDIAPLAYER_H

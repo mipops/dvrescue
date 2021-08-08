@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
-import QtMultimedia 5.12
+import QtMultimedia 5.12 as QtMultimedia
 import MediaPlayer 1.0
 
 Rectangle {
@@ -15,7 +15,7 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
-        VideoOutput {
+        QtMultimedia.VideoOutput {
             id: videoOutput
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -26,15 +26,27 @@ Rectangle {
             id: player
             videoOutput: videoOutput
 
+            Component.onCompleted: {
+                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+
+                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+            }
+
             /*
             autoLoad: true
             */
 
             onStatusChanged: {
                 console.debug('status: ', status);
-                if(status === MediaPlayer.Loaded) {
-                    console.debug('status: MediaPlayer.Loaded');
+                if(status === MediaPlayer.LoadedMedia) {
+                    console.debug('status: MediaPlayer.LoadedMedia');
                     fps = QtAVPlayerUtils.fps(player);
+                    console.debug('status: MediaPlayer.LoadedMedia: fps = ', fps);
                 }
                 else if(status === MediaPlayer.NoMedia || status === MediaPlayer.InvalidMedia) {
                     console.debug('status: MediaPlayer.NoMedia || MediaPlayer.InvalidMedia');
@@ -42,8 +54,8 @@ Rectangle {
                 }
             }
 
-            onPlaybackStateChanged: {
-                console.debug('state: ', playbackState);
+            onStateChanged: {
+                console.debug('state: ', state);
             }
 
             function waitForStateChanged(expectedState, action) {
@@ -51,13 +63,13 @@ Rectangle {
                 var promise = new Promise((resolve, reject) => {
                                                   var stateChangedHandler;
                                                   stateChangedHandler = () => {
-                                                      if(player.playbackState === expectedState) {
-                                                          player.playbackStateChanged.disconnect(stateChangedHandler)
+                                                      if(player.state === expectedState) {
+                                                          player.stateChanged.disconnect(stateChangedHandler)
                                                           resolve();
                                                       }
                                                   };
 
-                                                  player.playbackStateChanged.connect(stateChangedHandler);
+                                                  player.stateChanged.connect(stateChangedHandler);
                                                   Qt.callLater(() => {
                                                         if(action)
                                                             action();
@@ -139,9 +151,9 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: player.playbackState === MediaPlayer.PausedState ? "icons/play.svg" : "icons/stop.svg"
+                icon.source: player.state === MediaPlayer.PausedState ? "icons/play.svg" : "icons/stop.svg"
                 onClicked: {
-                    if(player.playbackState === MediaPlayer.PausedState)
+                    if(player.state === MediaPlayer.PausedState)
                         player.play()
                     else
                         player.pause()

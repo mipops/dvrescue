@@ -1,7 +1,12 @@
 #include "mediaplayer.h"
+#include <QtAVPlayer/qavplayer.h>
 #include <QAbstractVideoSurface>
 #include <QVideoFrame>
 #include <private/qdeclarativevideooutput_p.h>
+
+extern "C" {
+#include <libavutil/pixdesc.h>
+}
 
 class PlanarVideoBuffer : public QAbstractPlanarVideoBuffer
 {
@@ -41,14 +46,19 @@ private:
 };
 
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlayer(this))
-{    
+{
+    qRegisterMetaType<MediaPlayer::MediaStatus>();
+    qRegisterMetaType<MediaPlayer::State>();
+
+    qDebug() << "MediaPlayer::LoadedMedia: " << MediaPlayer::LoadedMedia << (int) MediaPlayer::LoadedMedia;
+
     connect(player, &QAVPlayer::stateChanged, [this](auto state) {
-        qDebug() << "MediaPlayer => state changed" << (PlaybackState) state;
-        Q_EMIT playbackStateChanged((PlaybackState) state);
+        qDebug() << "MediaPlayer => state changed" << (State) state;
+        Q_EMIT stateChanged((State) state);
     });
     connect(player, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
-        qDebug() << "MediaPlayer => status changed" << (Status) mediaStatus;
-        Q_EMIT statusChanged((Status) mediaStatus);
+        qDebug() << "MediaPlayer => status changed" << (MediaStatus) mediaStatus;
+        Q_EMIT statusChanged((MediaStatus) mediaStatus);
     });
     connect(player, &QAVPlayer::seeked, [this](auto pos) {
         Q_UNUSED(pos);
@@ -98,13 +108,24 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     auto videoSurface = vo->videoSurface();
 #endif
 
-    QObject::connect(player, &QAVPlayer::videoFrame, player, [videoSurface](const QAVVideoFrame &frame) {
-        qDebug() << "got frame";
-
+    auto& p = *player;
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](QAVVideoFrame frame) {
         QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
         switch (frame.frame()->format)
         {
         case AV_PIX_FMT_YUV420P:
+            pf = QVideoFrame::Format_YUV420P;
+            break;
+        case AV_PIX_FMT_YUV422P:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+            frame = frame.convertTo(AV_PIX_FMT_YUV420P);
+            pf = QVideoFrame::Format_YUV420P;
+#else
+            pf = QVideoFrame::Format_YUV422P;
+#endif
+            break;
+        case AV_PIX_FMT_YUV411P:
+            frame = frame.convertTo(AV_PIX_FMT_YUV420P);
             pf = QVideoFrame::Format_YUV420P;
             break;
         case AV_PIX_FMT_NV12:
@@ -115,7 +136,7 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
             break;
         default:
             if (frame)
-                qDebug() << "format not supported: " << frame.frame()->format;
+                qDebug() << "format not supported: " << frame.formatName();
         }
 
         QVideoFrame videoFrame(new PlanarVideoBuffer(frame), frame.size(), pf);
@@ -153,14 +174,14 @@ void MediaPlayer::seek(quint64 pos)
     player->seek(pos);
 }
 
-MediaPlayer::Status MediaPlayer::status() const
+MediaPlayer::MediaStatus MediaPlayer::status() const
 {
-    return (Status) player->mediaStatus();
+    return (MediaStatus) player->mediaStatus();
 }
 
-MediaPlayer::PlaybackState MediaPlayer::playbackState() const
+MediaPlayer::State MediaPlayer::state() const
 {
-    return (PlaybackState) player->state();
+    return (State) player->state();
 }
 
 qint64 MediaPlayer::duration() const
@@ -185,5 +206,16 @@ QUrl MediaPlayer::source() const
 
 void MediaPlayer::setSource(const QUrl &newSource)
 {
+    qDebug() << "new source: " << newSource;
     player->setSource(newSource);
+}
+
+void MediaPlayer::classBegin()
+{
+
+}
+
+void MediaPlayer::componentComplete()
+{
+
 }
