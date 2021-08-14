@@ -5,6 +5,7 @@
 #include <qwt_plot_renderer.h>
 #include <qwt_scale_widget.h>
 #include <qwt_scale_engine.h>
+#include <qwt_scale_map.h>
 #include <qwt_plot_layout.h>
 #include <qwt_legend.h>
 #include <qwt_plot_legenditem.h>
@@ -762,7 +763,7 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
         this->setActive(pickerActive);
     });
 
-    m_qwtPlotPicker->setAxis( QwtPlot::xBottom, QwtPlot::yLeft );
+    m_qwtPlotPicker->setAxes(QwtPlot::xBottom, QwtPlot::yLeft );
     m_qwtPlotPicker->setRubberBand( QwtPlotPicker::CrossRubberBand );
     m_qwtPlotPicker->setRubberBandPen( QColor( Qt::green ) );
 
