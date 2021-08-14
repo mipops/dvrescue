@@ -5,6 +5,7 @@ include(../ffmpeg.pri)
 
 CONFIG += c++17 warn_on
 CONFIG += no_keywords
+CONFIG += console
 
 QT += quick testlib xmlpatterns widgets multimedia qtmultimediaquicktools-private
 
@@ -12,6 +13,7 @@ SOURCES += \
     datamodeltest.cpp \
     dummytest.cpp \
     main.cpp \
+    playertest.cpp \
     xmlparsingtest.cpp
 
 QML_ROOT_PATH = $$absolute_path($$PWD/../dvrescue)
@@ -24,6 +26,7 @@ DISTFILES += \
 HEADERS += \
     datamodeltest.h \
     dummytest.h \
+    playertest.h \
     xmlparsingtest.h
 
 RESOURCES += \

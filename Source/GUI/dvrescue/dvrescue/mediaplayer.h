@@ -89,7 +89,7 @@ Q_SIGNALS:
 
 private:
     QAVPlayer* player;
-    QAVAudioOutput audioOutput;
+    QScopedPointer<QAVAudioOutput> audioOutput;
     QDeclarativeVideoOutput *m_videoOutput;
 
     QTimer t;

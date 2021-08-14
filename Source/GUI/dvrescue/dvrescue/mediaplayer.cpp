@@ -47,6 +47,8 @@ private:
 
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlayer(this))
 {
+    audioOutput.reset(new QAVAudioOutput);
+
     qRegisterMetaType<MediaPlayer::MediaStatus>();
     qRegisterMetaType<MediaPlayer::State>();
 
@@ -147,7 +149,8 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     });
 
     QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
-        audioOutput.play(frame);
+        if(audioOutput)
+            audioOutput->play(frame);
     });
 
     Q_EMIT videoOutputChanged();
@@ -155,16 +158,29 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
 
 void MediaPlayer::play()
 {
+    qDebug() << "play";
+
+    if(!audioOutput)
+        audioOutput.reset(new QAVAudioOutput());
+
     player->play();
 }
 
 void MediaPlayer::pause()
 {
+    qDebug() << "pause";
+
+    if(!audioOutput)
+        audioOutput.reset(new QAVAudioOutput());
+
     player->pause();
 }
 
 void MediaPlayer::stop()
 {
+    qDebug() << "stop";
+
+    audioOutput.reset();
     player->stop();
 }
 
@@ -206,6 +222,9 @@ QUrl MediaPlayer::source() const
 
 void MediaPlayer::setSource(const QUrl &newSource)
 {
+    if(audioOutput)
+        audioOutput.reset(new QAVAudioOutput());
+
     qDebug() << "new source: " << newSource;
     player->setSource(newSource);
 }
