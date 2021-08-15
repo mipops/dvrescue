@@ -224,21 +224,6 @@ void MediaPlayer::setSource(const QUrl &newSource)
         audioOutput.reset(new QAVAudioOutput());
 
     qDebug() << "new source: " << newSource;
-    if(newSource == QUrl())
-    {
-        if(player->state() != QAVPlayer::StoppedState) {
-            QEventLoop loop;
-            connect(player, &QAVPlayer::stopped, &loop, &QEventLoop::quit);
-            QTimer::singleShot(0, [this]() {
-                player->stop();
-            });
-
-            qDebug() << "waiting till player stop...";
-            loop.exec();
-            qDebug() << "stopped...";
-        }
-    }
-
     player->setSource(newSource);
 }
 
