@@ -151,12 +151,12 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: player.state === MediaPlayer.PausedState ? "icons/play.svg" : "icons/stop.svg"
+                icon.source: player.state === MediaPlayer.PlayingState ? "icons/stop.svg" : "icons/play.svg"
                 onClicked: {
-                    if(player.state === MediaPlayer.PausedState)
-                        player.play()
-                    else
+                    if(player.state === MediaPlayer.PlayingState)
                         player.pause()
+                    else
+                        player.play()
                 }
             }
 

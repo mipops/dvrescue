@@ -190,6 +190,12 @@ void MediaPlayer::seek(quint64 pos)
     player->seek(pos);
 }
 
+void MediaPlayer::stepForward()
+{
+    qDebug() << "step forward";
+    player->stepForward();
+}
+
 MediaPlayer::MediaStatus MediaPlayer::status() const
 {
     return (MediaStatus) player->mediaStatus();

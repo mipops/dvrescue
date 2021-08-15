@@ -67,6 +67,7 @@ public:
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(quint64 pos);
+    Q_INVOKABLE void stepForward();
 
     MediaStatus status() const;
     State state() const;
