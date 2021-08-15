@@ -111,6 +111,11 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
 #endif
 
     auto& p = *player;
+
+    QObject::connect(vo, &QDeclarativeVideoOutput::sourceRectChanged, &p, [vo] {
+        vo->update();
+    });
+
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](QAVVideoFrame frame) {
         QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
         switch (frame.frame()->format)
