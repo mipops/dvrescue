@@ -51,11 +51,19 @@ Rectangle {
                 else if(status === MediaPlayer.NoMedia || status === MediaPlayer.InvalidMedia) {
                     console.debug('status: MediaPlayer.NoMedia || MediaPlayer.InvalidMedia');
                     fps =  0;
+                    QtAVPlayerUtils.emitEmptyFrame(playerView.player);
                 }
             }
 
             onStateChanged: {
                 console.debug('state: ', state);
+            }
+
+            onStopped: {
+                console.debug('stopped: ', pos, ', status: ', status, ', state: ', state);
+                if(status !== MediaPlayer.EndOfMedia) {
+                    QtAVPlayerUtils.emitEmptyFrame(player);
+                }
             }
 
             function waitForStateChanged(expectedState, action) {

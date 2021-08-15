@@ -249,7 +249,7 @@ Item {
                         Layout.fillWidth: true
                         currentIndex: fileViewer.fileView.currentIndex
                         onCurrentIndexChanged: {
-                            if(fileViewer.files.length < currentIndex)
+                            if(fileViewer.files.length > currentIndex)
                             {
                                 var file = fileViewer.files[currentIndex]
                                 toolsLayout.load(file, currentIndex)
@@ -264,8 +264,8 @@ Item {
                         dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                                         plotsView.evenAudioCurve, plotsView.oddAudioCurve);
 
-                        if(filePath.length === 0) {
-                            playerView.player.stop()
+                        if(filePath == undefined || filePath.length === 0) {
+                            playerView.player.source = '';
                             return;
                         }
 

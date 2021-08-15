@@ -1,6 +1,7 @@
 #include "mediaplayer.h"
 #include "qtavplayerutils.h"
 #include <QtAVPlayer/qavplayer.h>
+#include <QDebug>
 
 QtAVPlayerUtils::QtAVPlayerUtils(QObject *parent) : QObject(parent)
 {
@@ -16,4 +17,13 @@ qreal QtAVPlayerUtils::fps(QObject *qmlPlayer)
 {
     auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
     return player ? (player->videoFrameRate() ? 1.0 / player->videoFrameRate() : 0) : 0;
+}
+
+void QtAVPlayerUtils::emitEmptyFrame(QObject *qmlPlayer)
+{
+    qDebug() << "emitEmptyFrame";
+
+    auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
+    if(player)
+        player->clear();
 }

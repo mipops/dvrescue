@@ -68,6 +68,7 @@ public:
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(quint64 pos);
     Q_INVOKABLE void stepForward();
+    Q_INVOKABLE void clear();
 
     MediaStatus status() const;
     State state() const;
@@ -87,6 +88,7 @@ Q_SIGNALS:
     void sourceChanged(const QUrl &url);
     void seekFinished();
     void videoFrameRateChanged(qreal frameRate);
+    void stopped(qint64 pos);
 
 private:
     QAVPlayer* player;

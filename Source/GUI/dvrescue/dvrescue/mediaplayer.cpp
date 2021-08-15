@@ -52,32 +52,39 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlaye
     qRegisterMetaType<MediaPlayer::MediaStatus>();
     qRegisterMetaType<MediaPlayer::State>();
 
+    qRegisterMetaType<QAVPlayer::MediaStatus>();
+    qRegisterMetaType<QAVPlayer::State>();
+
     qDebug() << "MediaPlayer::LoadedMedia: " << MediaPlayer::LoadedMedia << (int) MediaPlayer::LoadedMedia;
 
-    connect(player, &QAVPlayer::stateChanged, [this](auto state) {
+    connect(player, &QAVPlayer::stateChanged, player, [this](auto state) {
         qDebug() << "MediaPlayer => state changed" << (State) state;
         Q_EMIT stateChanged((State) state);
     });
-    connect(player, &QAVPlayer::mediaStatusChanged, [this](auto mediaStatus) {
+    connect(player, &QAVPlayer::mediaStatusChanged, player, [this](auto mediaStatus) {
         qDebug() << "MediaPlayer => status changed" << (MediaStatus) mediaStatus;
         Q_EMIT statusChanged((MediaStatus) mediaStatus);
     });
-    connect(player, &QAVPlayer::seeked, [this](auto pos) {
+    connect(player, &QAVPlayer::seeked, player, [this](auto pos) {
         Q_UNUSED(pos);
         qDebug() << "MediaPlayer => seek finished at" << pos;
         Q_EMIT seekFinished();
     });
-    connect(player, &QAVPlayer::durationChanged, [this](auto duration) {
+    connect(player, &QAVPlayer::durationChanged, player, [this](auto duration) {
         qDebug() << "MediaPlayer => duration changed" << duration;
         Q_EMIT durationChanged(duration);
     });
-    connect(player, &QAVPlayer::sourceChanged, [this](auto source) {
+    connect(player, &QAVPlayer::sourceChanged, player, [this](auto source) {
         qDebug() << "MediaPlayer => source changed" << source;
         Q_EMIT sourceChanged(source);
     });
-    connect(player, &QAVPlayer::videoFrameRateChanged, [this](auto frameRate) {
+    connect(player, &QAVPlayer::videoFrameRateChanged, player, [this](auto frameRate) {
         qDebug() << "MediaPlayer => video frame rate changed" << frameRate;
         Q_EMIT videoFrameRateChanged(frameRate);
+    });
+    connect(player, &QAVPlayer::stopped, player, [this](auto pos) {
+        qDebug() << "MediaPlayer => stopped at " << pos;
+        Q_EMIT stopped(pos);
     });
 
     t.setInterval(100);
@@ -117,36 +124,9 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     });
 
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](QAVVideoFrame frame) {
-        QVideoFrame::PixelFormat pf = QVideoFrame::Format_Invalid;
-        switch (frame.frame()->format)
-        {
-        case AV_PIX_FMT_YUV420P:
-            pf = QVideoFrame::Format_YUV420P;
-            break;
-        case AV_PIX_FMT_YUV422P:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-            frame = frame.convertTo(AV_PIX_FMT_YUV420P);
-            pf = QVideoFrame::Format_YUV420P;
-#else
-            pf = QVideoFrame::Format_YUV422P;
-#endif
-            break;
-        case AV_PIX_FMT_YUV411P:
-            frame = frame.convertTo(AV_PIX_FMT_YUV420P);
-            pf = QVideoFrame::Format_YUV420P;
-            break;
-        case AV_PIX_FMT_NV12:
-            pf = QVideoFrame::Format_NV12;
-            break;
-        case AV_PIX_FMT_D3D11:
-            pf = QVideoFrame::Format_NV12;
-            break;
-        default:
-            if (frame)
-                qDebug() << "format not supported: " << frame.formatName();
-        }
+        qDebug() << "got video frame";
 
-        QVideoFrame videoFrame(new PlanarVideoBuffer(frame), frame.size(), pf);
+        QVideoFrame videoFrame = frame;
         if (!videoSurface->isActive())
             videoSurface->start({videoFrame.size(), videoFrame.pixelFormat(), videoFrame.handleType()});
         if (videoSurface->isActive())
@@ -199,6 +179,13 @@ void MediaPlayer::stepForward()
 {
     qDebug() << "step forward";
     player->stepForward();
+}
+
+void MediaPlayer::clear()
+{
+    qDebug() << "clear";
+    if(player->hasVideo())
+        player->videoFrame(QAVVideoFrame());
 }
 
 MediaPlayer::MediaStatus MediaPlayer::status() const
