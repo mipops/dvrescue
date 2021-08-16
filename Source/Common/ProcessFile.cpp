@@ -165,6 +165,33 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
     }
     PerFrame.push_back(ToPush);
 
+    coherency_flags Coherency(FrameData->Coherency_Flags);
+    if (!no_sourceorcontrol_aud_set_in_first_frame && !(Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()))
+    {
+        if (!PerChange.empty() && ToPush->FrameNumber == PerChange.back()->FrameNumber)
+            no_sourceorcontrol_aud_set_in_first_frame = true;
+    }
+    if (no_sourceorcontrol_aud_set_in_first_frame && (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()))
+    {
+        if (PerChange.back()->FrameNumber != FrameNumber - 1)
+        {
+            auto& PerChange_Last = PerChange.back();
+            MediaInfo_Event_DvDif_Change_0* PerChange_ToPush = new MediaInfo_Event_DvDif_Change_0();
+            std::memcpy(PerChange_ToPush, PerChange_Last, sizeof(MediaInfo_Event_DvDif_Change_0));
+            PerChange_Last->AudioRate_N = 0;
+            PerChange_Last->AudioRate_D = 0;
+            PerChange_Last->AudioChannels = 0;
+            PerChange_Last->AudioBitDepth = 0;
+            PerChange_ToPush->FrameNumber = FrameNumber - 1; // Event FrameCount is currently wrong
+            PerChange_ToPush->PCR = ToPush->PCR;
+            PerChange_ToPush->DTS = ToPush->DTS;
+            PerChange_ToPush->PTS = ToPush->PTS;
+            PerChange_ToPush->DUR = ToPush->DUR;
+            PerChange.push_back(PerChange_ToPush);
+        }
+        no_sourceorcontrol_aud_set_in_first_frame = false;
+    }
+
     if (!Merge_OutputFileName.empty())
         Merge.AddFrame(Merge_FilePos, FrameData);
 

@@ -95,4 +95,5 @@ public:
 private:
     size_t Merge_FilePos;
     dv_merge Merge;
+    bool no_sourceorcontrol_aud_set_in_first_frame = false;
 };
