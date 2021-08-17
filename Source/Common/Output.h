@@ -77,7 +77,8 @@ private:
 struct rec_date_time
 {
 public:
-    rec_date_time(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::RecordedDateTime1) Value1, decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::RecordedDateTime2) Value2) : _Value1(Value1), _Value2(Value2) {}
+    rec_date_time(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value1(Frame.RecordedDateTime1), _Value2(Frame.RecordedDateTime2), _Value3(Frame.MoreFlags) {}
+    rec_date_time(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value1(Frame->RecordedDateTime1), _Value2(Frame->RecordedDateTime2), _Value3(Frame->MoreFlags) {}
     inline bool HasDate() { return ((_Value1 >> 17) & 0x7F) != 0x7F; }
     inline bool HasTime() { return (_Value1 & 0x1FFFF) != 0x1FFFF; }
     inline int TimeInSeconds() { return _Value1 & 0x1FFFF; }                        // 1  0-16
@@ -89,10 +90,12 @@ public:
     inline int Frames() { return _Value2 & 0x3F; }                                  // 2  0- 5
     inline int Days() { return (_Value2 >> 6) & 0x1F; }                             // 2  6-10
     inline int Months() { return (_Value2 >> 12) & 0x0F; }                          // 2 12-15
+    inline int NonConsecutive_IsLess() { return _Value3 & (1 << 0); }               // 3  0
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::RecordedDateTime1) _Value1;
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::RecordedDateTime2) _Value2;
+    decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::MoreFlags) _Value3;
 };
 
 struct coherency_flags

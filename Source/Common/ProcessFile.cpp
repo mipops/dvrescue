@@ -325,7 +325,7 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
             Text += ' ';
             Text += TC.ToString();
         }
-        rec_date_time RecDateTime(FrameData->RecordedDateTime1, FrameData->RecordedDateTime2);
+        rec_date_time RecDateTime(FrameData);
         string RecDateTime_String;
         if (RecDateTime.HasDate())
         {

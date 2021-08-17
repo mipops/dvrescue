@@ -372,7 +372,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // RecDate/RecTime
-                rec_date_time RecDateTime(Frame->RecordedDateTime1, Frame->RecordedDateTime2);
+                rec_date_time RecDateTime(Frame);
                 string RecDateTime_String;
                 if (RecDateTime.HasDate())
                 {
@@ -392,7 +392,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
                 if (RecDateTime.NonConsecutive())
                 {
-                    Text += " rdt_nc=\"1\"";
+                    if (RecDateTime.NonConsecutive_IsLess())
+                        Text += " rdt_nc=\"2\"";
+                    else
+                        Text += " rdt_nc=\"1\"";
                 }
                 if (RecDateTime.Start())
                 {
