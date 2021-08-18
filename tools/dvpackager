@@ -835,11 +835,9 @@ if [[ -f "${DVFILE}" ]] ; then
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             fi
             if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                # quick track duration check on the result
                 PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
                 TOTAL_DVFRAMES_PACKAGED="$(echo "${TOTAL_DVFRAMES_PACKAGED} + ${PACKAGED_DVFRAMES}" | bc -l)"
-            fi
-            # quick track duration check on the result
-            if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                 AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
                 _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
                 if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
