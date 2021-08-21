@@ -155,7 +155,7 @@ QWT_CONFIG     += QwtPlayground
 # Otherwise you have to build them from the tests directory.
 ######################################################################
 
-QWT_CONFIG     += QwtTests
+QWT_CONFIG     -= QwtTests
 
 ######################################################################
 # When Qt has been built as framework qmake wants
