@@ -114,7 +114,7 @@ QWT_CONFIG     += QwtOpenGL
 # Otherwise you have to build it from the designer directory.
 ######################################################################
 
-#QWT_CONFIG     += QwtDesigner
+QWT_CONFIG     -= QwtDesigner
 
 ######################################################################
 # Compile all Qwt classes into the designer plugin instead
@@ -137,7 +137,7 @@ win32 {
 # Otherwise you have to build them from the examples directory.
 ######################################################################
 
-#QWT_CONFIG     += QwtExamples
+QWT_CONFIG     -= QwtExamples
 
 ######################################################################
 # The playground is primarily intended for the Qwt development
@@ -176,3 +176,5 @@ unix {
 
     QWT_CONFIG     += QwtPkgConfig
 }
+
+message('QWT_CONFIG: $$QWT_CONFIG')
