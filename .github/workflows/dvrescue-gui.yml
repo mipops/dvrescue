@@ -274,6 +274,7 @@ jobs:
     - name: Download and configure qwt
       run: |
         git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        copy .github\workflows\qwtconfig.pri ..\qwt
         cd ../qwt
         qmake -r
 
