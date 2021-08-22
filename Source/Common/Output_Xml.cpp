@@ -169,34 +169,50 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
 
                 const auto Change = *PerChange_Next;
                 PerChange_Next++;
-                if (!Options[Option_CaptionPresenceChange] && PerChange_Next != File->PerChange.end())
+
+                auto no_sourceorcontrol_aud_Everywhere = true;
+                const auto& Frame2_Max = PerChange_Next != File->PerChange.end() ? (File->PerFrame.begin() + (*PerChange_Next)->FrameNumber) : File->PerFrame.end();
+                for (auto Frame2 = File->PerFrame.begin() + FrameNumber; Frame2 < Frame2_Max; ++Frame2)
                 {
-                    Captions_Partial[0] = {};
-                    Captions_Partial[1] = {};
-                    bool HasChanges = false;
-                    bool CaptionsOn = Change->Captions_Flags & 1;
-                    Captions_Partial[CaptionsOn].push(Change->FrameNumber);
-                    do
+                    coherency_flags Coherency((*Frame2)->Coherency_Flags);
+                    if (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud())
                     {
-                        // We check if the caption presence change is the only change, and skip it if it is the case, while keeping info about in/out of caption change
-                        constexpr auto Size_Before = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) - sizeof(MediaInfo_Event_Generic);
-                        constexpr auto Offset_After = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags);
-                        const auto Size_After = Change->EventSize - Offset_After;
-                        if ((Size_Before && memcmp((const char*)&Change->Captions_Flags - Size_Before, (const char*)&(*PerChange_Next)->Captions_Flags - Size_Before, Size_Before))
-                            || (Size_After && memcmp((const char*)&Change->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), (const char*)&(*PerChange_Next)->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), Size_After))
-                            || ((Change->Captions_Flags&(~1)) != ((*PerChange_Next)->Captions_Flags&(~1)))) // Any bit but bit 0
-                                break;
-                        HasChanges = true;
-                        CaptionsOn = !CaptionsOn;
-                        if (CaptionsOn || !Captions_Partial[1].empty())
-                            Captions_Partial[CaptionsOn].push((*PerChange_Next)->FrameNumber);
-                        PerChange_Next++;
+                        no_sourceorcontrol_aud_Everywhere = false;
+                        break;
                     }
-                    while (PerChange_Next != File->PerChange.end());
-                    if (!HasChanges)
+                }
+
+                if (!no_sourceorcontrol_aud_Everywhere)
+                {
+                    if (!Options[Option_CaptionPresenceChange] && PerChange_Next != File->PerChange.end())
                     {
                         Captions_Partial[0] = {};
                         Captions_Partial[1] = {};
+                        bool HasChanges = false;
+                        bool CaptionsOn = Change->Captions_Flags & 1;
+                        Captions_Partial[CaptionsOn].push(Change->FrameNumber);
+                        do
+                        {
+                            // We check if the caption presence change is the only change, and skip it if it is the case, while keeping info about in/out of caption change
+                            constexpr auto Size_Before = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) - sizeof(MediaInfo_Event_Generic);
+                            constexpr auto Offset_After = offsetof(MediaInfo_Event_DvDif_Change_0, Captions_Flags) + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags);
+                            const auto Size_After = Change->EventSize - Offset_After;
+                            if ((Size_Before && memcmp((const char*)&Change->Captions_Flags - Size_Before, (const char*)&(*PerChange_Next)->Captions_Flags - Size_Before, Size_Before))
+                                || (Size_After && memcmp((const char*)&Change->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), (const char*)&(*PerChange_Next)->Captions_Flags + sizeof(MediaInfo_Event_DvDif_Change_0::Captions_Flags), Size_After))
+                                || ((Change->Captions_Flags&(~1)) != ((*PerChange_Next)->Captions_Flags&(~1)))) // Any bit but bit 0
+                                break;
+                            HasChanges = true;
+                            CaptionsOn = !CaptionsOn;
+                            if (CaptionsOn || !Captions_Partial[1].empty())
+                                Captions_Partial[CaptionsOn].push((*PerChange_Next)->FrameNumber);
+                            PerChange_Next++;
+                        }
+                        while (PerChange_Next != File->PerChange.end());
+                        if (!HasChanges)
+                        {
+                            Captions_Partial[0] = {};
+                            Captions_Partial[1] = {};
+                        }
                     }
                 }
                 Text += "\t\t<frames";
@@ -278,6 +294,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 else if (Change->Captions_Flags & 0x1)
                 {
                     Text += " captions=\"y\"";
+                }
+                if (no_sourceorcontrol_aud_Everywhere)
+                {
+                    Text += " no_sourceorcontrol_aud=\"1\"";
                 }
                 Text += ">\n";
             }

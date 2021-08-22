@@ -127,6 +127,13 @@
     <xsd:attribute name="audio_rate" type="audio_rateType"/>
     <xsd:attribute name="channels" type="channelsType"/>
     <xsd:attribute name="captions" type="captionsType" default="n"/>
+    <xsd:attribute name="no_sourceorcontrol_aud" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Boolean that indicates if no audio source and no audio source control pack is present in audio but at least 1 pack is present in audio.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:simpleType name="sizeType">
