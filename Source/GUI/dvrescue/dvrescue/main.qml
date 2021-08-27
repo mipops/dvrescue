@@ -96,37 +96,57 @@ ApplicationWindow {
                 return FileUtils.getFilePath(url);
             }
 
-            rewindMouseArea.onClicked: {
+            queryStatusCallback: () => {
+                return avfctl.status(0)
+            }
+
+            rewindButton.onClicked: {
+                pendingAction = true;
+                statusText = "rewinding..";
                 avfctl.rew(0, (launcher) => {
                    commandsLogs.logCommand(launcher);
                 }).then((result) => {
+                   statusText = "rewinding.";
+                   pendingAction = false;
                    commandsLogs.logResult(result.outputText);
                    return result;
                 });
             }
 
-            stopMouseArea.onClicked: {
+            stopButton.onClicked: {
+                pendingAction = true;
+                statusText = "stopping..";
                 avfctl.stop(0, (launcher) => {
                    commandsLogs.logCommand(launcher);
                 }).then((result) => {
+                   statusText = "stopping.";
+                   pendingAction = false;
                    commandsLogs.logResult(result.outputText);
                    return result;
                 });
             }
 
-            playMouseArea.onClicked: {
+            playButton.onClicked: {
+                pendingAction = true;
+                statusText = "playing..";
                 avfctl.play(0, (launcher) => {
                    commandsLogs.logCommand(launcher);
                 }).then((result) => {
+                   statusText = "playing.";
+                   pendingAction = false;
                    commandsLogs.logResult(result.outputText);
                    return result;
                 });
             }
 
-            fastForwardMouseArea.onClicked: {
+            fastForwardButton.onClicked: {
+                pendingAction = true;
+                statusText = "fast-forwarding..";
                 avfctl.ff(0,  (launcher) => {
                     commandsLogs.logCommand(launcher);
                 }).then((result) => {
+                    statusText = "fast-forwarding.";
+                    pendingAction = false;
                     commandsLogs.logResult(result.outputText);
                     return result;
                 });
@@ -136,7 +156,15 @@ ApplicationWindow {
                 specifyPathDialog.callback = (fileUrl) => {
                     var filePath = urlToPath(fileUrl);
 
-                    avfctl.grab(0, filePath, (launcher) => {
+                    pendingAction = true;
+                    dvrescue.grab(0, filePath, (launcher) => {
+                       launcher.errorChanged.connect((errorBytes) => {
+                           console.debug('grabbed errorString: ', errorBytes)
+                           var errorString = '' + errorBytes;
+                           var splitted = errorString.trim().split('\r');
+                           statusText = splitted[splitted.length - 1]
+                       });
+
                        console.debug('logging grab command')
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {

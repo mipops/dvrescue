@@ -20,6 +20,45 @@ Item {
         id: parser
     }
 
+    function status(index, callback) {
+        console.debug('querying status: ', index);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null);
+            var outputText = '';
+            launcher.errorChanged.connect((errorString) => {
+                outputText += errorString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                console.debug('got from avfctl: \n' + outputText);
+                try {
+                    accept({status: parser.parseStatus(outputText), launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(cmd + " -status -device " + index);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
     function stop(index, callback) {
         console.debug('stopping: ', index);
 

@@ -32,4 +32,11 @@ TestCase {
         console.debug('mode: ', output.mode.from, output.mode.to)
         console.debug('speed: ', output.speed.from, output.speed.to)
     }
+
+    function test_status_parsing() {
+        var statusOutput = "2021-08-27 13:33:24.348 avfctl[99766:4607139] Device [0] DV-VCR (Sony HVR-M15AU) status: stopped\n"
+
+        var output = parser.parseStatus(statusOutput);
+        console.debug('status: ', output.status);
+    }
 }
