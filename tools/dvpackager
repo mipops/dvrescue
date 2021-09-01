@@ -493,7 +493,7 @@ fi
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
     echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
-    for i in "${@}" ; do
+    for i in "${DVFILE}" "${@}" ; do
         "${FFMPEG_PATH}" -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
