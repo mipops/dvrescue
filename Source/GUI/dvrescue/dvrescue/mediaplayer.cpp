@@ -170,11 +170,17 @@ void MediaPlayer::stepForward()
     player->stepForward();
 }
 
+void MediaPlayer::stepBackward()
+{
+    qDebug() << "step backward";
+    player->stepBackward();
+}
+
 void MediaPlayer::clear()
 {
     qDebug() << "clear";
     if(player->hasVideo())
-        player->videoFrame(QAVVideoFrame());
+        Q_EMIT player->videoFrame(QAVVideoFrame());
 }
 
 MediaPlayer::MediaStatus MediaPlayer::status() const
