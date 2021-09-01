@@ -84,13 +84,13 @@ done
 echo "generating more dv files..."
 DRAWTEXT_OPTS="fontfile=${DEFAULTFONT}:x=(w-text_w)/2:y=(h-text_h)/2:fontsize=36:fontcolor=white:box=1:boxcolor=gray@0.6:boxborderw=12:shadowx=2:shadowy=2:expansion=none"
 
-ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 4\3  2Ch 48kHz'" samples/dv25_ntsc_411_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 16\9 2Ch 48kHz'" samples/dv25_ntsc_411_169_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 48kHz'" samples/dv25_pal__411_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 32000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 32kHz'" samples/dv25_pal__411_4-3_2ch_32k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv420p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:2\:0 4\3  2Ch 48kHz'" samples/dv25_pal__420_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 NTSC 4\:2\:2 4\3  2Ch 48kHz'" samples/dv50_ntsc_422_4-3_2ch_48k_bars_sine.dv
-ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 PAL  4\:2\:2 4\3  2Ch 48kHz'" samples/dv50_pal__422_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 4\3  2Ch 48kHz'" -metadata timecode="1:00:00:00" samples/dv25_ntsc_411_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 16/9 -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 NTSC 4\:1\:1 16\9 2Ch 48kHz'" -metadata timecode="2:00:00:00" samples/dv25_ntsc_411_169_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 48kHz'" -metadata timecode="3:00:00:00" samples/dv25_pal__411_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv411p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 32000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:1\:1 4\3  2Ch 32kHz'" -metadata timecode="4:00:00:00" samples/dv25_pal__411_4-3_2ch_32k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv420p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV25 PAL  4\:2\:0 4\3  2Ch 48kHz'" -metadata timecode="5:00:00:00" samples/dv25_pal__420_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=30000/1001:s=720x480 -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 NTSC 4\:2\:2 4\3  2Ch 48kHz'" -metadata timecode="6:00:00:00" samples/dv50_ntsc_422_4-3_2ch_48k_bars_sine.dv
+ffmpeg -y -f lavfi -i testsrc2=r=25:s=720x576         -f lavfi -i sine -pix_fmt yuv422p -c:v dvvideo -aspect 4/3  -t 2 -ac 2 -ar 48000 -vf "drawtext=${DRAWTEXT_OPTS}:text='DV50 PAL  4\:2\:2 4\3  2Ch 48kHz'" -metadata timecode="7:00:00:00" samples/dv50_pal__422_4-3_2ch_48k_bars_sine.dv
 
 cat samples/dv*k_bars_sine.dv > samples/mix.dv
 
