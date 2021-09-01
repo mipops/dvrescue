@@ -230,7 +230,8 @@ _ranges_drop_audio(){
                 else
                     echo -n "2|"
                 fi
-                echo "$(_get_values "${FIRST}" "14-")"
+                echo -n "$(_get_values "${FIRST}" "14-17")|"
+                echo "$(_get_values "${PREV}" "18")"
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
             fi
@@ -256,8 +257,7 @@ _ranges_drop_audio(){
         echo -n "2|"
     fi
     echo -n "$(_get_values "${FIRST}" "14-17")|"
-    echo -n "$(_get_values "${PREV}" "18")|"
-    echo "$(_get_values "${FIRST}" "19-")"
+    echo "$(_get_values "${PREV}" "18")"
 }
 
 _convert_hhmmssmmm2s(){
