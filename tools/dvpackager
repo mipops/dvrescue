@@ -681,8 +681,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     _report -d "Will apply a pts offset of ${MOV_PTS_OFFSET} to correlate between the timestamps of the encoding and the timestamps of the container."
                 fi
                 MOV_INPUT_RATE_OPT=(-r "${VIDEO_RATE}") # apply input framerate after pts offset coherency check
-            fi
-            if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+            elif [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END},,:${DVFILE}")
             else
                 if [[ "${PTS}" = "00:00:00.000000" ]] ; then
