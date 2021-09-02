@@ -1,13 +1,12 @@
 TEMPLATE = app
 
 include(../dvrescue/dvrescue.pri)
-include(../dvrescue/qtav.pri)
 include(../ffmpeg.pri)
 
 CONFIG += c++17 warn_on qmltestcase
 CONFIG += no_keywords
 
-QT += quick widgets quickcontrols2
+QT += quick widgets quickcontrols2 multimedia qtmultimediaquicktools-private
 
 SOURCES += \
     main.cpp \
@@ -28,3 +27,7 @@ HEADERS += \
 
 RESOURCES += \
     testdata.qrc
+
+QTAVPLAYER_SRC=$$absolute_path(../dvrescue-QtAVPlayer)
+QTAVPLAYER_LIB=$$absolute_path($$OUT_PWD/../dvrescue-QtAVPlayer)
+include(../dvrescue-QtAVPlayer/UseQtAVPlayerLib.pri)

@@ -21,26 +21,31 @@ Rectangle {
         return updated, tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
     }
     property alias currentIndex: tableView.currentIndex
+    onCurrentIndexChanged: {
+        console.debug('AnalyseFileView: currentIndex = ', currentIndex)
+    }
 
     function add(path) {
+        console.debug('add: ', path, 'currentIndex: ', currentIndex);
+
         files.push(path);
         var mediaInfo = report.resolveRelatedInfo(path);
         fileInfos.push(mediaInfo)
-        ++updated
         newRow(mediaInfo.originalPath)
         fileAdded(mediaInfo.originalPath)
 
         if(fileInfos.length === 1)
             tableView.bringToView(0)
+
+        ++updated
     }
 
     function deleteEntry(row) {
+        console.debug('deleteEntry: ', row);
+
         files.splice(row,  1);
         fileInfos.splice(row, 1);
         dataModel.removeRow(row, 1);
-
-        if(currentIndex >= fileInfos.length)
-            --currentIndex;
 
         ++updated
     }

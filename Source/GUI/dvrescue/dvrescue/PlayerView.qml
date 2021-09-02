@@ -2,29 +2,68 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
-import QtAV 1.7
+import QtMultimedia 5.12 as QtMultimedia
+import MediaPlayer 1.0
 
 Rectangle {
     property alias player: player
     property real fps: 0
+    onFpsChanged: {
+        console.debug('fps: ', fps)
+    }
 
     ColumnLayout {
         anchors.fill: parent
 
+        QtMultimedia.VideoOutput {
+            id: videoOutput
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            objectName: "videoOutput"
+        }
+
         MediaPlayer {
             id: player
+            videoOutput: videoOutput
+
+            Component.onCompleted: {
+                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+
+                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+            }
+
+            /*
             autoLoad: true
+            */
 
             onStatusChanged: {
                 console.debug('status: ', status);
-                if(status === MediaPlayer.Loaded)
+                if(status === MediaPlayer.LoadedMedia) {
+                    console.debug('status: MediaPlayer.LoadedMedia');
                     fps = QtAVPlayerUtils.fps(player);
-                else if(status === MediaPlayer.UnknownStatus || status === MediaPlayer.NoMedia)
+                    console.debug('status: MediaPlayer.LoadedMedia: fps = ', fps);
+                }
+                else if(status === MediaPlayer.NoMedia || status === MediaPlayer.InvalidMedia) {
+                    console.debug('status: MediaPlayer.NoMedia || MediaPlayer.InvalidMedia');
                     fps =  0;
+                    QtAVPlayerUtils.emitEmptyFrame(playerView.player);
+                }
             }
 
-            onPlaybackStateChanged: {
-                console.debug('state: ', playbackState);
+            onStateChanged: {
+                console.debug('state: ', state);
+            }
+
+            onStopped: {
+                console.debug('stopped: ', pos, ', status: ', status, ', state: ', state);
+                if(status !== MediaPlayer.EndOfMedia) {
+                    QtAVPlayerUtils.emitEmptyFrame(player);
+                }
             }
 
             function waitForStateChanged(expectedState, action) {
@@ -32,13 +71,13 @@ Rectangle {
                 var promise = new Promise((resolve, reject) => {
                                                   var stateChangedHandler;
                                                   stateChangedHandler = () => {
-                                                      if(player.playbackState === expectedState) {
-                                                          player.playbackStateChanged.disconnect(stateChangedHandler)
+                                                      if(player.state === expectedState) {
+                                                          player.stateChanged.disconnect(stateChangedHandler)
                                                           resolve();
                                                       }
                                                   };
 
-                                                  player.playbackStateChanged.connect(stateChangedHandler);
+                                                  player.stateChanged.connect(stateChangedHandler);
                                                   Qt.callLater(() => {
                                                         if(action)
                                                             action();
@@ -65,58 +104,9 @@ Rectangle {
                 return promise
             }
 
-            function waitForStepFinished(action) {
-                var promise = new Promise((resolve, reject) => {
-                                                  var stepFinishedHandler;
-                                                  stepFinishedHandler = (value) => {
-                                                      player.stepFinished.disconnect(stepFinishedHandler)
-                                                      resolve();
-                                                  };
-
-                                                  player.stepFinished.connect(stepFinishedHandler);
-                                                  Qt.callLater(() => {
-                                                        if(action)
-                                                            action();
-                                                  })
-                                              });
-                return promise
-            }
-
-            function seekEx(ms) {
-                return waitForSeekFinished(() => { player.seek(ms) }).then(() => {
-                    var displayPosition = QtAVPlayerUtils.displayPosition(player);
-                    if(displayPosition > ms) {
-                        player.stepBackward();
-                    } else if(displayPosition < ms) {
-                        player.stepForward();
-                    }
-                })
-            }
-
             function playPaused(ms) {
-                waitForStateChanged(MediaPlayer.PlayingState, () => { player.play() }).then(() => {
-                    return waitForStateChanged(MediaPlayer.PausedState, () => { player.pause() })
-                }).then(() => {
-                    return waitForSeekFinished(() => { player.seek(ms) })
-                }).then(() => {
-                    var displayPosition = QtAVPlayerUtils.displayPosition(player);
-                    if(displayPosition > ms) {
-                        player.stepBackward();
-                    } else if(displayPosition < ms) {
-                        player.stepForward();
-                    }
-                })
+                player.pause();
             }
-
-            Component.onCompleted: {
-                QtAVPlayerUtils.setPauseOnEnd(player);
-            }
-        }
-
-        VideoOutput2 {
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            source: player
         }
 
         ScrollBar {
@@ -129,7 +119,11 @@ Rectangle {
             onPositionChanged: {
                 if(pressed) {
                     console.debug('position: ', position / (1 - size))
-                    player.seek(player.duration * (position / (1 - size)))
+                    var newSeekPos = player.duration * (position / (1 - size));
+                    console.debug('new seek pos: ', newSeekPos)
+
+                    player.waitForSeekFinished().then(() => { console.debug('seek finished') });
+                    player.seek(newSeekPos)
                 }
             }
 
@@ -137,6 +131,7 @@ Rectangle {
                 target: player
                 onPositionChanged: {
                     var relativePosition = player.position / player.duration * (1 - scroll.size)
+                    console.debug('relativePosition: ', relativePosition);
                     if(!scroll.pressed)
                         scroll.position = relativePosition;
                 }
@@ -150,7 +145,7 @@ Rectangle {
                 enabled: player.status !== MediaPlayer.NoMedia
                 icon.source: "icons/first-frame.svg"
                 onClicked: {
-                    player.seekEx(0)
+                    player.seek(0)
                 }
             }
 
@@ -164,12 +159,12 @@ Rectangle {
 
             Button {
                 enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: player.playbackState === MediaPlayer.PausedState ? "icons/play.svg" : "icons/stop.svg"
+                icon.source: player.state === MediaPlayer.PlayingState ? "icons/stop.svg" : "icons/play.svg"
                 onClicked: {
-                    if(player.playbackState === MediaPlayer.PausedState)
-                        player.play()
-                    else
+                    if(player.state === MediaPlayer.PlayingState)
                         player.pause()
+                    else
+                        player.play()
                 }
             }
 

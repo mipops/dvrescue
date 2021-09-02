@@ -8,11 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-9', 'clang-9']
+        compiler: ['clang-9']
         include:
-          - compiler: gcc-9
-            packages: gcc@9
-            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
           - compiler: clang-9
             packages: llvm@9
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
@@ -59,17 +56,15 @@ jobs:
         cd Source/GUI/dvrescue/build
         ls
         ls ./dvrescue
+        export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
         open ./dvrescue/dvrescue.app
 
   build-macos-no-brew:
 
     strategy:
       matrix:
-        compiler: ['gcc-9', 'clang-9']
+        compiler: ['clang-9']
         include:
-          - compiler: gcc-9
-            packages: gcc@9
-            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
           - compiler: clang-9
             packages: llvm@9
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
@@ -139,6 +134,7 @@ jobs:
         cd Source/GUI/dvrescue/build
         ls
         ls ./dvrescue
+        export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
         open ./dvrescue/dvrescue.app
 
   build-linux:
@@ -279,13 +275,13 @@ jobs:
         qmake -r
 
     - name: Build qwt
+      shell: cmd
       run: |
         cd ../qwt
         mingw32-make -j4
 
     - name: Configure dvrescue-gui
-      env:
-        STUPID_GITHUB_ACTION: true
+      shell: cmd
       run: |
         cd Source/GUI/dvrescue/
         qmake
@@ -297,8 +293,7 @@ jobs:
 #        SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - name: Build dvrescue-gui
-      env:
-        STUPID_GITHUB_ACTION: true
+      shell: cmd
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make
@@ -383,6 +378,7 @@ jobs:
         nmake
 
     - name: Configure dvrescue-gui
+      shell: cmd
       run: |
         cd Source/GUI/dvrescue/
         qmake

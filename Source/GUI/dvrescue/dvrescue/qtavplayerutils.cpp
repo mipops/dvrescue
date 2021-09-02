@@ -1,25 +1,29 @@
+#include "mediaplayer.h"
 #include "qtavplayerutils.h"
-#include <QtAV/AVPlayer.h>
+#include <QtAVPlayer/qavplayer.h>
+#include <QDebug>
 
 QtAVPlayerUtils::QtAVPlayerUtils(QObject *parent) : QObject(parent)
 {
-    QtAV::setLogLevel(QtAV::LogOff);
 }
 
 qint64 QtAVPlayerUtils::displayPosition(QObject *qmlPlayer)
 {
-    auto player = qmlPlayer->findChild<QtAV::AVPlayer*>();
-    return player->displayPosition();
-}
-
-void QtAVPlayerUtils::setPauseOnEnd(QObject *qmlPlayer)
-{
-    auto player = qmlPlayer->findChild<QtAV::AVPlayer*>();
-    player->setMediaEndAction(QtAV::MediaEndAction_Pause);
+    auto player = qmlPlayer->findChild<QAVPlayer*>();
+    return player ? player->position() : 0;
 }
 
 qreal QtAVPlayerUtils::fps(QObject *qmlPlayer)
 {
-    auto player = qmlPlayer->findChild<QtAV::AVPlayer*>();
-    return player->statistics().video.frame_rate;
+    auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
+    return player ? (player->videoFrameRate() ? 1.0 / player->videoFrameRate() : 0) : 0;
+}
+
+void QtAVPlayerUtils::emitEmptyFrame(QObject *qmlPlayer)
+{
+    qDebug() << "emitEmptyFrame";
+
+    auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
+    if(player)
+        player->clear();
 }
