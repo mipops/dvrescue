@@ -230,7 +230,8 @@ _ranges_drop_audio(){
                 else
                     echo -n "2|"
                 fi
-                echo "$(_get_values "${FIRST}" "14-")"
+                echo -n "$(_get_values "${FIRST}" "14-17")|"
+                echo "$(_get_values "${PREV}" "18")"
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
             fi
@@ -256,8 +257,7 @@ _ranges_drop_audio(){
         echo -n "2|"
     fi
     echo -n "$(_get_values "${FIRST}" "14-17")|"
-    echo -n "$(_get_values "${PREV}" "18")|"
-    echo "$(_get_values "${FIRST}" "19-")"
+    echo "$(_get_values "${PREV}" "18")"
 }
 
 _convert_hhmmssmmm2s(){
@@ -493,7 +493,7 @@ fi
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
     echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
-    for i in "${@}" ; do
+    for i in "${DVFILE}" "${@}" ; do
         "${FFMPEG_PATH}" -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
@@ -674,6 +674,7 @@ if [[ -f "${DVFILE}" ]] ; then
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
+            _report -v "Starting work on ${OUTPUT_FILE_BASENAME}."
             if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
                 if [[ "${MOV_FIRST_FRAME_CHECK}" == "0" ]] ; then
                     _report -d "Noting that the first few frames use uneven timestamps [$MOV_PTS_TIME_0,$MOV_PTS_TIME_1,$MOV_PTS_TIME_2]"
@@ -681,8 +682,8 @@ if [[ -f "${DVFILE}" ]] ; then
                     _report -d "Will apply a pts offset of ${MOV_PTS_OFFSET} to correlate between the timestamps of the encoding and the timestamps of the container."
                 fi
                 MOV_INPUT_RATE_OPT=(-r "${VIDEO_RATE}") # apply input framerate after pts offset coherency check
-            fi
-            if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+            elif [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+                _report -v "Reading from DV stream input at byte range ${PKT_POS}-${PKT_POS_END}"
                 DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END},,:${DVFILE}")
             else
                 if [[ "${PTS}" = "00:00:00.000000" ]] ; then
