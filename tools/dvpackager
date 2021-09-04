@@ -124,7 +124,7 @@ _get_ranges(){
         RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
     else
         if [[ -n "${OUT_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<=${OUT_FRAME}]|g")"
         fi
         if [[ -n "${IN_FRAME}" ]] ; then
             RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
