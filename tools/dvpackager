@@ -705,7 +705,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 AUDIO_RANGE_SUBLIST="$(_get_ranges -i "${FRAME_START}" -o "${FRAME_END}")"
-                _report -v "The audio range sublist is"
+                _report -v "The audio range sublist (from frame ${FRAME_START} to ${FRAME_END}) is"
                 _report -v "${AUDIO_RANGE_SUBLIST}"
                 AUDIO_SUBLIST_COUNT="$(echo -n "${AUDIO_RANGE_SUBLIST}" | grep -c '^')"
                 if [[ "${AUDIO_SUBLIST_COUNT}" = "1" ]] ; then
