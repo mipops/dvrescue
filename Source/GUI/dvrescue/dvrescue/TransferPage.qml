@@ -5,19 +5,46 @@ import QtQuick.Controls 2.12
 Rectangle {
     id: rectangle
     color: "#2e3436"
-    property alias fastForwardMouseArea: captureView.fastForwardMouseArea
-    property alias playMouseArea: captureView.playMouseArea
-    property alias stopMouseArea: captureView.stopMouseArea
-    property alias rewindMouseArea: captureView.rewindMouseArea
+    property alias fastForwardButton: captureView.fastForwardButton
+    property alias playButton: captureView.playButton
+    property alias stopButton: captureView.stopButton
+    property alias rewindButton: captureView.rewindButton
     property alias grabMouseArea: captureView.grabMouseArea
     property alias deviceNameTextField: captureView.deviceNameTextField
+    property alias statusText: captureView.statusText
     width: 1190
     height: 768
+
+    property bool pendingAction: false;
+    property var queryStatusCallback;
 
     CaptureView {
         id: captureView
         x: 275
         y: 120
+    }
+
+    Timer {
+        repeat: true
+        running: deviceNameTextField.text !== ''
+        interval: 100
+        property bool querying: false
+        onTriggered: {
+            if(pendingAction)
+                return;
+
+            if(querying === false)
+            {
+                querying = true;
+                queryStatusCallback().then((result) => {
+                    console.debug('status: ', JSON.stringify(result.status, 0, 4))
+                    if(pendingAction === false) {
+                        captureView.statusText = result.status.statusText
+                    }
+                    querying = false;
+                });
+            }
+        }
     }
 
     AnalyseFileViewer {

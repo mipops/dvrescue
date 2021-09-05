@@ -16,6 +16,49 @@ Item {
         }
     }
 
+    function grab(index, file, callback) {
+        console.debug('making report: ', file);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null);
+            launcher.errorChanged.connect((errorString) => {
+                console.debug('errorString: ', errorString)
+            });
+            launcher.outputChanged.connect((outputString) => {
+                console.debug('outputString: ', outputString)
+            });
+
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                try {
+                    accept();
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            var arguments = ['device://' + index, '-m', file]
+
+            launcher.execute(cmd, arguments);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
     function makeReport(file, callback) {
         console.debug('making report: ', file);
 

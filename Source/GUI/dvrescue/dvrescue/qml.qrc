@@ -22,7 +22,7 @@
         <file>RedNavButton.qml</file>
         <file>WhiteNavButton.qml</file>
         <file>AnalyseFileViewer.qml</file>
-        <file>CaptureView.ui.qml</file>
+        <file>CaptureView.qml</file>
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
         <file>PlayerView.qml</file>
@@ -83,5 +83,6 @@
         <file>PathResolver.qml</file>
         <file>ToolsDialog.qml</file>
         <file>ValidatedTextField.qml</file>
+        <file>CaptureViewControlButton.qml</file>
     </qresource>
 </RCC>

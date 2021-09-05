@@ -6,7 +6,7 @@ Item {
     width: Math.max(1280, parent ? parent.width : 0)
     height: Math.max(1024, parent ? parent.height : 0)
 
-    FileView {
+    AnalyseFileViewer {
         id: fileview
         visible: false
         anchors.fill: parent
