@@ -154,9 +154,13 @@ struct decoded_data
     }
     decoded_data& operator= (decoded_data&&) = delete;
 
-    return_value Open(const string& OutName)
+    return_value Open(const string& OutName, ostream* Err)
     {
+        if (Verbosity == 10)
+            *Err << "Debug: opening (out, trunc) \"" << OutName << "\"..." << endl;
         Out = new ofstream(OutName, ios_base::trunc);
+        if (Verbosity == 10)
+            *Err << "Debug: opening (out, trunc) \"" << OutName << "\"... Done." << endl;
         if (!Out->is_open())
             return ReturnValue_ERROR;
         return ReturnValue_OK;
@@ -248,7 +252,7 @@ static return_value Output_Captions_Decode(const string& ScreenOutName, const st
                 {
                     string OutNameWithChannel(i ? SrtOutName : ScreenOutName);
                     InjectBeforeExtension(OutNameWithChannel, j < 8 ? CaptionChannels[j] : to_string(j).c_str());
-                    if (Caption.Open(OutNameWithChannel))
+                    if (Caption.Open(OutNameWithChannel, Err))
                     {
                         if (Err)
                             *Err << "Error: can not open " << OutNameWithChannel << " for writing.\n";

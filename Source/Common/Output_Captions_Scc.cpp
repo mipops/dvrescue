@@ -47,7 +47,11 @@ static return_value Output_Captions_Scc(const string& OutName, const TimeCode& T
 
     // Open file
     string Text;
+    if (Verbosity == 10)
+        *Err << "Debug: opening (out, trunc) \"" << OutName << "\"..." << endl;
     ofstream Out(OutName, ios_base::trunc);
+    if (Verbosity == 10)
+        *Err << "Debug: opening (out, trunc) \"" << OutName << "\"... Done." << endl;
     if (!Out.is_open())
     {
         if (Err)

@@ -309,7 +309,11 @@ bool dv_merge_private::Init()
 
     if (!MergeInfo_OutputFileName.empty())
     {
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << MergeInfo_OutputFileName << "\"\"..." << endl;
         Out.open(MergeInfo_OutputFileName);
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << MergeInfo_OutputFileName << "\"... Done." << endl;
         cout.rdbuf(Out.rdbuf());
     }
 
@@ -322,7 +326,13 @@ bool dv_merge_private::Init()
             cout << "File " << &Inputs_FileName - &Merge_InputFileNames.front() << ": " << Inputs_FileName << '\n';
         auto& Input = Inputs[&Inputs_FileName - &Merge_InputFileNames.front()];
         if (!Inputs_FileName.empty() && Inputs_FileName != "-" && Inputs_FileName.find("device://") != 0)
+        {
+            if (Verbosity == 10)
+                cerr << "Debug: opening (in) \"" << Inputs_FileName << "\"..." << endl;
             Input.F = fopen(Inputs_FileName.c_str(), "rb");
+            if (Verbosity == 10)
+                cerr << "Debug: opening (in) \"" << Inputs_FileName << "\"... Done." << endl;
+        }
         Input.Segments.resize(1);
     }
     if (Merge_OutputFileName == "-")
@@ -332,7 +342,13 @@ bool dv_merge_private::Init()
             Verbosity = 0;
     }
     else
+    {
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"..." << endl;
         Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"... Done." << endl;
+    }
 
     if (Verbosity > 5)
     {
