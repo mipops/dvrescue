@@ -81,6 +81,8 @@ void file::Parse(const String& FileName)
     if (Merge_InputFileNames.size() && (Merge_InputFileNames.front() == "-" || Merge_InputFileNames.front().find("device://")==0)) // Only if from stdin (not supported in other cases)
         MI.Option(__T("File_Demux_Unpacketize"), __T("1"));
 
+    if (Verbosity == 10)
+        cerr << "Debug: opening (in) \"" << Ztring(FileName).To_Local() << "\"..." << endl;
     #ifdef ENABLE_AVFCTL
     Ztring ZFileName(FileName);
     if (ZFileName.size()>9 && ZFileName.find(__T("device://"))==0)
@@ -101,6 +103,8 @@ void file::Parse(const String& FileName)
     {
         MI.Open(FileName);
     }
+    if (Verbosity == 10)
+        cerr << "Debug: opening (in) \"" << Ztring(FileName).To_Local() << "\"... Done." << endl;
 
     // Filing some info
     FrameRate = Ztring(MI.Get(Stream_Video, 0, __T("FrameRate_Original"))).To_float64();

@@ -62,6 +62,33 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     bool ClearInput = false;
     caption_kind CaptionKind = Caption_Unknown;
 
+    // Commands in priority
+    for (int i = 1; i < argc; i++)
+    {
+        if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing verbosity level after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "debug") && C.Err)
+            {
+                Verbosity = 10;
+
+                *C.Err << "Debug: called with";
+                for (int i = 0; i < argc; i++)
+                {
+                    *C.Err << ' ' << '"' << argv_ansi[i] << '"';
+                }
+                *C.Err << '.' << endl;
+                break;
+            }
+        }
+    }
+    
     for (int i = 1; i < argc; i++)
     {
              if (!strcmp(argv_ansi[i], "--help") || !strcmp(argv_ansi[i], "-h"))
@@ -183,7 +210,11 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     *C.Err << "Error: missing merge info output file name after " << argv_ansi[i-1] << ".\n";
                 return ReturnValue_ERROR;
             }
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
             auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
             if (!File->is_open())
             {
                 if (C.Err)
@@ -235,9 +266,16 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 case '9':
                     Verbosity = argv_ansi[i][0] - '0';
                     break;
+                case 'd':
+                    if (!strcmp(argv_ansi[i], "debug") && C.Err)
+                    {
+                        Verbosity = 10;
+                        break;
+                    }
+                    //Fallthrough
                 default:
                     if (C.Err)
-                        *C.Err << "Error: invalid verbosity " << argv_ansi[i] << " (must be 0, 5, or 9).\n";
+                        *C.Err << "Error: invalid verbosity " << argv_ansi[i] << " (must be 0, 5, 7, 9 or debug).\n";
                     ReturnValue = ReturnValue_ERROR;
                     continue;
             }
@@ -259,7 +297,11 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
             auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
             if (!File->is_open())
             {
                 if (C.Err)
@@ -278,7 +320,11 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     *C.Err << "Error: missing XML output file name after " << argv_ansi[i-1] << ".\n";
                 return ReturnValue_ERROR;
             }
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
             auto File = new ofstream(argv_ansi[i], ios_base::trunc);
+            if (Verbosity == 10)
+                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
             if (!File->is_open())
             {
                 if (C.Err)
