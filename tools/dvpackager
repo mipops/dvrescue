@@ -158,7 +158,11 @@ _get_ranges(){
         --else \
             -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
         --break -o "|" \
-        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break \
+        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+        --if "\$p" \
+            -v "//d:frame[@n=\$p]/@pos" \
+        --else \
+            -v "${RELATIVE_FRAMES}/d:frame[last()]/@pos" -break \
         -n "${DVRESCUE_XML}"
     # output is pipe-delimited and in this order:
     # 1-2 start pts, end pts
@@ -170,7 +174,8 @@ _get_ranges(){
     # 12-13 sampling rate, channel count
     # 14-16 rec start, recording time jump, timecode jump
     # 17 if ends with missing audio metadata
-    # 18 offset end
+    # 18 offset at end of the range
+    # 19 offset of last frame of range
 }
 
 _ranges_2_table(){
@@ -182,9 +187,9 @@ _ranges_2_table(){
         PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
         END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC }'
+        echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$20; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; OFFSET_LAST_FRAME=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
+        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}'
     done
     echo
 }
@@ -686,7 +691,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 ;;
         esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END ; do
+        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
@@ -753,7 +758,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa ; do
+                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa PKT_POS_LASTa ; do
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
