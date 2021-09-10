@@ -438,12 +438,19 @@ fi
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
 if [[ -z "${FFMPEG_PATH}" ]] ; then
-    FFMPEG_PATH="$(which ffmpeg)"
+    FFMPEG_DL_GUESS="$(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl"
+    if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
+        FFMPEG_PATH="${FFMPEG_DL_GUESS}"
+    else
+        FFMPEG_PATH="$(which ffmpeg)"
+    fi
 fi
 # verify that ffmpeg is installed and qualifies
 if [[ -z "${FFMPEG_PATH}" ]] ; then
     _report -v "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
     exit 1
+else
+    _report -v "Using ${FFMPEG_PATH} for ffmpeg operations."
 fi
 FFversion="$("${FFMPEG_PATH}" -version)"
 LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
