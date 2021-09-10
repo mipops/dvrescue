@@ -63,6 +63,16 @@ Options:
             sampling rate in its native format. Setting this may result in
             more output files as each change in sampling rate will require a
             new output file. Automatically enabled when '-e dv'.)
+ -a <opt>  (Choose a strategy for handling mid-stream changes in aspect ratio.
+            Options:
+                - n: Split segments for aspect ratio changes.
+                - 4: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it as 4/3 in the container.
+                - 9: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it as 16/9 in the container.
+            )
 
  For example, the following command:
 
@@ -465,10 +475,11 @@ SUBS="N"
 REC_START="0"
 RDT_NC="0"
 TC_NC="0"
+CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3" opt ; do
+while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
@@ -490,7 +501,8 @@ while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3" opt ; do
         x) DVRESCUE_XML="${OPTARG}" ;;
         V) DVRESCUE_TECHSUBS="${OPTARG}" ;;
         C) DVRESCUE_SCC="${OPTARG}" ;;
-        3) FORCE_NATIVE_SAMPLE_RATE="Y" ;;
+        3) unset CONDENSE_OPTS ;;
+        a) ASPECT_RATIO_STRATEGY="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -504,6 +516,12 @@ if [[ "${UNPACKAGER}" != "Y" && "${@}" != "" ]] ; then
     _usage
     exit 0
 fi
+if [[ "${ASPECT_RATIO_STRATEGY}" == "4" ]] ; then
+    CONDENSE_OPTS+=(-a 4)
+elif [[ "${ASPECT_RATIO_STRATEGY}" == "9" ]] ; then
+    CONDENSE_OPTS+=(-a 9)
+fi
+_report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
 if [[ -z "${FFMPEG_PATH}" ]] ; then
@@ -984,10 +1002,10 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                 fi
             fi
-        done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
+        done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
                     _get_ranges
                 else
-                    _condense_ranges "$(_get_ranges)"
+                    _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
                 fi)
         if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
