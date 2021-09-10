@@ -765,6 +765,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
                         AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa},,:${DVFILE}"
                         AUDIO_INPUTS+=(-i "${AUDIO_SUBFILE_INPUT}")
+                        LAST_FRAME_SUBFILE=(-i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa},,:${DVFILE}")
                         FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT}")"
                         if [[ "${CHa}" = "0" ]] ; then
                             DVRESCUE_AUDIO_QUERY="0"
@@ -787,7 +788,13 @@ if [[ -f "${DVFILE}" ]] ; then
                         fi
                         if [[ "${LAST_FRAME_NO_AUDIOa}" != "0" ]] ; then
                             APADa=",apad=whole_dur=${DURATION_SECSa}"
-                            _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio."
+                            _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via dvrescue)."
+                        else
+                            FFMPEG_AUDIO_QUERY_END="$(_check_audio_by_ffmpeg_subfile "${LAST_FRAME_SUBFILE}")"
+                            if [[ "${FFMPEG_AUDIO_QUERY_END}" = "0" ]] ; then
+                                APADa=",apad=whole_dur=${DURATION_SECSa}"
+                                _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via ffmpeg)."
+                            fi
                         fi
                         AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
                         if [[ "${CHa}" = "4" ]] ; then
