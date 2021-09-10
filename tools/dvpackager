@@ -760,18 +760,18 @@ if [[ -f "${DVFILE}" ]] ; then
                         DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
                         AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa},,:${DVFILE}"
                         AUDIO_INPUTS+=(-i "${AUDIO_SUBFILE_INPUT}")
-                        FFMPEG_AUDIO_QUERY="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT}")"
+                        FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT}")"
                         if [[ "${CHa}" = "0" ]] ; then
                             DVRESCUE_AUDIO_QUERY="0"
                         else
                             DVRESCUE_AUDIO_QUERY="${CHa}-${AUDIO_RATEa}"
                         fi
-                        if [[ "${FFMPEG_AUDIO_QUERY}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
+                        if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
                             _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
-                            _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY} != dvr:${DVRESCUE_AUDIO_QUERY})"
+                            _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
                             _report -w "Consider updating to the latest version of dvrescue and this error recurs,"
                             _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
-                            CHa="$(echo "${FFMPEG_AUDIO_QUERY}" | cut -d "-" -f1)"
+                            CHa="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
                         fi
                         AUDIO_STREAM_IN="[${AUDIO_INPUT_COUNT}:a:0]"
                         AUDIO_STREAM_OUT="[${AUDIO_INPUT_COUNT}at]"
