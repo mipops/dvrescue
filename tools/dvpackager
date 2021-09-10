@@ -741,7 +741,12 @@ if [[ -f "${DVFILE}" ]] ; then
         _report -v "MOV_FIRST_FRAME_CHECK=(${MOV_FIRST_FRAME_CHECK}), MOV_SHOWINFO=(${MOV_SHOWINFO})"
     fi
     _report -v "Trying to present a table of ranges"
-    _ranges_2_table "$(_get_ranges)"
+    if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+        _ranges_2_table "$(_get_ranges)"
+    else
+        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)")"
+    fi
+
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         case "${EXT}" in
