@@ -194,7 +194,28 @@ _ranges_2_table(){
     echo
 }
 
-_ranges_drop_audio(){
+_condense_ranges(){
+    # the inputs is pipe-delimited and in this order:
+    # 1-2 start pts, end pts
+    # 3-4 start frame, end frame
+    # 5. timecode
+    # 6. offset start
+    # 7. recording timestamp
+    # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+    # 12-13 sampling rate, channel count
+    # 14-16 rec start, recording time jump, timecode jump
+    # 17 if ends with missing audio metadata
+    # 18 offset at end of the range
+    # 19 offset of last frame of range
+    OPTIND=1
+    unset SAMPLING_FREQ_MERGE ASPECT_MERGE
+    while getopts "sa:" opt ; do
+        case "${opt}" in
+          s) SAMPLING_FREQ_MERGE="Y" ;;
+          a) ASPECT_MERGE="${OPTARG}" ;;
+        esac
+    done
+    shift "$((OPTIND-1))"
     _get_values(){
         LINE="${1}"
         RANGE="${2}"
@@ -202,12 +223,14 @@ _ranges_drop_audio(){
     }
     RANGES="${1}"
     FIRST=""
+    unset ASPECT_FLIP
     while read RANGE_LINE ; do
         if [[ -z "$FIRST" ]] ; then
             FIRST="${RANGE_LINE}"
             PREV="${RANGE_LINE}"
         else
             if [[ \
+                "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
                 "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
                 "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
                 "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
@@ -215,16 +238,51 @@ _ranges_drop_audio(){
                ]] ; then
                 PREV="${RANGE_LINE}"
                 continue
+            elif [[ \
+                "${SAMPLING_FREQ_MERGE}" = "Y" && -n "${ASPECT_MERGE}" && \
+                "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
+                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+               ]] ; then
+                if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
+                    ASPECT_FLIP="Y"
+                fi
+                PREV="${RANGE_LINE}"
+                continue
+            elif [[ \
+                -z "${SAMPLING_FREQ_MERGE}" && -n "${ASPECT_MERGE}" && \
+                "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
+                "$(_get_values "${FIRST}" "12-13")" == "$(_get_values "${RANGE_LINE}" "12-13")" && \
+                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                ]] ; then
+                if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
+                    ASPECT_FLIP="Y"
+                fi
+                PREV="${RANGE_LINE}"
+                continue
             else
                 echo -n "$(_get_values "${FIRST}" "1")|"
                 echo -n "$(_get_values "${PREV}" "2")|"
                 echo -n "$(_get_values "${FIRST}" "3")|"
                 echo -n "$(_get_values "${PREV}" "4")|"
-                echo -n "$(_get_values "${FIRST}" "5-11")|"
+                echo -n "$(_get_values "${FIRST}" "5-10")|"
+                if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
+                    echo -n "${ASPECT_MERGE}|"
+                else
+                    echo -n "$(_get_values "${FIRST}" "11")|"
+                fi
                 SR_F="$(_get_values "${FIRST}" "12")"
-                SR_P="$(_get_values "${PREV}" "12")"
-                if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-                    echo -n "48000|"
+                if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
+                    SR_F="$(_get_values "${FIRST}" "12")"
+                    SR_P="$(_get_values "${PREV}" "12")"
+                    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+                        echo -n "48000|"
+                    else
+                        echo -n "${SR_F}|"
+                    fi
                 else
                     echo -n "${SR_F}|"
                 fi
@@ -239,6 +297,7 @@ _ranges_drop_audio(){
                 echo "$(_get_values "${PREV}" "18")"
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
+                unset ASPECT_FLIP
             fi
         fi
     done < <(echo "${RANGES}")
@@ -246,11 +305,21 @@ _ranges_drop_audio(){
     echo -n "$(_get_values "${PREV}" "2")|"
     echo -n "$(_get_values "${FIRST}" "3")|"
     echo -n "$(_get_values "${PREV}" "4")|"
-    echo -n "$(_get_values "${FIRST}" "5-11")|"
+    echo -n "$(_get_values "${FIRST}" "5-10")|"
+    if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
+        echo -n "${ASPECT_MERGE}|"
+    else
+        echo -n "$(_get_values "${FIRST}" "11")|"
+    fi
     SR_F="$(_get_values "${FIRST}" "12")"
-    SR_P="$(_get_values "${PREV}" "12")"
-    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-        echo -n "48000|"
+    if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
+        SR_F="$(_get_values "${FIRST}" "12")"
+        SR_P="$(_get_values "${PREV}" "12")"
+        if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
+            echo -n "48000|"
+        else
+            echo -n "${SR_F}|"
+        fi
     else
         echo -n "${SR_F}|"
     fi
@@ -918,7 +987,7 @@ if [[ -f "${DVFILE}" ]] ; then
         done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
                     _get_ranges
                 else
-                    _ranges_drop_audio "$(_get_ranges)"
+                    _condense_ranges "$(_get_ranges)"
                 fi)
         if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
