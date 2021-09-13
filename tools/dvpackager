@@ -72,6 +72,10 @@ Options:
                 - 9: Do not split segments for aspect ratio changes alone,
                      and if packaging a mix of 4/3 and 16/9 content together,
                      then label it as 16/9 in the container.
+                 -c: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it according the more common aspect ratio in
+                     that segment.
             )
 
  For example, the following command:
@@ -234,11 +238,21 @@ _condense_ranges(){
     RANGES="${1}"
     FIRST=""
     unset ASPECT_FLIP
+    COUNT_43="0"
+    COUNT_169="0"
     while read RANGE_LINE ; do
         if [[ -z "$FIRST" ]] ; then
             FIRST="${RANGE_LINE}"
             PREV="${RANGE_LINE}"
         else
+            FR_N_START="$(_get_values "${PREV}" "3")"
+            FR_N_END="$(_get_values "${PREV}" "4")"
+            AR="$(_get_values "${PREV}" "11")"
+            if [[ "${AR}" = "4/3" ]] ; then
+                COUNT_43="$(echo "${COUNT_43} + (${FR_N_END} - ${FR_N_START})" | bc -l)"
+            elif [[ "${AR}" = "16/9" ]] ; then
+                COUNT_169="$(echo "${COUNT_169} + (${FR_N_END} - ${FR_N_START})" | bc -l)"
+            fi
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
                 "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
@@ -280,7 +294,11 @@ _condense_ranges(){
                 echo -n "$(_get_values "${PREV}" "4")|"
                 echo -n "$(_get_values "${FIRST}" "5-10")|"
                 if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-                    echo -n "${ASPECT_MERGE}|"
+                    if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+                        echo -n "4/3|"
+                    else
+                        echo -n "16/9|"
+                    fi
                 else
                     echo -n "$(_get_values "${FIRST}" "11")|"
                 fi
@@ -308,6 +326,8 @@ _condense_ranges(){
                 FIRST="${RANGE_LINE}"
                 PREV="${RANGE_LINE}"
                 unset ASPECT_FLIP
+                COUNT_43="0"
+                COUNT_169="0"
             fi
         fi
     done < <(echo "${RANGES}")
@@ -317,7 +337,11 @@ _condense_ranges(){
     echo -n "$(_get_values "${PREV}" "4")|"
     echo -n "$(_get_values "${FIRST}" "5-10")|"
     if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-        echo -n "${ASPECT_MERGE}|"
+        if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+            echo -n "4/3|"
+        else
+            echo -n "16/9|"
+        fi
     else
         echo -n "$(_get_values "${FIRST}" "11")|"
     fi
@@ -520,6 +544,8 @@ if [[ "${ASPECT_RATIO_STRATEGY}" == "4" ]] ; then
     CONDENSE_OPTS+=(-a 4)
 elif [[ "${ASPECT_RATIO_STRATEGY}" == "9" ]] ; then
     CONDENSE_OPTS+=(-a 9)
+elif [[ "${ASPECT_RATIO_STRATEGY}" == "c" ]] ; then
+    CONDENSE_OPTS+=(-a c)
 fi
 _report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
 
