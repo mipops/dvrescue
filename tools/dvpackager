@@ -96,6 +96,17 @@ Options:
 
  will create one dv stream that contains all the DV of each input file.
 
+dvpackager also has a method to express a table of how the file would be
+repackaged given an XML input.
+ 
+ -T       (provide only a table of information about the output files without
+           making any)
+
+For example, the following command:
+
+dvpackager -T -s -a c file.dv.dvrescue.xml
+
+will show a table of the outputs for file.dv with the provided options (-s -a c).
 EOF
 }
 if [ "${#}" = 0 ] ; then
@@ -114,11 +125,12 @@ _maketemp(){
 _get_ranges(){
     OPTIND=1
     unset IN_FRAME OUT_FRAME
-    while getopts "ai:o:" opt ; do
+    while getopts "ai:o:q" opt ; do
         case "${opt}" in
           a) NO_AUDIO_BREAK="Y" ;;
           i) IN_FRAME="${OPTARG}" ;;
           o) OUT_FRAME="${OPTARG}" ;;
+          q) QUICK="Y" ;;
         esac
     done
     shift "$((OPTIND-1))"
@@ -145,7 +157,45 @@ _get_ranges(){
         fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
-
+    if [[ "$QUICK" == "Y" ]] ;then
+        "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
+            --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+            --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
+            -v "@pts" -o "|" \
+            --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
+            -v "@n" -o "|" \
+            --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
+            -v "@tc" -o "|" \
+            -v "@pos" -o "|" \
+            -v "@rdt" -o "|" \
+            -v "${RELATIVE_FRAMES}/@size" -o "|" \
+            --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
+            -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
+            -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
+            --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
+            --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
+            -v "@rec_start" -o "|" \
+            -v "@rdt_nc" -o "|" \
+            -v "@tc_nc" -o "|" \
+            -o "-|" \
+            --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+            -o "-|" \
+            -n "${DVRESCUE_XML}"
+        # output is pipe-delimited and in this order:
+        # 1-2 start pts, end pts
+        # 3-4 start frame, end frame
+        # 5. timecode
+        # 6. offset start
+        # 7. recording timestamp
+        # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+        # 12-13 sampling rate, channel count
+        # 14-16 rec start, recording time jump, timecode jump
+        # 17 if ends with missing audio metadata DISABLED
+        # 18 offset at end of the range
+        # 19 offset of last frame of range DISABLED
+    else
     "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
         --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
         --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
@@ -190,6 +240,7 @@ _get_ranges(){
     # 17 if ends with missing audio metadata
     # 18 offset at end of the range
     # 19 offset of last frame of range
+    fi
 }
 
 _ranges_2_table(){
@@ -249,9 +300,9 @@ _condense_ranges(){
             FR_N_END="$(_get_values "${PREV}" "4")"
             AR="$(_get_values "${PREV}" "11")"
             if [[ "${AR}" = "4/3" ]] ; then
-                COUNT_43="$(echo "${COUNT_43} + (${FR_N_END} - ${FR_N_START})" | bc -l)"
+                COUNT_43="$((${COUNT_43} + ${FR_N_END} - ${FR_N_START}))"
             elif [[ "${AR}" = "16/9" ]] ; then
-                COUNT_169="$(echo "${COUNT_169} + (${FR_N_END} - ${FR_N_START})" | bc -l)"
+                COUNT_169="$((${COUNT_169} + ${FR_N_END} - ${FR_N_START}))"
             fi
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
@@ -503,7 +554,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:" opt ; do
+while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
@@ -527,6 +578,7 @@ while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:" opt ; do
         C) DVRESCUE_SCC="${OPTARG}" ;;
         3) unset CONDENSE_OPTS ;;
         a) ASPECT_RATIO_STRATEGY="${OPTARG}" ;;
+        T) SHOW_TABLE="Y" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -548,6 +600,43 @@ elif [[ "${ASPECT_RATIO_STRATEGY}" == "c" ]] ; then
     CONDENSE_OPTS+=(-a c)
 fi
 _report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
+
+MATCH_FRAMES="${MATCH_FRAMES%?}"
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    MEDIAINFO_PATH="$(which mediainfo)"
+fi
+if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
+    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
+    _report -d "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
+fi
+if [[ -z "${DVRESCUE_PATH}" ]] ; then
+    DVRESCUE_PATH="$(which dvrescue)"
+fi
+if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
+    _report -w "The dvrescue command-line tool is not found."
+    exit 1
+fi
+if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+    XMLSTARLET_PATH="$(which xmlstarlet)"
+fi
+if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+    _report -w "The xmlstarlet command-line tool is not found."
+    exit 1
+fi
+
+if [[ "${SHOW_TABLE}" = "Y" ]] ; then
+    DVRESCUE_XML="${DVFILE}"
+    if [[ "${DVRESCUE_XML##*.}" != "xml" ]] ; then
+        _report -w "In show-table mode, the input should be an xml file."
+        exit 1
+    fi
+    if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+        _get_ranges -q
+    else
+        _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)"
+    fi
+    exit
+fi
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
 if [[ -z "${FFMPEG_PATH}" ]] ; then
@@ -580,33 +669,10 @@ if ! ( \
     _report -w "Using this current install of ffmpeg may result in out of sync audio."
 fi
 
-MATCH_FRAMES="${MATCH_FRAMES%?}"
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
 OPT_OUTPUT+=(-c:v:0 copy)
-
-if [[ -z "${MEDIAINFO_PATH}" ]] ; then
-    MEDIAINFO_PATH="$(which mediainfo)"
-fi
-if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
-    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
-    _report -d "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
-fi
-if [[ -z "${DVRESCUE_PATH}" ]] ; then
-    DVRESCUE_PATH="$(which dvrescue)"
-fi
-if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
-    _report -w "The dvrescue command-line tool is not found."
-    exit 1
-fi
-if [[ -z "${XMLSTARLET_PATH}" ]] ; then
-    XMLSTARLET_PATH="$(which xmlstarlet)"
-fi
-if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
-    _report -w "The xmlstarlet command-line tool is not found."
-    exit 1
-fi
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
