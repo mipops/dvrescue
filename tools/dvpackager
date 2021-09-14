@@ -307,18 +307,18 @@ _condense_ranges(){
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
                 "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
-                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
                ]] ; then
                 PREV="${RANGE_LINE}"
                 continue
             elif [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -n "${ASPECT_MERGE}" && \
                 "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
-                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
                ]] ; then
                 if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
                     ASPECT_FLIP="Y"
@@ -329,9 +329,9 @@ _condense_ranges(){
                 -z "${SAMPLING_FREQ_MERGE}" && -n "${ASPECT_MERGE}" && \
                 "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
                 "$(_get_values "${FIRST}" "12-13")" == "$(_get_values "${RANGE_LINE}" "12-13")" && \
-                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
+                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
+                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
                 ]] ; then
                 if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
                     ASPECT_FLIP="Y"
@@ -547,9 +547,9 @@ DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mov"
 SUBS="N"
-REC_START="0"
-RDT_NC="0"
-TC_NC="0"
+REC_START_OPT="0"
+RDT_NC_OPT="0"
+TC_NC_OPT="0"
 CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
@@ -557,9 +557,9 @@ OPTIND=1
 while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
-        d) RDT_NC="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
-        t) TC_NC="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
+        s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
+        d) RDT_NC_OPT="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
+        t) TC_NC_OPT="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
