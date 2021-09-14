@@ -281,142 +281,133 @@ _condense_ranges(){
         esac
     done
     shift "$((OPTIND-1))"
-    _get_values(){
-        LINE="${1}"
-        RANGE="${2}"
-        echo "${LINE}" | cut -d "|" -f "${RANGE}"
+    _set_first(){
+        # store values from beginning of range
+        PTS_FIRST="${PTS}" #1
+        FRAME_START_FIRST="${FRAME_START}" #3
+        TC_FIRST="${TC}" #5
+        PKT_POS_FIRST="${PKT_POS}" #6
+        RDT_FIRST="${RDT}" #7
+        SIZE_FIRST="${SIZE}" #8
+        VIDEO_RATE_FIRST="${VIDEO_RATE}" #9
+        CH_SUB_FIRST="${CH_SUB}" #10
+        AR_FIRST="${AR}" #11
+        AUDIO_RATE_FIRST="${AUDIO_RATE}" #12
+        CH_FIRST="${CH}" #13
+        REC_ST_FIRST="${REC_ST}" #14
+        RDT_NC_FIRST="${RDT_NC}" #15
+        TC_NC_FIRST="${TC_NC}" #16
+        LAST_FRAME_NO_AUDIO_FIRST="${LAST_FRAME_NO_AUDIO}" #17
+        PKT_POS_END_FIRST="${PKT_POS_END}" #18
+        PKT_POS_LAST_FIRST="${PKT_POS_LAST}" #19
+    }
+    _set_prev(){
+        # store values from previous range
+        PTS_PREV="${PTS}" #1
+        END_PTS_PREV="${END_PTS}" #2
+        FRAME_START_PREV="${FRAME_START}" #3
+        FRAME_END_PREV="${FRAME_END}" #4
+        TC_PREV="${TC}" #5
+        PKT_POS_PREV="${PKT_POS}" #6
+        RDT_PREV="${RDT}" #7
+        SIZE_PREV="${SIZE}" #8
+        VIDEO_RATE_PREV="${VIDEO_RATE}" #9
+        CH_SUB_PREV="${CH_SUB}" #10
+        AR_PREV="${AR}" #11
+        AUDIO_RATE_PREV="${AUDIO_RATE}" #12
+        CH_PREV="${CH}" #13
+        REC_ST_PREV="${REC_ST}" #14
+        RDT_NC_PREV="${RDT_NC}" #15
+        TC_NC_PREV="${TC_NC}" #16
+        LAST_FRAME_NO_AUDIO_PREV="${LAST_FRAME_NO_AUDIO}" #17
+        PKT_POS_END_PREV="${PKT_POS_END}" #18
+        PKT_POS_LAST_PREV="${PKT_POS_LAST}" #19
+    }
+    _report_condensed_line(){
+        if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
+            if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+                AR_FORCE="4/3"
+            else
+                AR_FORCE="16/9"
+            fi
+        else
+            AR_FORCE="${AR_FIRST}"
+        fi
+        if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
+            if [[ "${AUDIO_RATE_FIRST}" = "48000" || "${AUDIO_RATE_PREV}" = "48000" ]] ; then
+                SR_FORCE="48000"
+            else
+                SR_FORCE="${AUDIO_RATE_FIRST}"
+            fi
+        else
+            SR_FORCE="${AUDIO_RATE_FIRST}"
+        fi
+        if [[ "${CH_FIRST}" = "4" || "${CH_PREV}" = "4" ]] ; then
+            CH_FORCE="4"
+        else
+            CH_FORCE="2"
+        fi
+        echo "${PTS_FIRST}|${END_PTS_PREV}|${FRAME_START_FIRST}|${FRAME_END_PREV}|${TC_FIRST}|${PKT_POS_FIRST}|${RDT_FIRST}|${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FORCE}|${SR_FORCE}|${CH_FORCE}|${REC_ST_FIRST}|${RDT_NC_FIRST}|${TC_NC_FIRST}|${LAST_FRAME_NO_AUDIO_FIRST}|${PKT_POS_END_PREV}|${PKT_POS_LAST_PREV}"
     }
     RANGES="${1}"
-    FIRST=""
     unset ASPECT_FLIP
     COUNT_43="0"
     COUNT_169="0"
-    while read RANGE_LINE ; do
-        if [[ -z "$FIRST" ]] ; then
-            FIRST="${RANGE_LINE}"
-            PREV="${RANGE_LINE}"
+    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        if [[ -z "${PTS_FIRST}" ]] ; then
+            _set_first
+            _set_prev
         else
-            FR_N_START="$(_get_values "${PREV}" "3")"
-            FR_N_END="$(_get_values "${PREV}" "4")"
-            AR="$(_get_values "${PREV}" "11")"
-            if [[ "${AR}" = "4/3" ]] ; then
-                COUNT_43="$((${COUNT_43} + ${FR_N_END} - ${FR_N_START}))"
-            elif [[ "${AR}" = "16/9" ]] ; then
-                COUNT_169="$((${COUNT_169} + ${FR_N_END} - ${FR_N_START}))"
+            if [[ "${AR_PREV}" = "4/3" ]] ; then
+                COUNT_43="$((${COUNT_43} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+            elif [[ "${AR_PREV}" = "16/9" ]] ; then
+                COUNT_169="$((${COUNT_169} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
             fi
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
-                "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
-                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}|${AR}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
                ]] ; then
-                PREV="${RANGE_LINE}"
+                _set_prev
                 continue
             elif [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -n "${ASPECT_MERGE}" && \
-                "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
-                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
                ]] ; then
-                if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
+                if [[ "${AR_FIRST}" != "${AR}" ]] ; then
                     ASPECT_FLIP="Y"
                 fi
-                PREV="${RANGE_LINE}"
+                _set_prev
                 continue
             elif [[ \
                 -z "${SAMPLING_FREQ_MERGE}" && -n "${ASPECT_MERGE}" && \
-                "$(_get_values "${FIRST}" "8-10")" == "$(_get_values "${RANGE_LINE}" "8-10")" && \
-                "$(_get_values "${FIRST}" "12-13")" == "$(_get_values "${RANGE_LINE}" "12-13")" && \
-                "${REC_START_OPT}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC_OPT}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC_OPT}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
+                "${AUDIO_RATE_FIRST}|${CH_FIRST}" == "${AUDIO_RATE}|${CH}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
                 ]] ; then
-                if [[ "$(_get_values "${FIRST}" "11")" != "$(_get_values "${RANGE_LINE}" "11")" ]] ; then
+                if [[ "${AR_FIRST}" != "${AR}" ]] ; then
                     ASPECT_FLIP="Y"
                 fi
-                PREV="${RANGE_LINE}"
+                _set_prev
                 continue
             else
-                echo -n "$(_get_values "${FIRST}" "1")|"
-                echo -n "$(_get_values "${PREV}" "2")|"
-                echo -n "$(_get_values "${FIRST}" "3")|"
-                echo -n "$(_get_values "${PREV}" "4")|"
-                echo -n "$(_get_values "${FIRST}" "5-10")|"
-                if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-                    if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
-                        echo -n "4/3|"
-                    else
-                        echo -n "16/9|"
-                    fi
-                else
-                    echo -n "$(_get_values "${FIRST}" "11")|"
-                fi
-                SR_F="$(_get_values "${FIRST}" "12")"
-                if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
-                    SR_F="$(_get_values "${FIRST}" "12")"
-                    SR_P="$(_get_values "${PREV}" "12")"
-                    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-                        echo -n "48000|"
-                    else
-                        echo -n "${SR_F}|"
-                    fi
-                else
-                    echo -n "${SR_F}|"
-                fi
-                CH_F="$(_get_values "${FIRST}" "13")"
-                CH_P="$(_get_values "${PREV}" "13")"
-                if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
-                    echo -n "4|"
-                else
-                    echo -n "2|"
-                fi
-                echo -n "$(_get_values "${FIRST}" "14-17")|"
-                echo "$(_get_values "${PREV}" "18")"
-                FIRST="${RANGE_LINE}"
-                PREV="${RANGE_LINE}"
+                _report_condensed_line
+                _set_first
+                _set_prev
                 unset ASPECT_FLIP
                 COUNT_43="0"
                 COUNT_169="0"
             fi
         fi
     done < <(echo "${RANGES}")
-    echo -n "$(_get_values "${FIRST}" "1")|"
-    echo -n "$(_get_values "${PREV}" "2")|"
-    echo -n "$(_get_values "${FIRST}" "3")|"
-    echo -n "$(_get_values "${PREV}" "4")|"
-    echo -n "$(_get_values "${FIRST}" "5-10")|"
-    if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-        if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
-            echo -n "4/3|"
-        else
-            echo -n "16/9|"
-        fi
-    else
-        echo -n "$(_get_values "${FIRST}" "11")|"
-    fi
-    SR_F="$(_get_values "${FIRST}" "12")"
-    if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
-        SR_F="$(_get_values "${FIRST}" "12")"
-        SR_P="$(_get_values "${PREV}" "12")"
-        if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-            echo -n "48000|"
-        else
-            echo -n "${SR_F}|"
-        fi
-    else
-        echo -n "${SR_F}|"
-    fi
-    CH_F="$(_get_values "${FIRST}" "13")"
-    CH_P="$(_get_values "${PREV}" "13")"
-    if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
-        echo -n "4|"
-    else
-        echo -n "2|"
-    fi
-    echo -n "$(_get_values "${FIRST}" "14-17")|"
-    echo "$(_get_values "${PREV}" "18")"
+    _report_condensed_line
 }
 
 _convert_hhmmssmmm2s(){
