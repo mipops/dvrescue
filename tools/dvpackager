@@ -412,10 +412,7 @@ _condense_ranges(){
 
 _convert_hhmmssmmm2s(){
     TS="${1}"
-    H="$(echo "${TS}" | cut -d ":" -f1)"
-    M="$(echo "${TS}" | cut -d ":" -f2)"
-    S="$(echo "${TS}" | cut -d ":" -f3)"
-    echo "${H}*60*60+${M}*60+${S}" | bc -l
+    echo "${TS}" | awk -F ":" '{ printf "%8.6f\n", ($1 * 3600) + ($2 * 60) + $3 }'
 }
 
 _duration_from_pts_range(){
