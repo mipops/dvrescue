@@ -63,6 +63,20 @@ Options:
             sampling rate in its native format. Setting this may result in
             more output files as each change in sampling rate will require a
             new output file. Automatically enabled when '-e dv'.)
+ -a <opt>  (Choose a strategy for handling mid-stream changes in aspect ratio.
+            Options:
+                - n: Split segments for aspect ratio changes.
+                - 4: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it as 4/3 in the container.
+                - 9: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it as 16/9 in the container.
+                 -c: Do not split segments for aspect ratio changes alone,
+                     and if packaging a mix of 4/3 and 16/9 content together,
+                     then label it according the more common aspect ratio in
+                     that segment.
+            )
 
  For example, the following command:
 
@@ -82,6 +96,17 @@ Options:
 
  will create one dv stream that contains all the DV of each input file.
 
+dvpackager also has a method to express a table of how the file would be
+repackaged given an XML input.
+ 
+ -T       (provide only a table of information about the output files without
+           making any)
+
+For example, the following command:
+
+dvpackager -T -s -a c file.dv.dvrescue.xml
+
+will show a table of the outputs for file.dv with the provided options (-s -a c).
 EOF
 }
 if [ "${#}" = 0 ] ; then
@@ -100,11 +125,12 @@ _maketemp(){
 _get_ranges(){
     OPTIND=1
     unset IN_FRAME OUT_FRAME
-    while getopts "ai:o:" opt ; do
+    while getopts "ai:o:q" opt ; do
         case "${opt}" in
           a) NO_AUDIO_BREAK="Y" ;;
           i) IN_FRAME="${OPTARG}" ;;
           o) OUT_FRAME="${OPTARG}" ;;
+          q) QUICK="Y" ;;
         esac
     done
     shift "$((OPTIND-1))"
@@ -124,43 +150,115 @@ _get_ranges(){
         RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
     else
         if [[ -n "${OUT_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<${OUT_FRAME}]|g")"
+            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<=${OUT_FRAME}]|g")"
         fi
         if [[ -n "${IN_FRAME}" ]] ; then
             RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
         fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
+    if [[ "$QUICK" == "Y" ]] ;then
+        "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
+            --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+            --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
+            -v "@pts" -o "|" \
+            --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
+            -v "@n" -o "|" \
+            --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
+            -v "@tc" -o "|" \
+            -v "@pos" -o "|" \
+            -v "@rdt" -o "|" \
+            -v "${RELATIVE_FRAMES}/@size" -o "|" \
+            --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
+            -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
+            -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
+            --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
+            --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
+            -v "@rec_start" -o "|" \
+            -v "@rdt_nc" -o "|" \
+            -v "@tc_nc" -o "|" \
+            -o "-|" \
+            --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+            -o "-|" \
+            -n "${DVRESCUE_XML}"
+        # output is pipe-delimited and in this order:
+        # 1-2 start pts, end pts
+        # 3-4 start frame, end frame
+        # 5. timecode
+        # 6. offset start
+        # 7. recording timestamp
+        # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+        # 12-13 sampling rate, channel count
+        # 14-16 rec start, recording time jump, timecode jump
+        # 17 if ends with missing audio metadata DISABLED
+        # 18 offset at end of the range
+        # 19 offset of last frame of range DISABLED
+    else
+        "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
+            --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+            --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
+            -v "@pts" -o "|" \
+            --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
+            -v "@n" -o "|" \
+            --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
+            -v "@tc" -o "|" \
+            -v "@pos" -o "|" \
+            -v "@rdt" -o "|" \
+            -v "${RELATIVE_FRAMES}/@size" -o "|" \
+            --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
+            -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
+            -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
+            --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
+            --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
+            -v "@rec_start" -o "|" \
+            -v "@rdt_nc" -o "|" \
+            -v "@tc_nc" -o "|" \
+            --if "\$p" \
+                -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
+            --else \
+                -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
+            --break -o "|" \
+            --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+            --if "\$p" \
+                -v "//d:frame[@n=\$p]/@pos" \
+            --else \
+                -v "${RELATIVE_FRAMES}/d:frame[last()]/@pos" -break \
+            -n "${DVRESCUE_XML}"
+        # output is pipe-delimited and in this order:
+        # 1-2 start pts, end pts
+        # 3-4 start frame, end frame
+        # 5. timecode
+        # 6. offset start
+        # 7. recording timestamp
+        # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+        # 12-13 sampling rate, channel count
+        # 14-16 rec start, recording time jump, timecode jump
+        # 17 if ends with missing audio metadata
+        # 18 offset at end of the range
+        # 19 offset of last frame of range
+    fi
+}
 
-    "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
-        --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
-        --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
-        -v "@pts" -o "|" \
-        --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
-        -v "@n" -o "|" \
-        --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
-        -v "@tc" -o "|" \
-        -v "@pos" -o "|" \
-        -v "@rdt" -o "|" \
-        -v "${RELATIVE_FRAMES}/@size" -o "|" \
-        --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
-            --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
-            --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
-        -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
-        -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
-        --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
-        --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
-        -v "@rec_start" -o "|" \
-        -v "@rdt_nc" -o "|" \
-        -v "@tc_nc" -o "|" \
-        --if "\$p" \
-            -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
-        --else \
-            -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
-        --break -o "|" \
-        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break \
-        -n "${DVRESCUE_XML}"
-    # output is pipe-delimited and in this order:
+_ranges_2_table(){
+    RANGES="${1}"
+    echo
+    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
+    echo "| PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
+    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
+        awk -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
+            'END {printf "| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, PKT_POS, PKT_POS_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}' < /dev/null
+    done < <(echo "${RANGES}")
+    echo
+}
+
+_condense_ranges(){
+    # the inputs is pipe-delimited and in this order:
     # 1-2 start pts, end pts
     # 3-4 start frame, end frame
     # 5. timecode
@@ -170,102 +268,149 @@ _get_ranges(){
     # 12-13 sampling rate, channel count
     # 14-16 rec start, recording time jump, timecode jump
     # 17 if ends with missing audio metadata
-    # 18 offset end
-}
-
-_ranges_2_table(){
-    RANGES="${1}"
-    echo
-    echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
-    echo "| PTS Range                         | Duration | Frame Range       | Byte Range              | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
-    echo "${RANGES}" | while read RANGE_LINE ; do
-        PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
-        END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
-        DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$19; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %15s - %15s | %8.3f | %6i - %6i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC }'
+    # 18 offset at end of the range
+    # 19 offset of last frame of range
+    OPTIND=1
+    unset SAMPLING_FREQ_MERGE ASPECT_MERGE
+    while getopts "sa:" opt ; do
+        case "${opt}" in
+          s) SAMPLING_FREQ_MERGE="Y" ;;
+          a) ASPECT_MERGE="${OPTARG}" ;;
+        esac
     done
-    echo
-}
-
-_ranges_drop_audio(){
-    _get_values(){
-        LINE="${1}"
-        RANGE="${2}"
-        echo "${LINE}" | cut -d "|" -f "${RANGE}"
+    shift "$((OPTIND-1))"
+    _set_first(){
+        # store values from beginning of range
+        PTS_FIRST="${PTS}" #1
+        FRAME_START_FIRST="${FRAME_START}" #3
+        TC_FIRST="${TC}" #5
+        PKT_POS_FIRST="${PKT_POS}" #6
+        RDT_FIRST="${RDT}" #7
+        SIZE_FIRST="${SIZE}" #8
+        VIDEO_RATE_FIRST="${VIDEO_RATE}" #9
+        CH_SUB_FIRST="${CH_SUB}" #10
+        AR_FIRST="${AR}" #11
+        AUDIO_RATE_FIRST="${AUDIO_RATE}" #12
+        CH_FIRST="${CH}" #13
+        REC_ST_FIRST="${REC_ST}" #14
+        RDT_NC_FIRST="${RDT_NC}" #15
+        TC_NC_FIRST="${TC_NC}" #16
+        LAST_FRAME_NO_AUDIO_FIRST="${LAST_FRAME_NO_AUDIO}" #17
+        PKT_POS_END_FIRST="${PKT_POS_END}" #18
+        PKT_POS_LAST_FIRST="${PKT_POS_LAST}" #19
+    }
+    _set_prev(){
+        # store values from previous range
+        PTS_PREV="${PTS}" #1
+        END_PTS_PREV="${END_PTS}" #2
+        FRAME_START_PREV="${FRAME_START}" #3
+        FRAME_END_PREV="${FRAME_END}" #4
+        TC_PREV="${TC}" #5
+        PKT_POS_PREV="${PKT_POS}" #6
+        RDT_PREV="${RDT}" #7
+        SIZE_PREV="${SIZE}" #8
+        VIDEO_RATE_PREV="${VIDEO_RATE}" #9
+        CH_SUB_PREV="${CH_SUB}" #10
+        AR_PREV="${AR}" #11
+        AUDIO_RATE_PREV="${AUDIO_RATE}" #12
+        CH_PREV="${CH}" #13
+        REC_ST_PREV="${REC_ST}" #14
+        RDT_NC_PREV="${RDT_NC}" #15
+        TC_NC_PREV="${TC_NC}" #16
+        LAST_FRAME_NO_AUDIO_PREV="${LAST_FRAME_NO_AUDIO}" #17
+        PKT_POS_END_PREV="${PKT_POS_END}" #18
+        PKT_POS_LAST_PREV="${PKT_POS_LAST}" #19
+    }
+    _report_condensed_line(){
+        if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
+            if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+                AR_FORCE="4/3"
+            else
+                AR_FORCE="16/9"
+            fi
+        else
+            AR_FORCE="${AR_FIRST}"
+        fi
+        if [[ "${SAMPLING_FREQ_MERGE}" = "Y" ]] ; then
+            if [[ "${AUDIO_RATE_FIRST}" = "48000" || "${AUDIO_RATE_PREV}" = "48000" ]] ; then
+                SR_FORCE="48000"
+            else
+                SR_FORCE="${AUDIO_RATE_FIRST}"
+            fi
+        else
+            SR_FORCE="${AUDIO_RATE_FIRST}"
+        fi
+        if [[ "${CH_FIRST}" = "4" || "${CH_PREV}" = "4" ]] ; then
+            CH_FORCE="4"
+        else
+            CH_FORCE="2"
+        fi
+        echo "${PTS_FIRST}|${END_PTS_PREV}|${FRAME_START_FIRST}|${FRAME_END_PREV}|${TC_FIRST}|${PKT_POS_FIRST}|${RDT_FIRST}|${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FORCE}|${SR_FORCE}|${CH_FORCE}|${REC_ST_FIRST}|${RDT_NC_FIRST}|${TC_NC_FIRST}|${LAST_FRAME_NO_AUDIO_FIRST}|${PKT_POS_END_PREV}|${PKT_POS_LAST_PREV}"
     }
     RANGES="${1}"
-    FIRST=""
-    while read RANGE_LINE ; do
-        if [[ -z "$FIRST" ]] ; then
-            FIRST="${RANGE_LINE}"
-            PREV="${RANGE_LINE}"
+    unset ASPECT_FLIP
+    COUNT_43="0"
+    COUNT_169="0"
+    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        if [[ -z "${PTS_FIRST}" ]] ; then
+            _set_first
+            _set_prev
         else
+            if [[ "${AR_PREV}" = "4/3" ]] ; then
+                COUNT_43="$((${COUNT_43} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+            elif [[ "${AR_PREV}" = "16/9" ]] ; then
+                COUNT_169="$((${COUNT_169} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+            fi
             if [[ \
-                "$(_get_values "${FIRST}" "8-11")" == "$(_get_values "${RANGE_LINE}" "8-11")" && \
-                "${REC_START}" != "$(_get_values "${RANGE_LINE}" "14")" && \
-                "${RDT_NC}"    != "$(_get_values "${RANGE_LINE}" "15")" && \
-                "${TC_NC}"     != "$(_get_values "${RANGE_LINE}" "16")" \
+                "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}|${AR}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
                ]] ; then
-                PREV="${RANGE_LINE}"
+                _set_prev
+                continue
+            elif [[ \
+                "${SAMPLING_FREQ_MERGE}" = "Y" && -n "${ASPECT_MERGE}" && \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
+               ]] ; then
+                if [[ "${AR_FIRST}" != "${AR}" ]] ; then
+                    ASPECT_FLIP="Y"
+                fi
+                _set_prev
+                continue
+            elif [[ \
+                -z "${SAMPLING_FREQ_MERGE}" && -n "${ASPECT_MERGE}" && \
+                "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
+                "${AUDIO_RATE_FIRST}|${CH_FIRST}" == "${AUDIO_RATE}|${CH}" && \
+                "${REC_START_OPT}" != "${REC_ST}" && \
+                "${RDT_NC_OPT}"    != "${RDT_NC}" && \
+                "${TC_NC_OPT}"     != "${TC_NC}" \
+                ]] ; then
+                if [[ "${AR_FIRST}" != "${AR}" ]] ; then
+                    ASPECT_FLIP="Y"
+                fi
+                _set_prev
                 continue
             else
-                echo -n "$(_get_values "${FIRST}" "1")|"
-                echo -n "$(_get_values "${PREV}" "2")|"
-                echo -n "$(_get_values "${FIRST}" "3")|"
-                echo -n "$(_get_values "${PREV}" "4")|"
-                echo -n "$(_get_values "${FIRST}" "5-11")|"
-                SR_F="$(_get_values "${FIRST}" "12")"
-                SR_P="$(_get_values "${PREV}" "12")"
-                if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-                    echo -n "48000|"
-                else
-                    echo -n "${SR_F}|"
-                fi
-                CH_F="$(_get_values "${FIRST}" "13")"
-                CH_P="$(_get_values "${PREV}" "13")"
-                if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
-                    echo -n "4|"
-                else
-                    echo -n "2|"
-                fi
-                echo -n "$(_get_values "${FIRST}" "14-17")|"
-                echo "$(_get_values "${PREV}" "18")"
-                FIRST="${RANGE_LINE}"
-                PREV="${RANGE_LINE}"
+                _report_condensed_line
+                _set_first
+                _set_prev
+                unset ASPECT_FLIP
+                COUNT_43="0"
+                COUNT_169="0"
             fi
         fi
     done < <(echo "${RANGES}")
-    echo -n "$(_get_values "${FIRST}" "1")|"
-    echo -n "$(_get_values "${PREV}" "2")|"
-    echo -n "$(_get_values "${FIRST}" "3")|"
-    echo -n "$(_get_values "${PREV}" "4")|"
-    echo -n "$(_get_values "${FIRST}" "5-11")|"
-    SR_F="$(_get_values "${FIRST}" "12")"
-    SR_P="$(_get_values "${PREV}" "12")"
-    if [[ "${SR_F}" = "48000" || "${SR_P}" = "48000" ]] ; then
-        echo -n "48000|"
-    else
-        echo -n "${SR_F}|"
-    fi
-    CH_F="$(_get_values "${FIRST}" "13")"
-    CH_P="$(_get_values "${PREV}" "13")"
-    if [[ "${CH_F}" = "4" || "${CH_P}" = "4" ]] ; then
-        echo -n "4|"
-    else
-        echo -n "2|"
-    fi
-    echo -n "$(_get_values "${FIRST}" "14-17")|"
-    echo "$(_get_values "${PREV}" "18")"
+    _report_condensed_line
 }
 
 _convert_hhmmssmmm2s(){
     TS="${1}"
-    H="$(echo "${TS}" | cut -d ":" -f1)"
-    M="$(echo "${TS}" | cut -d ":" -f2)"
-    S="$(echo "${TS}" | cut -d ":" -f3)"
-    echo "${H}*60*60+${M}*60+${S}" | bc -l
+    echo "${TS}" | awk -F ":" '{ printf "%8.6f\n", ($1 * 3600) + ($2 * 60) + $3 }'
 }
 
 _duration_from_pts_range(){
@@ -273,7 +418,7 @@ _duration_from_pts_range(){
     END="${2}"
     START_SEC="$(_convert_hhmmssmmm2s "${START}")"
     END_SEC="$(_convert_hhmmssmmm2s "${END}")"
-    echo "${END_SEC}-${START_SEC}" | bc -l
+    awk -v S="${START_SEC}" -v E="${END_SEC}" 'END { printf "%8.6f\n", E - S }' < /dev/null
 }
 
 _count_dv_frames(){
@@ -285,9 +430,27 @@ _count_dv_frames(){
     fi
 }
 
-_get_track2_dcoffset(){
+_get_track2_maxdiff(){
     # 1: input dv 2: byte offset 3: duration to read
-    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "DC offset:" | cut -d ":" -f2- | sed 's/ //g'
+    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "Max difference:" | cut -d ":" -f2- | sed 's/ //g'
+}
+
+_check_audio_by_ffmpeg_subfile(){
+    # The input should be a subfile input statement
+    # The output will be a list of the audio track sample rates, likely "48000" or "32000 32000"
+    SUBFILE="${1}"
+    QUERY="$(ffmpeg -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{print $1}' | xargs)"
+    if [[ "${QUERY}" = "48000" ]] ; then
+        echo "2-48000"
+    elif [[ "${QUERY}" = "44100" ]] ; then
+        echo "2-44100"
+    elif [[ "${QUERY}" = "32000" ]] ; then
+        echo "2-32000"
+    elif [[ "${QUERY}" = "32000 32000" ]] ; then
+        echo "4-32000"
+    else
+        echo "0"
+    fi
 }
 
 _make_chapter_metadata_file(){
@@ -370,18 +533,19 @@ DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mov"
 SUBS="N"
-REC_START="0"
-RDT_NC="0"
-TC_NC="0"
+REC_START_OPT="0"
+RDT_NC_OPT="0"
+TC_NC_OPT="0"
+CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3" opt ; do
+while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) REC_START="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
-        d) RDT_NC="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
-        t) TC_NC="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
+        s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
+        d) RDT_NC_OPT="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
+        t) TC_NC_OPT="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
@@ -398,7 +562,9 @@ while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3" opt ; do
         x) DVRESCUE_XML="${OPTARG}" ;;
         V) DVRESCUE_TECHSUBS="${OPTARG}" ;;
         C) DVRESCUE_SCC="${OPTARG}" ;;
-        3) FORCE_NATIVE_SAMPLE_RATE="Y" ;;
+        3) unset CONDENSE_OPTS ;;
+        a) ASPECT_RATIO_STRATEGY="${OPTARG}" ;;
+        T) SHOW_TABLE="Y" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -412,37 +578,16 @@ if [[ "${UNPACKAGER}" != "Y" && "${@}" != "" ]] ; then
     _usage
     exit 0
 fi
-
-# if FFMPEG_PATH wasn't provided as an argument then see if one is installed
-if [[ -z "${FFMPEG_PATH}" ]] ; then
-    FFMPEG_PATH="$(which ffmpeg)"
+if [[ "${ASPECT_RATIO_STRATEGY}" == "4" ]] ; then
+    CONDENSE_OPTS+=(-a 4)
+elif [[ "${ASPECT_RATIO_STRATEGY}" == "9" ]] ; then
+    CONDENSE_OPTS+=(-a 9)
+elif [[ "${ASPECT_RATIO_STRATEGY}" == "c" ]] ; then
+    CONDENSE_OPTS+=(-a c)
 fi
-# verify that ffmpeg is installed and qualifies
-if [[ -z "${FFMPEG_PATH}" ]] ; then
-    _report -v "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
-    exit 1
-fi
-FFversion="$("${FFMPEG_PATH}" -version)"
-LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
-LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
-LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
-LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
-if ! ( \
-    [[ "${LAVFversion_maj}" -gt 58 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
-   ) ; then
-    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
-    _report -w "Please update ffmpeg."
-    _report -w "Using this current install of ffmpeg may result in out of sync audio."
-fi
+_report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
 
 MATCH_FRAMES="${MATCH_FRAMES%?}"
-OPT_INPUT=(-y)
-OPT_INPUT+=(-nostdin)
-OPT_INPUT+=(-hide_banner)
-OPT_OUTPUT+=(-c:v:0 copy)
-
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
     MEDIAINFO_PATH="$(which mediainfo)"
 fi
@@ -464,6 +609,56 @@ if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
     _report -w "The xmlstarlet command-line tool is not found."
     exit 1
 fi
+
+if [[ "${SHOW_TABLE}" = "Y" ]] ; then
+    DVRESCUE_XML="${DVFILE}"
+    if [[ "${DVRESCUE_XML##*.}" != "xml" ]] ; then
+        _report -w "In show-table mode, the input should be an xml file."
+        exit 1
+    fi
+    if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+        _get_ranges -q
+    else
+        _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)"
+    fi
+    exit
+fi
+
+# if FFMPEG_PATH wasn't provided as an argument then see if one is installed
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    FFMPEG_DL_GUESS="$(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl"
+    if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
+        FFMPEG_PATH="${FFMPEG_DL_GUESS}"
+    else
+        FFMPEG_PATH="$(which ffmpeg)"
+    fi
+fi
+# verify that ffmpeg is installed and qualifies
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    _report -v "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
+    exit 1
+else
+    _report -v "Using ${FFMPEG_PATH} for ffmpeg operations."
+fi
+FFversion="$("${FFMPEG_PATH}" -version)"
+LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
+LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
+LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
+if ! ( \
+    [[ "${LAVFversion_maj}" -gt 58 ]] || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+   ) ; then
+    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "Please update ffmpeg."
+    _report -w "Using this current install of ffmpeg may result in out of sync audio."
+fi
+
+OPT_INPUT=(-y)
+OPT_INPUT+=(-nostdin)
+OPT_INPUT+=(-hide_banner)
+OPT_OUTPUT+=(-c:v:0 copy)
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
 LANG2="$(echo "${LANGUAGES}" | cut -d "," -f2 )"
@@ -624,7 +819,12 @@ if [[ -f "${DVFILE}" ]] ; then
         _report -v "MOV_FIRST_FRAME_CHECK=(${MOV_FIRST_FRAME_CHECK}), MOV_SHOWINFO=(${MOV_SHOWINFO})"
     fi
     _report -v "Trying to present a table of ranges"
-    _ranges_2_table "$(_get_ranges)"
+    if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+        _ranges_2_table "$(_get_ranges)"
+    else
+        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)")"
+    fi
+
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         case "${EXT}" in
@@ -668,7 +868,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 ;;
         esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END ; do
+        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
@@ -705,7 +905,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ "${EXTENSION}" != "dv" ]] ; then
                 AUDIO_RANGE_SUBLIST="$(_get_ranges -i "${FRAME_START}" -o "${FRAME_END}")"
-                _report -v "The audio range sublist is"
+                _report -v "The audio range sublist (from frame ${FRAME_START} to ${FRAME_END}) is"
                 _report -v "${AUDIO_RANGE_SUBLIST}"
                 AUDIO_SUBLIST_COUNT="$(echo -n "${AUDIO_RANGE_SUBLIST}" | grep -c '^')"
                 if [[ "${AUDIO_SUBLIST_COUNT}" = "1" ]] ; then
@@ -735,12 +935,27 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa ; do
+                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa PKT_POS_LASTa ; do
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
                         DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
-                        AUDIO_INPUTS+=(-i "subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa},,:${DVFILE}")
+                        AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa},,:${DVFILE}"
+                        AUDIO_INPUTS+=(-i "${AUDIO_SUBFILE_INPUT}")
+                        LAST_FRAME_SUBFILE=(-i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa},,:${DVFILE}")
+                        FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT[@]}")"
+                        if [[ "${CHa}" = "0" ]] ; then
+                            DVRESCUE_AUDIO_QUERY="0"
+                        else
+                            DVRESCUE_AUDIO_QUERY="${CHa}-${AUDIO_RATEa}"
+                        fi
+                        if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
+                            _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
+                            _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
+                            _report -w "Consider updating to the latest version of dvrescue and this error recurs,"
+                            _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
+                            CHa="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
+                        fi
                         AUDIO_STREAM_IN="[${AUDIO_INPUT_COUNT}:a:0]"
                         AUDIO_STREAM_OUT="[${AUDIO_INPUT_COUNT}at]"
                         AUDIO_STREAM_IN_T2="[${AUDIO_INPUT_COUNT}:a:1]"
@@ -750,13 +965,19 @@ if [[ -f "${DVFILE}" ]] ; then
                         fi
                         if [[ "${LAST_FRAME_NO_AUDIOa}" != "0" ]] ; then
                             APADa=",apad=whole_dur=${DURATION_SECSa}"
-                            _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio."
+                            _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via dvrescue)."
+                        else
+                            FFMPEG_AUDIO_QUERY_END="$(_check_audio_by_ffmpeg_subfile "${LAST_FRAME_SUBFILE[@]}")"
+                            if [[ "${FFMPEG_AUDIO_QUERY_END}" = "0" ]] ; then
+                                APADa=",apad=whole_dur=${DURATION_SECSa}"
+                                _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via ffmpeg)."
+                            fi
                         fi
                         AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
                         if [[ "${CHa}" = "4" ]] ; then
-                            DC_OFFSET="$(_get_track2_dcoffset "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
-                            _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. DC Offset is ${DC_OFFSET}."
-                            if [[ "${DC_OFFSET}" != "0.000000" ]] ; then
+                            MAX_DIFF="$(_get_track2_maxdiff "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
+                            _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. Maximum sample difference is ${MAX_DIFF}."
+                            if [[ "${MAX_DIFF}" != "0.000000" ]] ; then
                                 ((TRACK_2_AUDIO++))
                             fi
                             AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
@@ -864,10 +1085,10 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                 fi
             fi
-        done < <(if [[ "${FORCE_NATIVE_SAMPLE_RATE}" = "Y" ]] ; then
+        done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
                     _get_ranges
                 else
-                    _ranges_drop_audio "$(_get_ranges)"
+                    _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
                 fi)
         if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
             _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
