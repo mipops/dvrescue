@@ -248,14 +248,12 @@ _ranges_2_table(){
     echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
     echo "| PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
-    echo "${RANGES}" | while read RANGE_LINE ; do
-        PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 1)"
-        END_PTS="$(echo "${RANGE_LINE}" | cut -d "|" -f 2)"
+    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        echo "${RANGE_LINE}|${DURATION}" | awk -F "|" '{PTS=$1; END_PTS=$2; DURATION=$20; FRAME_START=$3; FRAME_END=$4; TC=$5; OFFSET_START=$6; OFFSET_END=$18; OFFSET_LAST_FRAME=$19; PKT_POS=$6; RDT=$7; SIZE=$8; VIDEO_RATE=$9; CH_SUB=$10; AR=$11; AUDIO_RATE=$12; CH=$13; REC_ST=$14; RDT_NC=$15; TC_NC=$16}\
-        {printf "| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, OFFSET_START, OFFSET_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}'
-    done
+        awk -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
+            'END {printf "| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
+        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, PKT_POS, PKT_POS_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}' < /dev/null
+    done < <(echo "${RANGES}")
     echo
 }
 
@@ -420,7 +418,7 @@ _duration_from_pts_range(){
     END="${2}"
     START_SEC="$(_convert_hhmmssmmm2s "${START}")"
     END_SEC="$(_convert_hhmmssmmm2s "${END}")"
-    echo "${END_SEC}-${START_SEC}" | bc -l
+    awk -v S="${START_SEC}" -v E="${END_SEC}" 'END { printf "%8.6f\n", E - S }' < /dev/null
 }
 
 _count_dv_frames(){
