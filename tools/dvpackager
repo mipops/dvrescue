@@ -430,9 +430,9 @@ _count_dv_frames(){
     fi
 }
 
-_get_track2_dcoffset(){
+_get_track2_maxdiff(){
     # 1: input dv 2: byte offset 3: duration to read
-    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "DC offset:" | cut -d ":" -f2- | sed 's/ //g'
+    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "Max difference:" | cut -d ":" -f2- | sed 's/ //g'
 }
 
 _check_audio_by_ffmpeg_subfile(){
@@ -975,9 +975,9 @@ if [[ -f "${DVFILE}" ]] ; then
                         fi
                         AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
                         if [[ "${CHa}" = "4" ]] ; then
-                            DC_OFFSET="$(_get_track2_dcoffset "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
-                            _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. DC Offset is ${DC_OFFSET}."
-                            if [[ "${DC_OFFSET}" != "0.000000" ]] ; then
+                            MAX_DIFF="$(_get_track2_maxdiff "${DVFILE}" "${PKT_POSa}" "${DURATION_SECSa}")"
+                            _report -v "Checked track 2 audio levels in ${DVFILE} for ${DURATION_SECSa} from byte ${PKT_POSa}. Maximum sample difference is ${MAX_DIFF}."
+                            if [[ "${MAX_DIFF}" != "0.000000" ]] ; then
                                 ((TRACK_2_AUDIO++))
                             fi
                             AUDIO_RESAMPLE_FILTER+="${AUDIO_STREAM_IN}aresample=${SRa}async=1:min_hard_comp=0.01${APADa}${AUDIO_STREAM_OUT};"
