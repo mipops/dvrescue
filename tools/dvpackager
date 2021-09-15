@@ -196,50 +196,50 @@ _get_ranges(){
         # 18 offset at end of the range
         # 19 offset of last frame of range DISABLED
     else
-    "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
-        --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
-        --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
-        -v "@pts" -o "|" \
-        --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
-        -v "@n" -o "|" \
-        --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
-        -v "@tc" -o "|" \
-        -v "@pos" -o "|" \
-        -v "@rdt" -o "|" \
-        -v "${RELATIVE_FRAMES}/@size" -o "|" \
-        --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
-            --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
-            --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
-        -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
-        -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
-        --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
-        --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
-        -v "@rec_start" -o "|" \
-        -v "@rdt_nc" -o "|" \
-        -v "@tc_nc" -o "|" \
-        --if "\$p" \
-            -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
-        --else \
-            -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
-        --break -o "|" \
-        --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
-        --if "\$p" \
-            -v "//d:frame[@n=\$p]/@pos" \
-        --else \
-            -v "${RELATIVE_FRAMES}/d:frame[last()]/@pos" -break \
-        -n "${DVRESCUE_XML}"
-    # output is pipe-delimited and in this order:
-    # 1-2 start pts, end pts
-    # 3-4 start frame, end frame
-    # 5. timecode
-    # 6. offset start
-    # 7. recording timestamp
-    # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
-    # 12-13 sampling rate, channel count
-    # 14-16 rec start, recording time jump, timecode jump
-    # 17 if ends with missing audio metadata
-    # 18 offset at end of the range
-    # 19 offset of last frame of range
+        "${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t  -m "${FRAME_MATCH}" -m "${RANGE_MATCH}" \
+            --var "p=number((${RANGE_MATCH_FS:-x})[1]/@n)-1" \
+            --var "b=(${RANGE_MATCH_FS:-x}|parent::d:frames/following-sibling::d:frames[1]/d:frame[1])[1]/@pos" \
+            -v "@pts" -o "|" \
+            --if "\$p" -v "(${RANGE_MATCH_FS:-x})[1]/@pts" --else -v "${RELATIVE_FRAMES}/@end_pts" -b -o "|" \
+            -v "@n" -o "|" \
+            --if "\$p" -v "\$p" --else -v "${RELATIVE_FRAMES}/d:frame[last()]/@n" -b -o "|" \
+            -v "@tc" -o "|" \
+            -v "@pos" -o "|" \
+            -v "@rdt" -o "|" \
+            -v "${RELATIVE_FRAMES}/@size" -o "|" \
+            --if "${RELATIVE_FRAMES}/@video_rate" -v "${RELATIVE_FRAMES}/@video_rate" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x480'" -o "30000/1001" --else \
+                --if "${RELATIVE_FRAMES}/@size='720x576'" -o "25" --else -o "30000/1001" -b -b -b -o "|" \
+            -v "${RELATIVE_FRAMES}/@chroma_subsampling" -o "|" \
+            -v "${RELATIVE_FRAMES}/@aspect_ratio" -o "|" \
+            --if "${RELATIVE_FRAMES}[@audio_rate]" -v "${RELATIVE_FRAMES}/@audio_rate" --else -o "0" -b -o "|" \
+            --if "${RELATIVE_FRAMES}[@channels]" -v "${RELATIVE_FRAMES}/@channels" --else -o "0" -b -o "|" \
+            -v "@rec_start" -o "|" \
+            -v "@rdt_nc" -o "|" \
+            -v "@tc_nc" -o "|" \
+            --if "\$p" \
+                -v "count(//d:frame[@n=\$p]/@no_pack|//d:frame[@n=\$p]/@no_pack_aud|//d:frame[@n=\$p]/@no_sourceorcontrol_aud)" \
+            --else \
+                -v "count(${RELATIVE_FRAMES}/d:frame[last()]/@no_pack|${RELATIVE_FRAMES}/d:frame[last()]/@no_pack_aud|${RELATIVE_FRAMES}/d:frame[last()]/@no_sourceorcontrol_aud)" \
+            --break -o "|" \
+            --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
+            --if "\$p" \
+                -v "//d:frame[@n=\$p]/@pos" \
+            --else \
+                -v "${RELATIVE_FRAMES}/d:frame[last()]/@pos" -break \
+            -n "${DVRESCUE_XML}"
+        # output is pipe-delimited and in this order:
+        # 1-2 start pts, end pts
+        # 3-4 start frame, end frame
+        # 5. timecode
+        # 6. offset start
+        # 7. recording timestamp
+        # 8-11 frame size, frame rate, chroma subsampling, aspect ratio
+        # 12-13 sampling rate, channel count
+        # 14-16 rec start, recording time jump, timecode jump
+        # 17 if ends with missing audio metadata
+        # 18 offset at end of the range
+        # 19 offset of last frame of range
     fi
 }
 
