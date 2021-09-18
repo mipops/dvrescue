@@ -216,6 +216,12 @@ ApplicationWindow {
 
     DvPackagerCtl {
         id: packagerCtl
+
+        dvrescueCmd: settings.dvrescueCmd
+        xmlStarletCmd: settings.xmlStarletCmd
+        mediaInfoCmd: settings.mediaInfoCmd
+        ffmpegCmd: settings.ffmpegCmd
+
         Component.onCompleted: {
             if(Qt.platform.os === "windows") {
                 packagerCtl.paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),

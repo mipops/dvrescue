@@ -243,6 +243,36 @@ Item {
                         }
                     }
 
+                    CustomButton {
+                        icon.source: "icons/recent.svg"
+
+                        onClicked: {
+                            var path = fileViewer.fileView.fileInfos[fileViewer.fileView.currentIndex].reportPath
+                            if(Qt.platform.os === "windows") {
+                                path = "/cygdrive/" + path.replace(":", "");
+                            }
+
+                            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+                                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+                                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+                                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+                            packagerCtl.exec("-T " + path, (launcher) => {
+                                debugView.logCommand(launcher)
+                                launcher.outputChanged.connect((outputString) => {
+                                    debugView.logResult(outputString);
+                                })
+                            }, extraParams).then(() => {
+                                console.debug('executed....')
+                                busy.running = false;
+                            }).catch((error) => {
+                                debugView.logResult(error);
+                                busy.running = false;
+                            });
+                        }
+                    }
+
                     ComboBox {
                         id: fileSelector
                         model: fileViewer.updated, fileViewer.files
