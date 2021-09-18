@@ -194,7 +194,7 @@ Item {
             var getDvRescueShPromise = getCygwinPath(cygpath, dvRescueSh).then((r) => { console.debug('getDvRescueShPromise: ', r.outputText); dvRescueSh = r.outputText });
             var getFfmpegShPromise = getCygwinPath(cygpath, ffmpegSh).then((r) => { console.debug('getFfmpegShPromise: ', r.outputText); ffmpegSh = r.outputText });
             var getXmlShPromise = getCygwinPath(cygpath, xmlSh).then((r) => { console.debug('getXmlShPromise: ', r.outputText); xmlSh = r.outputText });
-            var getMediaInfoShPromise = getCygwinPath(cygpath, xmlSh).then((r) => { console.debug('getMediaInfoShPromise: ', r.outputText); mediaInfoSh = r.outputText });
+            var getMediaInfoShPromise = getCygwinPath(cygpath, mediaInfoSh).then((r) => { console.debug('getMediaInfoShPromise: ', r.outputText); mediaInfoSh = r.outputText });
 
             console.debug('Promise.all...');
             var waitAll = Promise.all([getDvRescueShPromise, getFfmpegShPromise, getXmlShPromise, getMediaInfoShPromise]).then(() => {
