@@ -12,12 +12,13 @@ Item {
         console.debug('detectedDvPackagerCmd: ', detectedDvPackagerCmd)
     }
 
-    property string dvPackagerCmd: detectedDvPackagerCmd ? FileUtils.getFilePath(detectedDvPackagerCmd) : ''
-    property var makeCmd: function(cmd) {
-        console.debug('makeCmd: ', cmd)
-        return cmd;
+    property string bashName: Qt.platform.os === "windows" ? "bash.exe" : "bash"
+    property string detectedBashCmd: FileUtils.getFilePath(StandardPaths.findExecutable(bashName));
+    onDetectedBashCmdChanged: {
+        console.debug('detectedBashCmd: ', detectedBashCmd)
     }
 
+    property string dvPackagerCmd: detectedDvPackagerCmd ? FileUtils.getFilePath(detectedDvPackagerCmd) : ''
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
             console.debug('launcher created...');
@@ -28,7 +29,7 @@ Item {
         }
     }
 
-    function exec(args, callback) {
+    function exec(args, callback, extraArgs) {
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null);
@@ -59,7 +60,9 @@ Item {
             });
 
             console.debug('dvPackagerCmd: ', dvPackagerCmd);
-            var cmd = makeCmd(dvPackagerCmd)
+            var cmd = detectedBashCmd + ' ' + dvPackagerCmd
+            if(extraArgs)
+                cmd = cmd + ' ' + extraArgs
 
             if(paths.length !== 0)
                 launcher.setPaths(paths);

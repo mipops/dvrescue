@@ -135,12 +135,6 @@ Item {
         }
     }
 
-    property string bashName: Qt.platform.os === "windows" ? "bash.exe" : "bash"
-    property string detectedBashCmd: FileUtils.getFilePath(StandardPaths.findExecutable(bashName));
-    onDetectedBashCmdChanged: {
-        console.debug('detectedBashCmd: ', detectedBashCmd)
-    }
-
     property Component launcherFactory: Launcher {
         Component.onCompleted: {
             console.debug('launcher created...');
@@ -219,15 +213,6 @@ Item {
     property bool init: initExtraParams()
     property string extraParams: " -v "
 
-    DvPackagerCtl {
-        id: packagerCtl
-        makeCmd: Qt.platform.os === "windows" ? function(cmd) {
-            return detectedBashCmd + " " + cmd + extraParams;
-        } : function(cmd) {
-            return detectedBashCmd + " " + cmd + extraParams;
-        }
-    }
-
     Rectangle {
         color: 'white'
         anchors.left: parent.left
@@ -290,17 +275,12 @@ Item {
             if(additional.text.length !== 0)
                 params = additional.text + " " + params
 
-            if(Qt.platform.os === "windows") {
-                packagerCtl.paths = [ FileUtils.getFileDir(dvrescueCmd), FileUtils.getFileDir(xmlStarletCmd),
-                                      FileUtils.getFileDir(mediaInfoCmd), FileUtils.getFileDir(ffmpegCmd) ]
-            }
-
             packagerCtl.exec(params, (launcher) => {
                 debugView.logCommand(launcher)
                 launcher.outputChanged.connect((outputString) => {
                     debugView.logResult(outputString);
                 })
-            }).then(() => {
+            }, extraParams).then(() => {
                 console.debug('executed....')
                 busy.running = false;
             }).catch((error) => {

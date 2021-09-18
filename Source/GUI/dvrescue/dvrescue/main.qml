@@ -8,6 +8,7 @@ import FileUtils 1.0
 import SettingsUtils 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
+import Qt.labs.platform 1.1
 
 ApplicationWindow {
     id: root
@@ -210,6 +211,16 @@ ApplicationWindow {
 
         Component.onCompleted: {
             console.debug('dvrescuecli completed...');
+        }
+    }
+
+    DvPackagerCtl {
+        id: packagerCtl
+        Component.onCompleted: {
+            if(Qt.platform.os === "windows") {
+                packagerCtl.paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                      FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+            }
         }
     }
 
