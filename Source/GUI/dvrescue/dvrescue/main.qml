@@ -250,6 +250,14 @@ ApplicationWindow {
     ToolsDialog {
         id: toolsDialog
 
+        onReset: {
+            avfctlCmd = pathResolver.resolve("avfctl")
+            dvrescueCmd = pathResolver.resolve("dvrescue")
+            ffmpegCmd = pathResolver.resolve("ffmpeg")
+            mediaInfoCmd = pathResolver.resolve("mediainfo")
+            xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+        }
+
         onAccepted: {
             settings.avfctlCmd = avfctlCmd
             settings.dvrescueCmd = dvrescueCmd
