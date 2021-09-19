@@ -26,7 +26,7 @@
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
         <file>PlayerView.qml</file>
-        <file>DataView.qml</file>
+        <file>AnalyseDataView.qml</file>
         <file>TableViewEx.qml</file>
         <file>TextDelegate.qml</file>
         <file>SortableFiltrableColumnHeading.qml</file>
@@ -84,5 +84,8 @@
         <file>ToolsDialog.qml</file>
         <file>ValidatedTextField.qml</file>
         <file>CaptureViewControlButton.qml</file>
+        <file>SegmentDataParser.qml</file>
+        <file>SegmentDataView.qml</file>
+        <file>TableModelEx.qml</file>
     </qresource>
 </RCC>

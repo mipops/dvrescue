@@ -258,13 +258,16 @@ Item {
                                 .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
                                 .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
 
+                            var output = '';
                             packagerCtl.exec("-T " + path, (launcher) => {
                                 debugView.logCommand(launcher)
                                 launcher.outputChanged.connect((outputString) => {
-                                    debugView.logResult(outputString);
+                                    output += outputString;
                                 })
                             }, extraParams).then(() => {
                                 console.debug('executed....')
+                                debugView.logResult(output);
+
                                 busy.running = false;
                             }).catch((error) => {
                                 debugView.logResult(error);
@@ -348,7 +351,7 @@ Item {
             id: tableAndPlots
             orientation: Qt.Horizontal
 
-            DataView {
+            AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
 

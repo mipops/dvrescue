@@ -647,16 +647,8 @@ Rectangle {
 
     property int columnSpacing: 10
 
-    TableModel {
+    TableModelEx {
         id: dataModel
-
-        property var columnsNames: {
-            var names = [];
-            for(var i = 0; i < columns.length; ++i) {
-                names.push(columns[i].display)
-            }
-            return names;
-        }
 
         TableModelColumn {
             display: "File Name"

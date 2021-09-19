@@ -430,88 +430,6 @@ Rectangle {
                 }
             }
         }
-
-        function getMaxDesiredHeight() {
-            var value = 0
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                var headerItem = tableView.getHeaderItem(i)
-                if(headerItem === null) {
-                    continue;
-                }
-
-                value = Math.max(value, headerItem.desiredHeight)
-            }
-            return value;
-        }
-
-        function getTotalDesiredWidth() {
-            var value = 0
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                var headerItem = tableView.getHeaderItem(i)
-                if(headerItem === null) {
-                    continue;
-                }
-
-                // console.debug('headerItem: ', headerItem)
-                var minWidth = dataModel.columns[i].minWidth
-                value += Math.max(headerItem.desiredWidth, minWidth)
-            }
-
-            return value;
-        }
-
-        function getColumnWidth(column) {
-            var headerItem = tableView.getHeaderItem(column);
-            if(headerItem === null)
-                return 0;
-
-            var minWidth = dataModel.columns[column].minWidth
-            var desiredWidth = Math.max(headerItem.desiredWidth, minWidth)
-
-            var relativeWidth = tableView.totalDesiredWidth !== 0 ? (desiredWidth / tableView.totalDesiredWidth) : 0
-            var allowedWidth = relativeWidth * tableView.width
-
-            var columnWidth = Math.max(allowedWidth, desiredWidth);
-            return columnWidth
-        }
-
-        property bool initialized: false
-        property int totalDesiredWidth: {
-            return initialized, getTotalDesiredWidth()
-        }
-
-        function adjustColumnWidths() {
-            var newColumnWidths = {}
-            var totalWidth = 0;
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                newColumnWidths[i] = getColumnWidth(i)
-                totalWidth += newColumnWidths[i]
-            }
-
-            totalWidth += (tableView.model.columnCount - 1) * tableView.view.columnSpacing
-            columnWidths = newColumnWidths
-
-            tableView.view.contentWidth = totalWidth
-        }
-
-        property var columnWidths: ({})
-        onWidthChanged: {
-            adjustColumnWidths()
-        }
-
-        columnWidthProvider: function(column) {
-            return tableView.columnWidths[column];
-        }
-
-        Component.onCompleted: {
-            Qt.callLater(() => {
-                             initialized = true;
-                             adjustColumnWidths();
-                         })
-        }
     }
 
     SortFilterTableModel {
@@ -531,39 +449,21 @@ Rectangle {
         id: recordingTimeMetrics
         text: "0000-00-00 00:00:00"
     }
-    TextMetrics {
-        id: missingPacksMetrics
-        text: "Subcode, Video, Audio"
-    }
-
-    TextMetrics {
-        id: errorConcealmentMetrics
-        text: "Video Error Concealment %"
-    }
 
     property int columnSpacing: 10
 
-    TableModel {
+    TableModelEx {
         id: dataModel
 
-        property var columnsNames: {
-            var names = [];
-            for(var i = 0; i < columns.length; ++i) {
-                names.push(columns[i].display)
-            }
-            return names;
-        }
-
+        property int timestampColumn: columnsNames.indexOf("Timestamp");
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
-        property int sequenceNumberColumn: columnsNames.indexOf("Sequence Number");
-        property int captionsColumn: columnsNames.indexOf("CC");
-
         property int videoAudioColumn: columnsNames.indexOf("Video/Audio");
 
-        property int videoErrorColumn: columnsNames.indexOf("Video Error %");
-        property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
-        property int absoluteTrackNumberColumn: columnsNames.indexOf("Absolute Track Number")
+        TableModelColumn {
+            display: "Segment #";
+            property int minWidth: 20
+        }
 
         TableModelColumn {
             display: "Frame #";
@@ -577,56 +477,13 @@ Rectangle {
 
         TableModelColumn {
             display: "Timecode";
-            decoration: "Timecode: Jump/Repeat";
-            property int minWidth: timecodeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
+            property int minWidth: timecodeMetrics.width + columnSpacing
         }
 
+        /*
         TableModelColumn {
             display: "Recording Time"
-            decoration: "Recording Time: Jump/Repeat";
-            edit: "Recording Marks"
-            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
-        }
-
-        TableModelColumn {
-            display: "Video Error %";
-            decoration: "Video Error";
-            edit: "Video Error/Full Concealment";
-            property int minWidth: errorConcealmentMetrics.width
-        }
-
-        TableModelColumn {
-            display: "Audio Error %";
-            decoration: "Audio Error";
-            edit: "Audio Error/Full Concealment";
-            property int minWidth: errorConcealmentMetrics.width
-        }
-
-        TableModelColumn {
-            display: "Full Concealment";
-            property int minWidth: 20
-        }
-
-        TableModelColumn {
-            display: "Missing Packs";
-            property int minWidth: missingPacksMetrics.width + columnSpacing
-        }
-
-        TableModelColumn {
-            display: "Sequence Number";
-            decoration: "Sequence Number: Jump/Repeat"
-            property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
-        }
-
-        TableModelColumn {
-            display: "CC";
-            decoration: "CC/Mismatch"
-            property int minWidth: 40
-        }
-
-        TableModelColumn {
-            display: "Byte Offset";
-            property int minWidth: 20
+            property int minWidth: recordingTimeMetrics.width + columnSpacing
         }
 
         TableModelColumn {
@@ -635,9 +492,11 @@ Rectangle {
         }
 
         TableModelColumn {
-            display: "Absolute Track Number";
-            decoration: "Absolute Track Number: Jump/Repeat"
-            property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
+            display: "Recording Time2"
+            decoration: "Recording Time: Jump/Repeat";
+            edit: "Recording Marks"
+            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
         }
+        */
     }
 }
