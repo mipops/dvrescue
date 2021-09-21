@@ -334,7 +334,7 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
             Text += ' ';
             timecode_to_string(Text, RecDateTime.TimeInSeconds(), TC_Temp.DropFrame(), RecDateTime.Frames());
         }
-        UpdateCerr(Text);
+        UpdateDynamicDisplay(Text);
     }
 }
 
@@ -391,13 +391,14 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
     }
 }
 
-void UpdateCerr(const string& Content)
+void UpdateDynamicDisplay(const string& Content)
 {
     static size_t Content_Previous_Size = 0;
-    if (Content_Previous_Size > Content.size())
-        Content_Previous_Size = Content.size();
     cerr << Content;
-    cerr << setw(Content_Previous_Size - Content.size()) << ' ' << '\r';
+    if (Content_Previous_Size > Content.size())
+        cerr << setw(Content_Previous_Size - Content.size()) << ' ';
+    Content_Previous_Size = Content.size();
+    cerr << '\r';
 }
 
 string MediaInfo_Version()
