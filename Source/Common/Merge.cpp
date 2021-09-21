@@ -16,6 +16,10 @@
 #include <map>
 #include <bitset>
 #include <set>
+#if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+#include <fcntl.h>
+#include <io.h>
+#endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
 #include "TimeCode.h"
 #include "CLI/CLI_Help.h"
 using namespace ZenLib;
@@ -25,6 +29,7 @@ using namespace ZenLib;
 vector<string> Merge_InputFileNames;
 string Merge_OutputFileName;
 ofstream Out;
+ostream* Log;
 string MergeInfo_OutputFileName;
 uint8_t Verbosity = 5;
 uint8_t UseAbst = 0;
@@ -35,10 +40,10 @@ namespace
     void Merge_Help()
     {
         if (Verbosity)
-            cout << NameVersion_Text() << '\n';
+            *Log << NameVersion_Text() << '\n';
         if (Verbosity <= 5)
             return;
-        cout <<
+        *Log <<
             "\n"
             "# TC Used Status Comments\n"
             "#:        the frame number (0-based)\n"
@@ -213,16 +218,16 @@ namespace
         if (!Count)
             return;
         auto Percent = (float)Count / Total * 100;
-        cout << fixed << setw(Formating_FrameCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of frames";
+        *Log << fixed << setw(Formating_FrameCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of frames";
         if (Next)
-            cout << Next;
+            *Log << Next;
     }
     void ShowBlocks(size_t Count, size_t Total, const char* Next = nullptr)
     {
         auto Percent = (float)Count / Total * 100;
-        cout << fixed << setw(Formating_BlockCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of blocks";
+        *Log << fixed << setw(Formating_BlockCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of blocks";
         if (Next)
-            cout << Next;
+            *Log << Next;
     }
 
     //---------------------------------------------------------------------------
@@ -316,6 +321,27 @@ bool dv_merge_private::Init()
             cerr << "Debug: opening (out) \"" << MergeInfo_OutputFileName << "\"... Done." << endl;
         cout.rdbuf(Out.rdbuf());
     }
+    if (Merge_OutputFileName == "-")
+    {
+        #if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+            if (_setmode(_fileno(stdout), _O_BINARY) != -1) //Force binary mode
+                cerr << "Warning: can not set stdout to binary mode." << endl;
+        #endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+        Output.F = stdout;
+        if (MergeInfo_OutputFileName.empty())
+            Log = &cerr;
+        else
+            Log = &cout;
+    }
+    else
+    {
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"..." << endl;
+        Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
+        if (Verbosity == 10)
+            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"... Done." << endl;
+        Log = &cout;
+    }
 
     Merge_Help();
 
@@ -323,7 +349,7 @@ bool dv_merge_private::Init()
     for (auto const& Inputs_FileName : Merge_InputFileNames)
     {
         if (Verbosity > 5)
-            cout << "File " << &Inputs_FileName - &Merge_InputFileNames.front() << ": " << Inputs_FileName << '\n';
+            *Log << "File " << &Inputs_FileName - &Merge_InputFileNames.front() << ": " << Inputs_FileName << '\n';
         auto& Input = Inputs[&Inputs_FileName - &Merge_InputFileNames.front()];
         if (!Inputs_FileName.empty() && Inputs_FileName != "-" && Inputs_FileName.find("device://") != 0)
         {
@@ -335,31 +361,17 @@ bool dv_merge_private::Init()
         }
         Input.Segments.resize(1);
     }
-    if (Merge_OutputFileName == "-")
-    {
-        Output.F = stdout;
-        if (MergeInfo_OutputFileName.empty())
-            Verbosity = 0;
-    }
-    else
-    {
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"..." << endl;
-        Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"... Done." << endl;
-    }
 
     if (Verbosity > 5)
     {
-        cout << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|Abst  |HH:MM:SS:FF|U|S";
+        *Log << '\n' << std::setw(Formating_FrameCount_Width - 1) << ' ' << "#|Abst  |HH:MM:SS:FF|U|S";
         if (Input_Count > 1)
         {
-            cout << 't'; // "Status"
+            *Log << 't'; // "Status"
             if (Input_Count > 2)
-                cout << setw(Input_Count - 2) << ' ';
+                *Log << setw(Input_Count - 2) << ' ';
         }
-        cout << "|Comments" << endl;
+        *Log << "|Comments" << endl;
     }
 
     return false;
@@ -387,7 +399,7 @@ bool dv_merge_private::ManageRepeatedFrame(size_t InputPos, const MediaInfo_Even
                     if (Input.F)
                     {
                         if (fseek(Input.F, (long)(Input.Segments[Segment_Pos].Frames.back().BlockStatus_Count * 80), SEEK_CUR))
-                            UpdateCerr("File seek issue.");
+                            *Log << "File seek issue." << endl;
                     }
                     else if (Input.DV_Data && !Input.DV_Data->empty())
                     {
@@ -696,13 +708,13 @@ bool dv_merge_private::Process()
     {
         if (Verbosity > 5 && Count_Last_Missing_Frames)
         {
-            cout << CurrentLine.str();
+            *Log << CurrentLine.str();
             CurrentLine.str(string());
             if (Count_Last_Missing_Frames > 1)
             {
-                cout << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_Missing_Frames << " frames)";
+                *Log << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_Missing_Frames << " frames)";
             }
-            cout << '\n';
+            *Log << '\n';
         }
         Count_Last_Missing_Frames = 0;
     }
@@ -712,20 +724,20 @@ bool dv_merge_private::Process()
     {
         if (Verbosity > 5 && Count_Last_OK_Frames)
         {
-            cout << CurrentLine.str();
+            *Log << CurrentLine.str();
             CurrentLine.str(string());
             if (Count_Last_OK_Frames > 1)
             {
-                cout << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+                *Log << setw(Input_Count + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
             }
-            cout << '\n';
+            *Log << '\n';
         }
         Count_Last_OK_Frames = 0;
     }
 
     if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
     {
-        auto& Out = (Verbosity <= 7 && !(!IsMissing && !IsOK)) ? CurrentLine : cout;
+        auto& Out = (Verbosity <= 7 && !(!IsMissing && !IsOK)) ? CurrentLine : *Log;
         Out << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total();
     }
 
@@ -751,11 +763,11 @@ bool dv_merge_private::Process()
             {
                 auto BytesRead = fread(Input.Buffer, 1, Frame.BlockStatus_Count * 80, Input.F);
                 if (BytesRead != Frame.BlockStatus_Count * 80)
-                    UpdateCerr("File read issue.");
+                    *Log << "File read issue." << endl;
                 if (Frame.RepeatCount)
                 {
                     if (fseek(Input.F, (long)(Frame.BlockStatus_Count * 80 * Frame.RepeatCount), SEEK_CUR))
-                        UpdateCerr("File seek issue");
+                        *Log << "File seek issue." << endl;
                 }
             }
             else if (Input.DV_Data && !Input.DV_Data->empty())
@@ -796,7 +808,7 @@ bool dv_merge_private::Process()
 
     if (Verbosity > 5 && !Count_Last_Missing_Frames && !Count_Last_OK_Frames)
     {
-        auto& Out = (Verbosity <= 7 && !(!IsMissing && !IsOK)) ? CurrentLine : cout;
+        auto& Out = (Verbosity <= 7 && !(!IsMissing && !IsOK)) ? CurrentLine : *Log;
         if (Prefered_Abst == -2)
         {
             Out << " ??????";
@@ -827,20 +839,20 @@ bool dv_merge_private::Process()
             Out << " X";
         if (!IsMissing && !IsOK)
         {
-            cout << ' ';
+            *Log << ' ';
             for (size_t i = 0; i < Input_Count; i++)
             {
                 auto& Input = Inputs[i];
                 auto& Frames = Input.Segments[Segment_Pos].Frames;
                 auto& Frame = Frames[Frame_Pos];
                 if (Frame.Status[Status_FrameMissing])
-                    cout << 'M';
+                    *Log << 'M';
                 else if (Frame.Status[Status_BlockIssue])
-                    cout << 'P';
+                    *Log << 'P';
                 else if (Frame.Status[Status_TimeCodeIssue])
-                    cout << 'T';
+                    *Log << 'T';
                 else
-                    cout << ' ';
+                    *Log << ' ';
             }
         }
     }
@@ -856,7 +868,7 @@ bool dv_merge_private::Process()
         if (Verbosity <= 7)
             Count_Last_Missing_Frames++;
         else
-            cout << '\n';
+            *Log << '\n';
         return false;
     }
 
@@ -865,7 +877,7 @@ bool dv_merge_private::Process()
         if (Verbosity <= 7)
             Count_Last_OK_Frames++;
         else if (Prefered_Abst != -2)
-            cout << '\n';
+            *Log << '\n';
     }
 
     // Find valid blocks
@@ -962,7 +974,7 @@ bool dv_merge_private::Process()
                     IssueCount++;
             }
             if (Verbosity > 5)
-                cout << ',';
+                *Log << ',';
             for (int i = 0; i < Input_Count; i++)
             {
                 if (i != Prefered_Frame)
@@ -971,14 +983,14 @@ bool dv_merge_private::Process()
                     Inputs[Prefered_Frame].Count_Blocks_Used -= ThisFrame_Count_Blocks_Used[i];
                 }
                 if (Verbosity > 5)
-                    cout << ' ' << fixed << setw(Formating_FrameBlockCount_Width) << ThisFrame_Count_Blocks_Used[i];
+                    *Log << ' ' << fixed << setw(Formating_FrameBlockCount_Width) << ThisFrame_Count_Blocks_Used[i];
             }
             if (Verbosity > 5)
-                cout << " block picks";
+                *Log << " block picks";
             if (IssueCount)
             {
                 if (Verbosity > 5)
-                    cout << " & " << fixed << setw(Formating_FrameBlockCount_Width) << IssueCount << " remaining block errors";
+                    *Log << " & " << fixed << setw(Formating_FrameBlockCount_Width) << IssueCount << " remaining block errors";
                 Count_Frames_NOK++;
                 Count_Frames_NOK_Blocks_Total += BlockStatus_Count;
             }
@@ -994,8 +1006,8 @@ bool dv_merge_private::Process()
     if (Verbosity > 5 && Prefered_Abst == -2)
     {
         if (IsOK)
-            cout << setw(Inputs.size() + 1) << ' ';
-        cout << ", abst";
+            *Log << setw(Inputs.size() + 1) << ' ';
+        *Log << ", abst";
         for (size_t i = 0; i < Input_Count; i++)
         {
             auto& Input = Inputs[i];
@@ -1003,11 +1015,11 @@ bool dv_merge_private::Process()
             auto& Frame = Frames[Frame_Pos];
             if (Frame.Abst == numeric_limits<int>::max())
             {
-                cout << Frame.Status[Status_FrameMissing] ? "       " : " missin"; // missing abst but only 6 chars for abst
+                *Log << Frame.Status[Status_FrameMissing] ? "       " : " missin"; // missing abst but only 6 chars for abst
             }
             else
             {
-                cout << ' ' << Abst_String(Frame.Abst);
+                *Log << ' ' << Abst_String(Frame.Abst);
             }
         }
     }
@@ -1027,14 +1039,14 @@ bool dv_merge_private::Process()
         {
             if (Verbosity > 5)
             {
-                cout << ',';
+                *Log << ',';
                 for (size_t i = 0; i < Input_Count; i++)
                 {
-                    cout << ' ';
+                    *Log << ' ';
                     auto& Input = Inputs[i];
                     auto& Frames = Input.Segments[Segment_Pos].Frames;
                     auto& Frame = Frames[Frame_Pos];
-                    cout << (Frame.Status[Status_TimeCodeIssue] ? "??:??:??:??" : TC_String(Frame.TC));
+                    *Log << (Frame.Status[Status_TimeCodeIssue] ? "??:??:??:??" : TC_String(Frame.TC));
                 }
             }
         }
@@ -1043,7 +1055,7 @@ bool dv_merge_private::Process()
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
         fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
     if (Verbosity > 5 && (!IsOK || Prefered_Abst == -2))
-        cout << '\n';
+        *Log << '\n';
 
     Frame_Pos++;
     return false;
@@ -1079,8 +1091,8 @@ void dv_merge_private::Finish()
     if (Merge_OutputFileName.empty() || Merge_InputFileNames.size() > Inputs.size())
         return;
 
-    if (Verbosity > 0)
-        UpdateCerr();
+    if (Verbosity > 0 && Verbosity <= 7)
+        UpdateDynamicDisplay();
 
     // Pre-processing
     if (SyncEnd())
@@ -1091,13 +1103,13 @@ void dv_merge_private::Finish()
     {
         if (Verbosity > 5 && Verbosity <= 7 && Count_Last_OK_Frames)
         {
-            cout << CurrentLine.str();
+            *Log << CurrentLine.str();
             CurrentLine.str(string());
             if (Count_Last_OK_Frames > 1)
             {
-                cout << setw(Inputs.size() + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
+                *Log << setw(Inputs.size() + 2) << ' ' << '(' << setw(Formating_FrameCount_Width) << Count_Last_OK_Frames << " frames)";
             }
-            cout << '\n';
+            *Log << '\n';
         }
         Count_Last_OK_Frames = 0;
     }
@@ -1117,10 +1129,10 @@ bool dv_merge_private::Stats()
     auto Input_Count = Merge_InputFileNames.size();
     auto Count_Blocks_Total = dv_merge_private::Count_Blocks_Total();
     auto Count_Frames_Total = dv_merge_private::Count_Frames_Total();
-    cout << '\n' << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total << " frames in total.\n\n";
+    *Log << '\n' << setfill(' ') << setw(Formating_FrameCount_Width) << Count_Frames_Total << " frames in total.\n\n";
 
     // Stats - Merge
-    cout << "How frames are merged:\n";
+    *Log << "How frames are merged:\n";
     ShowFrames(Count_Frames_OK, Count_Frames_Total, " are recovered from full frames.\n");
     ShowFrames(Count_Frames_Recovered, Count_Frames_Total, " are fully recovered based on reconstruction from blocks.\n");
     ShowFrames(Count_Frames_NOK, Count_Frames_Total, " remain with errors.\n");
@@ -1138,39 +1150,39 @@ bool dv_merge_private::Stats()
         }
         if (Count_Frames_NotHealthy_Blocks_NotHealthy_Max != Count_Blocks_NOK)
         {
-            cout << "                     (in these frames, errors reduced from ";
+            *Log << "                     (in these frames, errors reduced from ";
                 ShowBlocks(Count_Frames_NotHealthy_Blocks_NotHealthy_Max, Count_Frames_NOK_Blocks_Total, " bad in file ");
-            cout << Count_Frames_NotHealthy_Blocks_NotHealthy_Max_Pos << "\n                                                        to ";
+            *Log << Count_Frames_NotHealthy_Blocks_NotHealthy_Max_Pos << "\n                                                        to ";
             ShowBlocks(Count_Blocks_NOK, Count_Frames_NOK_Blocks_Total, " bad).\n");
         }
     }
     ShowFrames(Count_Frames_Missing, Count_Frames_Total, " are still missing.\n");
-    cout << '\n';
+    *Log << '\n';
 
     // Stats - What is used
-    cout << "Usage of input files:\n";
+    *Log << "Usage of input files:\n";
     for (size_t i = 0; i < Input_Count; i++)
     {
         if (Inputs[i].Count_Blocks_Used)
         {
             ShowBlocks(Inputs[i].Count_Blocks_Used, Count_Blocks_Total);
-            cout << " from file " << i << "     used.";
+            *Log << " from file " << i << "     used.";
             ShowFrames(Inputs[i].Count_Frames_Repeated, Count_Frames_Total, " were repetition and discarded.");
         }
         else
         {
             for (size_t j = 0; j < Formating_BlockCount_Width + Formating_Precision + 22; j++)
-                cout << ' ';
-            cout << "file " << i << " not used.";
+                *Log << ' ';
+            *Log << "file " << i << " not used.";
         }
-        cout << '\n';
+        *Log << '\n';
     }
-    cout << '\n';
+    *Log << '\n';
 
     // Stats - Per file
     float Frames_Bad_MinRatio = 1;
     float Blocks_Bad_MinRatio = 1;
-    cout << "Input files summary:\n";
+    *Log << "Input files summary:\n";
     for (size_t i = 0; i < Input_Count; i++)
     {
         auto Blocks_Bad = Inputs[i].Count_Blocks_Bad();
@@ -1181,7 +1193,7 @@ bool dv_merge_private::Stats()
             Blocks_Bad_MinRatio = Blocks_Bad_Ratio;
         if (Frames_Bad_MinRatio > Frames_Bad_Ratio)
             Frames_Bad_MinRatio = Frames_Bad_Ratio;
-        cout << "File " << i << ": ";
+        *Log << "File " << i << ": ";
         if (Blocks_Bad)
         {
             ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
@@ -1189,43 +1201,43 @@ bool dv_merge_private::Stats()
         }
         else
         {
-            cout << "No error detected\n";
+            *Log << "No error detected\n";
         }
     }
-    cout << '\n';
+    *Log << '\n';
 
     // Stats - Result
     auto Blocks_Bad = Count_Blocks_Bad();
     auto Blocks_Bad_FinalRatio = (float)Blocks_Bad / Count_Blocks_Total;
     auto Frames_Bad = Count_Frames_Bad();
     auto Frames_Bad_FinalRatio = (float)Frames_Bad / Count_Frames_Total;
-    cout << "Result:\n";
-    cout << std::setw(8) << ' ';
+    *Log << "Result:\n";
+    *Log << std::setw(8) << ' ';
     ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
     ShowFrames(Frames_Bad, Count_Frames_Total, "\n");
     if (Frames_Bad_MinRatio != Frames_Bad_FinalRatio || Blocks_Bad_MinRatio != Blocks_Bad_FinalRatio)
     {
-        cout << std::setw(Formating_BlockCount_Width + 9) << ' ';
+        *Log << std::setw(Formating_BlockCount_Width + 9) << ' ';
         if (Blocks_Bad_MinRatio != Blocks_Bad_FinalRatio)
         {
-            cout << "(-"
+            *Log << "(-"
                 << setfill(' ') << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << (Blocks_Bad_MinRatio - Blocks_Bad_FinalRatio) * 100
                 << ')';
         }
         else
         {
-            cout << std::setw(Formating_Precision + 5) << ' ';
+            *Log << std::setw(Formating_Precision + 5) << ' ';
         }
         if (Frames_Bad_MinRatio != Frames_Bad_FinalRatio)
         {
-            cout << std::setw(Formating_FrameCount_Width + 28) << ' ';
-            cout << "(-"
+            *Log << std::setw(Formating_FrameCount_Width + 28) << ' ';
+            *Log << "(-"
                 << setfill(' ') << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << (Frames_Bad_MinRatio - Frames_Bad_FinalRatio) * 100
                 << ')';
         }
-        cout << '\n';
+        *Log << '\n';
     }
-    cout << flush;
+    *Log << flush;
 
     return false;
 }

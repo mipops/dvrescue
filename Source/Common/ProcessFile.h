@@ -30,7 +30,8 @@ class AVFCtlWrapper;
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
-void UpdateCerr(const string& Content = {});
+void UpdateDynamicDisplay(const string& Content = {}, bool CarriageReturn = true);
+extern ostream* Log;
 string MediaInfo_Version();
 //---------------------------------------------------------------------------
 
