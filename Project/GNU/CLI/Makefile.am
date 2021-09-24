@@ -43,7 +43,7 @@ if BUILD_AVFCTL
 
     AVFCTL = ../../../tools/avfctl/avfctl
     $(AVFCTL):
-	$(MAKE) -C ../../../tools/avfctl
+	$(MAKE) -C ../../../tools/avfctl CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)"
     all: $(AVFCTL)
 
     bin_SCRIPTS += ../../../tools/avfctl/avfctl
