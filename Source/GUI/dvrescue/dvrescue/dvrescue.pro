@@ -9,6 +9,7 @@ CONFIG += no_keywords
 
 macx {
     ICON = icons/icon.icns
+    QMAKE_INFO_PLIST = dvrescue.plist
 }
 
 win32 {
