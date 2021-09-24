@@ -86,15 +86,18 @@ void file::Parse(const String& FileName)
     if (ZFileName.size()>9 && ZFileName.find(__T("device://"))==0)
     {
         size_t Device=(size_t)ZFileName.SubString(__T("device://"), __T("")).To_int64u();
-        Controller=new AVFCtlWrapper(Device);
-        FileWrapper Wrapper(this);
-        MI.Open_Buffer_Init();
-        Controller->CreateCaptureSession(&Wrapper);
-        Controller->StartCaptureSession();
-        Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
-        Controller->WaitForSessionEnd();
-        Controller->StopCaptureSession();
-        MI.Open_Buffer_Finalize();
+        if (Device<AVFCtlWrapper::GetDeviceCount())
+        {
+            Controller=new AVFCtlWrapper(Device);
+            FileWrapper Wrapper(this);
+            MI.Open_Buffer_Init();
+            Controller->CreateCaptureSession(&Wrapper);
+            Controller->StartCaptureSession();
+            Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+            Controller->WaitForSessionEnd();
+            Controller->StopCaptureSession();
+            MI.Open_Buffer_Finalize();
+        }
     }
     else
     #endif

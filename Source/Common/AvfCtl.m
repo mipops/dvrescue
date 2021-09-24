@@ -144,13 +144,13 @@
 
 - (void) dealloc
 {
-        NSString *keyPath = nil;
+    NSString *keyPath = nil;
 
-        keyPath = NSStringFromSelector(@selector(transportControlsPlaybackMode));
-        [_device removeObserver:self forKeyPath:keyPath];
+    keyPath = NSStringFromSelector(@selector(transportControlsPlaybackMode));
+    [_device removeObserver:self forKeyPath:keyPath];
 
-        keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
-        [_device removeObserver:self forKeyPath:keyPath];
+    keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
+    [_device removeObserver:self forKeyPath:keyPath];
 }
 
 - (void) observeValueForKeyPath:(NSString *)keyPath
@@ -215,6 +215,11 @@
 - (void) createCaptureSession:(id) receiver
 {
     NSError *error = nil;
+
+    if ([_device isInUseByAnotherApplication]) {
+        NSLog(@"Error creating capture session: device already in use");
+        return;
+    }
 
     @try {
         _session = [[AVCaptureSession alloc] init];
