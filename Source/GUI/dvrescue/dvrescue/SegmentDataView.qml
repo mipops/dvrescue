@@ -35,6 +35,7 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 10
         model: sortFilterTableModel
+        dataModel: dataModel
         delegateHeight: 25
 
         headerDelegate: SortableFiltrableColumnHeading {
@@ -100,12 +101,6 @@ Rectangle {
                     hasRepeat: decoration.y
 
                     color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
                     overlayColor: rowHighlightColor
 
                     MouseArea {
@@ -134,12 +129,6 @@ Rectangle {
                     property var editRole: edit
 
                     color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
                     overlayColor: rowHighlightColor
 
                     Image {
@@ -177,43 +166,10 @@ Rectangle {
                 }
             }
 
-            DelegateChoice {
-                column: dataModel.sequenceNumberColumn
-
-                JumpRepeatTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    textFont.pixelSize: 13
-                    text: display
-                    hasJump: decoration.x
-                    hasRepeat: decoration.y
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
-                    overlayColor: rowHighlightColor
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
-                        }
-                    }
-                }
-            }
-
             DelegateChoice  {
                 column: dataModel.videoAudioColumn
 
-                SubstantialTextDelegate {
+                TextDelegate {
                     height: tableView.delegateHeight
                     implicitHeight: tableView.delegateHeight
                     property color evenColor: '#e3e3e3'
@@ -221,183 +177,8 @@ Rectangle {
                     textFont.pixelSize: 13
                     text: display
 
-                    property int sourceRow: sortFilterTableModel.toSourceRowIndex(row)
-                    property int frameNumber: cppDataModel.frameByIndex(sourceRow)
-                    property bool isSubstantialFrame: cppDataModel.isSubstantialFrame(sourceRow)
-                    imageVisible: isSubstantialFrame
-
                     color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
                     overlayColor: rowHighlightColor
-
-                    MouseArea {
-                        id: videoAudioMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            dataView.tapped(frameNumber);
-                        }
-                    }
-
-                    DefaultToolTip {
-                        visible: videoAudioMouseArea.containsMouse && isSubstantialFrame
-                        text: isSubstantialFrame ? (cppDataModel.getLastSubstantialFrameTransition(sourceRow)) : ""
-                        anchors.centerIn: parent
-                    }
-                }
-            }
-
-            DelegateChoice {
-                column: dataModel.videoErrorColumn
-
-                OddEvenTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    textFont.pixelSize: 13
-                    text: edit ? "100%" : display
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
-                    overlayColor: rowHighlightColor
-
-                    evenProgressColor: edit ? 'yellow' : 'darkgreen'
-                    oddProgressColor: edit ? 'yellow' : 'green'
-                    evenProgress.value: edit ? 1 : decoration.x
-                    oddProgress.value: edit ? 1 : decoration.y
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
-                        }
-                    }
-                }
-            }
-
-            DelegateChoice {
-                column: dataModel.audioErrorColumn
-
-                OddEvenTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    textFont.pixelSize: 13
-                    text: edit ? "100%" : display
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
-                    overlayColor: rowHighlightColor
-
-                    evenProgressColor: edit ? 'yellow' : 'darkblue'
-                    oddProgressColor: edit ? 'yellow' : 'blue'
-                    evenProgress.value: edit ? 1 : decoration.x
-                    oddProgress.value: edit ? 1 : decoration.y
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
-                        }
-                    }
-                }
-            }
-
-            DelegateChoice {
-                column: dataModel.captionsColumn
-
-                IconDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-
-                    property string imageUrl: {
-                        if(display === '┬') {
-                            return decoration ? "icons/closed-caption-start-error.svg" : "icons/closed-caption-start.svg"
-                        } else if(display === '┴') {
-                            return decoration ? "icons/closed-caption-end-error.svg" : "icons/closed-caption-end.svg"
-                        } else if(display === '│' || display === 'y') {
-                            return decoration ? "icons/closed-caption-middle-error.svg" : "icons/closed-caption-middle.svg"
-                        }
-
-                        return null;
-                    }
-                    imageVisible: imageUrl !== null
-                    Binding on imageSource {
-                        when: imageUrl != null
-                        value: imageUrl
-                    }
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
-                    overlayColor: rowHighlightColor
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
-                        }
-                    }
-                }
-            }
-
-            DelegateChoice {
-                column: dataModel.absoluteTrackNumberColumn
-
-                JumpRepeatTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    textFont.pixelSize: 13
-                    text: display
-                    hasJump: decoration.x
-                    hasRepeat: decoration.y
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
-                    overlayColor: rowHighlightColor
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
-                        }
-                    }
                 }
             }
 
@@ -411,12 +192,6 @@ Rectangle {
                     text: display
 
                     color: (row % 2) == 0 ? evenColor : oddColor
-                    overlayVisible: {
-                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
-                        return frameNumber === framePos
-                    }
                     overlayColor: rowHighlightColor
 
                     MouseArea {
@@ -477,12 +252,14 @@ Rectangle {
 
         TableModelColumn {
             display: "Timecode";
+            decoration: "Timecode: Jump/Repeat";
             property int minWidth: timecodeMetrics.width + columnSpacing
         }
 
-        /*
         TableModelColumn {
             display: "Recording Time"
+            decoration: "Recording Time: Jump/Repeat";
+            edit: "Recording Marks"
             property int minWidth: recordingTimeMetrics.width + columnSpacing
         }
 
@@ -490,13 +267,5 @@ Rectangle {
             display: "Video/Audio";
             property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
         }
-
-        TableModelColumn {
-            display: "Recording Time2"
-            decoration: "Recording Time: Jump/Repeat";
-            edit: "Recording Marks"
-            property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
-        }
-        */
     }
 }
