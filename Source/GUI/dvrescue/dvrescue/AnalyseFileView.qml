@@ -220,7 +220,7 @@ Rectangle {
     TableViewEx {
         id: tableView
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 1
         model: sortFilterTableModel
         dataModel: dataModel
         delegateHeight: 25

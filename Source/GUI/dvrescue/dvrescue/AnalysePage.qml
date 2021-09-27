@@ -189,28 +189,6 @@ Item {
 
                 spacing: 0
 
-                AnalyseFileViewer {
-                    id: fileViewer
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    fileView.currentIndex: fileSelector.currentIndex
-
-                    function resolveMediaInfo(index, reportPath) {
-                        var mediaInfo = fileView.mediaInfoAt(index)
-                        mediaInfo.reportPath = reportPath;
-                        mediaInfo.resolve();
-                    }
-
-                    fileView.onFileAdded: {
-                        addRecent(filePath)
-                    }
-
-                    onSelectedPathChanged: {
-                        console.debug('selected path: ', selectedPath)
-                        toolsLayout.load(selectedPath, fileView.currentIndex)
-                    }
-                }
-
                 RowLayout {
                     id: toolsLayout
                     Layout.fillWidth: true
@@ -243,6 +221,7 @@ Item {
                         }
                     }
 
+                    /*
                     CustomButton {
                         icon.source: "icons/recent.svg"
 
@@ -275,6 +254,7 @@ Item {
                             });
                         }
                     }
+                    */
 
                     ComboBox {
                         id: fileSelector
@@ -287,6 +267,19 @@ Item {
                                 var file = fileViewer.files[currentIndex]
                                 toolsLayout.load(file, currentIndex)
                             }
+                        }
+                    }
+
+                    TabBar {
+                        Layout.minimumWidth: 250
+                        id: fileSegmentSwitch
+                        currentIndex: 0
+
+                        TabButton {
+                            text: "file"
+                        }
+                        TabButton {
+                            text: "segment"
                         }
                     }
 
@@ -323,6 +316,8 @@ Item {
                             {
                                 refreshTimer.start();
                                 dataModel.populate(dvRescueXmlPath);
+
+                                segmentDataView.populateSegmentData(dvRescueXmlPath)
                             } else {
                                 busy.running = true;
                                 dvrescue.makeReport(filePath).then(() => {
@@ -331,11 +326,15 @@ Item {
                                                                        dataModel.populate(dvRescueXmlPath);
 
                                                                        if(currentIndex !== -1 && currentIndex !== undefined) {
-                                                                           fileViewer.resolveMediaInfo(currentIndex, dvRescueXmlPath)
+                                                                           var mediaInfo = fileViewer.fileView.mediaInfoAt(currentIndex)
+                                                                           mediaInfo.reportPath = dvRescueXmlPath;
+                                                                           mediaInfo.resolve();
+
+                                                                           segmentDataView.populateSegmentData(mediaInfo.reportPath)
                                                                        }
                                                                    }).catch((error) => {
-                                                                                busy.running = false;
-                                                                            });
+                                                                        busy.running = false;
+                                                                    });
                             }
 
                             playerView.player.source = 'file:///' + filePath;
@@ -343,8 +342,95 @@ Item {
                         }
                     }
                 }
-            }
 
+                StackLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    currentIndex: fileSegmentSwitch.currentIndex
+                    onCurrentIndexChanged: {
+                        if(currentIndex === 1) {
+
+                        }
+                    }
+
+                    AnalyseFileViewer {
+                        id: fileViewer
+                        fileView.currentIndex: fileSelector.currentIndex
+
+                        fileView.onFileAdded: {
+                            addRecent(filePath)
+                        }
+                    }
+
+                    SegmentDataView {
+                        id: segmentDataView
+
+                        SegmentDataParser {
+                            id: segmentDataParser
+                        }
+
+                        function populateSegmentData(reportPath) {
+                            segmentDataView.model.clear();
+
+                            var path = reportPath
+                            if(Qt.platform.os === "windows") {
+                                path = "/cygdrive/" + path.replace(":", "");
+                            }
+
+                            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+                                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+                                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+                                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+                            var output = '';
+                            packagerCtl.exec("-T " + path, (launcher) => {
+                                debugView.logCommand(launcher)
+                                launcher.outputChanged.connect((outputString) => {
+                                    output += outputString;
+                                })
+                            }, extraParams).then(() => {
+                                console.debug('executed....')
+                                debugView.logResult(output);
+
+                                var i = 0;
+                                segmentDataParser.parse(output, (entry) => {
+                                    console.debug('entry: ', JSON.stringify(entry));
+
+                                    var videoAudio = [
+                                        entry.frameSize,
+                                        entry.frameRate,
+                                        entry.chromaSubsampling,
+                                        entry.aspectRatio,
+                                        entry.samplingRate,
+                                        entry.channelCount
+                                    ]
+
+                                    ++i
+                                    var e = {
+                                        'Segment #' : i,
+                                        'Frame #' : entry.startFrame,
+                                        'Timestamp' : entry.startPts,
+                                        'Timecode' : entry.timeCode,
+                                        'Timecode: Jump/Repeat' : Qt.point(entry.timeCodeJump, 0),
+                                        'Recording Time' : entry.recTimestamp,
+                                        'Recording Time: Jump/Repeat' : Qt.point(entry.recTimeJump, 0),
+                                        'Recording Marks' : Qt.point(entry.recStart, 0),
+                                        'Video/Audio' : videoAudio.join(' ')
+                                    }
+
+                                    segmentDataView.model.appendRow(e);
+                                });
+
+                                busy.running = false;
+                            }).catch((error) => {
+                                debugView.logResult(error);
+                                busy.running = false;
+                            });
+                        }
+                    }
+                }
+            }
         }
 
         QQC1.SplitView {
