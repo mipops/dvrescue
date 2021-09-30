@@ -385,15 +385,15 @@ ApplicationWindow {
             console.debug('setting key: ', key, 'value: ', settings.value(key))
         }
 
-        if(!settings.avfctlCmd)
+        if(!toolsDialog.validateTool(settings.avfctlCmd))
             settings.avfctlCmd = pathResolver.resolve("avfctl")
-        if(!settings.dvrescueCmd)
+        if(!toolsDialog.validateTool(settings.dvrescueCmd))
             settings.dvrescueCmd = pathResolver.resolve("dvrescue")
-        if(!settings.ffmpegCmd)
+        if(!toolsDialog.validateTool(settings.ffmpegCmd))
             settings.ffmpegCmd = pathResolver.resolve("ffmpeg")
-        if(!settings.mediaInfoCmd)
+        if(!toolsDialog.validateTool(settings.mediaInfoCmd))
             settings.mediaInfoCmd = pathResolver.resolve("mediainfo")
-        if(!settings.xmlStarletCmd)
+        if(!toolsDialog.validateTool(settings.xmlStarletCmd))
             settings.xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
 
         console.debug('checking tools...')
