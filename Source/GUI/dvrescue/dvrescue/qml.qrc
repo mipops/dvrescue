@@ -87,5 +87,6 @@
         <file>SegmentDataParser.qml</file>
         <file>SegmentDataView.qml</file>
         <file>TableModelEx.qml</file>
+        <file>ComboBoxEx.qml</file>
     </qresource>
 </RCC>

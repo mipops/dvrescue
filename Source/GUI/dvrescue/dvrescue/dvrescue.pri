@@ -36,10 +36,3 @@ SOURCES += \
 
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/3rdparty
-
-DISTFILES += \
-    $$PWD/qwt.pri \
-    icons/fastforward.svg \
-    icons/play.svg \
-    icons/rewind.svg \
-    icons/stop.svg

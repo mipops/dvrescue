@@ -1,5 +1,7 @@
 import QtQuick 2.0
 import QtTest 1.0
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import "../../dvrescue"
 
 Item {
@@ -7,26 +9,134 @@ Item {
     width: Math.max(1280, parent ? parent.width : 0)
     height: Math.max(1024, parent ? parent.height : 0)
 
-    SegmentDataView {
-        id: segmentDataView
+    ColumnLayout {
         width: root.width
         height: root.height
 
-        Component.onCompleted: {
-            var e = {
-                'Segment #' : '',
-                'Frame #' : '',
-                'Timestamp' : '',
-                'Timecode' : '',
-                'Timecode: Jump/Repeat' : Qt.point(0, 0),
-                'Recording Time' : '',
-                'Recording Time: Jump/Repeat' : Qt.point(0, 0),
-                'Recording Marks' : Qt.point(0, 0),
-                'Video/Audio' : ''
-            }
+        Rectangle {
+            color: 'white'
+            Layout.fillWidth: true
+            Layout.minimumHeight: childrenRect.height
 
-            segmentDataView.model.appendRow(e);
-            segmentDataView.model.clear();
+            Flow {
+                width: parent.width
+                property bool needsApply: false;
+
+                Label {
+                    text: "Segmenting Rules"
+                    font.bold: true
+                    verticalAlignment: Text.AlignVCenter
+                    height: recordingStartMarkers.implicitHeight
+                }
+
+                CheckBox {
+                    id: recordingStartMarkers
+                    text: "Rec Start Markers"
+                    onCheckedChanged: {
+                        needsApply = true
+                    }
+                }
+                CheckBox {
+                    id: breaksInRecordingTime
+                    text: "Rec Time Break"
+                    onCheckedChanged: {
+                        needsApply = true
+                    }
+                }
+                CheckBox {
+                    id: breaksInTimecode
+                    text: "Timecode Break"
+                    onCheckedChanged: {
+                        needsApply = true
+                    }
+                }
+                CheckBox {
+                    id: segmentFilesToPreserveAudioSampleRate
+                    text: "Audio Setting Change"
+                    onCheckedChanged: {
+                        needsApply = true
+                    }
+                }
+
+                Label {
+                    text: "Aspect Ratio Change"
+                    verticalAlignment: Text.AlignVCenter
+                    height: recordingStartMarkers.implicitHeight
+                    font.bold: true
+                }
+
+                ComboBoxEx {
+                    id: aspectRatiosSelector
+                    sizeToContents: true
+                    model: [
+                        "Yes, segment frames by aspect ratio changes",
+                        "No and use most common aspect ratio",
+                        "No and force segments to use 4/3",
+                        "No and force segments to use 16/9"
+                    ]
+                    onCurrentIndexChanged: {
+                        needsApply = true
+                    }
+                }
+
+                Button {
+                    text: "Reset"
+                    onClicked: {
+                        if(recordingStartMarkers.checked) {
+                            recordingStartMarkers.checked = false
+                            needsApply = true
+                        }
+
+                        if(breaksInRecordingTime.checked) {
+                            breaksInRecordingTime.checked = false
+                            needsApply = true
+                        }
+
+                        if(breaksInTimecode.checked) {
+                            breaksInTimecode.checked = false
+                            needsApply = true
+                        }
+
+                        if(segmentFilesToPreserveAudioSampleRate.checked) {
+                            segmentFilesToPreserveAudioSampleRate.checked = false
+                            needsApply = true
+                        }
+
+                        if(aspectRatiosSelector.currentIndex !== 0) {
+                            aspectRatiosSelector.currentIndex = 0
+                            needsApply = true
+                        }
+                    }
+                }
+
+                Button {
+                    enabled: needsApply
+                    text: "Apply"
+                }
+            }
+        }
+
+        SegmentDataView {
+            id: segmentDataView
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            Component.onCompleted: {
+                var e = {
+                    'Segment #' : '',
+                    'Frame #' : '',
+                    'Timestamp' : '',
+                    'Timecode' : '',
+                    'Timecode: Jump/Repeat' : Qt.point(0, 0),
+                    'Recording Time' : '',
+                    'Recording Time: Jump/Repeat' : Qt.point(0, 0),
+                    'Recording Marks' : Qt.point(0, 0),
+                    'Video/Audio' : ''
+                }
+
+                segmentDataView.model.appendRow(e);
+                segmentDataView.model.clear();
+            }
         }
     }
 
