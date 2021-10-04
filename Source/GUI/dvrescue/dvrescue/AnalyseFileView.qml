@@ -335,6 +335,7 @@ Rectangle {
                     DefaultToolTip {
                         visible: filePathMouseArea.containsMouse
                         text: toolTip
+                        delay: 1500
                         anchors.centerIn: parent
                     }
 
