@@ -43,15 +43,23 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
 
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
     auto appDirPath = QCoreApplication::applicationDirPath();
     qDebug() << "appDirPath: " << appDirPath;
     auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
     auto additionalPath =
             QDir::toNativeSeparators(appDirPath + "/" + "cygwin/bin") + ";" +
             QDir::toNativeSeparators(appDirPath + "/" + "scripts") + ";" +
-            QDir::toNativeSeparators(appDirPath + "/" + "tools") + ";";
+            QDir::toNativeSeparators(appDirPath + "/" + "tools") + ";" +
+            QDir::toNativeSeparators(appDirPath) + ";";
 
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+#elif defined(Q_OS_MAC)
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath = QDir::toNativeSeparators(appDirPath + "/" + "../Helpers") + ":";
     paths.prepend(additionalPath);
     qputenv("PATH", paths.toUtf8());
 #endif //
