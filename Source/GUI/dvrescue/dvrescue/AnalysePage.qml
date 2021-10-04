@@ -258,15 +258,13 @@ Item {
 
                     ComboBox {
                         id: fileSelector
-                        model: fileViewer.updated, fileViewer.files
+                        textRole: "fileName"
+                        model: fileViewer.updated, fileViewer.fileInfos
                         Layout.fillWidth: true
+
                         currentIndex: fileViewer.fileView.currentIndex
-                        onCurrentIndexChanged: {
-                            if(fileViewer.files.length > currentIndex)
-                            {
-                                var file = fileViewer.files[currentIndex]
-                                toolsLayout.load(file, currentIndex)
-                            }
+                        onActivated: {
+                            fileViewer.fileView.currentIndex = index
                         }
                     }
 
@@ -361,6 +359,11 @@ Item {
 
                         fileView.onFileAdded: {
                             addRecent(filePath)
+                        }
+
+                        onSelectedPathChanged: {
+                            console.debug('selected path: ', selectedPath)
+                            toolsLayout.load(selectedPath, fileView.currentIndex)
                         }
                     }
 

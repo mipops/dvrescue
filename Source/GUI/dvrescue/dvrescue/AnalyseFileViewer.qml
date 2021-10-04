@@ -11,6 +11,7 @@ Rectangle {
     property alias fileView: fileView
     property alias selectedPath: fileView.selectedPath
     property alias files: fileView.files
+    property alias fileInfos: fileView.fileInfos
     property alias updated: fileView.updated
 
     ColumnLayout {
