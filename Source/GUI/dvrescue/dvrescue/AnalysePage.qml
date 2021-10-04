@@ -326,6 +326,8 @@ Item {
                                                                        dataModel.populate(dvRescueXmlPath);
 
                                                                        if(currentIndex !== -1 && currentIndex !== undefined) {
+                                                                           fileViewer.fileView.fileInfos[currentIndex].reportPath = dvRescueXmlPath;
+
                                                                            var mediaInfo = fileViewer.fileView.mediaInfoAt(currentIndex)
                                                                            mediaInfo.reportPath = dvRescueXmlPath;
                                                                            mediaInfo.resolve();
