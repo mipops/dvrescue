@@ -120,24 +120,19 @@ Item {
     QQC1.SplitView {
         id: splitView
         anchors.fill: parent
-
-        orientation: Qt.Vertical
-
-        onHeightChanged: {
-            playerViewSplitView.height = height / 5 * 1.5
-        }
+        orientation: Qt.Horizontal
 
         onWidthChanged: {
-            dataView.width = width / 2
+            playerAndPlotsSplitView.width = width / 2
         }
 
         QQC1.SplitView {
-            id: playerViewSplitView
+            id: playerAndPlotsSplitView
 
-            orientation: Qt.Horizontal
+            orientation: Qt.Vertical
 
-            onWidthChanged: {
-                playerView.width = width / 2
+            onHeightChanged: {
+                playerView.height = height / 2
             }
 
             PlayerView {
@@ -182,11 +177,44 @@ Item {
                 }
             }
 
+            PlotsView {
+                id: plotsView
+
+                Connections {
+                    target: dataModel
+                    onPopulated: {
+                        plotsView.zoomAll();
+                    }
+                }
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        plotsView.framePos = frameIndex
+                    }
+                }
+
+                onPickerMoved: {
+                    var frameIndex = plotX
+                    playerView.seekToFrame(frameIndex)
+                }
+
+                onMarkerClicked: {
+                    playerView.seekToFrame(frameIndex)
+                }
+            }
+        }
+
+        QQC1.SplitView {
+            id: tables
+            orientation: Qt.Vertical
+
+            onHeightChanged: {
+                fileViewColumn.height = height / 5 * 1.5
+            }
+
             ColumnLayout {
                 id: fileViewColumn
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-
                 spacing: 0
 
                 RowLayout {
@@ -347,11 +375,6 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     currentIndex: fileSegmentSwitch.currentIndex
-                    onCurrentIndexChanged: {
-                        if(currentIndex === 1) {
-
-                        }
-                    }
 
                     AnalyseFileViewer {
                         id: fileViewer
@@ -589,11 +612,6 @@ Item {
                     }
                 }
             }
-        }
-
-        QQC1.SplitView {
-            id: tableAndPlots
-            orientation: Qt.Horizontal
 
             AnalyseDataView {
                 id: dataView
@@ -611,34 +629,6 @@ Item {
                     dataModel.bind(model)
                 }
             }
-
-            PlotsView {
-                id: plotsView
-
-                Connections {
-                    target: dataModel
-                    onPopulated: {
-                        plotsView.zoomAll();
-                    }
-                }
-
-                Connections {
-                    target: playerView
-                    onPositionChanged: {
-                        plotsView.framePos = frameIndex
-                    }
-                }
-
-                onPickerMoved: {
-                    var frameIndex = plotX
-                    playerView.seekToFrame(frameIndex)
-                }
-
-                onMarkerClicked: {
-                    playerView.seekToFrame(frameIndex)
-                }
-            }
-
         }
     }
 
