@@ -29,7 +29,7 @@ while getopts ":s:mxgho:" OPT ; do
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
         h) _usage ;;
-        o) USER_OUTPUT="${OPTARG}";;
+        o) OUTPUTDIR="${OPTARG}";;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
     esac
@@ -409,9 +409,9 @@ while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
   BASENAME="$(basename "${DVFILE}")"
-  if [[ -n "${USER_OUTPUT}" ]] && [[ -d "${USER_OUTPUT}" ]] ; then
-    SIDECAR_DIR="${USER_OUTPUT}/${BASENAME}_dvrescue"
-  elif [[ -n "${USER_OUTPUT}" ]] ; then
+  if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
+    SIDECAR_DIR="${OUTPUTDIR}/${BASENAME}_dvrescue"
+  elif [[ -n "${OUTPUTDIR}" ]] ; then
     echo "User selected output is not a valid directory. Exiting"
     exit 1
   else
