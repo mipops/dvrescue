@@ -8,6 +8,7 @@ import FileUtils 1.0
 import SettingsUtils 1.0
 import QwtQuick2 1.0
 import QtQuick.Controls 1.4 as QQC1
+import Qt.labs.platform 1.1
 
 ApplicationWindow {
     id: root
@@ -213,6 +214,22 @@ ApplicationWindow {
         }
     }
 
+    DvPackagerCtl {
+        id: packagerCtl
+
+        dvrescueCmd: settings.dvrescueCmd
+        xmlStarletCmd: settings.xmlStarletCmd
+        mediaInfoCmd: settings.mediaInfoCmd
+        ffmpegCmd: settings.ffmpegCmd
+
+        Component.onCompleted: {
+            if(Qt.platform.os === "windows") {
+                packagerCtl.paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                      FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+            }
+        }
+    }
+
     PathResolver {
         id: pathResolver
     }
@@ -238,6 +255,14 @@ ApplicationWindow {
 
     ToolsDialog {
         id: toolsDialog
+
+        onReset: {
+            avfctlCmd = pathResolver.resolve("avfctl")
+            dvrescueCmd = pathResolver.resolve("dvrescue")
+            ffmpegCmd = pathResolver.resolve("ffmpeg")
+            mediaInfoCmd = pathResolver.resolve("mediainfo")
+            xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+        }
 
         onAccepted: {
             settings.avfctlCmd = avfctlCmd

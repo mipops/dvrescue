@@ -20,7 +20,8 @@ DISTFILES += \
     tests/tst_fileview.qml \
     tests/tst_navbar.qml \
     tests/tst_parsing.qml \
-    tests/tst_popup.qml
+    tests/tst_popup.qml \
+    tests/tst_segment_table.qml
 
 HEADERS += \
     setup.h

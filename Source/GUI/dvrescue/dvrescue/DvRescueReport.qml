@@ -5,7 +5,12 @@ QtObject {
     property string dvRescueXmlExtension: ".dvrescue.xml"
 
     function resolveRelatedInfo(path) {
-        var fileInfo = { originalPath: path, reportPath: '', videoPath: '' }
+        var fileInfo = {
+            originalPath: path,
+            fileName: FileUtils.getFileName(path),
+            reportPath: '',
+            videoPath: ''
+        }
         var extension = FileUtils.getFileExtension(path);
 
         if(extension === 'xml') {

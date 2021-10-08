@@ -96,6 +96,6 @@ Dialog {
         }
     }
 
-    standardButtons: Dialog.Cancel | Dialog.Ok
+    standardButtons: Dialog.Reset | Dialog.Cancel | Dialog.Ok
     anchors.centerIn: parent
 }

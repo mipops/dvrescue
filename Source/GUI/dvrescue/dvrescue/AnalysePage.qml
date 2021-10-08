@@ -120,24 +120,19 @@ Item {
     QQC1.SplitView {
         id: splitView
         anchors.fill: parent
-
-        orientation: Qt.Vertical
-
-        onHeightChanged: {
-            playerViewSplitView.height = height / 5 * 1.5
-        }
+        orientation: Qt.Horizontal
 
         onWidthChanged: {
-            dataView.width = width / 2
+            playerAndPlotsSplitView.width = width / 2
         }
 
         QQC1.SplitView {
-            id: playerViewSplitView
+            id: playerAndPlotsSplitView
 
-            orientation: Qt.Horizontal
+            orientation: Qt.Vertical
 
-            onWidthChanged: {
-                playerView.width = width / 2
+            onHeightChanged: {
+                playerView.height = height / 2
             }
 
             PlayerView {
@@ -182,34 +177,45 @@ Item {
                 }
             }
 
-            ColumnLayout {
-                id: fileViewColumn
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
+            PlotsView {
+                id: plotsView
 
-                spacing: 0
-
-                AnalyseFileViewer {
-                    id: fileViewer
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    fileView.currentIndex: fileSelector.currentIndex
-
-                    function resolveMediaInfo(index, reportPath) {
-                        var mediaInfo = fileView.mediaInfoAt(index)
-                        mediaInfo.reportPath = reportPath;
-                        mediaInfo.resolve();
-                    }
-
-                    fileView.onFileAdded: {
-                        addRecent(filePath)
-                    }
-
-                    onSelectedPathChanged: {
-                        console.debug('selected path: ', selectedPath)
-                        toolsLayout.load(selectedPath, fileView.currentIndex)
+                Connections {
+                    target: dataModel
+                    onPopulated: {
+                        plotsView.zoomAll();
                     }
                 }
+
+                Connections {
+                    target: playerView
+                    onPositionChanged: {
+                        plotsView.framePos = frameIndex
+                    }
+                }
+
+                onPickerMoved: {
+                    var frameIndex = plotX
+                    playerView.seekToFrame(frameIndex)
+                }
+
+                onMarkerClicked: {
+                    playerView.seekToFrame(frameIndex)
+                }
+            }
+        }
+
+        QQC1.SplitView {
+            id: tables
+            orientation: Qt.Vertical
+
+            onHeightChanged: {
+                fileViewColumn.height = height / 5 * 1.5
+            }
+
+            ColumnLayout {
+                id: fileViewColumn
+                spacing: 0
 
                 RowLayout {
                     id: toolsLayout
@@ -243,17 +249,63 @@ Item {
                         }
                     }
 
+                    /*
+                    CustomButton {
+                        icon.source: "icons/recent.svg"
+
+                        onClicked: {
+                            var path = fileViewer.fileView.fileInfos[fileViewer.fileView.currentIndex].reportPath
+                            if(Qt.platform.os === "windows") {
+                                path = "/cygdrive/" + path.replace(":", "");
+                            }
+
+                            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+                                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+                                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+                                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+                            var output = '';
+                            packagerCtl.exec("-T " + path, (launcher) => {
+                                debugView.logCommand(launcher)
+                                launcher.outputChanged.connect((outputString) => {
+                                    output += outputString;
+                                })
+                            }, extraParams).then(() => {
+                                console.debug('executed....')
+                                debugView.logResult(output);
+
+                                busy.running = false;
+                            }).catch((error) => {
+                                debugView.logResult(error);
+                                busy.running = false;
+                            });
+                        }
+                    }
+                    */
+
                     ComboBox {
                         id: fileSelector
-                        model: fileViewer.updated, fileViewer.files
+                        textRole: "fileName"
+                        model: fileViewer.updated, fileViewer.fileInfos
                         Layout.fillWidth: true
+
                         currentIndex: fileViewer.fileView.currentIndex
-                        onCurrentIndexChanged: {
-                            if(fileViewer.files.length > currentIndex)
-                            {
-                                var file = fileViewer.files[currentIndex]
-                                toolsLayout.load(file, currentIndex)
-                            }
+                        onActivated: {
+                            fileViewer.fileView.currentIndex = index
+                        }
+                    }
+
+                    TabBar {
+                        Layout.minimumWidth: 250
+                        id: fileSegmentSwitch
+                        currentIndex: 0
+
+                        TabButton {
+                            text: "file"
+                        }
+                        TabButton {
+                            text: "segment"
                         }
                     }
 
@@ -290,6 +342,8 @@ Item {
                             {
                                 refreshTimer.start();
                                 dataModel.populate(dvRescueXmlPath);
+
+                                segmentDataView.populateSegmentData(dvRescueXmlPath)
                             } else {
                                 busy.running = true;
                                 dvrescue.makeReport(filePath).then(() => {
@@ -298,11 +352,17 @@ Item {
                                                                        dataModel.populate(dvRescueXmlPath);
 
                                                                        if(currentIndex !== -1 && currentIndex !== undefined) {
-                                                                           fileViewer.resolveMediaInfo(currentIndex, dvRescueXmlPath)
+                                                                           fileViewer.fileView.fileInfos[currentIndex].reportPath = dvRescueXmlPath;
+
+                                                                           var mediaInfo = fileViewer.fileView.mediaInfoAt(currentIndex)
+                                                                           mediaInfo.reportPath = dvRescueXmlPath;
+                                                                           mediaInfo.resolve();
+
+                                                                           segmentDataView.populateSegmentData(mediaInfo.reportPath)
                                                                        }
                                                                    }).catch((error) => {
-                                                                                busy.running = false;
-                                                                            });
+                                                                        busy.running = false;
+                                                                    });
                             }
 
                             playerView.player.source = 'file:///' + filePath;
@@ -310,15 +370,250 @@ Item {
                         }
                     }
                 }
+
+                StackLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    currentIndex: fileSegmentSwitch.currentIndex
+
+                    AnalyseFileViewer {
+                        id: fileViewer
+                        fileView.currentIndex: fileSelector.currentIndex
+
+                        fileView.onFileAdded: {
+                            addRecent(filePath)
+                        }
+
+                        onSelectedPathChanged: {
+                            console.debug('selected path: ', selectedPath)
+                            toolsLayout.load(selectedPath, fileView.currentIndex)
+                        }
+                    }
+
+                    ColumnLayout {
+                        Rectangle {
+                            color: 'white'
+                            Layout.fillWidth: true
+                            Layout.minimumHeight: childrenRect.height
+
+                            Flow {
+                                id: segmentationOptionsLayout
+                                width: parent.width
+                                property bool needsApply: false;
+
+                                Label {
+                                    text: "Segmenting Rules"
+                                    font.bold: true
+                                    verticalAlignment: Text.AlignVCenter
+                                    height: recordingStartMarkers.implicitHeight
+                                }
+
+                                CheckBox {
+                                    id: recordingStartMarkers
+                                    text: "Rec Start Markers"
+                                    onCheckedChanged: {
+                                        segmentationOptionsLayout.needsApply = true
+                                    }
+                                }
+                                CheckBox {
+                                    id: breaksInRecordingTime
+                                    text: "Rec Time Break"
+                                    onCheckedChanged: {
+                                        segmentationOptionsLayout.needsApply = true
+                                    }
+                                }
+                                CheckBox {
+                                    id: breaksInTimecode
+                                    text: "Timecode Break"
+                                    onCheckedChanged: {
+                                        segmentationOptionsLayout.needsApply = true
+                                    }
+                                }
+                                CheckBox {
+                                    id: segmentFilesToPreserveAudioSampleRate
+                                    text: "Audio Setting Change"
+                                    onCheckedChanged: {
+                                        segmentationOptionsLayout.needsApply = true
+                                    }
+                                }
+
+                                Label {
+                                    text: "Aspect Ratio Change"
+                                    verticalAlignment: Text.AlignVCenter
+                                    height: recordingStartMarkers.implicitHeight
+                                    font.bold: true
+                                }
+
+                                ComboBoxEx {
+                                    id: aspectRatiosSelector
+                                    sizeToContents: true
+                                    model: [
+                                        "Yes, segment frames by aspect ratio changes",
+                                        "No and use most common aspect ratio",
+                                        "No and force segments to use 4/3",
+                                        "No and force segments to use 16/9"
+                                    ]
+                                    onCurrentIndexChanged: {
+                                        segmentationOptionsLayout.needsApply = true
+                                    }
+                                }
+
+                                Button {
+                                    text: "Reset"
+                                    onClicked: {
+                                        if(recordingStartMarkers.checked) {
+                                            recordingStartMarkers.checked = false
+                                            segmentationOptionsLayout.needsApply = true
+                                        }
+
+                                        if(breaksInRecordingTime.checked) {
+                                            breaksInRecordingTime.checked = false
+                                            segmentationOptionsLayout.needsApply = true
+                                        }
+
+                                        if(breaksInTimecode.checked) {
+                                            breaksInTimecode.checked = false
+                                            segmentationOptionsLayout.needsApply = true
+                                        }
+
+                                        if(segmentFilesToPreserveAudioSampleRate.checked) {
+                                            segmentFilesToPreserveAudioSampleRate.checked = false
+                                            segmentationOptionsLayout.needsApply = true
+                                        }
+
+                                        if(aspectRatiosSelector.currentIndex !== 0) {
+                                            aspectRatiosSelector.currentIndex = 0
+                                            segmentationOptionsLayout.needsApply = true
+                                        }
+                                    }
+                                }
+
+                                Button {
+                                    enabled: segmentationOptionsLayout.needsApply
+                                    text: "Apply"
+                                    onClicked: {
+                                        segmentDataView.repopulateSegmentData()
+                                        segmentationOptionsLayout.needsApply = false
+                                    }
+                                }
+                            }
+                        }
+
+                        SegmentDataView {
+                            id: segmentDataView
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+
+                            Component.onCompleted: {
+                                var e = {
+                                    'Segment #' : '',
+                                    'Frame #' : '',
+                                    'Timestamp' : '',
+                                    'Timecode' : '',
+                                    'Timecode: Jump/Repeat' : Qt.point(0, 0),
+                                    'Recording Time' : '',
+                                    'Recording Time: Jump/Repeat' : Qt.point(0, 0),
+                                    'Recording Marks' : Qt.point(0, 0),
+                                    'Video/Audio' : ''
+                                }
+
+                                segmentDataView.model.appendRow(e);
+                                segmentDataView.model.clear();
+                            }
+
+                            SegmentDataParser {
+                                id: segmentDataParser
+                            }
+
+                            function repopulateSegmentData() {
+                                var reportPath = fileViewer.fileView.fileInfos[fileViewer.fileView.currentIndex].reportPath
+                                segmentDataView.populateSegmentData(reportPath)
+                            }
+
+                            function populateSegmentData(reportPath) {
+                                segmentDataView.model.clear();
+
+                                var path = reportPath
+                                if(Qt.platform.os === "windows") {
+                                    path = "/cygdrive/" + path.replace(":", "");
+                                }
+
+                                var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                                    .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+                                    .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+                                    .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+                                    .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+                                var opts = ' ';
+                                if(recordingStartMarkers.checked)
+                                    opts += '-s '
+                                if(breaksInRecordingTime.checked)
+                                    opts += '-d ';
+                                if(breaksInTimecode.checked)
+                                    opts += '-t ';
+                                if(segmentFilesToPreserveAudioSampleRate.checked)
+                                    opts += '-3 ';
+
+                                if(aspectRatiosSelector.currentIndex === 0)
+                                    opts += '-a n ';
+                                if(aspectRatiosSelector.currentIndex === 2)
+                                    opts += '-a 4 ';
+                                if(aspectRatiosSelector.currentIndex === 3)
+                                    opts += '-a 9 ';
+                                if(aspectRatiosSelector.currentIndex === 1)
+                                    opts += '-a c ';
+
+                                var output = '';
+                                packagerCtl.exec("-T" + opts + path, (launcher) => {
+                                    debugView.logCommand(launcher)
+                                    launcher.outputChanged.connect((outputString) => {
+                                        output += outputString;
+                                    })
+                                }, extraParams).then(() => {
+                                    console.debug('executed....')
+                                    debugView.logResult(output);
+
+                                    var i = 0;
+                                    segmentDataParser.parse(output, (entry) => {
+                                        console.debug('entry: ', JSON.stringify(entry));
+
+                                        var videoAudio = [
+                                            entry.frameSize,
+                                            entry.frameRate,
+                                            entry.chromaSubsampling,
+                                            entry.aspectRatio,
+                                            entry.samplingRate,
+                                            entry.channelCount
+                                        ]
+
+                                        ++i
+                                        var e = {
+                                            'Segment #' : i,
+                                            'Frame #' : entry.startFrame,
+                                            'Timestamp' : entry.startPts,
+                                            'Timecode' : entry.timeCode,
+                                            'Timecode: Jump/Repeat' : Qt.point(entry.timeCodeJump, 0),
+                                            'Recording Time' : entry.recTimestamp,
+                                            'Recording Time: Jump/Repeat' : Qt.point(entry.recTimeJump, 0),
+                                            'Recording Marks' : Qt.point(entry.recStart, 0),
+                                            'Video/Audio' : videoAudio.join(' ')
+                                        }
+
+                                        segmentDataView.model.appendRow(e);
+                                    });
+
+                                    busy.running = false;
+                                }).catch((error) => {
+                                    debugView.logResult(error);
+                                    busy.running = false;
+                                });
+                            }
+                        }
+                    }
+                }
             }
 
-        }
-
-        QQC1.SplitView {
-            id: tableAndPlots
-            orientation: Qt.Horizontal
-
-            DataView {
+            AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
 
@@ -334,34 +629,6 @@ Item {
                     dataModel.bind(model)
                 }
             }
-
-            PlotsView {
-                id: plotsView
-
-                Connections {
-                    target: dataModel
-                    onPopulated: {
-                        plotsView.zoomAll();
-                    }
-                }
-
-                Connections {
-                    target: playerView
-                    onPositionChanged: {
-                        plotsView.framePos = frameIndex
-                    }
-                }
-
-                onPickerMoved: {
-                    var frameIndex = plotX
-                    playerView.seekToFrame(frameIndex)
-                }
-
-                onMarkerClicked: {
-                    playerView.seekToFrame(frameIndex)
-                }
-            }
-
         }
     }
 

@@ -220,8 +220,9 @@ Rectangle {
     TableViewEx {
         id: tableView
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 1
         model: sortFilterTableModel
+        dataModel: dataModel
         delegateHeight: 25
         property int currentIndex: -1
 
@@ -334,6 +335,7 @@ Rectangle {
                     DefaultToolTip {
                         visible: filePathMouseArea.containsMouse
                         text: toolTip
+                        delay: 1500
                         anchors.centerIn: parent
                     }
 
@@ -538,89 +540,6 @@ Rectangle {
                 }
             }
         }
-
-        function getMaxDesiredHeight() {
-            var value = 0
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                var headerItem = tableView.getHeaderItem(i)
-                if(headerItem === null) {
-                    continue;
-                }
-
-                value = Math.max(value, headerItem.desiredHeight)
-            }
-            return value;
-        }
-
-        function getTotalDesiredWidth() {
-            var value = 0
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                var headerItem = tableView.getHeaderItem(i)
-                if(headerItem === null) {
-                    continue;
-                }
-
-                // console.debug('headerItem: ', headerItem)
-                var minWidth = dataModel.columns[i].minWidth
-                value += Math.max(headerItem.desiredWidth, minWidth)
-            }
-
-            return value;
-        }
-
-        function getColumnWidth(column) {
-            var headerItem = tableView.getHeaderItem(column);
-            if(headerItem === null)
-                return 0;
-
-            var minWidth = dataModel.columns[column].minWidth
-            var desiredWidth = Math.max(headerItem.desiredWidth, minWidth)
-
-            var relativeWidth = tableView.totalDesiredWidth !== 0 ? (desiredWidth / tableView.totalDesiredWidth) : 0
-            var allowedWidth = relativeWidth * tableView.width
-
-            var columnWidth = Math.max(allowedWidth, desiredWidth);
-            return columnWidth
-        }
-
-        property bool initialized: false
-        property int totalDesiredWidth: {
-            return initialized, getTotalDesiredWidth()
-        }
-
-        function adjustColumnWidths() {
-            var newColumnWidths = {}
-            var totalWidth = 0;
-            for(var i = 0; i < tableView.model.columnCount; ++i)
-            {
-                newColumnWidths[i] = getColumnWidth(i)
-                totalWidth += newColumnWidths[i]
-            }
-
-            totalWidth += (tableView.model.columnCount - 1) * tableView.view.columnSpacing
-            columnWidths = newColumnWidths
-
-            tableView.view.contentWidth = totalWidth
-            console.debug('tableView.view.contentWidth: ', tableView.view.contentWidth)
-        }
-
-        property var columnWidths: ({})
-        onWidthChanged: {
-            adjustColumnWidths()
-        }
-
-        columnWidthProvider: function(column) {
-            return tableView.columnWidths[column];
-        }
-
-        Component.onCompleted: {
-            Qt.callLater(() => {
-                             initialized = true;
-                             adjustColumnWidths();
-                         })
-        }
     }
 
     SortFilterTableModel {
@@ -652,16 +571,8 @@ Rectangle {
 
     property int columnSpacing: 10
 
-    TableModel {
+    TableModelEx {
         id: dataModel
-
-        property var columnsNames: {
-            var names = [];
-            for(var i = 0; i < columns.length; ++i) {
-                names.push(columns[i].display)
-            }
-            return names;
-        }
 
         TableModelColumn {
             display: "File Name"
