@@ -409,14 +409,18 @@ while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
   BASENAME="$(basename "${DVFILE}")"
+  DIRNAME="$(dirname "${DVFILE}")"
+  DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
   if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
-    SIDECAR_DIR="${OUTPUTDIR}/${BASENAME}_dvrescue"
+    SIDECAR_DIR="${OUTPUTDIR}"
   elif [[ -n "${OUTPUTDIR}" ]] ; then
     echo "User selected output is not a valid directory. Exiting"
     exit 1
   else
-    SIDECAR_DIR="${DVFILE}_dvrescue"
+    SIDECAR_DIR="${DIRNAME}"
   fi
+  IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
+  DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
   DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
 
   if [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
@@ -437,10 +441,11 @@ while [[ "${@}" != "" ]] ; do
       PTS_C="$(echo "${PTS}" | sed 's|:|-|g')"
       PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
       if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
-        _mkdir2 "${SIDECAR_DIR}/dvrescue_tmp"
-        JPG_OUTPUT="${SIDECAR_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
+        _mkdir2 "${IMAGE_DIR}/dvrescue_tmp"
+        JPG_OUTPUT="${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
       else
-        JPG_OUTPUT="${SIDECAR_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
+        _mkdir2 "${IMAGE_DIR}"
+        JPG_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
       fi
       ffmpeg -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
       xxd -p -c 80 | \
@@ -451,11 +456,11 @@ while [[ "${@}" != "" ]] ; do
     done
     if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
       GIF_PALETTE="$(_maketemp)"
-      ffmpeg -nostdin -f image2 -i "${SIDECAR_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
-      ffmpeg -nostdin -f image2 -i "${SIDECAR_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${SIDECAR_DIR}/${BASENAME}_error.gif"
-      rm -r "${SIDECAR_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
+      ffmpeg -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
+      ffmpeg -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
+      rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
     else
-      xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_XML%.*}.html"
+      xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
     fi
   else
     _play_dv "${DVFILE}"

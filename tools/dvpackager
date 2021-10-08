@@ -729,7 +729,7 @@ elif [[ -n "${OUTPUTDIR}" ]] ; then
     _report -w "ERROR: ${OUTPUTDIR} is not a directory."
     exit
 else
-    SIDECAR_DIR="${DVFILE}_dvrescue"
+    SIDECAR_DIR="$(dirname "${DVFILE}")"
 fi
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
