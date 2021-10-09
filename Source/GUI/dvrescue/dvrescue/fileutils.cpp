@@ -132,6 +132,8 @@ bool FileUtils::copy(const QString &target, const QString &destination)
 
 QString FileUtils::find(const QString &what)
 {
+    qDebug() << "FileUtils::find: " << what;
+
     QByteArray pEnv = qgetenv("PATH");
     const QStringList rawPaths = QString::fromLocal8Bit(pEnv.constData()).split(QDir::listSeparator(), QString::SkipEmptyParts);
 
@@ -148,8 +150,12 @@ QString FileUtils::find(const QString &what)
     for (const QString &searchPath : searchPaths) {
         const QString candidate = currentDir.absoluteFilePath(searchPath + QLatin1Char('/') + what);
         qDebug() << "checking path: " << candidate;
-        if (QFileInfo::exists(candidate))
+        if (QFileInfo::exists(candidate)) {
+            qDebug() << "FileUtils::find finished: " << what;
             return QUrl::fromLocalFile(candidate).toString();
+        }
     }
+
+    qDebug() << "FileUtils::find finished: nothing found";
     return QString();
 }

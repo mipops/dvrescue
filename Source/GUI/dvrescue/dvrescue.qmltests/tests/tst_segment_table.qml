@@ -116,10 +116,24 @@ Item {
             }
         }
 
+        Button {
+            onClicked: {
+                segmentDataView.filterIndex++;
+                segmentDataView.invalidateFilter();
+            }
+        }
+
         SegmentDataView {
             id: segmentDataView
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            property int filterIndex: 0
+            rowFilter: function(index) {
+                console.debug('index: ', index);
+                if(index === filterIndex)
+                    return false;
+            }
 
             Component.onCompleted: {
                 var e = {

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSortFilterProxyModel>
 #include <QQmlListProperty>
+#include <QJSValue>
 
 class SortFilterTableModel : public QSortFilterProxyModel
 {
@@ -11,6 +12,7 @@ class SortFilterTableModel : public QSortFilterProxyModel
     Q_PROPERTY(QAbstractTableModel* tableModel READ tableModel WRITE setTableModel NOTIFY tableModelChanged)
     Q_PROPERTY(int columnCount READ columnCount NOTIFY columnCountChanged FINAL)
     Q_PROPERTY(int rowCount READ rowCount NOTIFY rowCountChanged FINAL)
+    Q_PROPERTY(QJSValue rowFilter READ rowFilter WRITE setRowFilter NOTIFY rowFilterChanged)
 
 public:
     SortFilterTableModel(QObject *parent = nullptr);
@@ -29,6 +31,7 @@ public:
     Q_INVOKABLE int fromSourceRowIndex(int rowIndex);
     Q_INVOKABLE int toSourceRowIndex(int rowIndex);
     Q_INVOKABLE void setFilterText(int column, QString filterText);
+    Q_INVOKABLE void invalidateFilter();
 
     Q_INVOKABLE void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -42,6 +45,9 @@ public:
     QHash<int, QByteArray> roleNames() const override;
 
     QAbstractTableModel* tableModel() const;
+
+    const QJSValue &rowFilter() const;
+    void setRowFilter(const QJSValue &newRowFilter);
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override;
@@ -61,12 +67,15 @@ Q_SIGNALS:
     void columnCountChanged(int columnCount);
     void rowCountChanged(int rowCount);
 
+    void rowFilterChanged();
+
 private:
     QVector<QString> m_filters;
     QAbstractTableModel* m_tableModel;
     int m_columnCount;
     int m_rowCount;
     QVariant m_rows;
+    mutable QJSValue m_rowFilter;
 };
 
 #endif // SORTFILTERTABLEMODEL_

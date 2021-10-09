@@ -1,6 +1,7 @@
 #include "sortfiltertablemodel.h"
 #include <QDebug>
 #include <QMetaObject>
+#include <QJSEngine>
 
 SortFilterTableModel::SortFilterTableModel(QObject *parent)
   : QSortFilterProxyModel (parent)
@@ -54,6 +55,11 @@ void SortFilterTableModel::setFilterText(int column, QString filterText)
 
     m_filters[column] = filterText;
     invalidateFilter();
+}
+
+void SortFilterTableModel::invalidateFilter()
+{
+    QSortFilterProxyModel::invalidateFilter();
 }
 
 void SortFilterTableModel::sort(int column, Qt::SortOrder order)
@@ -116,7 +122,7 @@ QAbstractTableModel *SortFilterTableModel::tableModel() const
 
 bool SortFilterTableModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
 {
-    if(m_filters.empty())
+    if(m_filters.empty() && !m_rowFilter.isCallable())
         return true;
 
     for(auto i = 0; i < m_filters.size(); ++i) {
@@ -126,6 +132,12 @@ bool SortFilterTableModel::filterAcceptsRow(int sourceRow, const QModelIndex &so
         QModelIndex index = sourceModel()->index(sourceRow, i, sourceParent);
         auto data = sourceModel()->data(index).toString();
         if(!data.contains(m_filters[i]))
+            return false;
+    }
+
+    if(m_rowFilter.isCallable()) {
+        auto result = m_rowFilter.call(QJSValueList { QJSValue(sourceRow) });
+        if(result.isBool() && result.toBool() == false)
             return false;
     }
 
@@ -162,4 +174,17 @@ void SortFilterTableModel::initRoles()
 void SortFilterTableModel::resetInternalData()
 {
     QSortFilterProxyModel::resetInternalData();
+}
+
+const QJSValue &SortFilterTableModel::rowFilter() const
+{
+    return m_rowFilter;
+}
+
+void SortFilterTableModel::setRowFilter(const QJSValue &newRowFilter)
+{
+    if (m_rowFilter.equals(newRowFilter))
+        return;
+    m_rowFilter = newRowFilter;
+    Q_EMIT rowFilterChanged();
 }

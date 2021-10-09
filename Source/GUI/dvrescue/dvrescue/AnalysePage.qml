@@ -12,6 +12,8 @@ import QtAVPlayerUtils 1.0
 
 Item {
     id: root
+    property int startFrame: 0
+    property int endFrame: dataModel.total - 1
 
     MessageDialog {
         id: errorDialog
@@ -179,6 +181,8 @@ Item {
 
             PlotsView {
                 id: plotsView
+                startFrame: root.startFrame
+                endFrame: root.endFrame
 
                 Connections {
                     target: dataModel
@@ -504,6 +508,31 @@ Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
 
+                            onClicked: {
+                                console.debug('clicked: ', index, JSON.stringify(item));
+                                if(index !== currentIndex) {
+                                    currentIndex = -1;
+                                    startFrame = 0;
+                                    endFrame = dataModel.total - 1;
+
+                                    dataView.invalidateFilter();
+                                }
+                            }
+
+                            onDoubleClicked: {
+                                console.debug('doubleclicked: ', index, JSON.stringify(item));
+                                if(index !== currentIndex) {
+                                    currentIndex = index;
+                                    startFrame = item['Frame #']
+                                    endFrame = dataModel.total - 1;
+                                    if((currentIndex + 1) < model.rowCount) {
+                                        endFrame = model.getRow(currentIndex + 1)['Frame #']
+                                    }
+
+                                    dataView.invalidateFilter();
+                                }
+                            }
+
                             Component.onCompleted: {
                                 var e = {
                                     'Segment #' : '',
@@ -616,6 +645,17 @@ Item {
             AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
+                rowFilter: function(index) {
+                    var data = dataView.model.getRow(index);
+                    var frame = data['Frame #'];
+                    if(frame < root.startFrame)
+                        return false;
+
+                    if(frame > root.endFrame)
+                        return false;
+
+                    return true;
+                }
 
                 Connections {
                     target: playerView
