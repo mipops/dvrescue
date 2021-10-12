@@ -9,21 +9,15 @@ import Qt.labs.qmlmodels 1.0
 Rectangle {
     id: dataView
     property alias model: dataModel
-    property var cppDataModel;
-    property int framePos: -1
     property color rowHighlightColor: 'purple'
+    property int currentIndex: -1
+    property alias rowFilter: sortFilterTableModel.rowFilter
 
-    signal tapped(int framePos);
+    signal clicked(var index, var item);
+    signal doubleClicked(var index, var item);
 
-    function bringToView(framePos) {
-        var sourceRow = cppDataModel.rowByFrame(framePos);
-        if(sourceRow !== -1)
-        {
-            var row = sortFilterTableModel.fromSourceRowIndex(sourceRow)
-            Qt.callLater(() => {
-                             tableView.bringToView(row)
-                         })
-        }
+    function invalidateFilter() {
+        sortFilterTableModel.invalidateFilter();
     }
 
     onWidthChanged: {
@@ -102,13 +96,21 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
+                    overlayVisible: row == currentIndex
 
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
+                            var item = dataModel.getRow(sourceRow);
+
+                            dataView.clicked(sourceRow, item);
+                        }
+
+                        onDoubleClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.doubleClicked(sourceRow, item);
                         }
                     }
                 }
@@ -130,6 +132,7 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
+                    overlayVisible: row == currentIndex
 
                     Image {
                         id: image
@@ -159,8 +162,14 @@ Rectangle {
                         anchors.fill: parent
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.clicked(sourceRow, item);
+                        }
+
+                        onDoubleClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.doubleClicked(sourceRow, item);
                         }
                     }
                 }
@@ -179,6 +188,22 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
+                    overlayVisible: row == currentIndex
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.clicked(sourceRow, item);
+                        }
+
+                        onDoubleClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.doubleClicked(sourceRow, item);
+                        }
+                    }
                 }
             }
 
@@ -193,13 +218,20 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
+                    overlayVisible: row == currentIndex
 
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
-                            dataView.tapped(frameNumber);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.clicked(sourceRow, item);
+                        }
+
+                        onDoubleClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.doubleClicked(sourceRow, item);
                         }
                     }
                 }

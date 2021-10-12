@@ -12,6 +12,17 @@ Rectangle {
     property alias oddVideoCurve: oddVideoCurve
     property alias evenAudioCurve: evenAudioCurve
     property alias oddAudioCurve: oddAudioCurve
+    property int startFrame: 0
+    onStartFrameChanged: {
+        console.debug('Plots: startFrame = ', startFrame)
+        zoomAll();
+    }
+
+    property int endFrame: dataModel.total - 1
+    onEndFrameChanged: {
+        console.debug('Plots: endFrame = ', endFrame)
+        zoomAll();
+    }
 
     signal pickerMoved(int displayX, int plotX);
     signal markerClicked(int frameIndex);
@@ -267,7 +278,7 @@ Rectangle {
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
                 var rangeCount = newRight - videoPlot.xBottomAxisRange.x + 1
-                scroll.size = rangeCount / dataModel.total
+                scroll.size = rangeCount / (endFrame - startFrame + 1)
 
                 videoPlot.xBottomAxisRange = Qt.vector2d(videoPlot.xBottomAxisRange.x, newRight)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
@@ -280,7 +291,7 @@ Rectangle {
             onClicked: {
                 scroll.size = 1
                 scroll.position = 0
-                videoPlot.xBottomAxisRange = Qt.vector2d(0, dataModel.total - 1)
+                videoPlot.xBottomAxisRange = Qt.vector2d(startFrame, endFrame)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
             }
         }
@@ -368,15 +379,15 @@ Rectangle {
 
                 // console.debug('originalPosition: ', originalPosition, 'scroll.position: ', scroll.position, 'scroll.size: ', scroll.size)
 
-                scroll.size = rangeCount / dataModel.total;
+                scroll.size = rangeCount / (endFrame - startFrame + 1);
 
                 var newLeft = videoPlot.xBottomAxisRange.x;
                 var needPositionChange = false;
 
-                if(newRight > (dataModel.total - 1))
+                if(newRight > (endFrame))
                 {
-                    newLeft = Math.max(0, newLeft - (newRight - (dataModel.total - 1)));
-                    newRight = (dataModel.total - 1)
+                    newLeft = Math.max(startFrame, newLeft - (newRight - (endFrame)));
+                    newRight = (endFrame)
 
                     needPositionChange = true;
                 }
@@ -430,7 +441,7 @@ Rectangle {
 
             function move(x1) {
                 var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
-                var newPos = Math.max(0, x1 / dataModel.total);
+                var newPos = Math.max(startFrame, x1 / (endFrame - startFrame + 1));
 
                 if(newPos < 0)
                     newPos = 0;
@@ -442,12 +453,12 @@ Rectangle {
 
             function setCustomZoom(x1, x2) {
                 var rangeCount = x2 - x1 + 1
-                scroll.size = rangeCount / dataModel.total
+                scroll.size = rangeCount / (endFrame - startFrame + 1)
 
                 videoPlot.xBottomAxisRange = Qt.vector2d(x1, x2)
                 audioPlot.xBottomAxisRange = videoPlot.xBottomAxisRange
 
-                scroll.position = Math.max(0, x1 / dataModel.total)
+                scroll.position = Math.max(startFrame, x1 / (endFrame - startFrame + 1))
             }
 
             stepSize: size / 100
@@ -456,8 +467,8 @@ Rectangle {
                 console.debug('position changed: ', position)
 
                 var rangeCount = Math.round(videoPlot.xBottomAxisRange.y) - Math.round(videoPlot.xBottomAxisRange.x) + 1
-                var from = Math.round(position * dataModel.total);
-                var to = Math.round(Math.min(dataModel.total, from + rangeCount)) - 1
+                var from = Math.round(position * (endFrame - startFrame + 1));
+                var to = Math.round(Math.min((endFrame - startFrame + 1), from + rangeCount)) - 1
 
                 // console.debug('from: ', from, 'to: ', to, 'rangeCount: ', rangeCount, 'to - from: ', to - from)
 

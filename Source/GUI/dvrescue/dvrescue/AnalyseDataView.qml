@@ -12,6 +12,7 @@ Rectangle {
     property var cppDataModel;
     property int framePos: -1
     property color rowHighlightColor: 'purple'
+    property alias rowFilter: sortFilterTableModel.rowFilter
 
     signal tapped(int framePos);
 
@@ -24,6 +25,10 @@ Rectangle {
                              tableView.bringToView(row)
                          })
         }
+    }
+
+    function invalidateFilter() {
+        sortFilterTableModel.invalidateFilter();
     }
 
     onWidthChanged: {
