@@ -161,6 +161,10 @@ void MediaPlayer::stop()
 void MediaPlayer::seek(quint64 pos)
 {
     qDebug() << "seek to " << pos;
+
+    if(!m_ranges.isNull())
+        pos += m_ranges.x();
+
     player->seek(pos);
 }
 
@@ -195,12 +199,12 @@ MediaPlayer::State MediaPlayer::state() const
 
 qint64 MediaPlayer::duration() const
 {
-    return player->duration();
+    return m_ranges.isNull() ? player->duration() : m_ranges.length();
 }
 
 qint64 MediaPlayer::position() const
 {
-    return player->position();
+    return m_ranges.isNull() ? player->position() : (player->position() - m_ranges.x());
 }
 
 qreal MediaPlayer::videoFrameRate() const
@@ -227,4 +231,17 @@ void MediaPlayer::classBegin()
 void MediaPlayer::componentComplete()
 {
 
+}
+
+const QVector2D &MediaPlayer::ranges() const
+{
+    return m_ranges;
+}
+
+void MediaPlayer::setRanges(const QVector2D &newRanges)
+{
+    if (m_ranges == newRanges)
+        return;
+    m_ranges = newRanges;
+    Q_EMIT rangesChanged();
 }

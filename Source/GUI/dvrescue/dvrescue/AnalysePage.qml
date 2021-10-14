@@ -139,6 +139,10 @@ Item {
 
             PlayerView {
                 id: playerView
+
+                startOffset: fps == 0 ? 0 : (root.startFrame / fps * 1000)
+                endOffset: fps == 0 ? player.duration : (root.endFrame / fps * 1000)
+
                 signal positionChanged(int frameIndex);
 
                 onFpsChanged: {

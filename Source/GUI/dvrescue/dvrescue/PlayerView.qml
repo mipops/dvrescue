@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
@@ -6,8 +6,25 @@ import QtMultimedia 5.12 as QtMultimedia
 import MediaPlayer 1.0
 
 Rectangle {
+    id: root
     property alias player: player
     property real fps: 0
+    property alias ranges: player.ranges
+    onRangesChanged: {
+        player.seek(0);
+    }
+
+    property bool offsetsChang
+    property real startOffset: 0
+    property real endOffset: player.duration
+
+    Binding {
+        target: root
+        delayed: true
+        property: "ranges"
+        value: Qt.vector2d(startOffset, endOffset)
+    }
+
     onFpsChanged: {
         console.debug('fps: ', fps)
     }
@@ -122,7 +139,7 @@ Rectangle {
                     var newSeekPos = player.duration * (position / (1 - size));
                     console.debug('new seek pos: ', newSeekPos)
 
-                    player.waitForSeekFinished().then(() => { console.debug('seek finished') });
+                    player.waitForSeekFinished().then(() => { console.debug('qml seek finished: ', player.position ) });
                     player.seek(newSeekPos)
                 }
             }

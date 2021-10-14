@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QUrl>
+#include <QVector2D>
 #include <QtQml/QQmlParserStatus>
 #include <QtAVPlayer/qavaudiooutput.h>
 
@@ -41,6 +42,7 @@ class MediaPlayer : public QObject, public QQmlParserStatus
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qreal videoFrameRate READ videoFrameRate NOTIFY videoFrameRateChanged)
+    Q_PROPERTY(QVector2D ranges READ ranges WRITE setRanges NOTIFY rangesChanged)
 public:
     enum State {
         StoppedState,
@@ -80,6 +82,9 @@ public:
     QUrl source() const;
     void setSource(const QUrl& newSource);
 
+    const QVector2D &ranges() const;
+    void setRanges(const QVector2D &newRanges);
+
 Q_SIGNALS:
     void videoOutputChanged();
     void positionChanged();
@@ -89,7 +94,8 @@ Q_SIGNALS:
     void sourceChanged(const QUrl &url);
     void seekFinished();
     void videoFrameRateChanged(qreal frameRate);
-    void stopped(qint64 pos);
+    void stopped(qint64 pos);    
+    void rangesChanged();
 
 private:
     QAVPlayer* player;
@@ -103,6 +109,8 @@ private:
 #endif //
 
     // QQmlParserStatus interface
+    QVector2D m_ranges;
+
 public:
     void classBegin();
     void componentComplete();
