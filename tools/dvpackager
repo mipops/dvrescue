@@ -1012,7 +1012,6 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                     INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                 fi
-            fi
             if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                 if [[ "${EXTENSION}" = "mkv" ]] ; then
                     METADATA+=(-metadata "DATE_RECORDED=${RDT}")
@@ -1034,8 +1033,6 @@ if [[ -f "${DVFILE}" ]] ; then
                     ((INPUT_COUNT++))
                 fi
             fi
-
-            if [[ "${EXTENSION}" != "dv" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                 _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
                 _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
