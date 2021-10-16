@@ -13,6 +13,10 @@ Rectangle {
     property alias evenAudioCurve: evenAudioCurve
     property alias oddAudioCurve: oddAudioCurve
     property int startFrame: 0
+    property vector2d overlay: Qt.vector2d(-1, -1)
+    property real overlayOpacity: 0.25
+    property color overlayColor: 'purple'
+
     onStartFrameChanged: {
         console.debug('Plots: startFrame = ', startFrame)
         zoomAll();
@@ -120,6 +124,16 @@ Rectangle {
                         x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
                     }
 
+                    Rectangle {
+                        color: overlayColor
+                        opacity: overlayOpacity
+                        parent: videoPlot.canvasItem
+                        height: parent.height
+                        width: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(overlay.y - overlay.x, 0)).x
+                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(overlay.x, 0)).x
+                        visible: overlay != Qt.vector2d(-1, -1)
+                    }
+
                     PlotPicker {
                         id: videoPlotPicker
                         visible: dataModel.total !== 0
@@ -215,6 +229,16 @@ Rectangle {
                     height: parent.height
                     color: 'purple'
                     x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(framePos, 0)).x
+                }
+
+                Rectangle {
+                    color: overlayColor
+                    opacity: overlayOpacity
+                    parent: audioPlot.canvasItem
+                    height: parent.height
+                    width: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(overlay.y - overlay.x, 0)).x
+                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(overlay.x, 0)).x
+                    visible: overlay != Qt.vector2d(-1, -1)
                 }
 
                 PlotPicker {

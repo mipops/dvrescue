@@ -8,10 +8,21 @@ import Qt.labs.qmlmodels 1.0
 
 Rectangle {
     id: dataView
+    property int total: 0
     property alias model: dataModel
     property color rowHighlightColor: 'purple'
     property int currentIndex: -1
     property alias rowFilter: sortFilterTableModel.rowFilter
+    property var hoveredItem: null
+    function setHoveredItem(currentIndex, item) {
+        var startFrame = item['Frame #']
+        var endFrame = total - 1;
+        if((currentIndex + 1) < model.rowCount) {
+            endFrame = model.getRow(currentIndex + 1)['Frame #']
+        }
+
+        hoveredItem = { 'index' : currentIndex, 'range' : Qt.vector2d(startFrame, endFrame) }
+    }
 
     signal clicked(var index, var item);
     signal doubleClicked(var index, var item);
@@ -58,7 +69,6 @@ Rectangle {
                     id: mouseHandle
                     anchors.fill: parent
                     drag{ target: parent; axis: Drag.XAxis }
-                    hoverEnabled: true
                     cursorShape: Qt.SizeHorCursor
                     onMouseXChanged: {
                         if (drag.active) {
@@ -96,10 +106,21 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
-                    overlayVisible: row == currentIndex
+                    overlayColorOpacity: row == currentIndex ? 0.5 : 0.25
+                    overlayVisible: row == currentIndex || (hoveredItem !== null && row === hoveredItem.index)
 
                     MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.setHoveredItem(row, item);
+                        }
+                        onExited: {
+                            dataView.hoveredItem = null
+                        }
+
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var item = dataModel.getRow(sourceRow);
@@ -132,7 +153,8 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
-                    overlayVisible: row == currentIndex
+                    overlayColorOpacity: row == currentIndex ? 0.5 : 0.25
+                    overlayVisible: row == currentIndex || (hoveredItem !== null && row === hoveredItem.index)
 
                     Image {
                         id: image
@@ -160,6 +182,16 @@ Rectangle {
 
                     MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.setHoveredItem(row, item);
+                        }
+                        onExited: {
+                            dataView.hoveredItem = null
+                        }
+
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var item = dataModel.getRow(sourceRow);
@@ -188,10 +220,21 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
-                    overlayVisible: row == currentIndex
+                    overlayColorOpacity: row == currentIndex ? 0.5 : 0.25
+                    overlayVisible: row == currentIndex || (hoveredItem !== null && row === hoveredItem.index)
 
                     MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true;
+                        onEntered: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.setHoveredItem(row, item);
+                        }
+                        onExited: {
+                            dataView.hoveredItem = null
+                        }
+
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var item = dataModel.getRow(sourceRow);
@@ -218,10 +261,21 @@ Rectangle {
 
                     color: (row % 2) == 0 ? evenColor : oddColor
                     overlayColor: rowHighlightColor
-                    overlayVisible: row == currentIndex
+                    overlayColorOpacity: row == currentIndex ? 0.5 : 0.25
+                    overlayVisible: row == currentIndex || (hoveredItem !== null && row === hoveredItem.index)
 
                     MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true;
+                        onEntered: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var item = dataModel.getRow(sourceRow);
+                            dataView.setHoveredItem(row, item);
+                        }
+                        onExited: {
+                            dataView.hoveredItem = null
+                        }
+
                         onClicked: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var item = dataModel.getRow(sourceRow);

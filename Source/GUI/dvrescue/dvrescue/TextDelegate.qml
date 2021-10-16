@@ -7,6 +7,7 @@ Rectangle {
     implicitWidth: 100
     implicitHeight: 20
     color: (row % 2) == 0 ? 'gray' : 'lightgray'
+    property real overlayColorOpacity: 0.5
     property alias overlayColor: overlay.color
     property alias overlayVisible: overlay.visible
     property alias text: textLabel.text
@@ -22,7 +23,7 @@ Rectangle {
     Rectangle {
         id: overlay
         anchors.fill: parent
-        opacity: 0.5
+        opacity: overlayColorOpacity
         visible: false
     }
 }

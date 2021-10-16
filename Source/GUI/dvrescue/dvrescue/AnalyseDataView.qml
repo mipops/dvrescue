@@ -13,6 +13,7 @@ Rectangle {
     property int framePos: -1
     property color rowHighlightColor: 'purple'
     property alias rowFilter: sortFilterTableModel.rowFilter
+    property vector2d ranges: Qt.vector2d(-1, -1)
 
     signal tapped(int framePos);
 
@@ -114,6 +115,19 @@ Rectangle {
                     }
                     overlayColor: rowHighlightColor
 
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -172,6 +186,19 @@ Rectangle {
                         }
                     }
 
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -204,6 +231,19 @@ Rectangle {
                         return frameNumber === framePos
                     }
                     overlayColor: rowHighlightColor
+
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
 
                     MouseArea {
                         anchors.fill: parent
@@ -238,6 +278,19 @@ Rectangle {
                         return frameNumber === framePos
                     }
                     overlayColor: rowHighlightColor
+
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
 
                     MouseArea {
                         id: videoAudioMouseArea
@@ -281,6 +334,19 @@ Rectangle {
                     evenProgress.value: edit ? 1 : decoration.x
                     oddProgress.value: edit ? 1 : decoration.y
 
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -316,6 +382,19 @@ Rectangle {
                     oddProgressColor: edit ? 'yellow' : 'blue'
                     evenProgress.value: edit ? 1 : decoration.x
                     oddProgress.value: edit ? 1 : decoration.y
+
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
 
                     MouseArea {
                         anchors.fill: parent
@@ -363,6 +442,19 @@ Rectangle {
                     }
                     overlayColor: rowHighlightColor
 
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -396,6 +488,19 @@ Rectangle {
                     }
                     overlayColor: rowHighlightColor
 
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -424,6 +529,19 @@ Rectangle {
                         return frameNumber === framePos
                     }
                     overlayColor: rowHighlightColor
+
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
 
                     MouseArea {
                         anchors.fill: parent
