@@ -395,6 +395,10 @@ Item {
 
                         onSelectedPathChanged: {
                             console.debug('selected path: ', selectedPath)
+                            segmentDataView.currentIndex = -1
+                            segmentDataView.hoveredItem = null
+                            startFrame = 0;
+                            endFrame = dataModel.total - 1;
                             toolsLayout.load(selectedPath, fileView.currentIndex)
                         }
                     }
