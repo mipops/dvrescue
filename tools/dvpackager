@@ -987,7 +987,7 @@ if [[ -f "${DVFILE}" ]] ; then
                             OPT_OUTPUT+=(-c:s mov_text)
                             OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
                         elif [[ "${EXT}" = "mkv" ]] ; then
-                            OPT_OUTPUT+=(-c:s webvtt)
+                            OPT_OUTPUT+=(-c:s ass)
                         fi
                         if [[ -n "${CAPTION_LANG}" ]] ; then
                             OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=${CAPTION_LANG}")
