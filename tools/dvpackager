@@ -982,11 +982,11 @@ if [[ -f "${DVFILE}" ]] ; then
                         fi
                         SUB_INPUT+=(-i "${DVRESCUE_SCC}")
                         OPT_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
-                        OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "title=Captions")
                         if [[ "${EXT}" = "mov" ]] ; then
                             OPT_OUTPUT+=(-c:s mov_text)
                             OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
                         elif [[ "${EXT}" = "mkv" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "title=Captions")
                             OPT_OUTPUT+=(-c:s ass)
                         fi
                         if [[ -n "${CAPTION_LANG}" ]] ; then
