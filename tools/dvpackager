@@ -752,7 +752,6 @@ if [[ "${SUBS}" = "Y" ]]; then
     fi
     if [[ -z "${DVRESCUE_SCC}" ]] ; then
         DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
-        DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
         if [[ ! -f "${DVRESCUE_SCC}" ]] ; then
             DVRESCUE_SCC_TEMP="$(_maketemp).scc"
             OUTPUTOPTS+=(--cc-format scc)
@@ -794,10 +793,6 @@ if [[ -f "${DVFILE}" ]] ; then
         if [[ -s "${DVRESCUE_SCC_TEMP}" ]] ; then
             _report -v "Trying to move the temporary scc from ${DVRESCUE_SCC_TEMP} to ${DVRESCUE_SCC}"
             mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
-        fi
-        if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
-            _report -v "Trying to convert the scc to vtt"
-            "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
         fi
     fi
     DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
@@ -981,18 +976,18 @@ if [[ -f "${DVFILE}" ]] ; then
                 fi
                 SUBTITLE_INPUT_COUNT="0"
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
+                    if [[ -s "${DVRESCUE_SCC}" ]]; then
                         if [[ "${PTS}" != "00:00:00.000000" ]] ; then
                             SUB_INPUT+=(-ss "${PTS}")
                         fi
-                        SUB_INPUT+=(-i "${DVRESCUE_SCC_VTT}")
+                        SUB_INPUT+=(-i "${DVRESCUE_SCC}")
                         OPT_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
                         OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "title=Captions")
                         if [[ "${EXT}" = "mov" ]] ; then
                             OPT_OUTPUT+=(-c:s mov_text)
                             OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
                         elif [[ "${EXT}" = "mkv" ]] ; then
-                            OPT_OUTPUT+=(-c:s copy)
+                            OPT_OUTPUT+=(-c:s webvtt)
                         fi
                         if [[ -n "${CAPTION_LANG}" ]] ; then
                             OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=${CAPTION_LANG}")
