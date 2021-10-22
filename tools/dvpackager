@@ -41,9 +41,8 @@ Options:
            any).
  -m       (By default, audio will be handled in stereo pairs, enabling this
            option will arrange the audio into tracks with mono channels.)
- -S       (enables technical subtitle track to show timecode,
-           recording time, and dv error data and a caption track if
-           there are captions to represent in the source DV)
+ -S       (embeds a caption track if there are captions to represent in the
+           source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -827,46 +826,6 @@ if [[ -f "${DVFILE}" ]] ; then
 
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-        case "${EXT}" in
-            "mov")
-                if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
-                    OPT_OUTPUT+=(-map 1:s:0)
-                    OPT_OUTPUT+=(-c:s mov_text)
-                    OPT_OUTPUT+=(-tag:s:s:0 tx3g)
-                    OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-                    OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-                fi
-                if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
-                    OPT_OUTPUT+=(-map 2:s:0)
-                    OPT_OUTPUT+=(-c:s mov_text)
-                    OPT_OUTPUT+=(-tag:s:s:1 tx3g)
-                    OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                    if [[ -n "${CAPTION_LANG}" ]] ; then
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
-                    else
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
-                    fi
-                fi
-                ;;
-            "mkv")
-                if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
-                    OPT_OUTPUT+=(-map 1:s:0)
-                    OPT_OUTPUT+=(-c:s copy)
-                    OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-                    OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-                fi
-                if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
-                    OPT_OUTPUT+=(-map 2:s:0)
-                    OPT_OUTPUT+=(-c:s copy)
-                    OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                    if [[ -n "${CAPTION_LANG}" ]] ; then
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
-                    else
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
-                    fi
-                fi
-                ;;
-        esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
         while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
@@ -1020,18 +979,28 @@ if [[ -f "${DVFILE}" ]] ; then
                         METADATA+=(-metadata "date=${RDT}")
                     fi
                 fi
+                SUBTITLE_INPUT_COUNT="0"
                 if [[ "${SUBS}" = "Y" ]] ; then
-                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
-                        SUB_INPUT=(-ss "${PTS}")
-                    fi
-                    SUB_INPUT+=(-i "${DVRESCUE_TECHSUBS}")
-                    ((INPUT_COUNT++))
                     if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
                         if [[ "${PTS}" != "00:00:00.000000" ]] ; then
                             SUB_INPUT+=(-ss "${PTS}")
                         fi
                         SUB_INPUT+=(-i "${DVRESCUE_SCC_VTT}")
+                        OPT_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
+                        OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "title=Captions")
+                        if [[ "${EXT}" = "mov" ]] ; then
+                            OPT_OUTPUT+=(-c:s mov_text)
+                            OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
+                        elif [[ "${EXT}" = "mkv" ]] ; then
+                            OPT_OUTPUT+=(-c:s copy)
+                        fi
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=und")
+                        fi
                         ((INPUT_COUNT++))
+                        ((SUBTITLE_INPUT_COUNT++))
                     fi
                 fi
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
