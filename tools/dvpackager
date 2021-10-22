@@ -697,20 +697,20 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "dv")
         FORMAT="rawvideo"
         EXTENSION="dv"
         SUBS="N"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -967,6 +967,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                     INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                 fi
+                MAP_OUTPUT+=("${AUDIO_MAP[@]}")
                 if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
                         METADATA+=(-metadata "DATE_RECORDED=${RDT}")
@@ -981,7 +982,7 @@ if [[ -f "${DVFILE}" ]] ; then
                             SUB_INPUT+=(-ss "${PTS}")
                         fi
                         SUB_INPUT+=(-i "${DVRESCUE_SCC}")
-                        OPT_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
+                        MAP_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
                         if [[ "${EXT}" = "mov" ]] ; then
                             OPT_OUTPUT+=(-c:s mov_text)
                             OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
@@ -1010,14 +1011,14 @@ if [[ -f "${DVFILE}" ]] ; then
             ((INPUT_COUNT++))
             if [[ "$REPORT_ONLY" != "Y" ]] ; then
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${AUDIO_MAP[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
                        -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${AUDIO_MAP[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 if [[ ! -s "${OUTPUT_FILE}" ]] ; then
                     _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
