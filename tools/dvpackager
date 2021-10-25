@@ -41,9 +41,8 @@ Options:
            any).
  -m       (By default, audio will be handled in stereo pairs, enabling this
            option will arrange the audio into tracks with mono channels.)
- -S       (enables technical subtitle track to show timecode,
-           recording time, and dv error data and a caption track if
-           there are captions to represent in the source DV)
+ -S       (embeds a caption track if there are captions to represent in the
+           source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
@@ -476,11 +475,12 @@ _make_chapter_metadata_file(){
          END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
          if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
              unset CHAP_TITLE
-             if [[ -n ${TC} ]] ; then
+             if [[ -n "${TC}" ]] && [[ -n ${RDT} ]] ; then
+                 CHAP_TITLE+="${TC} - ${RDT}"
+             elif [[ -n ${TC} ]] ; then
                  CHAP_TITLE+="${TC}"
-             fi
-             if [[ -n ${RDT} ]] ; then
-                 CHAP_TITLE+=" - ${RDT}"
+             elif [[ -n ${RDT} ]] ; then
+                 CHAP_TITLE+="--:--:--:-- - ${RDT}"
              fi
              _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
              echo "[CHAPTER]"
@@ -698,20 +698,20 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "dv")
         FORMAT="rawvideo"
         EXTENSION="dv"
         SUBS="N"
-        OPT_OUTPUT+=(-map 0:v:0)
+        MAP_OUTPUT+=(-map 0:v:0)
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -753,7 +753,6 @@ if [[ "${SUBS}" = "Y" ]]; then
     fi
     if [[ -z "${DVRESCUE_SCC}" ]] ; then
         DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
-        DVRESCUE_SCC_VTT="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc.vtt"
         if [[ ! -f "${DVRESCUE_SCC}" ]] ; then
             DVRESCUE_SCC_TEMP="$(_maketemp).scc"
             OUTPUTOPTS+=(--cc-format scc)
@@ -796,10 +795,6 @@ if [[ -f "${DVFILE}" ]] ; then
             _report -v "Trying to move the temporary scc from ${DVRESCUE_SCC_TEMP} to ${DVRESCUE_SCC}"
             mv "${DVRESCUE_SCC_TEMP}" "${DVRESCUE_SCC}"
         fi
-        if [[ -f "${DVRESCUE_SCC}" && ! -f "${DVRESCUE_SCC_VTT}" ]] ; then
-            _report -v "Trying to convert the scc to vtt"
-            "${FFMPEG_PATH}" -nostdin -v 0 -i "${DVRESCUE_SCC}" "${DVRESCUE_SCC_VTT}"
-        fi
     fi
     DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
     _report -v "DV_FRAME_COUNT=(${DV_FRAME_COUNT})"
@@ -827,46 +822,6 @@ if [[ -f "${DVFILE}" ]] ; then
 
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-        case "${EXT}" in
-            "mov")
-                if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
-                    OPT_OUTPUT+=(-map 1:s:0)
-                    OPT_OUTPUT+=(-c:s mov_text)
-                    OPT_OUTPUT+=(-tag:s:s:0 tx3g)
-                    OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-                    OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-                fi
-                if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
-                    OPT_OUTPUT+=(-map 2:s:0)
-                    OPT_OUTPUT+=(-c:s mov_text)
-                    OPT_OUTPUT+=(-tag:s:s:1 tx3g)
-                    OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                    if [[ -n "${CAPTION_LANG}" ]] ; then
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
-                    else
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
-                    fi
-                fi
-                ;;
-            "mkv")
-                if [[ -s "${DVRESCUE_TECHSUBS}" && "${SUBS}" = "Y" ]] ; then
-                    OPT_OUTPUT+=(-map 1:s:0)
-                    OPT_OUTPUT+=(-c:s copy)
-                    OPT_OUTPUT+=(-metadata:s:s:0 "title=dvrescue techsubs")
-                    OPT_OUTPUT+=(-metadata:s:s:0 "language=zxx")
-                fi
-                if [[ -s "${DVRESCUE_SCC_VTT}" && "${SUBS}" = "Y" ]]; then
-                    OPT_OUTPUT+=(-map 2:s:0)
-                    OPT_OUTPUT+=(-c:s copy)
-                    OPT_OUTPUT+=(-metadata:s:s:1 "title=Captions")
-                    if [[ -n "${CAPTION_LANG}" ]] ; then
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=${CAPTION_LANG}")
-                    else
-                        OPT_OUTPUT+=(-metadata:s:s:1 "language=und")
-                    fi
-                fi
-                ;;
-        esac
         _report -d "The results will be written to ${SIDECAR_DIR}"
         while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
@@ -882,7 +837,8 @@ if [[ -f "${DVFILE}" ]] ; then
                     _report -d "Will apply a pts offset of ${MOV_PTS_OFFSET} to correlate between the timestamps of the encoding and the timestamps of the container."
                 fi
                 MOV_INPUT_RATE_OPT=(-r "${VIDEO_RATE}") # apply input framerate after pts offset coherency check
-            elif [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+            fi
+            if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Reading from DV stream input at byte range ${PKT_POS}-${PKT_POS_END}"
                 DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END},,:${DVFILE}")
             else
@@ -1012,30 +968,38 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                     INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                 fi
-            fi
-            if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
-                if [[ "${EXTENSION}" = "mkv" ]] ; then
-                    METADATA+=(-metadata "DATE_RECORDED=${RDT}")
-                elif [[ "${EXTENSION}" = "mov" ]] ; then
-                    METADATA+=(-metadata "date=${RDT}")
-                fi
-            fi
-            if [[ "${SUBS}" = "Y" ]] ; then
-                if [[ "${PTS}" != "00:00:00.000000" ]] ; then
-                    SUB_INPUT=(-ss "${PTS}")
-                fi
-                SUB_INPUT+=(-i "${DVRESCUE_TECHSUBS}")
-                ((INPUT_COUNT++))
-                if [[ -s "${DVRESCUE_SCC_VTT}" ]]; then
-                    if [[ "${PTS}" != "00:00:00.000000" ]] ; then
-                        SUB_INPUT+=(-ss "${PTS}")
+                MAP_OUTPUT+=("${AUDIO_MAP[@]}")
+                if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
+                    if [[ "${EXTENSION}" = "mkv" ]] ; then
+                        METADATA+=(-metadata "DATE_RECORDED=${RDT}")
+                    elif [[ "${EXTENSION}" = "mov" ]] ; then
+                        METADATA+=(-metadata "date=${RDT}")
                     fi
-                    SUB_INPUT+=(-i "${DVRESCUE_SCC_VTT}")
-                    ((INPUT_COUNT++))
                 fi
-            fi
-
-            if [[ "${EXTENSION}" != "dv" ]] ; then
+                SUBTITLE_INPUT_COUNT="0"
+                if [[ "${SUBS}" = "Y" ]] ; then
+                    if [[ -s "${DVRESCUE_SCC}" ]]; then
+                        if [[ "${PTS}" != "00:00:00.000000" ]] ; then
+                            SUB_INPUT+=(-ss "${PTS}")
+                        fi
+                        SUB_INPUT+=(-i "${DVRESCUE_SCC}")
+                        MAP_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
+                        if [[ "${EXT}" = "mov" ]] ; then
+                            OPT_OUTPUT+=(-c:s mov_text)
+                            OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
+                        elif [[ "${EXT}" = "mkv" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "title=Captions")
+                            OPT_OUTPUT+=(-c:s ass)
+                        fi
+                        if [[ -n "${CAPTION_LANG}" ]] ; then
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=${CAPTION_LANG}")
+                        else
+                            OPT_OUTPUT+=(-metadata:s:s:"${SUBTITLE_INPUT_COUNT}" "language=und")
+                        fi
+                        ((INPUT_COUNT++))
+                        ((SUBTITLE_INPUT_COUNT++))
+                    fi
+                fi
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                 _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
                 _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
@@ -1048,13 +1012,14 @@ if [[ -f "${DVFILE}" ]] ; then
             ((INPUT_COUNT++))
             if [[ "$REPORT_ONLY" != "Y" ]] ; then
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${AUDIO_MAP[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${AUDIO_MAP[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 else
+                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
                        -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
                 fi
                 if [[ ! -s "${OUTPUT_FILE}" ]] ; then
                     _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
