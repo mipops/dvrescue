@@ -9,7 +9,7 @@ QtAVPlayerUtils::QtAVPlayerUtils(QObject *parent) : QObject(parent)
 
 qint64 QtAVPlayerUtils::displayPosition(QObject *qmlPlayer)
 {
-    auto player = qmlPlayer->findChild<QAVPlayer*>();
+    auto player = qobject_cast<MediaPlayer*>(qmlPlayer);
     return player ? player->position() : 0;
 }
 

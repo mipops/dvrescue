@@ -139,6 +139,10 @@ Item {
 
             PlayerView {
                 id: playerView
+
+                startOffset: fps == 0 ? 0 : (root.startFrame / fps * 1000)
+                endOffset: fps == 0 ? player.duration : (root.endFrame / fps * 1000)
+
                 signal positionChanged(int frameIndex);
 
                 onFpsChanged: {
@@ -183,6 +187,7 @@ Item {
                 id: plotsView
                 startFrame: root.startFrame
                 endFrame: root.endFrame
+                overlay: segmentDataView.hoveredItem != null && segmentDataView.currentIndex === -1 ? segmentDataView.hoveredItem.range : Qt.vector2d(-1, -1)
 
                 Connections {
                     target: dataModel
@@ -390,6 +395,10 @@ Item {
 
                         onSelectedPathChanged: {
                             console.debug('selected path: ', selectedPath)
+                            segmentDataView.currentIndex = -1
+                            segmentDataView.hoveredItem = null
+                            startFrame = 0;
+                            endFrame = dataModel.total - 1;
                             toolsLayout.load(selectedPath, fileView.currentIndex)
                         }
                     }
@@ -507,13 +516,14 @@ Item {
                             id: segmentDataView
                             Layout.fillWidth: true
                             Layout.fillHeight: true
+                            total: dataModel.total
 
                             onClicked: {
                                 console.debug('clicked: ', index, JSON.stringify(item));
                                 if(index !== currentIndex) {
                                     currentIndex = -1;
                                     startFrame = 0;
-                                    endFrame = dataModel.total - 1;
+                                    endFrame = total - 1;
 
                                     dataView.invalidateFilter();
                                 }
@@ -524,7 +534,7 @@ Item {
                                 if(index !== currentIndex) {
                                     currentIndex = index;
                                     startFrame = item['Frame #']
-                                    endFrame = dataModel.total - 1;
+                                    endFrame = total - 1;
                                     if((currentIndex + 1) < model.rowCount) {
                                         endFrame = model.getRow(currentIndex + 1)['Frame #']
                                     }
@@ -645,6 +655,7 @@ Item {
             AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
+                ranges: segmentDataView.hoveredItem && segmentDataView.currentIndex === -1 ? segmentDataView.hoveredItem.range : Qt.vector2d(-1, -1)
                 rowFilter: function(index) {
                     var data = dataView.model.getRow(index);
                     var frame = data['Frame #'];
