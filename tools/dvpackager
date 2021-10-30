@@ -467,7 +467,7 @@ _make_chapter_metadata_file(){
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
     echo ";FFMETADATA1"
-    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start='1']|d:frame[@rdt_nc='1']" | \
+    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start]|d:frame[@rdt_nc]" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
@@ -543,9 +543,9 @@ OPTIND=1
 while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
-        s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start='1']|" ;;
-        d) RDT_NC_OPT="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc='1']|" ;;
-        t) TC_NC_OPT="1"     ; MATCH_FRAMES+="d:frame[@tc_nc='1']|" ;;
+        s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
+        d) RDT_NC_OPT="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc]|" ;;
+        t) TC_NC_OPT="1"     ; MATCH_FRAMES+="d:frame[@tc_nc]|" ;;
         o) OUTPUTDIR="${OPTARG}" ;;
         e) EXT="${OPTARG}" ;;
         l) LANGUAGES="${OPTARG}" ;;
