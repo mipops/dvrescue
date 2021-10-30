@@ -299,10 +299,12 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="tc_nc" type="xsd:boolean">
+    <xsd:attribute name="tc_nc" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if timecode is non-consecutive.
+          A value indicating if timecode is non-consecutive.
+          1: The timecode is non-continuous and the current value is greater than the previous value.
+          2: The timecode is non-continuous and the current value is less than the prev value.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
@@ -320,10 +322,12 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="rdt_nc" type="xsd:boolean">
+    <xsd:attribute name="rdt_nc" type="xsd:integer">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
-          Boolean that indicates if recorded date time is non-consecutive.
+          A value indicating if recorded date time is non-consecutive.
+          1: The recorded date time is non-continuous and the current value is greater than the previous value.
+          2: The recorded date time is non-continuous and the current value is less than the prev value.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
