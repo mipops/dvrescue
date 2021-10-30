@@ -698,20 +698,20 @@ case "${EXT}" in
     "mov")
         FORMAT="mov"
         EXTENSION="mov"
-        MAP_OUTPUT+=(-map 0:v:0)
+        VIDEO_MAP=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "mkv")
         FORMAT="matroska"
         EXTENSION="mkv"
-        MAP_OUTPUT+=(-map 0:v:0)
+        VIDEO_MAP=(-map 0:v:0)
         OPT_OUTPUT+=(-c:a pcm_s16le)
         ;;
     "dv")
         FORMAT="rawvideo"
         EXTENSION="dv"
         SUBS="N"
-        MAP_OUTPUT+=(-map 0:v:0)
+        VIDEO_MAP=(-map 0:v:0)
         ;;
     *)
         _report -w "Error: ${EXT} is an invalid extension option."
@@ -968,7 +968,6 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                     INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
                 fi
-                MAP_OUTPUT+=("${AUDIO_MAP[@]}")
                 if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
                         METADATA+=(-metadata "DATE_RECORDED=${RDT}")
@@ -983,7 +982,7 @@ if [[ -f "${DVFILE}" ]] ; then
                             SUB_INPUT+=(-ss "${PTS}")
                         fi
                         SUB_INPUT+=(-i "${DVRESCUE_SCC}")
-                        MAP_OUTPUT+=(-map "${INPUT_COUNT}:s:0")
+                        SUBTITLE_MAP=(-map "${INPUT_COUNT}:s:0")
                         if [[ "${EXT}" = "mov" ]] ; then
                             OPT_OUTPUT+=(-c:s mov_text)
                             OPT_OUTPUT+=(-tag:s:s:"${SUBTITLE_INPUT_COUNT}" tx3g)
@@ -1009,6 +1008,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     METADATA+=(-aspect "${AR}")
                 fi
             fi
+            MAP_OUTPUT=("${VIDEO_MAP[@]}" "${AUDIO_MAP[@]}" "${SUBTITLE_MAP[@]}")
             ((INPUT_COUNT++))
             if [[ "$REPORT_ONLY" != "Y" ]] ; then
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
