@@ -815,9 +815,9 @@ if [[ -f "${DVFILE}" ]] ; then
     fi
     _report -v "Trying to present a table of ranges"
     if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-        _ranges_2_table "$(_get_ranges)"
+        _ranges_2_table "$(_get_ranges -q)"
     else
-        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)")"
+        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)")"
     fi
 
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
