@@ -245,6 +245,20 @@ _get_ranges(){
 _ranges_2_table(){
     RANGES="${1}"
     echo
+    echo -n "# Segmentation options. Split on: Recording_Start_Marker = ${REC_START_OPT}, Recording_Timestamp_Jump = ${RDT_NC_OPT}, Timecode_Jump = ${TC_NC_OPT}"
+    echo -n ", Audio_characteristics_change = "
+    if [[ "${CONDENSE_OPTS}" == *"-s"* ]] ; then
+        echo -n "0"
+    else
+        echo -n "1"
+    fi
+    echo -n ", Aspect_Ratio_change = "
+    if [[ "${CONDENSE_OPTS}" == *"-a"* ]] ; then
+        echo -n "0"
+    else
+        echo -n "1"
+    fi
+    echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
     echo "| PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
