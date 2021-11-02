@@ -128,9 +128,8 @@ _maketemp(){
 _get_ranges(){
     OPTIND=1
     unset IN_FRAME OUT_FRAME
-    while getopts "ai:o:q" opt ; do
+    while getopts "i:o:q" opt ; do
         case "${opt}" in
-          a) NO_AUDIO_BREAK="Y" ;;
           i) IN_FRAME="${OPTARG}" ;;
           o) OUT_FRAME="${OPTARG}" ;;
           q) QUICK="Y" ;;
