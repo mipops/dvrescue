@@ -45,6 +45,10 @@ Options:
            source DV)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
+ -N <parts> (List the numbers of the segments that should not be packaged.
+             Multiple segments numbers may be listed as comma-delimited; for
+             instance "-N '1,3'" would output the 2nd segment and any segment
+             after the 3rd. Use "-n" to list the segments by number.)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
 
  -F <path> (provide a custom ffmpeg path)
@@ -245,13 +249,30 @@ _get_ranges(){
 _ranges_2_table(){
     RANGES="${1}"
     echo
+    echo -n "# Segmentation options. Split on: Recording_Start_Marker = ${REC_START_OPT}, Recording_Timestamp_Jump = ${RDT_NC_OPT}, Timecode_Jump = ${TC_NC_OPT}"
+    echo -n ", Audio_characteristics_change = "
+    if [[ "${CONDENSE_OPTS}" == *"-s"* ]] ; then
+        echo -n "0"
+    else
+        echo -n "1"
+    fi
+    echo -n ", Aspect_Ratio_change = "
+    if [[ "${CONDENSE_OPTS}" == *"-a"* ]] ; then
+        echo -n "0"
+    else
+        echo -n "1"
+    fi
+    echo
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
-    echo "| PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
+    echo "  # | PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
+    SEG_PART="1"
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
-        awk -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
-            'END {printf "| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
-        PTS, END_PTS, DURATION, FRAME_START, FRAME_END, PKT_POS, PKT_POS_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}' < /dev/null
+        SEG2EXPORT="$(_check_if_in_list "${SEG_PART}" "${SEGMENT_SKIPS}")"
+        awk -v SEG_PART="${SEG_PART}" -v SEG2EXPORT="${SEG2EXPORT}" -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
+            'END {printf "%3s%1s| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
+        SEG_PART, SEG2EXPORT, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, PKT_POS, PKT_POS_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}' < /dev/null
+        ((SEG_PART++))
     done < <(echo "${RANGES}")
     echo
 }
@@ -452,6 +473,16 @@ _check_audio_by_ffmpeg_subfile(){
     fi
 }
 
+_check_if_in_list(){
+    VALUE="${1}"
+    LIST="${2}" # list is expected as comma-delimited
+    if [[ ",${LIST}," = *",${VALUE},"* ]] ; then
+        echo "x"
+    else
+        echo " "
+    fi
+}
+
 _make_chapter_metadata_file(){
     OPTIND=1
     while getopts "i:o:s:e:r" opt ; do
@@ -540,7 +571,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
+while getopts ":fsdto:e:l:L:mSnN:vuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -552,6 +583,7 @@ while getopts ":fsdto:e:l:L:mSnvuhF:M:D:X:x:V:C:3a:T" opt ; do
         L) CAPTION_LANG="${OPTARG}" ;;
         m) MONO_CHANNELS="Y" ;;
         n) REPORT_ONLY="Y" ;;
+        N) SEGMENT_SKIPS="${OPTARG}" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
         u) UNPACKAGER="Y" ;;
@@ -761,6 +793,7 @@ if [[ "${SUBS}" = "Y" ]]; then
     fi
 fi
 TOTAL_DVFRAMES_PACKAGED="0"
+TOTAL_DVFRAMES_SKIPPED="0"
 if [[ -f "${DVFILE}" ]] ; then
     if [[ "${REPORT_ONLY}" = "Y" ]] ; then
         echo -n "Analyzing ${BASENAME}"
@@ -815,15 +848,24 @@ if [[ -f "${DVFILE}" ]] ; then
     fi
     _report -v "Trying to present a table of ranges"
     if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-        _ranges_2_table "$(_get_ranges)"
+        _ranges_2_table "$(_get_ranges -q)"
     else
-        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)")"
+        _ranges_2_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)")"
+    fi
+    if [[ "$REPORT_ONLY" = "Y" ]] ; then
+        exit 0
     fi
 
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
     #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
         _report -d "The results will be written to ${SIDECAR_DIR}"
+        SEG_OUTPUT="1"
         while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+            if [[ "$(_check_if_in_list "${SEG_OUTPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
+                _report -d "Skipping part ${SEG_OUTPUT} as requested."
+                SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
+                TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
+            else
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
@@ -1010,7 +1052,6 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             MAP_OUTPUT=("${VIDEO_MAP[@]}" "${AUDIO_MAP[@]}" "${SUBTITLE_MAP[@]}")
             ((INPUT_COUNT++))
-            if [[ "$REPORT_ONLY" != "Y" ]] ; then
                 if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                     _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                     "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
@@ -1027,7 +1068,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                         # quick track duration check on the result
                         PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
-                        TOTAL_DVFRAMES_PACKAGED="$(echo "${TOTAL_DVFRAMES_PACKAGED} + ${PACKAGED_DVFRAMES}" | bc -l)"
+                        TOTAL_DVFRAMES_PACKAGED=$((TOTAL_DVFRAMES_PACKAGED+PACKAGED_DVFRAMES))
                         AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
                         _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
                         if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
@@ -1050,13 +1091,14 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                 fi
             fi
+            ((SEG_OUTPUT++))
         done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
                     _get_ranges
                 else
                     _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
                 fi)
-        if [[ "$REPORT_ONLY" != "Y" ]] && [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${TOTAL_DVFRAMES_PACKAGED}" != "${DV_FRAME_COUNT}" ]] ; then
-            _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV."
+        if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "$((TOTAL_DVFRAMES_PACKAGED+TOTAL_DVFRAMES_SKIPPED))" != "${DV_FRAME_COUNT}" ]] ; then
+            _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV and ${TOTAL_DVFRAMES_SKIPPED} were skipped"
         fi
 else
     echo "${BASENAME} is not a file, skipping."
