@@ -343,10 +343,18 @@ _condense_ranges(){
     }
     _report_condensed_line(){
         if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-            if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+            if [[ "${ASPECT_MERGE}" = "4" ]] ; then
                 AR_FORCE="4/3"
-            else
+            elif [[ "${ASPECT_MERGE}" = "9" ]] ; then
                 AR_FORCE="16/9"
+            elif [[ "${ASPECT_MERGE}" = "c" ]] ; then
+                if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+                    AR_FORCE="4/3"
+                else
+                    AR_FORCE="16/9"
+                fi
+            else
+                AR_FORCE="4/3"
             fi
         else
             AR_FORCE="${AR_FIRST}"
