@@ -149,13 +149,13 @@ _get_ranges(){
         RELATIVE_FRAMES="parent::d:frames"
     fi
     if [[ -n "${IN_FRAME}" && "${IN_FRAME}" = "${OUT_FRAME}" ]] ; then
-        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
+        RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n=${IN_FRAME}]}"
     else
         if [[ -n "${OUT_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<=${OUT_FRAME}]|g")"
+            RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n<=${OUT_FRAME}]}"
         fi
         if [[ -n "${IN_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+            RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n>=${IN_FRAME}]}"
         fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
@@ -384,9 +384,9 @@ _condense_ranges(){
             _set_prev
         else
             if [[ "${AR_PREV}" = "4/3" ]] ; then
-                COUNT_43="$((${COUNT_43} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+                COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
             elif [[ "${AR_PREV}" = "16/9" ]] ; then
-                COUNT_169="$((${COUNT_169} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+                COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
             fi
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
@@ -1015,7 +1015,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
                     fi
                 fi
-                INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
+                INPUT_COUNT=$((INPUT_COUNT + AUDIO_INPUT_COUNT))
             fi
             if [[ "${RDT:0:4}"  =~ ^[0-9]{4} ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                 if [[ "${EXTENSION}" = "mkv" ]] ; then
