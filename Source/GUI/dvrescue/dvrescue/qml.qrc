@@ -21,7 +21,6 @@
         <file>NavButton.qml</file>
         <file>RedNavButton.qml</file>
         <file>WhiteNavButton.qml</file>
-        <file>AnalyseFileViewer.qml</file>
         <file>CaptureView.qml</file>
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>

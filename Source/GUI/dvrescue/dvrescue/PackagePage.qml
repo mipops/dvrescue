@@ -12,6 +12,8 @@ Item {
     property string xmlStarletCmd
     property string mediaInfoCmd
     property string ffmpegCmd
+    property alias filesModel: fileView.filesModel
+    property alias recentFilesModel: recentsPopup.filesModel
 
     DropArea {
         id: dropArea;
@@ -57,23 +59,6 @@ Item {
         anchors.centerIn: parent
     }
 
-    property string recentFilesJSON : ''
-    property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
-    onRecentFilesChanged: {
-        console.debug('PackagePage: recentFiles = ', JSON.stringify(recentFiles, 0, 4))
-    }
-
-    function addRecent(filePath) {
-        var newRecentFiles = recentFiles.filter(item => item !== filePath)
-        newRecentFiles.unshift(filePath)
-
-        if(newRecentFiles.length > 10) {
-            newRecentFiles.pop();
-        }
-        recentFiles = newRecentFiles
-        recentFilesJSON = JSON.stringify(recentFiles)
-    }
-
     PackageFileView {
         id: fileView
         height: parent.height / 2
@@ -81,15 +66,14 @@ Item {
         anchors.right: parent.right
 
         onFileAdded: {
-            addRecent(filePath)
+            root.recentFilesModel.addRecent(filePath)
         }
     }
 
     RecentsPopup {
         id: recentsPopup
-        files: recentFiles
         onSelected: {
-            fileView.add(filePath)
+            root.filesModel.add(filePath)
         }
     }
 
@@ -114,7 +98,9 @@ Item {
             onClicked: {
                 selectPath.callback = (urls) => {
                     urls.forEach((url) => {
-                                     fileView.add(FileUtils.getFilePath(url));
+                                     var filePath = FileUtils.getFilePath(url);
+                                     filesModel.add(filePath);
+                                     root.recentFilesModel.addRecent(filePath)
                                  });
                 }
 
@@ -127,7 +113,7 @@ Item {
 
             onClicked: {
                 var mapped = mapToItem(root, 0, 0);
-                recentsPopup.x = mapped.x - recentsPopup.width + width
+                recentsPopup.x = mapped.x
                 recentsPopup.y = mapped.y + height
 
                 recentsPopup.open();

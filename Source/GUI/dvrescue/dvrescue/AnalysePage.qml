@@ -12,8 +12,11 @@ import QtAVPlayerUtils 1.0
 
 Item {
     id: root
+
     property int startFrame: 0
     property int endFrame: dataModel.total - 1
+    property alias filesModel: fileView.filesModel
+    property alias recentFilesModel: recentsPopup.filesModel
 
     MessageDialog {
         id: errorDialog
@@ -78,7 +81,7 @@ Item {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
                                       var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                      fileViewer.fileView.add(filePath)
+                                      filesModel.add(filePath)
                                   })
             }
 
@@ -86,19 +89,6 @@ Item {
         }
         onExited: {
         }
-    }
-
-    property string recentFilesJSON : ''
-    property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
-    function addRecent(filePath) {
-        var newRecentFiles = recentFiles.filter(item => item !== filePath)
-        newRecentFiles.unshift(filePath)
-
-        if(newRecentFiles.length > 10) {
-            newRecentFiles.pop();
-        }
-        recentFiles = newRecentFiles
-        recentFilesJSON = JSON.stringify(recentFiles)
     }
 
     SelectPathDialog {
@@ -113,9 +103,8 @@ Item {
 
     RecentsPopup {
         id: recentsPopup
-        files: recentFiles
         onSelected: {
-            fileViewer.fileView.add(filePath)
+            root.filesModel.add(filePath)
         }
     }
 
@@ -238,7 +227,7 @@ Item {
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
-                                                 fileViewer.fileView.add(FileUtils.getFilePath(url));
+                                                 filesModel.add(FileUtils.getFilePath(url));
                                              });
                             }
 
@@ -258,50 +247,15 @@ Item {
                         }
                     }
 
-                    /*
-                    CustomButton {
-                        icon.source: "icons/recent.svg"
-
-                        onClicked: {
-                            var path = fileViewer.fileView.fileInfos[fileViewer.fileView.currentIndex].reportPath
-                            if(Qt.platform.os === "windows") {
-                                path = "/cygdrive/" + path.replace(":", "");
-                            }
-
-                            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-                                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-                                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-                                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-                                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
-
-                            var output = '';
-                            packagerCtl.exec("-T " + path, (launcher) => {
-                                debugView.logCommand(launcher)
-                                launcher.outputChanged.connect((outputString) => {
-                                    output += outputString;
-                                })
-                            }, extraParams).then(() => {
-                                console.debug('executed....')
-                                debugView.logResult(output);
-
-                                busy.running = false;
-                            }).catch((error) => {
-                                debugView.logResult(error);
-                                busy.running = false;
-                            });
-                        }
-                    }
-                    */
-
                     ComboBox {
                         id: fileSelector
                         textRole: "fileName"
-                        model: fileViewer.updated, fileViewer.fileInfos
+                        model: filesModel
                         Layout.fillWidth: true
 
-                        currentIndex: fileViewer.fileView.currentIndex
+                        currentIndex: fileView.currentIndex
                         onActivated: {
-                            fileViewer.fileView.currentIndex = index
+                            fileView.currentIndex = index
                         }
                     }
 
@@ -361,9 +315,9 @@ Item {
                                                                        dataModel.populate(dvRescueXmlPath);
 
                                                                        if(currentIndex !== -1 && currentIndex !== undefined) {
-                                                                           fileViewer.fileView.fileInfos[currentIndex].reportPath = dvRescueXmlPath;
+                                                                           filesModel.get(currentIndex).reportPath = dvRescueXmlPath;
 
-                                                                           var mediaInfo = fileViewer.fileView.mediaInfoAt(currentIndex)
+                                                                           var mediaInfo = fileView.mediaInfoAt(currentIndex)
                                                                            mediaInfo.reportPath = dvRescueXmlPath;
                                                                            mediaInfo.resolve();
 
@@ -385,12 +339,12 @@ Item {
                     Layout.fillHeight: true
                     currentIndex: fileSegmentSwitch.currentIndex
 
-                    AnalyseFileViewer {
-                        id: fileViewer
-                        fileView.currentIndex: fileSelector.currentIndex
+                    AnalyseFileView {
+                        id: fileView
+                        currentIndex: fileSelector.currentIndex
 
-                        fileView.onFileAdded: {
-                            addRecent(filePath)
+                        onFileAdded: {
+                            root.recentFilesModel.addRecent(filePath)
                         }
 
                         onSelectedPathChanged: {
@@ -565,7 +519,7 @@ Item {
                             }
 
                             function repopulateSegmentData() {
-                                var reportPath = fileViewer.fileView.fileInfos[fileViewer.fileView.currentIndex].reportPath
+                                var reportPath = fileView.fileInfos[fileView.currentIndex].reportPath
                                 segmentDataView.populateSegmentData(reportPath)
                             }
 

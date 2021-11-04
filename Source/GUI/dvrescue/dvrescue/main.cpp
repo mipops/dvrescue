@@ -9,6 +9,7 @@
 #include <datamodel.h>
 #include <mediainfo.h>
 #include <logging.h>
+#include <clipboard.h>
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <qwtquick2plot.h>
@@ -93,6 +94,14 @@ int main(int argc, char *argv[])
 
     qDebug() << "PATH: " << qEnvironmentVariable("PATH");
     QQuickStyle::setStyle("Material");
+
+    qmlRegisterSingletonType<Clipboard>("Clipboard", 1, 0, "Clipboard", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        auto *clipboard = new Clipboard();
+        return clipboard;
+    });
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)

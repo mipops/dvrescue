@@ -81,6 +81,80 @@ ApplicationWindow {
         }
     }
 
+    DvRescueReport {
+        id: report
+    }
+
+    ListModel {
+        id: filesModel
+
+        signal appended(var fileInfo)
+        signal removed(int index, var fileInfo)
+
+        function add(filePath) {
+            console.debug('add: ', filePath)
+
+            var fileInfo = report.resolveRelatedInfo(filePath)
+            append(fileInfo)
+
+            console.debug('emitting appended: ', JSON.stringify(fileInfo, 0, 4))
+            appended(fileInfo)
+        }
+
+        function del(index) {
+            console.debug('delete: ', index)
+
+            var fileInfo = get(index);
+            remove(index);
+
+            console.debug('emitting removed: ', index)
+            removed(index, fileInfo)
+        }
+    }
+
+    ListModel {
+        id: recentFilesModel
+
+        signal selected(string filePath);
+
+        property string recentFilesJSON : ''
+        property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+
+        function toArray() {
+            var recentFiles = []
+            for(var i = 0; i < count; ++i) {
+                recentFiles.push(get(i).filePath);
+            }
+            return recentFiles;
+        }
+
+        function addRecent(filePath) {
+
+            var newRecentFiles = recentFiles.filter(item => item !== filePath)
+            newRecentFiles.unshift(filePath)
+
+            if(newRecentFiles.length > 10) {
+                newRecentFiles.pop();
+            }
+            recentFiles = newRecentFiles
+            recentFilesJSON = JSON.stringify(recentFiles)
+
+            clear();
+            for(var i = 0; i < newRecentFiles.length; ++i) {
+                append({'filePath' : newRecentFiles[i]})
+            }
+
+            console.debug('recentFilesJSON: ', JSON.stringify(recentFilesJSON, 0, 4))
+        }
+
+        Component.onCompleted: {
+            var recentFiles = recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+            recentFiles.forEach((filePath) => {
+                append({'filePath' : filePath})
+            })
+        }
+    }
+
     StackLayout {
         anchors.left: navigationColumn.right
         anchors.leftMargin: 10
@@ -184,10 +258,14 @@ ApplicationWindow {
 
         AnalysePage {
             id: analysePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
         }
 
         PackagePage {
             id: packagePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd
@@ -245,8 +323,7 @@ ApplicationWindow {
         property string xmlStarletCmd
         property string mediaInfoCmd
         property string ffmpegCmd
-        property alias recentFilesJSON: analysePage.recentFilesJSON
-        property alias recentPackageFilesJSON: packagePage.recentFilesJSON
+        property alias recentFilesJSON: recentFilesModel.recentFilesJSON
 
         Component.onCompleted: {
             console.debug('settings initialized')

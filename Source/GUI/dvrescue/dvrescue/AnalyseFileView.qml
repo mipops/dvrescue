@@ -10,45 +10,15 @@ import MediaInfo 1.0
 import FileUtils 1.0
 
 Rectangle {
+    property var filesModel: null
     signal fileAdded(string filePath);
 
-    property int updated: 0
-    property var fileInfos: []
-    property var files: []
     property alias tableView: tableView
     readonly property string selectedPath: {
         console.debug('selected path changed: ', tableView.currentIndex)
-        return updated, tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+        return tableView.currentIndex !== -1 ? filesModel.get(tableView.currentIndex).originalPath : ''
     }
     property alias currentIndex: tableView.currentIndex
-    onCurrentIndexChanged: {
-        console.debug('AnalyseFileView: currentIndex = ', currentIndex)
-    }
-
-    function add(path) {
-        console.debug('add: ', path, 'currentIndex: ', currentIndex);
-
-        files.push(path);
-        var mediaInfo = report.resolveRelatedInfo(path);
-        fileInfos.push(mediaInfo)
-        newRow(mediaInfo.originalPath)
-        fileAdded(mediaInfo.originalPath)
-
-        if(fileInfos.length === 1)
-            tableView.bringToView(0)
-
-        ++updated
-    }
-
-    function deleteEntry(row) {
-        console.debug('deleteEntry: ', row);
-
-        files.splice(row,  1);
-        fileInfos.splice(row, 1);
-        dataModel.removeRow(row, 1);
-
-        ++updated
-    }
 
     function mediaInfoAt(index) {
         return instantiator.objectAt(index);
@@ -75,10 +45,6 @@ Rectangle {
     readonly property string videoBlockErrorValueRole: "Video Block Error Value"
     readonly property string audioBlockErrorValueRole: "Audio Block Error Value"
 
-    DvRescueReport {
-        id: report
-    }
-
     function forceLayout() {
         tableView.forceLayout();
     }
@@ -90,25 +56,51 @@ Rectangle {
         tableView.forceLayout();
     }
 
+    Connections {
+        enabled: filesModel !== null
+        target: filesModel
+        onAppended: {
+            console.debug('onAppended: ', JSON.stringify(fileInfo, 0, 4))
+            newRow(fileInfo.originalPath);
+
+            fileAdded(fileInfo.originalPath)
+
+            if(filesModel.count === 1) {
+                currentIndex = 0
+                tableView.bringToView(0)
+            }
+        }
+        onRemoved: {
+            console.debug('onRemoved: ', index, JSON.stringify(fileInfo, 0, 4))
+            dataModel.removeRow(index, 1);
+
+            if(currentIndex >= filesModel.count)
+                --currentIndex;
+
+            if(filesModel.count === 0)
+                currentIndex = -1;
+        }
+    }
+
     Instantiator {
         id: instantiator
-        model: updated, fileInfos.length
+        model: filesModel
         onModelChanged: {
             console.debug('model: ', model)
         }
         delegate: MediaInfo {
             reportPath: {
-                console.debug('reportPath: ', index, fileInfos.length)
-                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].reportPath : ''
+                console.debug('reportPath: ', index, filesModel.count)
+                return (index >= 0 && index < filesModel.count) ? filesModel.get(index).reportPath : ''
             }
             videoPath: {
-                console.debug('videoPath: ', index, fileInfos.length)
-                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].videoPath : ''
+                console.debug('videoPath: ', index, filesModel.count)
+                return (index >= 0 && index < filesModel.count) ? filesModel.get(index).videoPath : ''
             }
 
             function editRow(index, propertyName, propertyValue) {
                 // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
-                if(index >= 0 && index < fileInfos.length)
+                if(index >= 0 && index < filesModel.count)
                 {
                     var rowData = dataModel.getRow(index)
                     var newRowData = JSON.parse(JSON.stringify(rowData))
@@ -198,25 +190,6 @@ Rectangle {
         tableView.view.contentY = -16
     }
 
-    onFilesChanged: {
-        var newFileInfos = [];
-
-       Qt.callLater(() => {
-                         if(files) {
-                             files.forEach((file) => {
-                                 var mediaInfo = report.resolveRelatedInfo(file)
-                                 newFileInfos.push(mediaInfo)
-                                 newRow(mediaInfo.originalPath)
-                             })
-
-                            console.debug('tableView.view.contentY: ', tableView.view.contentY)
-                            scrollToTop();
-                         }
-
-                        fileInfos = newFileInfos;
-                     })
-    }
-
     TableViewEx {
         id: tableView
         anchors.fill: parent
@@ -230,7 +203,7 @@ Rectangle {
             id: contextMenu
             MenuItem {
                 text: "Delete"
-                onClicked: deleteEntry(currentIndex)
+                onClicked: filesModel.del(currentIndex)
             }
 
             function showBelowControl(control) {
@@ -350,7 +323,7 @@ Rectangle {
                         implicitWidth: implicitHeight
 
                         onClicked: {
-                            deleteEntry(row);
+                            filesModel.del(row);
                         }
                     }
 

@@ -47,7 +47,7 @@ Rectangle {
         }
     }
 
-    AnalyseFileViewer {
+    AnalyseFileView {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
