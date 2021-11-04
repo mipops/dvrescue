@@ -87,5 +87,7 @@
         <file>TableModelEx.qml</file>
         <file>ComboBoxEx.qml</file>
         <file>icons/capture.svg</file>
+        <file>FilesModel.qml</file>
+        <file>MediaInfoModel.qml</file>
     </qresource>
 </RCC>

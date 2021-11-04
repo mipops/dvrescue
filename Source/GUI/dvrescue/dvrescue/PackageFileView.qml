@@ -82,81 +82,14 @@ Rectangle {
         }
     }
 
-    Instantiator {
-        id: instantiator
-        model: filesModel
-        onModelChanged: {
-            console.debug('model: ', model)
-        }
-        delegate: MediaInfo {
-            reportPath: {
-                console.debug('reportPath: ', index, filesModel.count)
-                return (index >= 0 && index < filesModel.count) ? filesModel.get(index).reportPath : ''
-            }
-            videoPath: {
-                console.debug('videoPath: ', index, filesModel.count)
-                return (index >= 0 && index < filesModel.count) ? filesModel.get(index).videoPath : ''
-            }
-
-            function editRow(index, propertyName, propertyValue) {
-                // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
-                if(index >= 0 && index < filesModel.count)
-                {
-                    var rowData = dataModel.getRow(index)
-                    var newRowData = JSON.parse(JSON.stringify(rowData))
-                    newRowData[propertyName] = propertyValue
-                    dataModel.setRow(index, newRowData)
-                }
-            }
-
-            onFormatChanged: {
-                editRow(index, formatColumn, format)
-            }
-            onFileSizeChanged: {
-                editRow(index, fileSizeColumn, fileSize)
-            }
-            onFrameCountChanged: {
-                editRow(index, frameCountColumn, frameCount)
-            }
-            onCountOfFrameSequencesChanged: {
-                editRow(index, countOfFrameSequencesColumn, countOfFrameSequences)
-            }
-            onFirstTimeCodeChanged: {
-                editRow(index, firstTimecodeColumn, firstTimeCode)
-            }
-            onLastTimeCodeChanged: {
-                editRow(index, lastTimecodeColumn, lastTimeCode)
-            }
-            onFirstRecordingTimeChanged: {
-                editRow(index, firstRecordingTimeColumn, firstRecordingTime)
-            }
-            onLastRecordingTimeChanged: {
-                editRow(index, lastRecordingTimeColumn, lastRecordingTime)
-            }
-            onParsingChanged: {
-                editRow(index, progressRole, parsing === false ? 1 : 0)
-            }
-            onBytesProcessedChanged: {
-                editRow(index, progressRole, bytesProcessed / reportFileSize)
-            }
-            onFrameErrorChanged: {
-                editRow(index, frameErrorColumn, frameError);
-                editRow(index, frameErrorTooltipRole, "Sta count: " + staCount + ", Frames count: " + frameCount)
-            }
-            onVideoBlockErrorChanged: {
-                editRow(index, videoBlockErrorColumn, videoBlockError);
-                editRow(index, videoBlockErrorTooltipRole, "Sta sum: " + staSum + ", Sum of video blocks: " + totalVideoBlocks)
-                editRow(index, videoBlockErrorValueRole, { x : videoBlockErrorValue.x, y : videoBlockErrorValue.y })
-            }
-            onAudioBlockErrorChanged: {
-                editRow(index, audioBlockErrorColumn, audioBlockError);
-                editRow(index, audioBlockErrorTooltipRole, "Aud sum: " + audSum + ", Sum of audio blocks: " + totalAudioBlocks)
-                editRow(index, audioBlockErrorValueRole, { x : audioBlockErrorValue.x, y : audioBlockErrorValue.y })
-            }
-
-            Component.onCompleted: {
-                resolve();
-            }
+    Connections {
+        enabled: filesModel !== null && filesModel.mediaInfoModel !== null
+        target: filesModel.mediaInfoModel
+        onEditRow: {
+            var rowData = dataModel.getRow(index)
+            var newRowData = JSON.parse(JSON.stringify(rowData))
+            newRowData[propertyName] = propertyValue
+            dataModel.setRow(index, newRowData)
         }
     }
 

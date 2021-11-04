@@ -85,31 +85,14 @@ ApplicationWindow {
         id: report
     }
 
-    ListModel {
+    FilesModel {
         id: filesModel
+        mediaInfoModel: instantiator
+    }
 
-        signal appended(var fileInfo)
-        signal removed(int index, var fileInfo)
-
-        function add(filePath) {
-            console.debug('add: ', filePath)
-
-            var fileInfo = report.resolveRelatedInfo(filePath)
-            append(fileInfo)
-
-            console.debug('emitting appended: ', JSON.stringify(fileInfo, 0, 4))
-            appended(fileInfo)
-        }
-
-        function del(index) {
-            console.debug('delete: ', index)
-
-            var fileInfo = get(index);
-            remove(index);
-
-            console.debug('emitting removed: ', index)
-            removed(index, fileInfo)
-        }
+    MediaInfoModel {
+        id: instantiator
+        model: filesModel
     }
 
     ListModel {
