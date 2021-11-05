@@ -128,9 +128,8 @@ _maketemp(){
 _get_ranges(){
     OPTIND=1
     unset IN_FRAME OUT_FRAME
-    while getopts "ai:o:q" opt ; do
+    while getopts "i:o:q" opt ; do
         case "${opt}" in
-          a) NO_AUDIO_BREAK="Y" ;;
           i) IN_FRAME="${OPTARG}" ;;
           o) OUT_FRAME="${OPTARG}" ;;
           q) QUICK="Y" ;;
@@ -150,13 +149,13 @@ _get_ranges(){
         RELATIVE_FRAMES="parent::d:frames"
     fi
     if [[ -n "${IN_FRAME}" && "${IN_FRAME}" = "${OUT_FRAME}" ]] ; then
-        RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n=${IN_FRAME}]|g")"
+        RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n=${IN_FRAME}]}"
     else
         if [[ -n "${OUT_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n<=${OUT_FRAME}]|g")"
+            RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n<=${OUT_FRAME}]}"
         fi
         if [[ -n "${IN_FRAME}" ]] ; then
-            RANGE_MATCH="$(echo "${RANGE_MATCH}" | sed "s|d:frame|d:frame[@n>=${IN_FRAME}]|g")"
+            RANGE_MATCH="${RANGE_MATCH//d:frame/d:frame[@n>=${IN_FRAME}]}"
         fi
     fi
     RANGE_MATCH_FS="$(echo "${RANGE_MATCH}" | cut -s -d "|" -f2- | sed 's|d:|following-sibling::d:|g')"
@@ -343,10 +342,18 @@ _condense_ranges(){
     }
     _report_condensed_line(){
         if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
-            if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+            if [[ "${ASPECT_MERGE}" = "4" ]] ; then
                 AR_FORCE="4/3"
-            else
+            elif [[ "${ASPECT_MERGE}" = "9" ]] ; then
                 AR_FORCE="16/9"
+            elif [[ "${ASPECT_MERGE}" = "c" ]] ; then
+                if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
+                    AR_FORCE="4/3"
+                else
+                    AR_FORCE="16/9"
+                fi
+            else
+                AR_FORCE="4/3"
             fi
         else
             AR_FORCE="${AR_FIRST}"
@@ -377,9 +384,9 @@ _condense_ranges(){
             _set_prev
         else
             if [[ "${AR_PREV}" = "4/3" ]] ; then
-                COUNT_43="$((${COUNT_43} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+                COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
             elif [[ "${AR_PREV}" = "16/9" ]] ; then
-                COUNT_169="$((${COUNT_169} + ${FRAME_END_PREV} - ${FRAME_START_PREV}))"
+                COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
             fi
             if [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -z "${ASPECT_MERGE}" && \
@@ -497,30 +504,36 @@ _make_chapter_metadata_file(){
     shift "$((OPTIND-1))"
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
-    echo ";FFMETADATA1"
-    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start]|d:frame[@rdt_nc]" | \
-    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
-         START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
-         END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
-         START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
-         END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
-         if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
-             unset CHAP_TITLE
-             if [[ -n "${TC}" ]] && [[ -n ${RDT} ]] ; then
-                 CHAP_TITLE+="${TC} - ${RDT}"
-             elif [[ -n ${TC} ]] ; then
-                 CHAP_TITLE+="${TC}"
-             elif [[ -n ${RDT} ]] ; then
-                 CHAP_TITLE+="--:--:--:-- - ${RDT}"
+    CHAPTER_SETS="$(_get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start]|d:frame[@rdt_nc]")"
+    CHAPTER_SET_COUNT="$(echo "${CHAPTER_SETS}" | grep -c '^')"
+    _report -v "Found ${CHAPTER_SET_COUNT} point(s) for chapter marks."
+    if [[ "${CHAPTER_SET_COUNT}" -gt 1 ]] ; then
+        echo ";FFMETADATA1"
+        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
+             START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
+             END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
+             START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
+             END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
+             if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
+                 unset CHAP_TITLE
+                 if [[ -n "${TC}" ]] && [[ -n ${RDT} ]] ; then
+                     CHAP_TITLE+="${TC} - ${RDT}"
+                 elif [[ -n ${TC} ]] ; then
+                     CHAP_TITLE+="${TC}"
+                 elif [[ -n ${RDT} ]] ; then
+                     CHAP_TITLE+="--:--:--:-- - ${RDT}"
+                 fi
+                 _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
+                 echo "[CHAPTER]"
+                 echo "TIMEBASE=1/100000"
+                 echo "START=${START_CHAPTER_OFFSET}"
+                 echo "END=${END_CHAPTER_OFFSET}"
+                 echo "title=${CHAP_TITLE}"
              fi
-             _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
-             echo "[CHAPTER]"
-             echo "TIMEBASE=1/100000"
-             echo "START=${START_CHAPTER_OFFSET}"
-             echo "END=${END_CHAPTER_OFFSET}"
-             echo "title=${CHAP_TITLE}"
-         fi
-    done
+        done < <(echo "${CHAPTER_SETS}")
+    else
+        _report -v "Skipping the process to embed chapters since there would only be one."
+    fi
 }
 
 _get_iso8601(){
@@ -856,21 +869,22 @@ if [[ -f "${DVFILE}" ]] ; then
         exit 0
     fi
 
-    #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
-    #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
-        _report -d "The results will be written to ${SIDECAR_DIR}"
-        SEG_OUTPUT="1"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
-            if [[ "$(_check_if_in_list "${SEG_OUTPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
-                _report -d "Skipping part ${SEG_OUTPUT} as requested."
-                SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
-                TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
-            else
+    #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:creator[1]" -v "d:program[1]" -o "-" -v "d:version[1]" -o "(" -v "d:library[1]" -o "-" -v "d:library[1]/@version" -o ")" -n "${DVRESCUE_XML}")"
+    #MUXER="Lavf${LAVFversion} + ${DVRESCUE_VERSION}"
+    _report -d "The results will be written to ${SIDECAR_DIR}"
+    SEG_OUTPUT="1"
+    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        if [[ "$(_check_if_in_list "${SEG_OUTPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
+            _report -d "Skipping part ${SEG_OUTPUT} as requested."
+            SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
+            TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
+        else
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
-            unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
+            unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2 CHAPTER_PROCESS
             PTS_START_FILENAME_SAFE="${PTS//:/-}"
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
+            #METADATA+=(-metadata "comment=${MUXER}")
             _report -v "Starting work on ${OUTPUT_FILE_BASENAME}."
             if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
                 if [[ "${MOV_FIRST_FRAME_CHECK}" == "0" ]] ; then
@@ -1008,9 +1022,9 @@ if [[ -f "${DVFILE}" ]] ; then
                             AUDIO_MAP=(-map "[aud]" -map "[aud_t2]")
                         fi
                     fi
-                    INPUT_COUNT=$((${INPUT_COUNT} + ${AUDIO_INPUT_COUNT}))
+                    INPUT_COUNT=$((INPUT_COUNT + AUDIO_INPUT_COUNT))
                 fi
-                if [[ "${RDT:0:4}"  =~ "^[0-9]{4}" ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
+                if [[ "${RDT:0:4}"  =~ ^[0-9]{4} ]] && [[ "${RDT:0:4}" -ge 1995 ]] ; then
                     if [[ "${EXTENSION}" = "mkv" ]] ; then
                         METADATA+=(-metadata "DATE_RECORDED=${RDT}")
                     elif [[ "${EXTENSION}" = "mov" ]] ; then
@@ -1044,62 +1058,64 @@ if [[ -f "${DVFILE}" ]] ; then
                 CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
                 _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
                 _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
-                CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
-                CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                if [[ -s "${CHAPTER_FFMETADATA}" ]] ; then
+                    CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
+                    CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+                    ((INPUT_COUNT++))
+                fi
                 if [[ -n "${AR}" ]] ; then
                     METADATA+=(-aspect "${AR}")
                 fi
             fi
             MAP_OUTPUT=("${VIDEO_MAP[@]}" "${AUDIO_MAP[@]}" "${SUBTITLE_MAP[@]}")
-            ((INPUT_COUNT++))
-                if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
-                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
-                else
-                    _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
-                    "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
-                       -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
-                        "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
-                fi
-                if [[ ! -s "${OUTPUT_FILE}" ]] ; then
-                    _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
-                else
-                    if [[ -f "${MEDIAINFO_PATH}" ]] ; then
-                        # quick track duration check on the result
-                        PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
-                        TOTAL_DVFRAMES_PACKAGED=$((TOTAL_DVFRAMES_PACKAGED+PACKAGED_DVFRAMES))
-                        AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
-                        _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
-                        if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
-                            VID_DUR="$("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
-                            AUD_DUR="$("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
-                            DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
-                            _report -v "VID_DUR=(${VID_DUR}), AUD_DIR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
-                            if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
-                                _report -v "DUR_DIFF is within an acceptable range."
-                            else
-                                _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
-                            fi
+            if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
+                    "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+            else
+                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
+                   -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
+                    "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
+            fi
+            if [[ ! -s "${OUTPUT_FILE}" ]] ; then
+                _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
+            else
+                if [[ -f "${MEDIAINFO_PATH}" ]] ; then
+                    # quick track duration check on the result
+                    PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
+                    TOTAL_DVFRAMES_PACKAGED=$((TOTAL_DVFRAMES_PACKAGED+PACKAGED_DVFRAMES))
+                    AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
+                    _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
+                    if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
+                        VID_DUR="$("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
+                        AUD_DUR="$("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
+                        DUR_DIFF="$(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}')"
+                        _report -v "VID_DUR=(${VID_DUR}), AUD_DIR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
+                        if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
+                            _report -v "DUR_DIFF is within an acceptable range."
                         else
-                            _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
+                            _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                         fi
+                    else
+                        _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
                     fi
-                    _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
-                    if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
-                        _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
-                    fi
+                fi
+                _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
+                if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
+                    _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                 fi
             fi
-            ((SEG_OUTPUT++))
-        done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-                    _get_ranges
-                else
-                    _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
-                fi)
-        if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "$((TOTAL_DVFRAMES_PACKAGED+TOTAL_DVFRAMES_SKIPPED))" != "${DV_FRAME_COUNT}" ]] ; then
-            _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV and ${TOTAL_DVFRAMES_SKIPPED} were skipped"
         fi
+        ((SEG_OUTPUT++))
+    done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+                _get_ranges
+            else
+                _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
+            fi)
+    if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "$((TOTAL_DVFRAMES_PACKAGED+TOTAL_DVFRAMES_SKIPPED))" != "${DV_FRAME_COUNT}" ]] ; then
+        _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV and ${TOTAL_DVFRAMES_SKIPPED} were skipped"
+    fi
 else
     echo "${BASENAME} is not a file, skipping."
 fi
