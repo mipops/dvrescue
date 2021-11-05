@@ -90,5 +90,6 @@
         <file>FilesModel.qml</file>
         <file>MediaInfoModel.qml</file>
         <file>SegmentDataViewWithToolbar.qml</file>
+        <file>PackageOutputFileView.qml</file>
     </qresource>
 </RCC>

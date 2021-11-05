@@ -204,7 +204,7 @@ Item {
 
         PackageFileView {
             id: fileView
-            height: parent.height / 1.5
+            height: parent.height / 3
 
             onFileAdded: {
                 root.recentFilesModel.addRecent(filePath)
@@ -212,17 +212,25 @@ Item {
         }
 
         SegmentDataViewWithToolbar {
-            id: segmentDataView
-            height: parent.height / 2.5
+            id: segmentDataViewWithToolbar
+            height: parent.height / 3
             framesCount: framesCount
             reportPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).reportPath : null
             onReportPathChanged: {
                 populateSegmentData()
             }
+
+            onPopulated: {
+                packageOutputFileView.dataModel.clear();
+                for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                    packageOutputFileView.newRow(segmentDataView.model.getRow(i)['Segment #'])
+                }
+            }
         }
 
-        Rectangle {
-            color: 'red'
+        PackageOutputFileView {
+            id: packageOutputFileView
+            height: parent.height / 3
         }
     }
 }

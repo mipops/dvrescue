@@ -11,6 +11,8 @@ import QtQuick.Dialogs 1.3
 import QtAVPlayerUtils 1.0
 
 ColumnLayout {
+    id: root
+
     property alias segmentDataView: segmentDataView
     property alias currentIndex: segmentDataView.currentIndex
     property alias rowFilter: segmentDataView.rowFilter
@@ -19,6 +21,7 @@ ColumnLayout {
 
     signal clicked(var index, var item);
     signal doubleClicked(var index, var item);
+    signal populated()
 
     property string reportPath
     function populateSegmentData(rp) {
@@ -139,6 +142,12 @@ ColumnLayout {
         Layout.fillHeight: true
         total: framesCount
 
+        signal populated();
+
+        onPopulated: {
+            root.populated();
+        }
+
         Component.onCompleted: {
             var e = {
                 'Segment #' : '',
@@ -231,12 +240,13 @@ ColumnLayout {
 
                                                                                   segmentDataView.model.appendRow(e);
                                                                               });
-
+                                                      segmentDataView.populated();
                                                       busy.running = false;
                                                   }).catch((error) => {
                                                                debugView.logResult(error);
+                                                               segmentDataView.populated();
                                                                busy.running = false;
-                                                           });
+                                                        });
         }
     }
 }
