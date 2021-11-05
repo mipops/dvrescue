@@ -872,10 +872,10 @@ if [[ -f "${DVFILE}" ]] ; then
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:creator[1]" -v "d:program[1]" -o "-" -v "d:version[1]" -o "(" -v "d:library[1]" -o "-" -v "d:library[1]/@version" -o ")" -n "${DVRESCUE_XML}")"
     #MUXER="Lavf${LAVFversion} + ${DVRESCUE_VERSION}"
     _report -d "The results will be written to ${SIDECAR_DIR}"
-    SEG_OUTPUT="1"
+    SEG_INPUT="1"
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
-        if [[ "$(_check_if_in_list "${SEG_OUTPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
-            _report -d "Skipping part ${SEG_OUTPUT} as requested."
+        if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
+            _report -d "Skipping part ${SEG_INPUT} as requested."
             SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
             TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
         else
@@ -1107,7 +1107,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 fi
             fi
         fi
-        ((SEG_OUTPUT++))
+        ((SEG_INPUT++))
     done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
                 _get_ranges
             else
