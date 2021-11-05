@@ -169,6 +169,54 @@ ColumnLayout {
             id: segmentDataParser
         }
 
+        function packaging(reportPath, videoPath) {
+
+            if(Qt.platform.os === "windows") {
+                reportPath = "/cygdrive/" + reportPath.replace(":", "");
+                videoPath = "/cygdrive/" + videoPath.replace(":", "");
+            }
+
+            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+            .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+            .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+            .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+            .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+            var opts = ' ';
+            if(recordingStartMarkers.checked)
+                opts += '-s '
+            if(breaksInRecordingTime.checked)
+                opts += '-d ';
+            if(breaksInTimecode.checked)
+                opts += '-t ';
+            if(segmentFilesToPreserveAudioSampleRate.checked)
+                opts += '-3 ';
+
+            if(aspectRatiosSelector.currentIndex === 0)
+                opts += '-a n ';
+            if(aspectRatiosSelector.currentIndex === 2)
+                opts += '-a 4 ';
+            if(aspectRatiosSelector.currentIndex === 3)
+                opts += '-a 9 ';
+            if(aspectRatiosSelector.currentIndex === 1)
+                opts += '-a c ';
+
+            var output = '';
+            return packagerCtl.exec(opts + " -x " + reportPath + " " + videoPath, (launcher) => {
+                                 debugView.logCommand(launcher)
+                                 launcher.outputChanged.connect((outputString) => {
+                                                                    output += outputString;
+                                                                })
+
+                                 launcher.errorChanged.connect((errorString) => {
+                                                                    debugView.logResult(errorString);
+                                                               })
+                             }, extraParams).then(() => {
+                                                      console.debug('executed....')
+                                                      debugView.logResult(output);
+                                                  });
+        }
+
         function populateSegmentData(reportPath) {
             segmentDataView.model.clear();
 

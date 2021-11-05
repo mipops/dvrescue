@@ -123,70 +123,19 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
 
-                CheckBox {
-                    id: s
-                    text: "-s"
-                }
-                CheckBox {
-                    id: d
-                    text: "-d"
-                }
-                CheckBox {
-                    id: t
-                    text: "-t"
-                }
-                CheckBox {
-                    id: sBig
-                    text: "-S"
-                }
-
-                TextField {
-                    id: additional
-                    Layout.minimumWidth: 400
-                    placeholderText: "additional options..."
-                }
-
                 Button {
                     text: "Package"
                     height: parent.height
                     onClicked: {
-                        var path = fileView.files[Math.max(fileView.currentIndex, 0)];
-                        if(Qt.platform.os === "windows") {
-                            path = "/cygdrive/" + path.replace(":", "");
-                        }
+                        var videoPath = filesModel.get(fileView.currentIndex).videoPath;
+                        var reportPath = filesModel.get(fileView.currentIndex).reportPath;
 
-                        busy.running = true;
-                        var params = path;
-                        if(d.checked)
-                            params = "-d " + params;
-                        if(t.checked)
-                            params = "-t " + params;
-                        if(s.checked)
-                            params = "-s " + params;
-                        if(sBig.checked)
-                            params = "-S " + params;
-
-                        if(additional.text.length !== 0)
-                            params = additional.text + " " + params
-
-                        var extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-                            .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-                            .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-                            .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-                            .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
-
-                        packagerCtl.exec(params, (launcher) => {
-                            debugView.logCommand(launcher)
-                            launcher.outputChanged.connect((outputString) => {
-                                debugView.logResult(outputString);
-                            })
-                        }, extraParams).then(() => {
-                            console.debug('executed....')
-                            busy.running = false;
-                        }).catch((error) => {
-                            debugView.logResult(error);
-                            busy.running = false;
-                        });
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath);
+                        promise.then(() => {
+                            console.debug('packaging done');
+                        }).catch((err) => {
+                            console.error('packaging failed: ', err);
+                        })
                     }
                 }
             }
