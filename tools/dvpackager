@@ -778,7 +778,7 @@ else
 fi
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+    if [[ ! -s "${DVRESCUE_XML}" ]] ; then
         DVRESCUE_XML_TEMP="$(_maketemp)"
         OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
         XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
