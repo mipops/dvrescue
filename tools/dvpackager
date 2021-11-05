@@ -504,8 +504,11 @@ _make_chapter_metadata_file(){
     shift "$((OPTIND-1))"
     CHAP_RANGE_START="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_IN}" | awk '{printf "%i", $1 * 100000}')"
     CHAP_RANGE_END="$(_convert_hhmmssmmm2s "${CHAPTER_PTS_OUT}" | awk '{printf "%i", $1 * 100000}')"
+    CHAPTER_SETS="$(_get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start]|d:frame[@rdt_nc]")"
+    CHAPTER_SET_COUNT="$(echo "${CHAPTER_SETS}" | grep -c '^')"
+    _report -v "Found ${CHAPTER_SET_COUNT} point(s) for chapter marks."
+    if [[ "${CHAPTER_SET_COUNT}" -gt 1 ]] ; then
     echo ";FFMETADATA1"
-    _get_ranges -i "${CHAPTER_FRAME_IN}" -o "${CHAPTER_FRAME_OUT}" "d:frame[1]|d:frame[@rec_start]|d:frame[@rdt_nc]" | \
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
          START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
          END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
@@ -527,7 +530,10 @@ _make_chapter_metadata_file(){
              echo "END=${END_CHAPTER_OFFSET}"
              echo "title=${CHAP_TITLE}"
          fi
-    done
+    done < <(echo "${CHAPTER_SETS}")
+    else
+        _report -v "Skipping the process to embed chapters since there would only be one."
+    fi
 }
 
 _get_iso8601(){
@@ -874,7 +880,7 @@ if [[ -f "${DVFILE}" ]] ; then
             TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
         else
         unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
-        unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2
+        unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2 CHAPTER_PROCESS
         PTS_START_FILENAME_SAFE="${PTS//:/-}"
         OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
         OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
@@ -1052,14 +1058,16 @@ if [[ -f "${DVFILE}" ]] ; then
             CHAPTER_FFMETADATA="$(_maketemp).ffmetadata"
             _report -v "Writing a chapter track at ${CHAPTER_FFMETADATA}."
             _make_chapter_metadata_file -i "${FRAME_START}" -o "${FRAME_END}" -s "${PTS}" -e "${END_PTS}" > "${CHAPTER_FFMETADATA}"
+            if [[ -s "${CHAPTER_FFMETADATA}" ]] ; then
             CHAPTER_PROCESS=(-i "${CHAPTER_FFMETADATA}")
             CHAPTER_PROCESS+=(-map_metadata "${INPUT_COUNT}")
+            ((INPUT_COUNT++))
+            fi
             if [[ -n "${AR}" ]] ; then
                 METADATA+=(-aspect "${AR}")
             fi
         fi
         MAP_OUTPUT=("${VIDEO_MAP[@]}" "${AUDIO_MAP[@]}" "${SUBTITLE_MAP[@]}")
-        ((INPUT_COUNT++))
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
