@@ -863,8 +863,8 @@ if [[ -f "${DVFILE}" ]] ; then
         exit 0
     fi
 
-    #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "d:dvrescue/d:creator/d:program" -o "-" -v "d:dvrescue/d:creator/d:version" -n "${DVRESCUE_XML}")"
-    #MUXER="${LAVF_VERSION} + ${DVRESCUE_VERSION}"
+    #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:creator[1]" -v "d:program[1]" -o "-" -v "d:version[1]" -o "(" -v "d:library[1]" -o "-" -v "d:library[1]/@version" -o ")" -n "${DVRESCUE_XML}")"
+    #MUXER="Lavf${LAVFversion} + ${DVRESCUE_VERSION}"
     _report -d "The results will be written to ${SIDECAR_DIR}"
     SEG_OUTPUT="1"
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
@@ -878,6 +878,7 @@ if [[ -f "${DVFILE}" ]] ; then
         PTS_START_FILENAME_SAFE="${PTS//:/-}"
         OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
         OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
+        #METADATA+=(-metadata "comment=${MUXER}")
         _report -v "Starting work on ${OUTPUT_FILE_BASENAME}."
         if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
             if [[ "${MOV_FIRST_FRAME_CHECK}" == "0" ]] ; then
