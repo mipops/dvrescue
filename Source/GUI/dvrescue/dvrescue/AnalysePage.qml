@@ -14,9 +14,21 @@ Item {
     id: root
 
     property int startFrame: 0
+    onStartFrameChanged: {
+        console.debug('analyse page: startFrame = ', startFrame)
+    }
+
     property int endFrame: dataModel.total - 1
+    onEndFrameChanged: {
+        console.debug('analyse page: endFrame = ', endFrame)
+    }
+
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
+    property int framesCount: dataModel.total
+    onFramesCountChanged: {
+        console.debug('analyse page: framesCount = ', framesCount)
+    }
 
     MessageDialog {
         id: errorDialog
@@ -50,11 +62,17 @@ Item {
         id: dataModel
 
         onTotalChanged: {
+            console.debug('total changed: ', total)
         }
 
         onPopulated: {
             console.debug('stopping timer')
             refreshTimer.stop();
+
+            root.startFrame = 0;
+            root.endFrame = dataModel.total - 1;
+            dataView.invalidateFilter();
+
             dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
                               plotsView.evenAudioCurve, plotsView.oddAudioCurve);
         }
@@ -176,7 +194,7 @@ Item {
                 id: plotsView
                 startFrame: root.startFrame
                 endFrame: root.endFrame
-                overlay: segmentDataView.hoveredItem != null && segmentDataView.currentIndex === -1 ? segmentDataView.hoveredItem.range : Qt.vector2d(-1, -1)
+                overlay: segmentDataViewWithToolbar.hoveredItem != null && segmentDataViewWithToolbar.currentIndex === -1 ? segmentDataViewWithToolbar.hoveredItem.range : Qt.vector2d(-1, -1)
 
                 Connections {
                     target: dataModel
@@ -306,7 +324,7 @@ Item {
                                 refreshTimer.start();
                                 dataModel.populate(dvRescueXmlPath);
 
-                                segmentDataView.populateSegmentData(dvRescueXmlPath)
+                                segmentDataViewWithToolbar.populateSegmentData(dvRescueXmlPath)
                             } else {
                                 busy.running = true;
                                 dvrescue.makeReport(filePath).then(() => {
@@ -321,7 +339,7 @@ Item {
                                                                            mediaInfo.reportPath = dvRescueXmlPath;
                                                                            mediaInfo.resolve();
 
-                                                                           segmentDataView.populateSegmentData(mediaInfo.reportPath)
+                                                                           segmentDataViewWithToolbar.populateSegmentData(mediaInfo.reportPath)
                                                                        }
                                                                    }).catch((error) => {
                                                                         busy.running = false;
@@ -349,257 +367,41 @@ Item {
 
                         onSelectedPathChanged: {
                             console.debug('selected path: ', selectedPath)
-                            segmentDataView.currentIndex = -1
-                            segmentDataView.hoveredItem = null
-                            startFrame = 0;
-                            endFrame = dataModel.total - 1;
+                            segmentDataViewWithToolbar.currentIndex = -1
+                            segmentDataViewWithToolbar.hoveredItem = null
+                            root.startFrame = 0;
+                            root.endFrame = dataModel.total - 1;
                             toolsLayout.load(selectedPath, fileView.currentIndex)
                         }
                     }
 
-                    ColumnLayout {
-                        Rectangle {
-                            color: 'white'
-                            Layout.fillWidth: true
-                            Layout.minimumHeight: childrenRect.height
+                    SegmentDataViewWithToolbar {
+                        id: segmentDataViewWithToolbar
+                        framesCount: root.framesCount
+                        reportPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).reportPath : null
 
-                            Flow {
-                                id: segmentationOptionsLayout
-                                width: parent.width
-                                property bool needsApply: false;
+                        segmentDataView.onClicked: {
+                            console.debug('clicked: ', index, JSON.stringify(item));
+                            if(index !== currentIndex) {
+                                currentIndex = -1;
+                                root.startFrame = 0;
+                                root.endFrame = root.framesCount - 1;
 
-                                Label {
-                                    text: "Segmenting Rules"
-                                    font.bold: true
-                                    verticalAlignment: Text.AlignVCenter
-                                    height: recordingStartMarkers.implicitHeight
-                                }
-
-                                CheckBox {
-                                    id: recordingStartMarkers
-                                    text: "Rec Start Markers"
-                                    onCheckedChanged: {
-                                        segmentationOptionsLayout.needsApply = true
-                                    }
-                                }
-                                CheckBox {
-                                    id: breaksInRecordingTime
-                                    text: "Rec Time Break"
-                                    onCheckedChanged: {
-                                        segmentationOptionsLayout.needsApply = true
-                                    }
-                                }
-                                CheckBox {
-                                    id: breaksInTimecode
-                                    text: "Timecode Break"
-                                    onCheckedChanged: {
-                                        segmentationOptionsLayout.needsApply = true
-                                    }
-                                }
-                                CheckBox {
-                                    id: segmentFilesToPreserveAudioSampleRate
-                                    text: "Audio Setting Change"
-                                    onCheckedChanged: {
-                                        segmentationOptionsLayout.needsApply = true
-                                    }
-                                }
-
-                                Label {
-                                    text: "Aspect Ratio Change"
-                                    verticalAlignment: Text.AlignVCenter
-                                    height: recordingStartMarkers.implicitHeight
-                                    font.bold: true
-                                }
-
-                                ComboBoxEx {
-                                    id: aspectRatiosSelector
-                                    sizeToContents: true
-                                    model: [
-                                        "Yes, segment frames by aspect ratio changes",
-                                        "No and use most common aspect ratio",
-                                        "No and force segments to use 4/3",
-                                        "No and force segments to use 16/9"
-                                    ]
-                                    onCurrentIndexChanged: {
-                                        segmentationOptionsLayout.needsApply = true
-                                    }
-                                }
-
-                                Button {
-                                    text: "Reset"
-                                    onClicked: {
-                                        if(recordingStartMarkers.checked) {
-                                            recordingStartMarkers.checked = false
-                                            segmentationOptionsLayout.needsApply = true
-                                        }
-
-                                        if(breaksInRecordingTime.checked) {
-                                            breaksInRecordingTime.checked = false
-                                            segmentationOptionsLayout.needsApply = true
-                                        }
-
-                                        if(breaksInTimecode.checked) {
-                                            breaksInTimecode.checked = false
-                                            segmentationOptionsLayout.needsApply = true
-                                        }
-
-                                        if(segmentFilesToPreserveAudioSampleRate.checked) {
-                                            segmentFilesToPreserveAudioSampleRate.checked = false
-                                            segmentationOptionsLayout.needsApply = true
-                                        }
-
-                                        if(aspectRatiosSelector.currentIndex !== 0) {
-                                            aspectRatiosSelector.currentIndex = 0
-                                            segmentationOptionsLayout.needsApply = true
-                                        }
-                                    }
-                                }
-
-                                Button {
-                                    enabled: segmentationOptionsLayout.needsApply
-                                    text: "Apply"
-                                    onClicked: {
-                                        segmentDataView.repopulateSegmentData()
-                                        segmentationOptionsLayout.needsApply = false
-                                    }
-                                }
+                                dataView.invalidateFilter();
                             }
                         }
 
-                        SegmentDataView {
-                            id: segmentDataView
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            total: dataModel.total
-
-                            onClicked: {
-                                console.debug('clicked: ', index, JSON.stringify(item));
-                                if(index !== currentIndex) {
-                                    currentIndex = -1;
-                                    startFrame = 0;
-                                    endFrame = total - 1;
-
-                                    dataView.invalidateFilter();
-                                }
-                            }
-
-                            onDoubleClicked: {
-                                console.debug('doubleclicked: ', index, JSON.stringify(item));
-                                if(index !== currentIndex) {
-                                    currentIndex = index;
-                                    startFrame = item['Frame #']
-                                    endFrame = total - 1;
-                                    if((currentIndex + 1) < model.rowCount) {
-                                        endFrame = model.getRow(currentIndex + 1)['Frame #']
-                                    }
-
-                                    dataView.invalidateFilter();
-                                }
-                            }
-
-                            Component.onCompleted: {
-                                var e = {
-                                    'Segment #' : '',
-                                    'Frame #' : '',
-                                    'Timestamp' : '',
-                                    'Timecode' : '',
-                                    'Timecode: Jump/Repeat' : Qt.point(0, 0),
-                                    'Recording Time' : '',
-                                    'Recording Time: Jump/Repeat' : Qt.point(0, 0),
-                                    'Recording Marks' : Qt.point(0, 0),
-                                    'Video/Audio' : ''
+                        segmentDataView.onDoubleClicked: {
+                            console.debug('doubleclicked: ', index, JSON.stringify(item));
+                            if(index !== currentIndex) {
+                                currentIndex = index;
+                                root.startFrame = item['Frame #']
+                                root.endFrame = root.framesCount - 1;
+                                if((currentIndex + 1) < segmentDataView.model.rowCount) {
+                                    root.endFrame = segmentDataView.model.getRow(currentIndex + 1)['Frame #']
                                 }
 
-                                segmentDataView.model.appendRow(e);
-                                segmentDataView.model.clear();
-                            }
-
-                            SegmentDataParser {
-                                id: segmentDataParser
-                            }
-
-                            function repopulateSegmentData() {
-                                var reportPath = fileView.fileInfos[fileView.currentIndex].reportPath
-                                segmentDataView.populateSegmentData(reportPath)
-                            }
-
-                            function populateSegmentData(reportPath) {
-                                segmentDataView.model.clear();
-
-                                var path = reportPath
-                                if(Qt.platform.os === "windows") {
-                                    path = "/cygdrive/" + path.replace(":", "");
-                                }
-
-                                var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-                                    .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-                                    .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-                                    .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-                                    .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
-
-                                var opts = ' ';
-                                if(recordingStartMarkers.checked)
-                                    opts += '-s '
-                                if(breaksInRecordingTime.checked)
-                                    opts += '-d ';
-                                if(breaksInTimecode.checked)
-                                    opts += '-t ';
-                                if(segmentFilesToPreserveAudioSampleRate.checked)
-                                    opts += '-3 ';
-
-                                if(aspectRatiosSelector.currentIndex === 0)
-                                    opts += '-a n ';
-                                if(aspectRatiosSelector.currentIndex === 2)
-                                    opts += '-a 4 ';
-                                if(aspectRatiosSelector.currentIndex === 3)
-                                    opts += '-a 9 ';
-                                if(aspectRatiosSelector.currentIndex === 1)
-                                    opts += '-a c ';
-
-                                var output = '';
-                                packagerCtl.exec("-T" + opts + path, (launcher) => {
-                                    debugView.logCommand(launcher)
-                                    launcher.outputChanged.connect((outputString) => {
-                                        output += outputString;
-                                    })
-                                }, extraParams).then(() => {
-                                    console.debug('executed....')
-                                    debugView.logResult(output);
-
-                                    var i = 0;
-                                    segmentDataParser.parse(output, (entry) => {
-                                        console.debug('entry: ', JSON.stringify(entry));
-
-                                        var videoAudio = [
-                                            entry.frameSize,
-                                            entry.frameRate,
-                                            entry.chromaSubsampling,
-                                            entry.aspectRatio,
-                                            entry.samplingRate,
-                                            entry.channelCount
-                                        ]
-
-                                        ++i
-                                        var e = {
-                                            'Segment #' : i,
-                                            'Frame #' : entry.startFrame,
-                                            'Timestamp' : entry.startPts,
-                                            'Timecode' : entry.timeCode,
-                                            'Timecode: Jump/Repeat' : Qt.point(entry.timeCodeJump, 0),
-                                            'Recording Time' : entry.recTimestamp,
-                                            'Recording Time: Jump/Repeat' : Qt.point(entry.recTimeJump, 0),
-                                            'Recording Marks' : Qt.point(entry.recStart, 0),
-                                            'Video/Audio' : videoAudio.join(' ')
-                                        }
-
-                                        segmentDataView.model.appendRow(e);
-                                    });
-
-                                    busy.running = false;
-                                }).catch((error) => {
-                                    debugView.logResult(error);
-                                    busy.running = false;
-                                });
+                                dataView.invalidateFilter();
                             }
                         }
                     }
@@ -609,7 +411,7 @@ Item {
             AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
-                ranges: segmentDataView.hoveredItem && segmentDataView.currentIndex === -1 ? segmentDataView.hoveredItem.range : Qt.vector2d(-1, -1)
+                ranges: segmentDataViewWithToolbar.hoveredItem && segmentDataViewWithToolbar.currentIndex === -1 ? segmentDataViewWithToolbar.hoveredItem.range : Qt.vector2d(-1, -1)
                 rowFilter: function(index) {
                     var data = dataView.model.getRow(index);
                     var frame = data['Frame #'];

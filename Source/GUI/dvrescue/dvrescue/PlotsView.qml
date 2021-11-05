@@ -12,11 +12,11 @@ Rectangle {
     property alias oddVideoCurve: oddVideoCurve
     property alias evenAudioCurve: evenAudioCurve
     property alias oddAudioCurve: oddAudioCurve
-    property int startFrame: 0
     property vector2d overlay: Qt.vector2d(-1, -1)
     property real overlayOpacity: 0.25
     property color overlayColor: 'purple'
 
+    property int startFrame: 0
     onStartFrameChanged: {
         console.debug('Plots: startFrame = ', startFrame)
         zoomAll();
@@ -326,7 +326,7 @@ Rectangle {
 
             Connections {
                 target: dataModel
-                function onPopulated() {
+                onPopulated: {
                     customZoomSelector.x1 = videoPlot.xBottomAxisRange.x
                     customZoomSelector.x2 = videoPlot.xBottomAxisRange.y
                 }

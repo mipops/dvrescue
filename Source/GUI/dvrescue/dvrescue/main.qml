@@ -249,6 +249,7 @@ ApplicationWindow {
             id: packagePage
             filesModel: filesModel
             recentFilesModel: recentFilesModel
+            framesCount: analysePage.framesCount
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd

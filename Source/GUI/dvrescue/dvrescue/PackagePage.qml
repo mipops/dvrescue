@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.12
 import FileUtils 1.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
+import QtQuick.Controls 1.4 as QQC1
 
 Item {
     id: root
@@ -14,6 +15,7 @@ Item {
     property string ffmpegCmd
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
+    property int framesCount
 
     DropArea {
         id: dropArea;
@@ -59,17 +61,6 @@ Item {
         anchors.centerIn: parent
     }
 
-    PackageFileView {
-        id: fileView
-        height: parent.height / 2
-        anchors.left: parent.left
-        anchors.right: parent.right
-
-        onFileAdded: {
-            root.recentFilesModel.addRecent(filePath)
-        }
-    }
-
     RecentsPopup {
         id: recentsPopup
         onSelected: {
@@ -87,13 +78,15 @@ Item {
 
     RowLayout {
         id: toolsLayout
-        anchors.top: fileView.bottom
-        Layout.fillWidth: true
+
+        anchors.left: parent.left
+        anchors.right: parent.right
 
         property string dvRescueXmlExtension: ".dvrescue.xml"
         property int fileViewerHeight: 0
 
         CustomButton {
+            id: addFiles
             icon.source: "icons/add-files.svg"
             onClicked: {
                 selectPath.callback = (urls) => {
@@ -119,88 +112,117 @@ Item {
                 recentsPopup.open();
             }
         }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: addFiles.height
+            color: 'white'
+
+            RowLayout {
+                id: settingsRow
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+
+                CheckBox {
+                    id: s
+                    text: "-s"
+                }
+                CheckBox {
+                    id: d
+                    text: "-d"
+                }
+                CheckBox {
+                    id: t
+                    text: "-t"
+                }
+                CheckBox {
+                    id: sBig
+                    text: "-S"
+                }
+
+                TextField {
+                    id: additional
+                    Layout.minimumWidth: 400
+                    placeholderText: "additional options..."
+                }
+
+                Button {
+                    text: "Package"
+                    height: parent.height
+                    onClicked: {
+                        var path = fileView.files[Math.max(fileView.currentIndex, 0)];
+                        if(Qt.platform.os === "windows") {
+                            path = "/cygdrive/" + path.replace(":", "");
+                        }
+
+                        busy.running = true;
+                        var params = path;
+                        if(d.checked)
+                            params = "-d " + params;
+                        if(t.checked)
+                            params = "-t " + params;
+                        if(s.checked)
+                            params = "-s " + params;
+                        if(sBig.checked)
+                            params = "-S " + params;
+
+                        if(additional.text.length !== 0)
+                            params = additional.text + " " + params
+
+                        var extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
+                            .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
+                            .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
+                            .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
+                            .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+
+                        packagerCtl.exec(params, (launcher) => {
+                            debugView.logCommand(launcher)
+                            launcher.outputChanged.connect((outputString) => {
+                                debugView.logResult(outputString);
+                            })
+                        }, extraParams).then(() => {
+                            console.debug('executed....')
+                            busy.running = false;
+                        }).catch((error) => {
+                            debugView.logResult(error);
+                            busy.running = false;
+                        });
+                    }
+                }
+            }
+        }
     }
 
-    Rectangle {
-        color: 'white'
+
+    QQC1.SplitView {
+        id: splitView
+        anchors.top: toolsLayout.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.top: toolsLayout.bottom
         anchors.bottom: parent.bottom
-    }
+        orientation: Qt.Vertical
 
-    Row {
-        id: settingsRow
-        anchors.top: toolsLayout.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
+        PackageFileView {
+            id: fileView
+            height: parent.height / 1.5
 
-        CheckBox {
-            id: s
-            text: "-s"
-        }
-        CheckBox {
-            id: d
-            text: "-d"
-        }
-        CheckBox {
-            id: t
-            text: "-t"
-        }
-        CheckBox {
-            id: sBig
-            text: "-S"
-        }
-
-        TextField {
-            id: additional
-            width: 400
-            placeholderText: "additional options..."
-        }
-    }
-
-
-    Button {
-        anchors.top: settingsRow.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: "go"
-        onClicked: {
-            var path = fileView.files[Math.max(fileView.currentIndex, 0)];
-            if(Qt.platform.os === "windows") {
-                path = "/cygdrive/" + path.replace(":", "");
+            onFileAdded: {
+                root.recentFilesModel.addRecent(filePath)
             }
+        }
 
-            busy.running = true;
-            var params = path;
-            if(d.checked)
-                params = "-d " + params;
-            if(t.checked)
-                params = "-t " + params;
-            if(s.checked)
-                params = "-s " + params;
-            if(sBig.checked)
-                params = "-S " + params;
+        SegmentDataViewWithToolbar {
+            id: segmentDataView
+            height: parent.height / 2.5
+            framesCount: framesCount
+            reportPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).reportPath : null
+            onReportPathChanged: {
+                populateSegmentData()
+            }
+        }
 
-            if(additional.text.length !== 0)
-                params = additional.text + " " + params
-
-            var extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
-
-            packagerCtl.exec(params, (launcher) => {
-                debugView.logCommand(launcher)
-                launcher.outputChanged.connect((outputString) => {
-                    debugView.logResult(outputString);
-                })
-            }, extraParams).then(() => {
-                console.debug('executed....')
-                busy.running = false;
-            }).catch((error) => {
-                debugView.logResult(error);
-                busy.running = false;
-            });
+        Rectangle {
+            color: 'red'
         }
     }
 }

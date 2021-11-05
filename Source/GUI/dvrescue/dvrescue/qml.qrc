@@ -89,5 +89,6 @@
         <file>icons/capture.svg</file>
         <file>FilesModel.qml</file>
         <file>MediaInfoModel.qml</file>
+        <file>SegmentDataViewWithToolbar.qml</file>
     </qresource>
 </RCC>
