@@ -169,11 +169,16 @@ ColumnLayout {
             id: segmentDataParser
         }
 
-        function packaging(reportPath, videoPath) {
+        function packaging(reportPath, videoPath, outputDir) {
+
+            if(outputDir === '') {
+                outputDir = FileUtils.getFileDir(reportPath);
+            }
 
             if(Qt.platform.os === "windows") {
                 reportPath = "/cygdrive/" + reportPath.replace(":", "");
                 videoPath = "/cygdrive/" + videoPath.replace(":", "");
+                outputDir = "/cygdrive/" + outputDir.replace(":", "");
             }
 
             var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
@@ -200,6 +205,8 @@ ColumnLayout {
                 opts += '-a 9 ';
             if(aspectRatiosSelector.currentIndex === 1)
                 opts += '-a c ';
+
+            opts += '-o ' + outputDir
 
             var output = '';
             return packagerCtl.exec(opts + " -x " + reportPath + " " + videoPath, (launcher) => {

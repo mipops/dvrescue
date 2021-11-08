@@ -16,6 +16,7 @@ Item {
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
     property int framesCount
+    property string packagingOutputPath: ""
 
     DropArea {
         id: dropArea;
@@ -130,12 +131,23 @@ Item {
                         var videoPath = filesModel.get(fileView.currentIndex).videoPath;
                         var reportPath = filesModel.get(fileView.currentIndex).reportPath;
 
-                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath);
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, packagingOutputPath);
                         promise.then(() => {
                             console.debug('packaging done');
                         }).catch((err) => {
                             console.error('packaging failed: ', err);
                         })
+                    }
+                }
+
+                Button {
+                    text: "Path"
+                    onClicked: {
+                        selectPath.callback = (selectedUrl) => {
+                            packagingOutputPath = FileUtils.getFilePath(selectedUrl)
+                        };
+
+                        selectPath.open()
                     }
                 }
             }
