@@ -778,7 +778,7 @@ else
 fi
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+    if [[ ! -s "${DVRESCUE_XML}" ]] ; then
         DVRESCUE_XML_TEMP="$(_maketemp)"
         OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
         XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
@@ -872,17 +872,17 @@ if [[ -f "${DVFILE}" ]] ; then
     #DVRESCUE_VERSION="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:creator[1]" -v "d:program[1]" -o "-" -v "d:version[1]" -o "(" -v "d:library[1]" -o "-" -v "d:library[1]/@version" -o ")" -n "${DVRESCUE_XML}")"
     #MUXER="Lavf${LAVFversion} + ${DVRESCUE_VERSION}"
     _report -d "The results will be written to ${SIDECAR_DIR}"
+    SEG_INPUT="1"
     SEG_OUTPUT="1"
     while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
-        if [[ "$(_check_if_in_list "${SEG_OUTPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
-            _report -d "Skipping part ${SEG_OUTPUT} as requested."
+        if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
+            _report -d "Skipping part ${SEG_INPUT} as requested."
             SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
             TOTAL_DVFRAMES_SKIPPED=$((TOTAL_DVFRAMES_SKIPPED+SKIPPED_DVFRAMES))
         else
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2 CHAPTER_PROCESS
-            PTS_START_FILENAME_SAFE="${PTS//:/-}"
-            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_${PTS_START_FILENAME_SAFE}.${EXTENSION}"
+            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
             #METADATA+=(-metadata "comment=${MUXER}")
             _report -v "Starting work on ${OUTPUT_FILE_BASENAME}."
@@ -1106,8 +1106,9 @@ if [[ -f "${DVFILE}" ]] ; then
                     _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                 fi
             fi
+            ((SEG_OUTPUT++))
         fi
-        ((SEG_OUTPUT++))
+        ((SEG_INPUT++))
     done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
                 _get_ranges
             else
