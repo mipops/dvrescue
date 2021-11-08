@@ -11,12 +11,15 @@ ELEMENTS=${#args[@]}
 
 for (( i=0;i<$ELEMENTS;i++)); do 
 	# echo "${args[${i}]}"
-	if [[ ${args[${i}]} == /cygdrive* ]]; then
+	if [[ ${args[${i}]} == *:/cygdrive* ]]; then
+		path=${args[${i}]%%:*}:$(cygpath -w ${args[${i}]#*:})
+		# echo "original path: ${args[${i}]}, updated path: $path"
+		args[${i}]=$path
+	elif [[ ${args[${i}]} == /cygdrive* ]]; then
 		path=$(cygpath -w ${args[${i}]})
 		# echo "original path: ${args[${i}]}, updated path: $path"
 		args[${i}]=$path
-	fi
-	if [[ ${args[${i}]} == /tmp* ]]; then
+	elif [[ ${args[${i}]} == /tmp* ]]; then
 		path=$(cygpath -w ${args[${i}]})
 		# echo "original path: ${args[${i}]}, updated path: $path"
 		args[${i}]=$path
