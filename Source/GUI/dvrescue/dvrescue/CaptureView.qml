@@ -46,21 +46,25 @@ Column {
             id: row
             CaptureViewControlButton {
                 id: rewindButton
+                icon.color: checked ? 'gray' : 'black'
                 icon.source: "icons/rewind.svg"
             }
 
             CaptureViewControlButton {
                 id: playButton
+                icon.color: checked ? 'gray' : 'black'
                 icon.source: "icons/play.svg"
             }
 
             CaptureViewControlButton {
                 id: stopButton
+                icon.color: checked ? 'gray' : 'black'
                 icon.source: "icons/stop.svg"
             }
 
             CaptureViewControlButton {
                 id: fastForwardButton
+                icon.color: checked ? 'gray' : 'black'
                 icon.source: "icons/fastforward.svg"
             }
         }
@@ -78,6 +82,7 @@ Column {
         CaptureViewControlButton {
             id: captureButton
             anchors.right: parent.right
+            icon.color: "transparent"
             icon.source: "icons/capture.svg"
         }
     }

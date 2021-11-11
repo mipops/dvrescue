@@ -15,7 +15,6 @@ Button {
 
     icon.width: width
     icon.height: height
-    icon.color: button.checked ? 'gray' : 'black'
 
     background: Rectangle {
         id: buttonBackground
