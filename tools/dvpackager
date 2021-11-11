@@ -276,6 +276,21 @@ _ranges_2_table(){
     echo
 }
 
+_ranges_2_output_table(){
+    # shows a pipe-delimited table of segment ranges, and adds a new column which predicted output filename.
+    RANGES="${1}"
+    SEG_INPUT="1"
+    SEG_OUTPUT="1"
+    while read RANGE_LINE ; do
+        if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
+            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
+            echo "${RANGE_LINE}|${OUTPUT_FILE}"
+            ((SEG_OUTPUT++))
+        fi
+        ((SEG_INPUT++))
+    done < <(echo "${RANGES}")
+}
+
 _condense_ranges(){
     # the inputs is pipe-delimited and in this order:
     # 1-2 start pts, end pts
@@ -696,9 +711,9 @@ if [[ "${SHOW_TABLE}" = "Y" ]] ; then
         exit 1
     fi
     if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-        _get_ranges -q
+        _ranges_2_output_table "$(_get_ranges -q)"
     else
-        _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)"
+        _ranges_2_output_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)")"
     fi
     exit
 fi
