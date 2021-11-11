@@ -289,6 +289,7 @@ ApplicationWindow {
 
     SpecifyPathDialog {
         id: specifyPathDialog
+        nameFilters: ["Video files (*.dv)"]
     }
 
     DevicesModel {
