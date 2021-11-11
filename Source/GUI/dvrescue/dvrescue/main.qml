@@ -153,7 +153,7 @@ ApplicationWindow {
                 });
             }
 
-            grabMouseArea.onClicked: {
+            captureButton.onClicked: {
                 specifyPathDialog.callback = (fileUrl) => {
                     var filePath = urlToPath(fileUrl);
 

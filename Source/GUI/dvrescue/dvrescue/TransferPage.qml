@@ -9,7 +9,7 @@ Rectangle {
     property alias playButton: captureView.playButton
     property alias stopButton: captureView.stopButton
     property alias rewindButton: captureView.rewindButton
-    property alias grabMouseArea: captureView.grabMouseArea
+    property alias captureButton: captureView.captureButton
     property alias deviceNameTextField: captureView.deviceNameTextField
     property alias statusText: captureView.statusText
     width: 1190

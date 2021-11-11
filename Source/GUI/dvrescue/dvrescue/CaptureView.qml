@@ -7,7 +7,7 @@ Column {
     property alias playButton: playButton
     property alias stopButton: stopButton
     property alias rewindButton: rewindButton
-    property alias grabMouseArea: grabMouseArea
+    property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
 
@@ -68,28 +68,17 @@ Column {
         Text {
             id: statusText
             anchors.left: row.right
-            anchors.right: text1.left
+            anchors.right: captureButton.left
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
             anchors.top: parent.top
             anchors.bottom: parent.bottom
         }
 
-        Text {
-            id: text1
-            text: qsTr("Capture")
+        CaptureViewControlButton {
+            id: captureButton
             anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            verticalAlignment: Text.AlignVCenter
-            font.pixelSize: 32
-            font.weight: Font.Bold
-            font.family: "Tahoma"
-
-            MouseArea {
-                id: grabMouseArea
-                anchors.fill: parent
-            }
+            icon.source: "icons/capture.svg"
         }
     }
 }
