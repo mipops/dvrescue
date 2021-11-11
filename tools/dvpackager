@@ -618,6 +618,40 @@ done
 shift "$((OPTIND-1))"
 DVFILE="${1}"
 shift
+BASENAME="$(basename "${DVFILE}")"
+if [[ -d "${OUTPUTDIR}" ]] ; then
+    SIDECAR_DIR="${OUTPUTDIR}"
+elif [[ -n "${OUTPUTDIR}" ]] ; then
+    _report -w "ERROR: ${OUTPUTDIR} is not a directory."
+    exit
+else
+    SIDECAR_DIR="$(dirname "${DVFILE}")"
+fi
+case "${EXT}" in
+    "mov")
+        FORMAT="mov"
+        EXTENSION="mov"
+        VIDEO_MAP=(-map 0:v:0)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        ;;
+    "mkv")
+        FORMAT="matroska"
+        EXTENSION="mkv"
+        VIDEO_MAP=(-map 0:v:0)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        ;;
+    "dv")
+        FORMAT="rawvideo"
+        EXTENSION="dv"
+        SUBS="N"
+        VIDEO_MAP=(-map 0:v:0)
+        ;;
+    *)
+        _report -w "Error: ${EXT} is an invalid extension option."
+        _usage
+        exit 1
+        ;;
+esac
 if [[ "${UNPACKAGER}" != "Y" && "${@}" != "" ]] ; then
     _report -w "Error: there are additional unused arguments (${*}). Please reference the DV file last."
     _usage
@@ -739,43 +773,9 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     exit
 fi
 
-case "${EXT}" in
-    "mov")
-        FORMAT="mov"
-        EXTENSION="mov"
-        VIDEO_MAP=(-map 0:v:0)
-        OPT_OUTPUT+=(-c:a pcm_s16le)
-        ;;
-    "mkv")
-        FORMAT="matroska"
-        EXTENSION="mkv"
-        VIDEO_MAP=(-map 0:v:0)
-        OPT_OUTPUT+=(-c:a pcm_s16le)
-        ;;
-    "dv")
-        FORMAT="rawvideo"
-        EXTENSION="dv"
-        SUBS="N"
-        VIDEO_MAP=(-map 0:v:0)
-        ;;
-    *)
-        _report -w "Error: ${EXT} is an invalid extension option."
-        _usage
-        exit 1
-        ;;
-esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 unset OUTPUTOPTS
-BASENAME="$(basename "${DVFILE}")"
-if [[ -d "${OUTPUTDIR}" ]] ; then
-    SIDECAR_DIR="${OUTPUTDIR}"
-elif [[ -n "${OUTPUTDIR}" ]] ; then
-    _report -w "ERROR: ${OUTPUTDIR} is not a directory."
-    exit
-else
-    SIDECAR_DIR="$(dirname "${DVFILE}")"
-fi
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     if [[ ! -s "${DVRESCUE_XML}" ]] ; then
