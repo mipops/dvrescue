@@ -44,46 +44,46 @@ Column {
 
         Row {
             id: row
-            CaptureViewControlButton {
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
                 id: rewindButton
-                icon.color: checked ? 'gray' : 'black'
+                icon.color: 'transparent'
                 icon.source: "icons/rewind.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: playButton
-                icon.color: checked ? 'gray' : 'black'
+                icon.color: 'transparent'
                 icon.source: "icons/play.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: stopButton
-                icon.color: checked ? 'gray' : 'black'
+                icon.color: 'transparent'
                 icon.source: "icons/stop.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: fastForwardButton
-                icon.color: checked ? 'gray' : 'black'
+                icon.color: 'transparent'
                 icon.source: "icons/fastforward.svg"
+            }
+            Button {
+                id: captureButton
+                icon.color: "transparent"
+                icon.source: "icons/capture.svg"
             }
         }
 
         Text {
             id: statusText
             anchors.left: row.right
-            anchors.right: captureButton.left
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
+            anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-        }
-
-        CaptureViewControlButton {
-            id: captureButton
-            anchors.right: parent.right
-            icon.color: "transparent"
-            icon.source: "icons/capture.svg"
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
         }
     }
 }

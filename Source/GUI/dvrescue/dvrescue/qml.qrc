@@ -83,7 +83,6 @@
         <file>PathResolver.qml</file>
         <file>ToolsDialog.qml</file>
         <file>ValidatedTextField.qml</file>
-        <file>CaptureViewControlButton.qml</file>
         <file>SegmentDataParser.qml</file>
         <file>SegmentDataView.qml</file>
         <file>TableModelEx.qml</file>
