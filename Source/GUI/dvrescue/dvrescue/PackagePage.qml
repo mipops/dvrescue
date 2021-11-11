@@ -16,7 +16,6 @@ Item {
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
     property int framesCount
-    property string packagingOutputPath: ""
 
     DropArea {
         id: dropArea;
@@ -69,12 +68,16 @@ Item {
         }
     }
 
-    SelectPathDialog {
-        id: selectPath
-        selectMultiple: true
-        nameFilters: [
-            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
-        ]
+    FolderDialog {
+        id: selectFolderDialog
+        property var callback;
+
+        onAccepted: {
+            var folderUrl = selectFolderDialog.currentFolder;
+            console.debug('selected folder: ', folderUrl);
+            if(callback)
+                callback(folderUrl);
+        }
     }
 
     RowLayout {
@@ -119,6 +122,10 @@ Item {
             height: addFiles.height
             color: 'white'
 
+            ButtonGroup {
+                buttons: [packageIntoSameFolder, specifyPath]
+            }
+
             RowLayout {
                 id: settingsRow
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -130,6 +137,7 @@ Item {
                     onClicked: {
                         var videoPath = filesModel.get(fileView.currentIndex).videoPath;
                         var reportPath = filesModel.get(fileView.currentIndex).reportPath;
+                        var packagingOutputPath = packageIntoSameFolder.checked ? FileUtils.getFileDir(videoPath) : customPackagingPath.text
 
                         var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, packagingOutputPath);
                         promise.then(() => {
@@ -140,14 +148,33 @@ Item {
                     }
                 }
 
-                Button {
-                    text: "Path"
+                RadioButton {
+                    id: packageIntoSameFolder
+                    text: "Package into same folder"
+                    checked: true
+                }
+
+                RadioButton {
+                    id: specifyPath
+                    text: "Specify path"
+                }
+
+                TextField {
+                    enabled: specifyPath.checked
+                    id: customPackagingPath
+                    placeholderText: "path..."
+                    Layout.minimumWidth: 200
+                }
+
+                ToolButton {
+                    enabled: specifyPath.checked
+                    text: "..."
                     onClicked: {
-                        selectPath.callback = (selectedUrl) => {
-                            packagingOutputPath = FileUtils.getFilePath(selectedUrl)
+                        selectFolderDialog.callback = (selectedUrl) => {
+                            customPackagingPath.text = FileUtils.getFilePath(selectedUrl)
                         };
 
-                        selectPath.open()
+                        selectFolderDialog.open()
                     }
                 }
             }
