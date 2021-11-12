@@ -50,6 +50,7 @@ Options:
              instance "-N '1,3'" would output the 2nd segment and any segment
              after the 3rd. Use "-n" to list the segments by number.)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
+ -z       (disable colored terminal output)
 
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
@@ -582,7 +583,11 @@ _report(){
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
     if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
-        >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        if [[ "${DISABLE_COLORED_LOGGING}" = "Y" ]] ; then
+            >&2 echo ${ECHOOPT} "${STARTMESSAGE[@]}${MESSAGE}"
+        else
+            >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        fi
     fi
 }
 
@@ -599,7 +604,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnN:vuhF:M:D:X:x:V:C:3a:T" opt ; do
+while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -614,6 +619,7 @@ while getopts ":fsdto:e:l:L:mSnN:vuhF:M:D:X:x:V:C:3a:T" opt ; do
         N) SEGMENT_SKIPS="${OPTARG}" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
+        z) DISABLE_COLORED_LOGGING="Y" ;;
         u) UNPACKAGER="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
         M) MEDIAINFO_PATH="${OPTARG}" ;;
