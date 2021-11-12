@@ -12,6 +12,9 @@ Rectangle {
     property alias captureButton: captureView.captureButton
     property alias deviceNameTextField: captureView.deviceNameTextField
     property alias statusText: captureView.statusText
+    property alias playbackBuffer: captureView.playbackBuffer
+    property alias player: captureView.player
+
     width: 1190
     height: 768
 

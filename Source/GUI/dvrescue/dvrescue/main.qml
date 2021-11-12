@@ -215,7 +215,8 @@ ApplicationWindow {
                     var filePath = urlToPath(fileUrl);
 
                     pendingAction = true;
-                    dvrescue.grab(0, filePath, (launcher) => {
+                    player.play()
+                    dvrescue.grab(0, filePath, playbackBuffer, (launcher) => {
                        launcher.errorChanged.connect((errorBytes) => {
                            console.debug('grabbed errorString: ', errorBytes)
                            var errorString = '' + errorBytes;

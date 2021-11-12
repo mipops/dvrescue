@@ -219,7 +219,7 @@ QUrl MediaPlayer::source() const
 void MediaPlayer::setSource(const QUrl &newSource)
 {
     qDebug() << "new source: " << newSource;
-    player->setSource(newSource);
+    player->setSource(newSource.toString());
 }
 
 void MediaPlayer::classBegin()
@@ -243,4 +243,18 @@ void MediaPlayer::setRanges(const QVector2D &newRanges)
         return;
     m_ranges = newRanges;
     Q_EMIT rangesChanged();
+}
+
+QIODevice* MediaPlayer::buffer() const
+{
+    return m_buffer;
+}
+
+void MediaPlayer::setBuffer(QIODevice* newBuffer)
+{
+    if (m_buffer == newBuffer)
+        return;
+    m_buffer = newBuffer;
+    player->setSource("dummy", m_buffer);
+    Q_EMIT bufferChanged();
 }

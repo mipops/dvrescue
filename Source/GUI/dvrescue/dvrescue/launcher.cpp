@@ -22,14 +22,14 @@ Launcher::Launcher(QObject *parent) : QObject(parent)
     connect(m_process, &QProcess::readyReadStandardOutput, [&] {
         QByteArray output = m_process->readAllStandardOutput();
 
-        qDebug() << "output changed at thead " << QThread::currentThread() << ": " << output;
+        // qDebug() << "output changed at thead " << QThread::currentThread() << ": " << output;
         Q_EMIT outputChanged(output);
     });
 
     connect(m_process, &QProcess::readyReadStandardError, [&] {
         QByteArray output = m_process->readAllStandardError();
 
-        qDebug() << "error changed " << QThread::currentThread() << ": " << output;
+        // qDebug() << "error changed " << QThread::currentThread() << ": " << output;
         Q_EMIT errorChanged(output);
     });
 

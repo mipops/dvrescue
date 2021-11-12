@@ -1,6 +1,9 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
+import QtMultimedia 5.12 as QtMultimedia
+import MediaPlayer 1.0
+import MediaPlayerBuffer 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -10,6 +13,8 @@ Column {
     property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
+    property alias playbackBuffer: player.buffer
+    property alias player: player
 
     Rectangle {
         width: 640
@@ -36,6 +41,33 @@ Column {
         sourceSize.height: 640
         sourceSize.width: 480
         fillMode: Image.PreserveAspectFit
+
+        QtMultimedia.VideoOutput {
+            id: videoOutput
+            anchors.fill: parent
+            objectName: "videoOutput"
+        }
+
+        MediaPlayerBuffer {
+            id: buffer
+        }
+
+        MediaPlayer {
+            id: player
+            videoOutput: videoOutput
+            buffer: buffer
+
+            Component.onCompleted: {
+                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+
+                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+            }
+        }
     }
 
     Rectangle {
