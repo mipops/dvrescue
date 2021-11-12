@@ -50,6 +50,7 @@ Options:
              instance "-N '1,3'" would output the 2nd segment and any segment
              after the 3rd. Use "-n" to list the segments by number.)
  -v       (shows ffmpeg stderr output, otherwise this is hidden)
+ -z       (disable colored terminal output)
 
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
@@ -274,6 +275,21 @@ _ranges_2_table(){
         ((SEG_PART++))
     done < <(echo "${RANGES}")
     echo
+}
+
+_ranges_2_output_table(){
+    # shows a pipe-delimited table of segment ranges, and adds a new column which predicted output filename.
+    RANGES="${1}"
+    SEG_INPUT="1"
+    SEG_OUTPUT="1"
+    while read RANGE_LINE ; do
+        if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
+            OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
+            echo "${RANGE_LINE}|${OUTPUT_FILE}"
+            ((SEG_OUTPUT++))
+        fi
+        ((SEG_INPUT++))
+    done < <(echo "${RANGES}")
 }
 
 _condense_ranges(){
@@ -567,7 +583,11 @@ _report(){
     shift "$((OPTIND-1))"
     MESSAGE="${1}"
     if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
-        >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        if [[ "${DISABLE_COLORED_LOGGING}" = "Y" ]] ; then
+            >&2 echo ${ECHOOPT} "${STARTMESSAGE[@]}${MESSAGE}"
+        else
+            >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        fi
     fi
 }
 
@@ -584,7 +604,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnN:vuhF:M:D:X:x:V:C:3a:T" opt ; do
+while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -599,6 +619,7 @@ while getopts ":fsdto:e:l:L:mSnN:vuhF:M:D:X:x:V:C:3a:T" opt ; do
         N) SEGMENT_SKIPS="${OPTARG}" ;;
         S) SUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
+        z) DISABLE_COLORED_LOGGING="Y" ;;
         u) UNPACKAGER="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
         M) MEDIAINFO_PATH="${OPTARG}" ;;
@@ -618,6 +639,40 @@ done
 shift "$((OPTIND-1))"
 DVFILE="${1}"
 shift
+BASENAME="$(basename "${DVFILE}")"
+if [[ -d "${OUTPUTDIR}" ]] ; then
+    SIDECAR_DIR="${OUTPUTDIR}"
+elif [[ -n "${OUTPUTDIR}" ]] ; then
+    _report -w "ERROR: ${OUTPUTDIR} is not a directory."
+    exit
+else
+    SIDECAR_DIR="$(dirname "${DVFILE}")"
+fi
+case "${EXT}" in
+    "mov")
+        FORMAT="mov"
+        EXTENSION="mov"
+        VIDEO_MAP=(-map 0:v:0)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        ;;
+    "mkv")
+        FORMAT="matroska"
+        EXTENSION="mkv"
+        VIDEO_MAP=(-map 0:v:0)
+        OPT_OUTPUT+=(-c:a pcm_s16le)
+        ;;
+    "dv")
+        FORMAT="rawvideo"
+        EXTENSION="dv"
+        SUBS="N"
+        VIDEO_MAP=(-map 0:v:0)
+        ;;
+    *)
+        _report -w "Error: ${EXT} is an invalid extension option."
+        _usage
+        exit 1
+        ;;
+esac
 if [[ "${UNPACKAGER}" != "Y" && "${@}" != "" ]] ; then
     _report -w "Error: there are additional unused arguments (${*}). Please reference the DV file last."
     _usage
@@ -662,9 +717,9 @@ if [[ "${SHOW_TABLE}" = "Y" ]] ; then
         exit 1
     fi
     if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-        _get_ranges -q
+        _ranges_2_output_table "$(_get_ranges -q)"
     else
-        _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)"
+        _ranges_2_output_table "$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges -q)")"
     fi
     exit
 fi
@@ -739,43 +794,9 @@ if [[ "${UNPACKAGER}" == "Y" ]] ; then
     exit
 fi
 
-case "${EXT}" in
-    "mov")
-        FORMAT="mov"
-        EXTENSION="mov"
-        VIDEO_MAP=(-map 0:v:0)
-        OPT_OUTPUT+=(-c:a pcm_s16le)
-        ;;
-    "mkv")
-        FORMAT="matroska"
-        EXTENSION="mkv"
-        VIDEO_MAP=(-map 0:v:0)
-        OPT_OUTPUT+=(-c:a pcm_s16le)
-        ;;
-    "dv")
-        FORMAT="rawvideo"
-        EXTENSION="dv"
-        SUBS="N"
-        VIDEO_MAP=(-map 0:v:0)
-        ;;
-    *)
-        _report -w "Error: ${EXT} is an invalid extension option."
-        _usage
-        exit 1
-        ;;
-esac
 OPT_OUTPUT+=(-f "$FORMAT")
 
 unset OUTPUTOPTS
-BASENAME="$(basename "${DVFILE}")"
-if [[ -d "${OUTPUTDIR}" ]] ; then
-    SIDECAR_DIR="${OUTPUTDIR}"
-elif [[ -n "${OUTPUTDIR}" ]] ; then
-    _report -w "ERROR: ${OUTPUTDIR} is not a directory."
-    exit
-else
-    SIDECAR_DIR="$(dirname "${DVFILE}")"
-fi
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     if [[ ! -s "${DVRESCUE_XML}" ]] ; then
