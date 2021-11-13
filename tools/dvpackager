@@ -467,7 +467,7 @@ _duration_from_pts_range(){
 _count_dv_frames(){
     if [[ -f "${MEDIAINFO_PATH}" ]] ; then
         INPUT_FILE="${1}"
-        "${MEDIAINFO_PATH}" -f --inform="Video;%FrameCount%" "${INPUT_FILE}" | head -n 1
+        "${MEDIAINFO_PATH}" -f --inform="Video;%FrameCount%" "${INPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}'
     else
         _report -w "Warning: Missing mediainfo, dvpackager can still package but some verification checks can not run."
     fi
