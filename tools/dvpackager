@@ -86,7 +86,7 @@ Options:
 
  dvpackager -s INPUT.dv
 
- will read INPUT.dv and rewrap those dv frames into an output file while making
+ will read -r INPUT.dv and rewrap those dv frames into an output file while making
  one new output file whenever there is a change in significant technical
  characteristics or frames with recording-start flags.
 
@@ -266,7 +266,7 @@ _ranges_2_table(){
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
     echo "  # | PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
     SEG_PART="1"
-    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
         SEG2EXPORT="$(_check_if_in_list "${SEG_PART}" "${SEGMENT_SKIPS}")"
         awk -v SEG_PART="${SEG_PART}" -v SEG2EXPORT="${SEG2EXPORT}" -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
@@ -282,7 +282,7 @@ _ranges_2_output_table(){
     RANGES="${1}"
     SEG_INPUT="1"
     SEG_OUTPUT="1"
-    while read RANGE_LINE ; do
+    while read -r RANGE_LINE ; do
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
             echo "${RANGE_LINE}|${OUTPUT_FILE}"
@@ -394,7 +394,7 @@ _condense_ranges(){
     unset ASPECT_FLIP
     COUNT_43="0"
     COUNT_169="0"
-    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         if [[ -z "${PTS_FIRST}" ]] ; then
             _set_first
             _set_prev
@@ -525,7 +525,7 @@ _make_chapter_metadata_file(){
     _report -v "Found ${CHAPTER_SET_COUNT} point(s) for chapter marks."
     if [[ "${CHAPTER_SET_COUNT}" -gt 1 ]] ; then
         echo ";FFMETADATA1"
-        while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
+        while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
              START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
              END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
              START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
@@ -895,7 +895,7 @@ if [[ -f "${DVFILE}" ]] ; then
     _report -d "The results will be written to ${SIDECAR_DIR}"
     SEG_INPUT="1"
     SEG_OUTPUT="1"
-    while IFS="|" read PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
             _report -d "Skipping part ${SEG_INPUT} as requested."
             SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
@@ -968,7 +968,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa PKT_POS_LASTa ; do
+                    while IFS="|" read -r PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa PKT_POS_LASTa ; do
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
