@@ -17,6 +17,21 @@ Item {
     property alias recentFilesModel: recentsPopup.filesModel
     property int framesCount
 
+    property string videoPath: fileView.currentIndex !== -1 ? filesModel.get(fileView.currentIndex).videoPath : null
+    onVideoPathChanged: {
+        console.debug('root: videoPath = ', videoPath)
+    }
+
+    property string outputPath: packageIntoSameFolder.checked ? (videoPath ? FileUtils.getFileDir(videoPath) : null) : customPackagingPath.text
+    onOutputPathChanged: {
+        console.debug('root: outputPath = ', outputPath)
+    }
+
+    property string reportPath: fileView.currentIndex !== -1 ? filesModel.get(fileView.currentIndex).reportPath : null
+    onReportPathChanged: {
+        console.debug('root: reportPath = ', reportPath)
+    }
+
     DropArea {
         id: dropArea;
         anchors.fill: parent
@@ -90,6 +105,18 @@ Item {
         }
     }
 
+    function toNativePath(path) {
+        if(Qt.platform.os === "windows") {
+           var cygwinPath = path;
+           var splittedWinPath = cygwinPath.replace('/cygdrive/', '').split('/')
+           if(splittedWinPath.length !== 0) {
+             splittedWinPath[0] = splittedWinPath[0] + ':'
+             path = splittedWinPath.join('\\')
+           }
+        }
+        return path;
+    }
+
     RowLayout {
         id: toolsLayout
 
@@ -145,11 +172,30 @@ Item {
                     text: "Package"
                     height: parent.height
                     onClicked: {
-                        var videoPath = filesModel.get(fileView.currentIndex).videoPath;
-                        var reportPath = filesModel.get(fileView.currentIndex).reportPath;
-                        var packagingOutputPath = packageIntoSameFolder.checked ? FileUtils.getFileDir(videoPath) : customPackagingPath.text
+                        for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
+                            packageOutputFileView.updatePackagingStatus(i, "queued");
+                        }
 
-                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, packagingOutputPath);
+                        var packagingPath = ''
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, (o) => {
+                            var splitted = String(o).split('\n');
+                            for(var i = 0; i < splitted.length; ++i) {
+                                var value = splitted[i];
+                                console.debug('value:', value);
+
+                                if(value.startsWith('### Packaging started: ')) {
+                                    var path = root.toNativePath(value.replace('### Packaging started: ', ''));
+                                    packagingPath = path;
+                                    packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
+                                } else if(value.startsWith('### Packaging finished: ')) {
+                                    var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
+                                    packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
+                                } else if(value.startsWith('### Packaging error: ')) {
+                                    var error = root.toNativePath(value.replace('### Packaging error: ', ''));
+                                    packageOutputFileView.updatePackagingErrorByPath(path, 'error');
+                                }
+                            }
+                        });
                         promise.then(() => {
                             console.debug('packaging done');
                         }).catch((err) => {
@@ -212,16 +258,29 @@ Item {
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
             height: parent.height / 3
-            framesCount: framesCount
-            reportPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).reportPath : null
+            framesCount: root.framesCount
+            reportPath: root.reportPath
             onReportPathChanged: {
-                populateSegmentData()
+                console.debug('reportPath changed: ', reportPath)
+                // need to execute it after outputPath updated
+                Qt.callLater(() => { segmentDataView.populateSegmentData(reportPath, videoPath, outputPath) })
+            }
+
+            videoPath: root.videoPath
+            onVideoPathChanged: {
+                console.debug('videoPath changed: ', videoPath)
+            }
+
+            outputPath: root.outputPath
+            onOutputPathChanged: {
+                console.debug('outputPath changed: ', outputPath)
             }
 
             onPopulated: {
                 packageOutputFileView.dataModel.clear();
                 for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
-                    packageOutputFileView.newRow(segmentDataView.model.getRow(i)['Segment #'])
+                    var row = segmentDataView.model.getRow(i)
+                    packageOutputFileView.newRow(row['FileName'])
                 }
             }
         }
@@ -229,6 +288,35 @@ Item {
         PackageOutputFileView {
             id: packageOutputFileView
             height: parent.height / 3
+
+            function updatePackagingErrorByPath(path, error) {
+                updatePropertyByPath(path, 'Error', error)
+            }
+
+            function updatePackagingStatusByPath(path, status) {
+                updatePropertyByPath(path, 'Status', status)
+            }
+
+            function updatePackagingStatus(index, status) {
+                updateProperty(index, 'Status', status)
+            }
+
+            function updatePropertyByPath(path, propertyName, value) {
+                for(var j = 0; j < dataModel.rowCount; ++j) {
+                    var row = dataModel.getRow(j)
+                    if((row['File Path']) === path) {
+                        updateProperty(j, propertyName, value)
+                        break;
+                    }
+                }
+            }
+
+            function updateProperty(index, propertyName, value) {
+                var rowData = dataModel.getRow(index)
+                var newRowData = JSON.parse(JSON.stringify(rowData))
+                newRowData[propertyName] = value
+                dataModel.setRow(index, newRowData)
+            }
         }
     }
 }

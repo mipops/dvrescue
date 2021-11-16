@@ -16,6 +16,7 @@ Rectangle {
 
     readonly property string filePathColumn: "File Path"
     readonly property string statusColumn: "Status"
+    readonly property string errorColumn: "Error"
 
     function forceLayout() {
         tableView.forceLayout();
@@ -32,6 +33,7 @@ Rectangle {
         var rowEntry = {}
         rowEntry[filePathColumn] = path
         rowEntry[statusColumn] = "not exported"
+        rowEntry[errorColumn] = ""
 
         dataModel.appendRow(rowEntry)
     }

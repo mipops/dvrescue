@@ -24,9 +24,8 @@ ColumnLayout {
     signal populated()
 
     property string reportPath
-    function populateSegmentData(rp) {
-        segmentDataView.populateSegmentData(rp ? rp : reportPath)
-    }
+    property string videoPath
+    property string outputPath
 
     Rectangle {
         color: 'white'
@@ -129,7 +128,7 @@ ColumnLayout {
                 enabled: segmentationOptionsLayout.needsApply
                 text: "Apply"
                 onClicked: {
-                    segmentDataView.populateSegmentData(reportPath)
+                    segmentDataView.populateSegmentData(reportPath, videoPath, outputPath)
                     segmentationOptionsLayout.needsApply = false
                 }
             }
@@ -169,7 +168,7 @@ ColumnLayout {
             id: segmentDataParser
         }
 
-        function packaging(reportPath, videoPath, outputDir) {
+        function packaging(reportPath, videoPath, outputDir, onOutputChanged) {
 
             if(outputDir === '') {
                 outputDir = FileUtils.getFileDir(reportPath);
@@ -181,13 +180,15 @@ ColumnLayout {
                 outputDir = "/cygdrive/" + outputDir.replace(":", "");
             }
 
+            console.debug('packaging: reportPath = ', reportPath, 'videoPath = ', videoPath, 'outputDir = ', outputDir)
+
             var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
             .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
             .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
             .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
             .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
 
-            var opts = ' ';
+            var opts = '-z ';
             if(recordingStartMarkers.checked)
                 opts += '-s '
             if(breaksInRecordingTime.checked)
@@ -206,16 +207,20 @@ ColumnLayout {
             if(aspectRatiosSelector.currentIndex === 1)
                 opts += '-a c ';
 
-            opts += '-o ' + outputDir
+            opts += '-o ' + outputDir + ' '
 
             var output = '';
             return packagerCtl.exec(opts + " -x " + reportPath + " " + videoPath, (launcher) => {
                                  debugView.logCommand(launcher)
                                  launcher.outputChanged.connect((outputString) => {
+                                                                    if(onOutputChanged)
+                                                                        onOutputChanged(outputString);
                                                                     output += outputString;
                                                                 })
 
                                  launcher.errorChanged.connect((errorString) => {
+                                                                    if(onOutputChanged)
+                                                                        onOutputChanged(errorString);
                                                                     debugView.logResult(errorString);
                                                                })
                              }, extraParams).then(() => {
@@ -224,19 +229,17 @@ ColumnLayout {
                                                   });
         }
 
-        function populateSegmentData(reportPath) {
+        function populateSegmentData(reportPath, videoPath, outputPath) {
+            console.debug('populateSegmentData: reportPath = ', reportPath, 'outputPath = ', outputPath)
+
             segmentDataView.model.clear();
 
-            var path = reportPath
             if(Qt.platform.os === "windows") {
-                path = "/cygdrive/" + path.replace(":", "");
+                reportPath = "/cygdrive/" + reportPath.replace(":", "");
+                videoPath = "/cygdrive/" + videoPath.replace(":", "");
             }
 
-            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-            .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-            .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-            .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-            .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+            var extraParams = " -v -X {xml}".replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
 
             var opts = ' ';
             if(recordingStartMarkers.checked)
@@ -257,8 +260,15 @@ ColumnLayout {
             if(aspectRatiosSelector.currentIndex === 1)
                 opts += '-a c ';
 
+            if(outputPath) {
+                if(Qt.platform.os === "windows") {
+                    outputPath = "/cygdrive/" + outputPath.replace(":", "");
+                }
+                opts += '-o ' + outputPath + ' '
+            }
+
             var output = '';
-            packagerCtl.exec("-T" + opts + path, (launcher) => {
+            packagerCtl.exec(opts + '-T' + ' ' + reportPath + ' ' + videoPath, (launcher) => {
                                  debugView.logCommand(launcher)
                                  launcher.outputChanged.connect((outputString) => {
                                                                     output += outputString;
@@ -290,7 +300,17 @@ ColumnLayout {
                                                                                       'Recording Time' : entry.recTimestamp,
                                                                                       'Recording Time: Jump/Repeat' : Qt.point(entry.recTimeJump, 0),
                                                                                       'Recording Marks' : Qt.point(entry.recStart, 0),
-                                                                                      'Video/Audio' : videoAudio.join(' ')
+                                                                                      'Video/Audio' : videoAudio.join(' '),
+                                                                                      'FileName' : entry.segmentFileName ? entry.segmentFileName : i
+                                                                                  }
+
+                                                                                  if(Qt.platform.os === "windows") {
+                                                                                      var cygwinPath = e.FileName;
+                                                                                      var splittedWinPath = cygwinPath.replace('/cygdrive/', '').split('/')
+                                                                                      if(splittedWinPath.length !== 0) {
+                                                                                        splittedWinPath[0] = splittedWinPath[0] + ':'
+                                                                                        e.FileName = splittedWinPath.join('\\')
+                                                                                      }
                                                                                   }
 
                                                                                   segmentDataView.model.appendRow(e);

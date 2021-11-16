@@ -324,7 +324,7 @@ Item {
                                 refreshTimer.start();
                                 dataModel.populate(dvRescueXmlPath);
 
-                                segmentDataViewWithToolbar.populateSegmentData(dvRescueXmlPath)
+                                segmentDataViewWithToolbar.segmentDataView.populateSegmentData(dvRescueXmlPath, filePath)
                             } else {
                                 busy.running = true;
                                 dvrescue.makeReport(filePath).then(() => {
@@ -339,7 +339,7 @@ Item {
                                                                            mediaInfo.reportPath = dvRescueXmlPath;
                                                                            mediaInfo.resolve();
 
-                                                                           segmentDataViewWithToolbar.populateSegmentData(mediaInfo.reportPath)
+                                                                           segmentDataViewWithToolbar.segmentDataView.populateSegmentData(mediaInfo.reportPath, mediaInfo.videoPath)
                                                                        }
                                                                    }).catch((error) => {
                                                                         busy.running = false;
@@ -379,6 +379,7 @@ Item {
                         id: segmentDataViewWithToolbar
                         framesCount: root.framesCount
                         reportPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).reportPath : null
+                        videoPath: fileView.currentIndex !== -1 ? fileView.mediaInfoAt(fileView.currentIndex).videoPath : null
 
                         segmentDataView.onClicked: {
                             console.debug('clicked: ', index, JSON.stringify(item));
