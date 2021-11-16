@@ -70,7 +70,10 @@ __Check for Device via QuickTime__
 * In the viewer that opens, click on the arrow next to the red record button.
 * See if your device is listed in the menu that opens.
 
-If your device does not show up in QuickTime, you should also try the restart steps below, but will likely need to move on to the connections troubleshooting section as well. 
+If your device does not show up in QuickTime, you should also try the restart steps below, but will likely need to move on to the connections troubleshooting section as well.
+
+__Check for Device via DVGrab (Linux)__
+On computers running flavors of Linux the command line program can be used to test your deck connection. This program can be installed via package managers (for example with `sudo apt install dvgrab` on Ubuntu). Once installed, running the command `dvgrab` in a terminal should trigger DVGrab to attempt a capture from detected deck. If this is unsuccessful you will need to move on to additional troubleshooting steps below.
 
 __Restart__
 * Turn off the deck and restart your computer.
