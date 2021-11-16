@@ -29,7 +29,7 @@ Item {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
                                       var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                      fileView.add(filePath)
+                                      filesModel.add(filePath)
                                   })
             }
 
@@ -59,6 +59,16 @@ Item {
         visible: running
         running: false
         anchors.centerIn: parent
+    }
+
+    SelectPathDialog {
+        id: selectPath
+        selectMultiple: true
+        nameFilters: [
+            "Report and video files (*.dvrescue.xml *.mov *.mkv *.avi *.dv *.mxf)",
+            "Report files (*.dvrescue.xml)",
+            "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
+        ]
     }
 
     RecentsPopup {
