@@ -17,7 +17,6 @@ Instantiator {
     readonly property string formatColumn: "Format"
     readonly property string fileSizeColumn: "File Size"
     readonly property string frameCountColumn: "Frame Count"
-    readonly property string countOfFrameSequencesColumn: "Count of Frame Sequences"
     readonly property string firstTimecodeColumn: "First Timecode"
     readonly property string lastTimecodeColumn: "Last Timecode"
     readonly property string firstRecordingTimeColumn: "First Recording Time"
@@ -62,9 +61,6 @@ Instantiator {
         }
         onFrameCountChanged: {
             editRow(index, frameCountColumn, frameCount)
-        }
-        onCountOfFrameSequencesChanged: {
-            editRow(index, countOfFrameSequencesColumn, countOfFrameSequences)
         }
         onFirstTimeCodeChanged: {
             editRow(index, firstTimecodeColumn, firstTimeCode)

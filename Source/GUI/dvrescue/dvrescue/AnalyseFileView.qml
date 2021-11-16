@@ -29,7 +29,6 @@ Rectangle {
     readonly property string formatColumn: "Format"
     readonly property string fileSizeColumn: "File Size"
     readonly property string frameCountColumn: "Frame Count"
-    readonly property string countOfFrameSequencesColumn: "Count of Frame Sequences"
     readonly property string firstTimecodeColumn: "First Timecode"
     readonly property string lastTimecodeColumn: "Last Timecode"
     readonly property string firstRecordingTimeColumn: "First Recording Time"
@@ -101,7 +100,6 @@ Rectangle {
         rowEntry[formatColumn] = " "
         rowEntry[fileSizeColumn] = " "
         rowEntry[frameCountColumn] = " "
-        rowEntry[countOfFrameSequencesColumn] = " "
         rowEntry[firstTimecodeColumn] = " "
         rowEntry[lastTimecodeColumn] = " "
         rowEntry[firstRecordingTimeColumn] = " "
@@ -502,12 +500,6 @@ Rectangle {
 
         TableModelColumn {
             display: "Frame Count"
-            decoration: "Progress"
-            property int minWidth: 40
-        }
-
-        TableModelColumn {
-            display: "Count of Frame Sequences"
             decoration: "Progress"
             property int minWidth: 40
         }
