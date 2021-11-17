@@ -907,7 +907,7 @@ if [[ -f "${DVFILE}" ]] ; then
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
             #METADATA+=(-metadata "comment=${MUXER}")
-            _report -d "### Packaging started: ${OUTPUT_FILE}."
+            _report -d "### Packaging started: ${OUTPUT_FILE}"
             if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
                 if [[ "${MOV_FIRST_FRAME_CHECK}" == "0" ]] ; then
                     _report -d "Noting that the first few frames use uneven timestamps [$MOV_PTS_TIME_0,$MOV_PTS_TIME_1,$MOV_PTS_TIME_2]"
