@@ -285,7 +285,7 @@ _ranges_2_output_table(){
     while read -r RANGE_LINE ; do
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
-            echo "${RANGE_LINE}|${OUTPUT_FILE}"
+            echo "${RANGE_LINE//[$'\t\r\n ']}|${OUTPUT_FILE}"
             ((SEG_OUTPUT++))
         fi
         ((SEG_INPUT++))
@@ -1110,7 +1110,8 @@ if [[ -f "${DVFILE}" ]] ; then
             else
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     # quick track duration check on the result
-                    PACKAGED_DVFRAMES="$(_count_dv_frames "${OUTPUT_FILE}")"
+                    PACKAGED_DVFRAMES_temp="$(_count_dv_frames "${OUTPUT_FILE}")"
+                    PACKAGED_DVFRAMES="${PACKAGED_DVFRAMES_temp//[$'\t\r\n ']}"
                     TOTAL_DVFRAMES_PACKAGED=$((TOTAL_DVFRAMES_PACKAGED+PACKAGED_DVFRAMES))
                     AUD_STREAM_COUNT="$("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}')"
                     _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
