@@ -903,6 +903,8 @@ if [[ -f "${DVFILE}" ]] ; then
         else
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2 CHAPTER_PROCESS
+            APAD_NOTICE="0"
+            OUTPUT_MISSING="0"
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
             #METADATA+=(-metadata "comment=${MUXER}")
@@ -946,6 +948,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     if [[ "${LAST_FRAME_NO_AUDIO}" != "0" ]] ; then
                         APAD=",apad=whole_dur=${DURATION_SECS}"
                         _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
+                        APAD_NOTICE="1"
                     fi
                     _report -v "Prepping a mapping for ${CH} channel input (${MONO_CHANNELS})."
                     if [[ "${CH}" = "2" ]] ; then
@@ -999,11 +1002,13 @@ if [[ -f "${DVFILE}" ]] ; then
                         if [[ "${LAST_FRAME_NO_AUDIOa}" != "0" ]] ; then
                             APADa=",apad=whole_dur=${DURATION_SECSa}"
                             _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via dvrescue)."
+                            APAD_NOTICE="1"
                         else
                             FFMPEG_AUDIO_QUERY_END="$(_check_audio_by_ffmpeg_subfile "${LAST_FRAME_SUBFILE[@]}")"
                             if [[ "${FFMPEG_AUDIO_QUERY_END}" = "0" ]] ; then
                                 APADa=",apad=whole_dur=${DURATION_SECSa}"
                                 _report -d "FYI: Padding a little silence near ${END_PTSa} for ${OUTPUT_FILE_BASENAME} since a source portion ends with frames missing audio (via ffmpeg)."
+                                APAD_NOTICE="1"
                             fi
                         fi
                         AUDIO_CONCAT_FILTER+="${AUDIO_STREAM_OUT}"
@@ -1101,6 +1106,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ ! -s "${OUTPUT_FILE}" ]] ; then
                 _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
+                OUTPUT_MISSING="1"
             else
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     # quick track duration check on the result
@@ -1123,6 +1129,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     fi
                 fi
                 _report -d "FYI: Packaged to ${OUTPUT_FILE_BASENAME}."
+                _report -d "Done:seg_input=${SEG_INPUT}|seg_output=${SEG_OUTPUT}|output_frames=${PACKAGED_DVFRAMES}|input_frames=${FRAME_COUNT}|audio_fill=${APAD_NOTICE}|output_missing=${OUTPUT_MISSING}|output_file=${OUTPUT_FILE}"
                 if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
                     _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                 fi
