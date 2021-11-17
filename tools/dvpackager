@@ -480,16 +480,16 @@ _get_track2_maxdiff(){
 
 _check_audio_by_ffmpeg_subfile(){
     # The input should be a subfile input statement
-    # The output will be a list of the audio track sample rates, likely "48000" or "32000 32000"
+    # The output will be a list of the audio track sample rates, likely "48000" or "3200032000"
     SUBFILE="${1}"
-    QUERY="$(ffmpeg -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{print $1}' | xargs)"
+    QUERY="$(ffmpeg -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
     if [[ "${QUERY}" = "48000" ]] ; then
         echo "2-48000"
     elif [[ "${QUERY}" = "44100" ]] ; then
         echo "2-44100"
     elif [[ "${QUERY}" = "32000" ]] ; then
         echo "2-32000"
-    elif [[ "${QUERY}" = "32000 32000" ]] ; then
+    elif [[ "${QUERY}" = "3200032000" ]] ; then
         echo "4-32000"
     else
         echo "0"
