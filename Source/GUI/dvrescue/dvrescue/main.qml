@@ -81,6 +81,63 @@ ApplicationWindow {
         }
     }
 
+    DvRescueReport {
+        id: report
+    }
+
+    FilesModel {
+        id: filesModel
+        mediaInfoModel: instantiator
+    }
+
+    MediaInfoModel {
+        id: instantiator
+        model: filesModel
+    }
+
+    ListModel {
+        id: recentFilesModel
+
+        signal selected(string filePath);
+
+        property string recentFilesJSON : ''
+        property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+
+        function toArray() {
+            var recentFiles = []
+            for(var i = 0; i < count; ++i) {
+                recentFiles.push(get(i).filePath);
+            }
+            return recentFiles;
+        }
+
+        function addRecent(filePath) {
+
+            var newRecentFiles = recentFiles.filter(item => item !== filePath)
+            newRecentFiles.unshift(filePath)
+
+            if(newRecentFiles.length > 10) {
+                newRecentFiles.pop();
+            }
+            recentFiles = newRecentFiles
+            recentFilesJSON = JSON.stringify(recentFiles)
+
+            clear();
+            for(var i = 0; i < newRecentFiles.length; ++i) {
+                append({'filePath' : newRecentFiles[i]})
+            }
+
+            console.debug('recentFilesJSON: ', JSON.stringify(recentFilesJSON, 0, 4))
+        }
+
+        Component.onCompleted: {
+            var recentFiles = recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
+            recentFiles.forEach((filePath) => {
+                append({'filePath' : filePath})
+            })
+        }
+    }
+
     StackLayout {
         anchors.left: navigationColumn.right
         anchors.leftMargin: 10
@@ -153,7 +210,7 @@ ApplicationWindow {
                 });
             }
 
-            grabMouseArea.onClicked: {
+            captureButton.onClicked: {
                 specifyPathDialog.callback = (fileUrl) => {
                     var filePath = urlToPath(fileUrl);
 
@@ -184,10 +241,15 @@ ApplicationWindow {
 
         AnalysePage {
             id: analysePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
         }
 
         PackagePage {
             id: packagePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
+            framesCount: analysePage.framesCount
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd
@@ -245,8 +307,7 @@ ApplicationWindow {
         property string xmlStarletCmd
         property string mediaInfoCmd
         property string ffmpegCmd
-        property alias recentFilesJSON: analysePage.recentFilesJSON
-        property alias recentPackageFilesJSON: packagePage.recentFilesJSON
+        property alias recentFilesJSON: recentFilesModel.recentFilesJSON
 
         Component.onCompleted: {
             console.debug('settings initialized')
@@ -289,6 +350,7 @@ ApplicationWindow {
 
     SpecifyPathDialog {
         id: specifyPathDialog
+        nameFilters: ["Video files (*.dv)"]
     }
 
     DevicesModel {

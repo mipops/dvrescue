@@ -35,7 +35,12 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config qwt ffmpeg
+        brew install ${{ matrix.packages }} pkg-config ffmpeg
+
+    - name: Install qwt-qt5
+      run: |
+        wget https://raw.githubusercontent.com/Homebrew/homebrew-core/56cd02e96876d1fb5b9ae951d605585fe8d614de/Formula/qwt.rb
+        brew install ./qwt.rb
 
     - name: Set Qt5 environment path
       run: |

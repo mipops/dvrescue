@@ -5,6 +5,9 @@ Item {
 
         var splitted = segmentData.split('\n');
         for(var i = 0; i < splitted.length; ++i) {
+            if(splitted[i].length === 0)
+                continue;
+
             var columns = splitted[i].split('|');
 
             var entry = {
@@ -26,7 +29,8 @@ Item {
                 timeCodeJump: columns[15],
                 endsWithMissingAudioData: columns[16],
                 offsetAtEndOfTheRange: columns[17],
-                offsetOfLastFrameOfTheRange: columns[18]
+                offsetOfLastFrameOfTheRange: columns[18],
+                segmentFileName: columns.length > 20 ? columns[20] : ''
             }
 
             if(onEntryParsed)

@@ -10,40 +10,15 @@ import MediaInfo 1.0
 import FileUtils 1.0
 
 Rectangle {
+    property var filesModel: null
     signal fileAdded(string filePath);
 
-    property int updated: 0
-    property var fileInfos: []
-    property var files: []
     property alias tableView: tableView
     readonly property string selectedPath: {
-        // console.debug('selected path changed: ', tableView.currentIndex)
-        return updated, tableView.currentIndex !== -1 ? fileInfos[tableView.currentIndex].originalPath : ''
+        console.debug('selected path changed: ', tableView.currentIndex)
+        return tableView.currentIndex !== -1 ? filesModel.get(tableView.currentIndex).originalPath : ''
     }
     property alias currentIndex: tableView.currentIndex
-
-    function add(path) {
-        files.push(path);
-        var mediaInfo = report.resolveRelatedInfo(path);
-        fileInfos.push(mediaInfo)
-        ++updated
-        newRow(mediaInfo.originalPath)
-        fileAdded(mediaInfo.originalPath)
-
-        if(fileInfos.length === 1)
-            tableView.bringToView(0)
-    }
-
-    function deleteEntry(row) {
-        files.splice(row,  1);
-        fileInfos.splice(row, 1);
-        dataModel.removeRow(row, 1);
-
-        if(currentIndex >= fileInfos.length)
-            --currentIndex;
-
-        ++updated
-    }
 
     function mediaInfoAt(index) {
         return instantiator.objectAt(index);
@@ -54,7 +29,6 @@ Rectangle {
     readonly property string formatColumn: "Format"
     readonly property string fileSizeColumn: "File Size"
     readonly property string frameCountColumn: "Frame Count"
-    readonly property string countOfFrameSequencesColumn: "Count of Frame Sequences"
     readonly property string firstTimecodeColumn: "First Timecode"
     readonly property string lastTimecodeColumn: "Last Timecode"
     readonly property string firstRecordingTimeColumn: "First Recording Time"
@@ -70,10 +44,6 @@ Rectangle {
     readonly property string videoBlockErrorValueRole: "Video Block Error Value"
     readonly property string audioBlockErrorValueRole: "Audio Block Error Value"
 
-    DvRescueReport {
-        id: report
-    }
-
     function forceLayout() {
         tableView.forceLayout();
     }
@@ -85,81 +55,40 @@ Rectangle {
         tableView.forceLayout();
     }
 
-    Instantiator {
-        id: instantiator
-        model: updated, fileInfos.length
-        onModelChanged: {
-            // console.debug('model: ', model)
+    Connections {
+        enabled: filesModel !== null
+        target: filesModel
+        onAppended: {
+            console.debug('onAppended: ', JSON.stringify(fileInfo, 0, 4))
+            newRow(fileInfo.originalPath);
+
+            fileAdded(fileInfo.originalPath)
+
+            if(filesModel.count === 1) {
+                currentIndex = 0
+                tableView.bringToView(0)
+            }
         }
-        delegate: MediaInfo {
-            reportPath: {
-                console.debug('reportPath: ', index, fileInfos.length)
-                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].reportPath : ''
-            }
-            videoPath: {
-                console.debug('videoPath: ', index, fileInfos.length)
-                return (index >= 0 && index < fileInfos.length) ? fileInfos[index].videoPath : ''
-            }
+        onRemoved: {
+            console.debug('onRemoved: ', index, JSON.stringify(fileInfo, 0, 4))
+            dataModel.removeRow(index, 1);
 
-            function editRow(index, propertyName, propertyValue) {
-                // console.debug('key: ', propertyName, 'value: ', JSON.stringify(propertyValue))
-                if(index >= 0 && index < fileInfos.length)
-                {
-                    var rowData = dataModel.getRow(index)
-                    var newRowData = JSON.parse(JSON.stringify(rowData))
-                    newRowData[propertyName] = propertyValue
-                    dataModel.setRow(index, newRowData)
-                }
-            }
+            if(currentIndex >= filesModel.count)
+                --currentIndex;
 
-            onFormatChanged: {
-                editRow(index, formatColumn, format)
-            }
-            onFileSizeChanged: {
-                editRow(index, fileSizeColumn, fileSize)
-            }
-            onFrameCountChanged: {
-                editRow(index, frameCountColumn, frameCount)
-            }
-            onCountOfFrameSequencesChanged: {
-                editRow(index, countOfFrameSequencesColumn, countOfFrameSequences)
-            }
-            onFirstTimeCodeChanged: {
-                editRow(index, firstTimecodeColumn, firstTimeCode)
-            }
-            onLastTimeCodeChanged: {
-                editRow(index, lastTimecodeColumn, lastTimeCode)
-            }
-            onFirstRecordingTimeChanged: {
-                editRow(index, firstRecordingTimeColumn, firstRecordingTime)
-            }
-            onLastRecordingTimeChanged: {
-                editRow(index, lastRecordingTimeColumn, lastRecordingTime)
-            }
-            onParsingChanged: {
-                editRow(index, progressRole, parsing === false ? 1 : 0)
-            }
-            onBytesProcessedChanged: {
-                editRow(index, progressRole, bytesProcessed / reportFileSize)
-            }
-            onFrameErrorChanged: {
-                editRow(index, frameErrorColumn, frameError);
-                editRow(index, frameErrorTooltipRole, "Sta count: " + staCount + ", Frames count: " + frameCount)
-            }
-            onVideoBlockErrorChanged: {
-                editRow(index, videoBlockErrorColumn, videoBlockError);
-                editRow(index, videoBlockErrorTooltipRole, "Sta sum: " + staSum + ", Sum of video blocks: " + totalVideoBlocks)
-                editRow(index, videoBlockErrorValueRole, { x : videoBlockErrorValue.x, y : videoBlockErrorValue.y })
-            }
-            onAudioBlockErrorChanged: {
-                editRow(index, audioBlockErrorColumn, audioBlockError);
-                editRow(index, audioBlockErrorTooltipRole, "Aud sum: " + audSum + ", Sum of audio blocks: " + totalAudioBlocks)
-                editRow(index, audioBlockErrorValueRole, { x : audioBlockErrorValue.x, y : audioBlockErrorValue.y })
-            }
+            if(filesModel.count === 0)
+                currentIndex = -1;
+        }
+    }
 
-            Component.onCompleted: {
-                resolve();
-            }
+    Connections {
+        enabled: filesModel !== null && filesModel.mediaInfoModel !== null
+        target: filesModel.mediaInfoModel
+        onEditRow: {
+            var rowData = dataModel.getRow(index)
+            var newRowData = JSON.parse(JSON.stringify(rowData))
+            newRowData[propertyName] = propertyValue
+            dataModel.setRow(index, newRowData)
         }
     }
 
@@ -170,7 +99,6 @@ Rectangle {
         rowEntry[formatColumn] = " "
         rowEntry[fileSizeColumn] = " "
         rowEntry[frameCountColumn] = " "
-        rowEntry[countOfFrameSequencesColumn] = " "
         rowEntry[firstTimecodeColumn] = " "
         rowEntry[lastTimecodeColumn] = " "
         rowEntry[firstRecordingTimeColumn] = " "
@@ -193,29 +121,10 @@ Rectangle {
         tableView.view.contentY = -16
     }
 
-    onFilesChanged: {
-        var newFileInfos = [];
-
-       Qt.callLater(() => {
-                         if(files) {
-                             files.forEach((file) => {
-                                 var mediaInfo = report.resolveRelatedInfo(file)
-                                 newFileInfos.push(mediaInfo)
-                                 newRow(mediaInfo.originalPath)
-                             })
-
-                            console.debug('tableView.view.contentY: ', tableView.view.contentY)
-                            scrollToTop();
-                         }
-
-                        fileInfos = newFileInfos;
-                     })
-    }
-
     TableViewEx {
         id: tableView
         anchors.fill: parent
-        anchors.margins: 10
+        anchors.margins: 1
         model: sortFilterTableModel
         dataModel: dataModel
         delegateHeight: 25
@@ -225,7 +134,7 @@ Rectangle {
             id: contextMenu
             MenuItem {
                 text: "Delete"
-                onClicked: deleteEntry(currentIndex)
+                onClicked: filesModel.del(currentIndex)
             }
 
             function showBelowControl(control) {
@@ -330,6 +239,7 @@ Rectangle {
                     DefaultToolTip {
                         visible: filePathMouseArea.containsMouse
                         text: toolTip
+                        delay: 1500
                         anchors.centerIn: parent
                     }
 
@@ -344,7 +254,7 @@ Rectangle {
                         implicitWidth: implicitHeight
 
                         onClicked: {
-                            deleteEntry(row);
+                            filesModel.del(row);
                         }
                     }
 
@@ -589,12 +499,6 @@ Rectangle {
 
         TableModelColumn {
             display: "Frame Count"
-            decoration: "Progress"
-            property int minWidth: 40
-        }
-
-        TableModelColumn {
-            display: "Count of Frame Sequences"
             decoration: "Progress"
             property int minWidth: 40
         }

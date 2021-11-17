@@ -3,6 +3,7 @@ include(./qwt.pri)
 RESOURCES += $$PWD/qml.qrc
 
 HEADERS += \
+    $$PWD/clipboard.h \
     $$PWD/datamodel.h \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
@@ -19,6 +20,7 @@ HEADERS += \
     $$PWD/sortfiltertablemodel.h
 
 SOURCES += \
+    $$PWD/clipboard.cpp \
     $$PWD/datamodel.cpp \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \

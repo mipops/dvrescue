@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.12
 import FileUtils 1.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
+import QtQuick.Controls 1.4 as QQC1
 
 Item {
     id: root
@@ -12,6 +13,24 @@ Item {
     property string xmlStarletCmd
     property string mediaInfoCmd
     property string ffmpegCmd
+    property alias filesModel: fileView.filesModel
+    property alias recentFilesModel: recentsPopup.filesModel
+    property int framesCount
+
+    property string videoPath: fileView.currentIndex !== -1 ? filesModel.get(fileView.currentIndex).videoPath : null
+    onVideoPathChanged: {
+        console.debug('root: videoPath = ', videoPath)
+    }
+
+    property string outputPath: packageIntoSameFolder.checked ? (videoPath ? FileUtils.getFileDir(videoPath) : null) : customPackagingPath.text
+    onOutputPathChanged: {
+        console.debug('root: outputPath = ', outputPath)
+    }
+
+    property string reportPath: fileView.currentIndex !== -1 ? filesModel.get(fileView.currentIndex).reportPath : null
+    onReportPathChanged: {
+        console.debug('root: reportPath = ', reportPath)
+    }
 
     DropArea {
         id: dropArea;
@@ -25,7 +44,7 @@ Item {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
                                       var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                      fileView.add(filePath)
+                                      filesModel.add(filePath)
                                   })
             }
 
@@ -57,64 +76,65 @@ Item {
         anchors.centerIn: parent
     }
 
-    property string recentFilesJSON : ''
-    property var recentFiles: recentFilesJSON === '' ? [] : JSON.parse(recentFilesJSON)
-    onRecentFilesChanged: {
-        console.debug('PackagePage: recentFiles = ', JSON.stringify(recentFiles, 0, 4))
-    }
-
-    function addRecent(filePath) {
-        var newRecentFiles = recentFiles.filter(item => item !== filePath)
-        newRecentFiles.unshift(filePath)
-
-        if(newRecentFiles.length > 10) {
-            newRecentFiles.pop();
-        }
-        recentFiles = newRecentFiles
-        recentFilesJSON = JSON.stringify(recentFiles)
-    }
-
-    PackageFileView {
-        id: fileView
-        height: parent.height / 2
-        anchors.left: parent.left
-        anchors.right: parent.right
-
-        onFileAdded: {
-            addRecent(filePath)
-        }
-    }
-
-    RecentsPopup {
-        id: recentsPopup
-        files: recentFiles
-        onSelected: {
-            fileView.add(filePath)
-        }
-    }
-
     SelectPathDialog {
         id: selectPath
         selectMultiple: true
         nameFilters: [
+            "Report and video files (*.dvrescue.xml *.mov *.mkv *.avi *.dv *.mxf)",
+            "Report files (*.dvrescue.xml)",
             "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
         ]
     }
 
+    RecentsPopup {
+        id: recentsPopup
+        onSelected: {
+            root.filesModel.add(filePath)
+        }
+    }
+
+    FolderDialog {
+        id: selectFolderDialog
+        property var callback;
+
+        onAccepted: {
+            var folderUrl = selectFolderDialog.currentFolder;
+            console.debug('selected folder: ', folderUrl);
+            if(callback)
+                callback(folderUrl);
+        }
+    }
+
+    function toNativePath(path) {
+        if(Qt.platform.os === "windows") {
+           var cygwinPath = path;
+           var splittedWinPath = cygwinPath.replace('/cygdrive/', '').split('/')
+           if(splittedWinPath.length !== 0) {
+             splittedWinPath[0] = splittedWinPath[0] + ':'
+             path = splittedWinPath.join('\\')
+           }
+        }
+        return path;
+    }
+
     RowLayout {
         id: toolsLayout
-        anchors.top: fileView.bottom
-        Layout.fillWidth: true
+
+        anchors.left: parent.left
+        anchors.right: parent.right
 
         property string dvRescueXmlExtension: ".dvrescue.xml"
         property int fileViewerHeight: 0
 
         CustomButton {
+            id: addFiles
             icon.source: "icons/add-files.svg"
             onClicked: {
                 selectPath.callback = (urls) => {
                     urls.forEach((url) => {
-                                     fileView.add(FileUtils.getFilePath(url));
+                                     var filePath = FileUtils.getFilePath(url);
+                                     filesModel.add(filePath);
+                                     root.recentFilesModel.addRecent(filePath)
                                  });
                 }
 
@@ -127,94 +147,176 @@ Item {
 
             onClicked: {
                 var mapped = mapToItem(root, 0, 0);
-                recentsPopup.x = mapped.x - recentsPopup.width + width
+                recentsPopup.x = mapped.x
                 recentsPopup.y = mapped.y + height
 
                 recentsPopup.open();
             }
         }
-    }
 
-    Rectangle {
-        color: 'white'
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: toolsLayout.bottom
-        anchors.bottom: parent.bottom
-    }
+        Rectangle {
+            Layout.fillWidth: true
+            height: addFiles.height
+            color: 'white'
 
-    Row {
-        id: settingsRow
-        anchors.top: toolsLayout.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-
-        CheckBox {
-            id: s
-            text: "-s"
-        }
-        CheckBox {
-            id: d
-            text: "-d"
-        }
-        CheckBox {
-            id: t
-            text: "-t"
-        }
-        CheckBox {
-            id: sBig
-            text: "-S"
-        }
-
-        TextField {
-            id: additional
-            width: 400
-            placeholderText: "additional options..."
-        }
-    }
-
-
-    Button {
-        anchors.top: settingsRow.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: "go"
-        onClicked: {
-            var path = fileView.files[Math.max(fileView.currentIndex, 0)];
-            if(Qt.platform.os === "windows") {
-                path = "/cygdrive/" + path.replace(":", "");
+            ButtonGroup {
+                buttons: [packageIntoSameFolder, specifyPath]
             }
 
-            busy.running = true;
-            var params = path;
-            if(d.checked)
-                params = "-d " + params;
-            if(t.checked)
-                params = "-t " + params;
-            if(s.checked)
-                params = "-s " + params;
-            if(sBig.checked)
-                params = "-S " + params;
+            RowLayout {
+                id: settingsRow
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
 
-            if(additional.text.length !== 0)
-                params = additional.text + " " + params
+                Button {
+                    text: "Package"
+                    height: parent.height
+                    onClicked: {
+                        for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
+                            packageOutputFileView.updatePackagingStatus(i, "queued");
+                        }
 
-            var extraParams = " -v -e mov -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-                .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-                .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-                .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-                .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+                        var packagingPath = ''
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, (o) => {
+                            var splitted = String(o).split('\n');
+                            for(var i = 0; i < splitted.length; ++i) {
+                                var value = splitted[i];
+                                console.debug('value:', value);
 
-            packagerCtl.exec(params, (launcher) => {
-                debugView.logCommand(launcher)
-                launcher.outputChanged.connect((outputString) => {
-                    debugView.logResult(outputString);
-                })
-            }, extraParams).then(() => {
-                console.debug('executed....')
-                busy.running = false;
-            }).catch((error) => {
-                debugView.logResult(error);
-                busy.running = false;
-            });
+                                if(value.startsWith('### Packaging started: ')) {
+                                    var path = root.toNativePath(value.replace('### Packaging started: ', ''));
+                                    packagingPath = path;
+                                    packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
+                                } else if(value.startsWith('### Packaging finished: ')) {
+                                    var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
+                                    packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
+                                } else if(value.startsWith('### Packaging error: ')) {
+                                    var error = root.toNativePath(value.replace('### Packaging error: ', ''));
+                                    packageOutputFileView.updatePackagingErrorByPath(path, 'error');
+                                }
+                            }
+                        });
+                        promise.then(() => {
+                            console.debug('packaging done');
+                        }).catch((err) => {
+                            console.error('packaging failed: ', err);
+                        })
+                    }
+                }
+
+                RadioButton {
+                    id: packageIntoSameFolder
+                    text: "Package into same folder"
+                    checked: true
+                }
+
+                RadioButton {
+                    id: specifyPath
+                    text: "Specify path"
+                }
+
+                TextField {
+                    enabled: specifyPath.checked
+                    id: customPackagingPath
+                    placeholderText: "path..."
+                    Layout.minimumWidth: 200
+                }
+
+                ToolButton {
+                    enabled: specifyPath.checked
+                    text: "..."
+                    onClicked: {
+                        selectFolderDialog.callback = (selectedUrl) => {
+                            customPackagingPath.text = FileUtils.getFilePath(selectedUrl)
+                        };
+
+                        selectFolderDialog.open()
+                    }
+                }
+            }
+        }
+    }
+
+
+    QQC1.SplitView {
+        id: splitView
+        anchors.top: toolsLayout.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        orientation: Qt.Vertical
+
+        PackageFileView {
+            id: fileView
+            height: parent.height / 3
+
+            onFileAdded: {
+                root.recentFilesModel.addRecent(filePath)
+            }
+        }
+
+        SegmentDataViewWithToolbar {
+            id: segmentDataViewWithToolbar
+            height: parent.height / 3
+            framesCount: root.framesCount
+            reportPath: root.reportPath
+            onReportPathChanged: {
+                console.debug('reportPath changed: ', reportPath)
+                // need to execute it after outputPath updated
+                Qt.callLater(() => { segmentDataView.populateSegmentData(reportPath, videoPath, outputPath) })
+            }
+
+            videoPath: root.videoPath
+            onVideoPathChanged: {
+                console.debug('videoPath changed: ', videoPath)
+            }
+
+            outputPath: root.outputPath
+            onOutputPathChanged: {
+                console.debug('outputPath changed: ', outputPath)
+            }
+
+            onPopulated: {
+                packageOutputFileView.dataModel.clear();
+                for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                    var row = segmentDataView.model.getRow(i)
+                    packageOutputFileView.newRow(row['FileName'])
+                }
+            }
+        }
+
+        PackageOutputFileView {
+            id: packageOutputFileView
+            height: parent.height / 3
+
+            function updatePackagingErrorByPath(path, error) {
+                updatePropertyByPath(path, 'Error', error)
+            }
+
+            function updatePackagingStatusByPath(path, status) {
+                updatePropertyByPath(path, 'Status', status)
+            }
+
+            function updatePackagingStatus(index, status) {
+                updateProperty(index, 'Status', status)
+            }
+
+            function updatePropertyByPath(path, propertyName, value) {
+                for(var j = 0; j < dataModel.rowCount; ++j) {
+                    var row = dataModel.getRow(j)
+                    if((row['File Path']) === path) {
+                        updateProperty(j, propertyName, value)
+                        break;
+                    }
+                }
+            }
+
+            function updateProperty(index, propertyName, value) {
+                var rowData = dataModel.getRow(index)
+                var newRowData = JSON.parse(JSON.stringify(rowData))
+                newRowData[propertyName] = value
+                dataModel.setRow(index, newRowData)
+            }
         }
     }
 }

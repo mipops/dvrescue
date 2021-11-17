@@ -21,7 +21,6 @@
         <file>NavButton.qml</file>
         <file>RedNavButton.qml</file>
         <file>WhiteNavButton.qml</file>
-        <file>AnalyseFileViewer.qml</file>
         <file>CaptureView.qml</file>
         <file>AnalysePage.qml</file>
         <file>PlotsView.qml</file>
@@ -83,10 +82,14 @@
         <file>PathResolver.qml</file>
         <file>ToolsDialog.qml</file>
         <file>ValidatedTextField.qml</file>
-        <file>CaptureViewControlButton.qml</file>
         <file>SegmentDataParser.qml</file>
         <file>SegmentDataView.qml</file>
         <file>TableModelEx.qml</file>
         <file>ComboBoxEx.qml</file>
+        <file>icons/capture.svg</file>
+        <file>FilesModel.qml</file>
+        <file>MediaInfoModel.qml</file>
+        <file>SegmentDataViewWithToolbar.qml</file>
+        <file>PackageOutputFileView.qml</file>
     </qresource>
 </RCC>

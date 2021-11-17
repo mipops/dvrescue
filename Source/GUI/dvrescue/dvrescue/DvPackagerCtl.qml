@@ -167,6 +167,7 @@ Item {
 
             console.debug('dvPackagerCmd: ', dvPackagerCmd);
             var cmd = detectedBashCmd + ' ' + dvPackagerCmd
+            // var cmd = detectedBashCmd + ' -x ' + dvPackagerCmd
             if(extraArgs)
                 cmd = cmd + ' ' + extraArgs
 

@@ -7,7 +7,7 @@ Column {
     property alias playButton: playButton
     property alias stopButton: stopButton
     property alias rewindButton: rewindButton
-    property alias grabMouseArea: grabMouseArea
+    property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
 
@@ -44,52 +44,46 @@ Column {
 
         Row {
             id: row
-            CaptureViewControlButton {
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
                 id: rewindButton
+                icon.color: 'transparent'
                 icon.source: "icons/rewind.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: playButton
+                icon.color: 'transparent'
                 icon.source: "icons/play.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: stopButton
+                icon.color: 'transparent'
                 icon.source: "icons/stop.svg"
             }
 
-            CaptureViewControlButton {
+            Button {
                 id: fastForwardButton
+                icon.color: 'transparent'
                 icon.source: "icons/fastforward.svg"
+            }
+            Button {
+                id: captureButton
+                icon.color: "transparent"
+                icon.source: "icons/capture.svg"
             }
         }
 
         Text {
             id: statusText
             anchors.left: row.right
-            anchors.right: text1.left
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-        }
-
-        Text {
-            id: text1
-            text: qsTr("Capture")
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             verticalAlignment: Text.AlignVCenter
-            font.pixelSize: 32
-            font.weight: Font.Bold
-            font.family: "Tahoma"
-
-            MouseArea {
-                id: grabMouseArea
-                anchors.fill: parent
-            }
+            horizontalAlignment: Text.AlignHCenter
         }
     }
 }

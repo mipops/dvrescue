@@ -51,14 +51,18 @@ QString FileUtils::getFileName(const QString &filePath)
     return info.fileName();
 }
 
-QString FileUtils::getFilePath(const QString &urlOrPath)
+QString FileUtils::getFilePath(const QString &urlOrPath, bool convertToNative)
 {
     if(urlOrPath.isEmpty())
         return urlOrPath;
 
     QUrl url(urlOrPath);
+    auto filePath = QFile::exists(urlOrPath) ? urlOrPath : url.toLocalFile();
 
-    return url.toLocalFile();
+    if(convertToNative)
+        filePath = QDir::toNativeSeparators(filePath);
+
+    return filePath;
 }
 
 QString FileUtils::getFileDir(const QString &filePath)
