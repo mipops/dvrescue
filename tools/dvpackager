@@ -103,12 +103,12 @@ Options:
 dvpackager also has a method to express a table of how the file would be
 repackaged given an XML input.
  
- -T       (provide only a table of information about the output files without
-           making any)
+ -T <xml> (provide only a table of information about the output files without
+           making any, provide the xml as an argument)
 
 For example, the following command:
 
-dvpackager -T -s -a c file.dv.dvrescue.xml
+dvpackager -s -a c -T file.dv.dvrescue.xml file.dv
 
 will show a table of the outputs for file.dv with the provided options (-s -a c).
 EOF
@@ -604,7 +604,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T" opt ; do
+while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -630,7 +630,7 @@ while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T" opt ; do
         C) DVRESCUE_SCC="${OPTARG}" ;;
         3) unset CONDENSE_OPTS ;;
         a) ASPECT_RATIO_STRATEGY="${OPTARG}" ;;
-        T) SHOW_TABLE="Y" ;;
+        T) SHOW_TABLE="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
         :) echo "Option -${OPTARG} requires an argument" ; _usage ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -710,8 +710,8 @@ if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
     exit 1
 fi
 
-if [[ "${SHOW_TABLE}" = "Y" ]] ; then
-    DVRESCUE_XML="${DVFILE}"
+if [[ -n "${SHOW_TABLE}" ]] ; then
+    DVRESCUE_XML="${SHOW_TABLE}"
     if [[ "${DVRESCUE_XML##*.}" != "xml" ]] ; then
         _report -w "In show-table mode, the input should be an xml file."
         exit 1
