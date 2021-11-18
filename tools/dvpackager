@@ -184,7 +184,7 @@ _get_ranges(){
             -v "@tc_nc" -o "|" \
             -o "-|" \
             --if "\$b" -v "\$b" --else -v "ancestor::d:media/@size" -break -o "|" \
-            -o "-|" \
+            -o "-" \
             -n "${DVRESCUE_XML}"
         # output is pipe-delimited and in this order:
         # 1-2 start pts, end pts
