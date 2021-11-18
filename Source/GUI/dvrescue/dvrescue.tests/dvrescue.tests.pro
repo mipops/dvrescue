@@ -7,7 +7,7 @@ CONFIG += c++17 warn_on
 CONFIG += no_keywords
 CONFIG += console
 
-QT += quick testlib xmlpatterns widgets multimedia qtmultimediaquicktools-private
+QT += quick testlib xmlpatterns widgets multimedia
 
 SOURCES += \
     datamodeltest.cpp \

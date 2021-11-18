@@ -1,4 +1,4 @@
-QT += qml quick widgets quickcontrols2 multimedia qtmultimediaquicktools-private
+QT += qml quick widgets quickcontrols2 multimedia
 
 CONFIG += c++17
 CONFIG += no_keywords

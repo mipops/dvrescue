@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <QVector2D>
 #include <QtQml/QQmlParserStatus>
+#include <QQuickItem>
 #include <QtAVPlayer/qavaudiooutput.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
@@ -35,7 +36,7 @@ class MediaPlayer : public QObject, public QQmlParserStatus
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
 
-    Q_PROPERTY(QDeclarativeVideoOutput* videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
+    Q_PROPERTY(QQuickItem* videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
     Q_PROPERTY(MediaStatus status READ status NOTIFY statusChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
@@ -62,8 +63,8 @@ public:
 
     explicit MediaPlayer(QObject *parent = nullptr);
 
-    QDeclarativeVideoOutput *videoOutput() const;
-    void setVideoOutput(QDeclarativeVideoOutput *newVideoOutput);
+    QQuickItem *videoOutput() const;
+    void setVideoOutput(QQuickItem *newVideoOutput);
 
     Q_INVOKABLE void play();
     Q_INVOKABLE void pause();
@@ -100,7 +101,7 @@ Q_SIGNALS:
 private:
     QAVPlayer* player;
     QScopedPointer<QAVAudioOutput> audioOutput;
-    QDeclarativeVideoOutput *m_videoOutput;
+    QQuickItem *m_videoOutput;
 
     QTimer t;
     qint64 prevPos { 0 };
