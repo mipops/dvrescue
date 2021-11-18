@@ -272,9 +272,14 @@ Item {
         anchors.bottom: parent.bottom
         orientation: Qt.Vertical
 
+        onHeightChanged: {
+            packageOutputFileView.height = height / 5 * 2
+            segmentDataViewWithToolbar.height = height / 5 * 2
+            fileView.height = height / 5
+        }
+
         PackageFileView {
             id: fileView
-            height: parent.height / 3
 
             onFileAdded: {
                 root.recentFilesModel.addRecent(filePath)
@@ -283,7 +288,7 @@ Item {
 
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
-            height: parent.height / 3
+
             framesCount: root.framesCount
             reportPath: root.reportPath
             onReportPathChanged: {
@@ -313,7 +318,6 @@ Item {
 
         PackageOutputFileView {
             id: packageOutputFileView
-            height: parent.height / 3
 
             function updatePackagingErrorByPath(path, error) {
                 updatePropertyByPath(path, 'Error', error)
