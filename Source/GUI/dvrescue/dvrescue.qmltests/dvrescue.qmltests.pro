@@ -6,7 +6,7 @@ include(../ffmpeg.pri)
 CONFIG += c++17 warn_on qmltestcase
 CONFIG += no_keywords
 
-QT += quick widgets quickcontrols2 multimedia qtmultimediaquicktools-private
+QT += quick widgets quickcontrols2 multimedia
 
 SOURCES += \
     main.cpp \

@@ -2,7 +2,8 @@
 #include <QtAVPlayer/qavplayer.h>
 #include <QAbstractVideoSurface>
 #include <QVideoFrame>
-#include <private/qdeclarativevideooutput_p.h>
+#include <QVideoSurfaceFormat>
+#include <QDebug>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -97,12 +98,12 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlaye
     t.start();
 }
 
-QDeclarativeVideoOutput *MediaPlayer::videoOutput() const
+QQuickItem *MediaPlayer::videoOutput() const
 {
     return m_videoOutput;
 }
 
-void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
+void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
 {
     if (m_videoOutput == newVideoOutput)
         return;
@@ -111,17 +112,15 @@ void MediaPlayer::setVideoOutput(QDeclarativeVideoOutput *newVideoOutput)
     auto vo = m_videoOutput;
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-    vo->setSource(&mediaSource);
+    vo->setProperty("source", QVariant::fromValue(&mediaSource));
     auto videoSurface = mediaSource.m_surface;
 #elif QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    auto videoSurface = vo->videoSurface();
+    auto videoSurface = vo->property("videoSurface").value<QAbstractVideoSurface*>();
 #endif
 
     auto& p = *player;
 
-    QObject::connect(vo, &QDeclarativeVideoOutput::sourceRectChanged, &p, [vo] {
-        vo->update();
-    });
+    QObject::connect(vo, SIGNAL(sourceRectChanged()), vo, SLOT(update()));
 
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](QAVVideoFrame frame) {
         qDebug() << "got video frame";
