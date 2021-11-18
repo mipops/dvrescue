@@ -233,30 +233,42 @@ if test "$enable_universal_binary" = "yes"; then
 	fi
 fi
 if test "$enable_arch_ppc" = "yes"; then
+	OBJCXXFLAGS="$OBJCXXFLAGS -arch ppc"
+	OBJCFLAGS="$OBJCFLAGS -arch ppc"
 	CXXFLAGS="$CXXFLAGS -arch ppc"
 	CFLAGS="$CFLAGS -arch ppc"
 	LDFLAGS="$LDFLAGS -arch ppc"
 fi
 if test "$enable_arch_i386" = "yes"; then
+	OBJCXXFLAGS="$OBJCXXFLAGS -arch i386"
+	OBJCFLAGS="$OBJCFLAGS -arch i386"
 	CXXFLAGS="$CXXFLAGS -arch i386"
 	CFLAGS="$CFLAGS -arch i386"
 	LDFLAGS="$LDFLAGS -arch i386"
 fi
 if test "$enable_arch_x86_64" = "yes"; then
+	OBJCXXFLAGS="$OBJCXXFLAGS -arch x86_64"
+	OBJCFLAGS="$OBJCFLAGS -arch x86_64"
 	CXXFLAGS="$CXXFLAGS -arch x86_64"
 	CFLAGS="$CFLAGS -arch x86_64"
 	LDFLAGS="$LDFLAGS -arch x86_64"
 fi
 if test "$with_macosx_sdk" = "yes" ; then
+	OBJCXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $OBJCXXFLAGS"
+	OBJCFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $OBJCFLAGS"
 	CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CXXFLAGS"
 	CFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $CFLAGS"
 	LDFLAGS="-isysroot /Developer/SDKs/MacOSX10.5.sdk $LDFLAGS"
 elif test "x$with_macosx_sdk" != xno ; then
+	OBJCXXFLAGS="-isysroot $with_macosx_sdk $OBJCXXFLAGS"
+	OBJCFLAGS="-isysroot $with_macosx_sdk $OBJCFLAGS"
 	CXXFLAGS="-isysroot $with_macosx_sdk $CXXFLAGS"
 	CFLAGS="-isysroot $with_macosx_sdk $CFLAGS"
 	LDFLAGS="-isysroot $with_macosx_sdk $LDFLAGS"
 fi
 if test "x$with_macosx_version_min" != xno ; then
+	OBJCXXFLAGS="-mmacosx-version-min=$with_macosx_version_min $OBJCXXFLAGS"
+	OBJCFLAGS="-mmacosx-version-min=$with_macosx_version_min $OBJCFLAGS"
 	CXXFLAGS="-mmacosx-version-min=$with_macosx_version_min $CXXFLAGS"
 	CFLAGS="-mmacosx-version-min=$with_macosx_version_min $CFLAGS"
 	LDFLAGS="-mmacosx-version-min=$with_macosx_version_min $LDFLAGS"
