@@ -168,7 +168,7 @@ ColumnLayout {
             id: segmentDataParser
         }
 
-        function packaging(reportPath, videoPath, outputDir, onOutputChanged) {
+        function packaging(reportPath, videoPath, outputDir, extraOpts, onOutputChanged) {
 
             if(outputDir === '') {
                 outputDir = FileUtils.getFileDir(reportPath);
@@ -206,6 +206,9 @@ ColumnLayout {
                 opts += '-a 9 ';
             if(aspectRatiosSelector.currentIndex === 1)
                 opts += '-a c ';
+
+            if(extraOpts.type === 'mkv')
+                opts += '-e mkv ';
 
             opts += '-o ' + outputDir + ' '
 

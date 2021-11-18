@@ -163,6 +163,10 @@ Item {
                 buttons: [packageIntoSameFolder, specifyPath]
             }
 
+            ButtonGroup {
+                buttons: [mov, mkv]
+            }
+
             RowLayout {
                 id: settingsRow
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -177,7 +181,8 @@ Item {
                         }
 
                         var packagingPath = ''
-                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, (o) => {
+                        var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
                             var splitted = String(o).split('\n');
                             for(var i = 0; i < splitted.length; ++i) {
                                 var value = splitted[i];
@@ -191,8 +196,8 @@ Item {
                                     var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
                                     packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
                                 } else if(value.startsWith('### Packaging error: ')) {
-                                    var error = root.toNativePath(value.replace('### Packaging error: ', ''));
-                                    packageOutputFileView.updatePackagingErrorByPath(path, 'error');
+                                    var error = value.replace('### Packaging error: ', '');
+                                    packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
                                 }
                             }
                         });
@@ -202,6 +207,17 @@ Item {
                             console.error('packaging failed: ', err);
                         })
                     }
+                }
+
+                RadioButton {
+                    id: mov
+                    text: "mov"
+                    checked: true
+                }
+
+                RadioButton {
+                    id: mkv
+                    text: "mkv"
                 }
 
                 RadioButton {
@@ -295,6 +311,10 @@ Item {
 
             function updatePackagingStatusByPath(path, status) {
                 updatePropertyByPath(path, 'Status', status)
+            }
+
+            function updatePackagingError(index, error) {
+                updateProperty(index, 'Error', error)
             }
 
             function updatePackagingStatus(index, status) {

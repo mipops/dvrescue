@@ -91,5 +91,10 @@
         <file>MediaInfoModel.qml</file>
         <file>SegmentDataViewWithToolbar.qml</file>
         <file>PackageOutputFileView.qml</file>
+        <file>icons/dvpackager_processing-done.svg</file>
+        <file>icons/dvpackager_processing-failed-canceled.svg</file>
+        <file>icons/dvpackager_processing-in-process.svg</file>
+        <file>icons/dvpackager_processing-in-queue.svg</file>
+        <file>icons/dvpackager_processing-not-started.svg</file>
     </qresource>
 </RCC>
