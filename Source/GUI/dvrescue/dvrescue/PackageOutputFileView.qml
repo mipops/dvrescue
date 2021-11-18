@@ -14,7 +14,7 @@ Rectangle {
     property alias tableView: tableView
     property alias currentIndex: tableView.currentIndex
 
-    readonly property string filePathColumn: "File Path"
+    readonly property string filePathColumn: "Output File Path"
     readonly property string statusColumn: "Status"
     readonly property string errorColumn: "Error"
 
@@ -205,7 +205,7 @@ Rectangle {
         id: dataModel
 
         TableModelColumn {
-            display: "File Path"
+            display: "Output File Path"
             property int minWidth: 250
         }
 

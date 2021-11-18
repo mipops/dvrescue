@@ -338,7 +338,7 @@ Item {
             function updatePropertyByPath(path, propertyName, value) {
                 for(var j = 0; j < dataModel.rowCount; ++j) {
                     var row = dataModel.getRow(j)
-                    if((row['File Path']) === path) {
+                    if((row['Output File Path']) === path) {
                         updateProperty(j, propertyName, value)
                         break;
                     }
