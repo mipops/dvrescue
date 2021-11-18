@@ -18,6 +18,10 @@ ColumnLayout {
     property alias rowFilter: segmentDataView.rowFilter
     property alias hoveredItem: segmentDataView.hoveredItem
     property int framesCount: 0
+    property var extraOpts: ({})
+    onExtraOptsChanged: {
+        applyButton.clicked();
+    }
 
     signal clicked(var index, var item);
     signal doubleClicked(var index, var item);
@@ -125,10 +129,11 @@ ColumnLayout {
             }
 
             Button {
+                id: applyButton
                 enabled: segmentationOptionsLayout.needsApply
                 text: "Apply"
                 onClicked: {
-                    segmentDataView.populateSegmentData(reportPath, videoPath, outputPath)
+                    segmentDataView.populateSegmentData(reportPath, videoPath, outputPath, extraOpts)
                     segmentationOptionsLayout.needsApply = false
                 }
             }
@@ -232,7 +237,7 @@ ColumnLayout {
                                                   });
         }
 
-        function populateSegmentData(reportPath, videoPath, outputPath) {
+        function populateSegmentData(reportPath, videoPath, outputPath, extraOpts) {
             console.debug('populateSegmentData: reportPath = ', reportPath, 'outputPath = ', outputPath)
 
             segmentDataView.model.clear();
@@ -262,6 +267,11 @@ ColumnLayout {
                 opts += '-a 9 ';
             if(aspectRatiosSelector.currentIndex === 1)
                 opts += '-a c ';
+
+            if(extraOpts) {
+                if(extraOpts.type === 'mkv')
+                    opts += '-e mkv ';
+            }
 
             if(outputPath) {
                 if(Qt.platform.os === "windows") {

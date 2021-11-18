@@ -213,11 +213,21 @@ Item {
                     id: mov
                     text: "mov"
                     checked: true
+                    onCheckedChanged: {
+                        if(checked) {
+                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mov'}
+                        }
+                    }
                 }
 
                 RadioButton {
                     id: mkv
                     text: "mkv"
+                    onCheckedChanged: {
+                        if(checked) {
+                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mkv'}
+                        }
+                    }
                 }
 
                 RadioButton {
