@@ -384,7 +384,7 @@ bool dv_merge_private::ManageRepeatedFrame(size_t InputPos, const MediaInfo_Even
     auto& Frames = Input.Segments[Segment_Pos].Frames;
 
     // Ignore if frame repetition was found
-    if (Input.DoNotUseFile || (timecode(FrameData->TimeCode).Repeat() && !Frames.empty()))
+    if (Input.DoNotUseFile || (timecode(FrameData).Repeat() && !Frames.empty()))
     {
         if (!Input.DoNotUseFile && !Frames.empty())
         {
@@ -430,7 +430,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     }
 
     // Time code jumps - after first frame
-    timecode TC_Temp(FrameData->TimeCode);
+    timecode TC_Temp(FrameData);
     if (TC_Temp.HasValue())
         CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
     if (!Frames.empty() && Frames.back().TC.HasValue())

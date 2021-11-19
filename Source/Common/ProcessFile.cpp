@@ -221,7 +221,7 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
     abst_bf AbstBf_Temp(FrameData->AbstBf);
     if (RewindMode==Rewind_Mode_TimeCode)
     {
-        timecode TC_Temp(FrameData->TimeCode);
+        timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
             TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
@@ -318,7 +318,7 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
         Text = to_string(FrameNumber);
         if (Text.size() < Formating_FrameCount_Width)
             Text.insert(0, Formating_FrameCount_Width - Text.size(), ' ');
-        timecode TC_Temp(FrameData->TimeCode);
+        timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
             TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
