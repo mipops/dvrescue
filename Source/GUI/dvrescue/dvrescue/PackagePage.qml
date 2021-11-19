@@ -163,6 +163,10 @@ Item {
                 buttons: [packageIntoSameFolder, specifyPath]
             }
 
+            ButtonGroup {
+                buttons: [mov, mkv]
+            }
+
             RowLayout {
                 id: settingsRow
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -177,7 +181,8 @@ Item {
                         }
 
                         var packagingPath = ''
-                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, (o) => {
+                        var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
                             var splitted = String(o).split('\n');
                             for(var i = 0; i < splitted.length; ++i) {
                                 var value = splitted[i];
@@ -191,8 +196,8 @@ Item {
                                     var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
                                     packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
                                 } else if(value.startsWith('### Packaging error: ')) {
-                                    var error = root.toNativePath(value.replace('### Packaging error: ', ''));
-                                    packageOutputFileView.updatePackagingErrorByPath(path, 'error');
+                                    var error = value.replace('### Packaging error: ', '');
+                                    packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
                                 }
                             }
                         });
@@ -201,6 +206,27 @@ Item {
                         }).catch((err) => {
                             console.error('packaging failed: ', err);
                         })
+                    }
+                }
+
+                RadioButton {
+                    id: mov
+                    text: "mov"
+                    checked: true
+                    onCheckedChanged: {
+                        if(checked) {
+                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mov'}
+                        }
+                    }
+                }
+
+                RadioButton {
+                    id: mkv
+                    text: "mkv"
+                    onCheckedChanged: {
+                        if(checked) {
+                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mkv'}
+                        }
                     }
                 }
 
@@ -246,9 +272,14 @@ Item {
         anchors.bottom: parent.bottom
         orientation: Qt.Vertical
 
+        onHeightChanged: {
+            packageOutputFileView.height = height / 5 * 2
+            segmentDataViewWithToolbar.height = height / 5 * 2
+            fileView.height = height / 5
+        }
+
         PackageFileView {
             id: fileView
-            height: parent.height / 3
 
             onFileAdded: {
                 root.recentFilesModel.addRecent(filePath)
@@ -257,7 +288,7 @@ Item {
 
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
-            height: parent.height / 3
+
             framesCount: root.framesCount
             reportPath: root.reportPath
             onReportPathChanged: {
@@ -287,7 +318,6 @@ Item {
 
         PackageOutputFileView {
             id: packageOutputFileView
-            height: parent.height / 3
 
             function updatePackagingErrorByPath(path, error) {
                 updatePropertyByPath(path, 'Error', error)
@@ -297,6 +327,10 @@ Item {
                 updatePropertyByPath(path, 'Status', status)
             }
 
+            function updatePackagingError(index, error) {
+                updateProperty(index, 'Error', error)
+            }
+
             function updatePackagingStatus(index, status) {
                 updateProperty(index, 'Status', status)
             }
@@ -304,7 +338,7 @@ Item {
             function updatePropertyByPath(path, propertyName, value) {
                 for(var j = 0; j < dataModel.rowCount; ++j) {
                     var row = dataModel.getRow(j)
-                    if((row['File Path']) === path) {
+                    if((row['Output File Path']) === path) {
                         updateProperty(j, propertyName, value)
                         break;
                     }

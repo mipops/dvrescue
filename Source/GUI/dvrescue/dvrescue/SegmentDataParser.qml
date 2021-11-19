@@ -30,7 +30,7 @@ Item {
                 endsWithMissingAudioData: columns[16],
                 offsetAtEndOfTheRange: columns[17],
                 offsetOfLastFrameOfTheRange: columns[18],
-                segmentFileName: columns.length > 20 ? columns[20] : ''
+                segmentFileName: columns.length > 19 ? columns[19] : ''
             }
 
             if(onEntryParsed)

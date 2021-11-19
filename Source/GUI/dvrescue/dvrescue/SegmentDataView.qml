@@ -47,7 +47,7 @@ Rectangle {
             id: header
             width: tableView.columnWidths[modelData]
             text: dataModel.columns[modelData].display
-            canFilter: true
+            canFilter: false
             canSort: false
             canShowIndicator: false
             filterFont.pixelSize: 11

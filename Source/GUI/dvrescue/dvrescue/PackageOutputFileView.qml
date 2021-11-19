@@ -14,7 +14,7 @@ Rectangle {
     property alias tableView: tableView
     property alias currentIndex: tableView.currentIndex
 
-    readonly property string filePathColumn: "File Path"
+    readonly property string filePathColumn: "Output File Path"
     readonly property string statusColumn: "Status"
     readonly property string errorColumn: "Error"
 
@@ -123,23 +123,71 @@ Rectangle {
                 }
             }
 
-            DelegateChoice  {
-                TextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
+            DelegateChoice  {                
+                Rectangle {
+                    id: statusDelegate
+                    implicitWidth: 100
+                    implicitHeight: 20
                     property color evenColor: '#e3e3e3'
                     property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
 
                     color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        anchors.fill: parent
-                        onClicked: {
+                    property real overlayColorOpacity: 0.5
+                    property alias overlayColor: overlay.color
+                    property alias overlayVisible: overlay.visible
 
+                    Image {
+                        source: "icons/dvpackager_processing-not-started.svg"
+                        height: statusDelegate.height
+                        width: height
+                        anchors.centerIn: parent
+                        visible: display == 'not exported'
+                    }
+
+                    Image {
+                        source: "icons/dvpackager_processing-in-queue.svg"
+                        height: statusDelegate.height
+                        width: height
+                        anchors.centerIn: parent
+                        visible: display == 'queued'
+                    }
+
+                    Image {
+                        source: "icons/dvpackager_processing-in-process.svg"
+                        height: statusDelegate.height
+                        width: height
+                        anchors.centerIn: parent
+                        visible: display == 'packaging'
+
+                        RotationAnimation on rotation {
+                            loops: Animation.Infinite
+                            from: 0
+                            to: 360
+                            duration: 2000
                         }
+                    }
+
+                    Image {
+                        source: "icons/dvpackager_processing-done.svg"
+                        height: statusDelegate.height
+                        width: height
+                        anchors.centerIn: parent
+                        visible: display == 'finished' && edit == ''
+                    }
+
+                    Image {
+                        source: "icons/dvpackager_processing-failed-canceled.svg"
+                        height: statusDelegate.height
+                        width: height
+                        anchors.centerIn: parent
+                        visible: display == 'finished' && edit != ''
+                    }
+
+                    Rectangle {
+                        id: overlay
+                        anchors.fill: parent
+                        opacity: overlayColorOpacity
+                        visible: false
                     }
                 }
             }
@@ -157,12 +205,13 @@ Rectangle {
         id: dataModel
 
         TableModelColumn {
-            display: "File Path"
+            display: "Output File Path"
             property int minWidth: 250
         }
 
         TableModelColumn {
             display: "Status"
+            edit: "Error"
             property int minWidth: 40
         }
     }
