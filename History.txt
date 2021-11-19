@@ -1,3 +1,17 @@
+Version 0.21.11, 2021-11-19
++ Add GUI interface for packaging DV into container
++ Add segment viewer in analysis and packaging view to interact with dv in subranges
++ New icons in analysis view to note jumps, markers, errors and events
++ Expansion of documentation
++ Improvements in audio/video synchronization during packaging
++ Improvements to interaction with attached videodecks and initial prototypes for capture via GUI
++ Support options to normalize audio or aspect ratio during packaging rather than segmenting the outputs
++ Functions to merge multiple dv streams into a better output according to frame matching and selective block copying
++ Support direct capture via the dvrescue CLI
++ Improvements on caption to subtitle conversion during packaging
++ Update player to QtAVPlayer
++ Update to dvrescue.xsd to 1.2.1 adding support to directionality of discontinuous jumps in select frame attributes
+
 Version 0.20.11, 2020-11-19
 + Support merging multiple dv streams of same content to a better output.
 + Add track duration post-check to dvpackager
