@@ -137,9 +137,9 @@ char uint4_to_hex4(int Value)
 
 bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 {
-    timecode TimeCode(Frame.TimeCode);
+    timecode TimeCode(Frame);
     rec_date_time RecDateTime(Frame);
-    frame_seqn Seqn(Frame.Arb);
+    frame_seqn Seqn(Frame);
     abst_bf AbstBf = (Frame.AbstBf);
     return false
         || Frame.Video_STA_Errors

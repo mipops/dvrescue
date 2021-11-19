@@ -28,14 +28,17 @@ const int DseqSta_Size = Dseq_Size * Sta_Size;
 struct frame_seqn
 {
 public:
-    frame_seqn(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) Value) : _Value(Value) {}
+    frame_seqn(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value(Frame.Arb), _Value2(Frame.MoreFlags) {}
+    frame_seqn(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value(Frame->Arb), _Value2(Frame->MoreFlags) {}
     inline int Value() { return _Value & 0xF; }                                    //  0- 3
     inline bool HasValue() { return _Value & (1 << 4); }                           //  4
     inline bool NonConsecutive() { return _Value & (1 << 6); }                     //  6
     inline bool Repeat() { return _Value & (1 << 7); }                             //  7
+    inline int NonConsecutive_IsLess() { return _Value2 & (1 << 2); }              //  
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Arb) _Value;
+    decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::MoreFlags) _Value2;
 };
 
 struct abst_bf
@@ -62,16 +65,19 @@ private:
 struct timecode
 {
 public:
-    timecode(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::TimeCode) Value) : _Value(Value) {}
+    timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value(Frame.TimeCode), _Value2(Frame.MoreFlags) {}
+    timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value(Frame->TimeCode), _Value2(Frame->MoreFlags) {}
     inline bool HasValue() { return ((_Value >> 8) & 0x1FFFF) != 0x1FFFF; }
     inline int Frames() { return _Value & 0x3F; }                                  //  0- 6
     inline bool DropFrame() { return _Value & (1 << 7); }                          //  7
     inline int TimeInSeconds() { return (_Value >> 8) & 0x1FFFF; }                 //  8-24
     inline bool NonConsecutive() { return _Value & (1 << 30); }                    // 30
     inline bool Repeat() { return _Value & (1 << 31); }                            // 31
+    inline int NonConsecutive_IsLess() { return _Value2 & (1 << 1); }              //  
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::TimeCode) _Value;
+    decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::MoreFlags) _Value2;
 };
 
 struct rec_date_time

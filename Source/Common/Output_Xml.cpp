@@ -355,7 +355,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // TimeCode
-                auto TimeCode = timecode(Frame->TimeCode);
+                auto TimeCode = timecode(Frame);
                 if (TimeCode.HasValue())
                 {
                     Text += " tc=\"";
@@ -368,7 +368,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
                 if (TimeCode.NonConsecutive())
                 {
-                    Text += " tc_nc=\"1\"";
+                    if (TimeCode.NonConsecutive_IsLess())
+                        Text += " tc_nc=\"2\"";
+                    else
+                        Text += " tc_nc=\"1\"";
                 }
 
                 // RecDate/RecTime
@@ -407,7 +410,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // Arb
-                frame_seqn Seqn(Frame->Arb);
+                frame_seqn Seqn(Frame);
                 if (Seqn.HasValue())
                 {
                     Text += string(" seqn=\"") + uint4_to_hex4(Seqn.Value()) + "\"";
@@ -418,7 +421,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
                 if (Seqn.NonConsecutive())
                 {
-                    Text += " seqn_nc=\"1\"";
+                    if (Seqn.NonConsecutive_IsLess())
+                        Text += " seqn_nc=\"2\"";
+                    else
+                        Text += " seqn_nc=\"1\"";
                 }
 
                 // Captions

@@ -116,7 +116,7 @@ return_value Output_Captions_Scc(const string& OutName, const TimeCode* OffsetTi
         if (OffsetTimeCode && !TC_Base.IsValid())
         {
             // Try to use DV time code
-            auto FromDvTimecode = timecode((*File->PerFrame.begin())->TimeCode);
+            auto FromDvTimecode = timecode(*File->PerFrame.begin());
             if (FromDvTimecode.HasValue())
             {
                 auto FromDvTimecodeSeconds = FromDvTimecode.TimeInSeconds();
