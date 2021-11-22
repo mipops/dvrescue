@@ -763,7 +763,11 @@ void QwtQuick2PlotPicker::attach(QwtQuick2Plot *plot)
         this->setActive(pickerActive);
     });
 
+    #if QWT_VERSION >= 0x060200
     m_qwtPlotPicker->setAxes(QwtPlot::xBottom, QwtPlot::yLeft );
+    #else
+    m_qwtPlotPicker->setAxis(QwtPlot::xBottom, QwtPlot::yLeft );
+    #endif
     m_qwtPlotPicker->setRubberBand( QwtPlotPicker::CrossRubberBand );
     m_qwtPlotPicker->setRubberBandPen( QColor( Qt::green ) );
 
