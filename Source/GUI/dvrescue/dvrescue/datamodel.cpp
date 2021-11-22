@@ -361,11 +361,11 @@ void DataModel::populate(const QString &fileName)
         auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
         auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
         if(recStart && recEnd) {
-            frameStats.markers["rec"] = std::pair("Recording Start&End", "icons/record-marker-stop+start-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording Start&End", "icons/record-marker-stop+start-graph.svg");
         } else if(recStart) {
-            frameStats.markers["rec"] = std::pair("Recording Start", "icons/record-marker-start-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording Start", "icons/record-marker-start-graph.svg");
         } else if(recEnd) {
-            frameStats.markers["rec"] = std::pair("Recording End", "icons/record-marker-stop-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording End", "icons/record-marker-stop-graph.svg");
         }
 
         if(isSubstantial)
