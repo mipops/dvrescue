@@ -56,6 +56,7 @@ Column {
             id: player
             videoOutput: videoOutput
             buffer: buffer
+            enableAudio: false
 
             Component.onCompleted: {
                 console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);

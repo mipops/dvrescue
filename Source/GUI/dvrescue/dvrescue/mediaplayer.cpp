@@ -133,7 +133,8 @@ void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
     });
 
     QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
-        audioOutput->play(frame);
+        if(enableAudio())
+            audioOutput->play(frame);
     });
 
     Q_EMIT videoOutputChanged();
@@ -257,4 +258,17 @@ void MediaPlayer::setBuffer(QIODevice* newBuffer)
     m_buffer = newBuffer;
     player->setSource("dummy", m_buffer);
     Q_EMIT bufferChanged();
+}
+
+bool MediaPlayer::enableAudio() const
+{
+    return m_enableAudio;
+}
+
+void MediaPlayer::setEnableAudio(bool newEnableAudio)
+{
+    if (m_enableAudio == newEnableAudio)
+        return;
+    m_enableAudio = newEnableAudio;
+    Q_EMIT enableAudioChanged();
 }
