@@ -1,7 +1,6 @@
 import QtQuick 2.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
-import FileWriter 0.1
 import FileUtils 1.0
 import ConnectionUtils 1.0
 
@@ -18,25 +17,11 @@ Item {
         }
     }
 
-    property Component fileWriterFactory: FileWriter {
-        Component.onCompleted: {
-            console.debug('file writer created...');
-        }
-
-        Component.onDestruction: {
-            console.debug('file writer destroyed...');
-        }
-    }
-
-    function grab(index, file, playbackBuffer, callback) {
+    function grab(index, file, playbackBuffer, fileWriter, callback) {
         console.debug('making report: ', file);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
-            var fileWriter = fileWriterFactory.createObject(null);
-
-            fileWriter.fileName = file;
-            fileWriter.open();
 
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
@@ -64,13 +49,6 @@ Item {
             });
             launcher.processFinished.connect(() => {
                 try {
-                    fileWriter.close();
-                }
-                catch(err) {
-
-                }
-
-                try {
                     accept();
                 }
                 catch(err) {
@@ -78,7 +56,6 @@ Item {
                 }
 
                 launcher.destroy();
-                fileWriter.destroy();
             });
 
             var arguments = ['device://' + index, '-m', '-']

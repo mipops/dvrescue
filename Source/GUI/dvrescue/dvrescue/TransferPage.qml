@@ -14,6 +14,7 @@ Rectangle {
     property alias statusText: captureView.statusText
     property alias playbackBuffer: captureView.playbackBuffer
     property alias player: captureView.player
+    property alias fileWriter: captureView.fileWriter
 
     width: 1190
     height: 768

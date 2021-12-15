@@ -216,7 +216,11 @@ ApplicationWindow {
 
                     pendingAction = true;
                     player.play()
-                    dvrescue.grab(0, filePath, playbackBuffer, (launcher) => {
+
+                    fileWriter.fileName = filePath;
+                    fileWriter.open();
+
+                    dvrescue.grab(0, filePath, playbackBuffer, fileWriter, (launcher) => {
                        launcher.errorChanged.connect((errorBytes) => {
                            console.debug('grabbed errorString: ', errorBytes)
                            var errorString = '' + errorBytes;

@@ -4,6 +4,7 @@ import QtQuick.Controls 2.12
 import QtMultimedia 5.12 as QtMultimedia
 import MediaPlayer 1.0
 import MediaPlayerBuffer 1.0
+import FileWriter 0.1
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -15,6 +16,7 @@ Column {
     property alias statusText: statusText.text
     property alias playbackBuffer: player.buffer
     property alias player: player
+    property alias fileWriter: fileWriter
 
     Rectangle {
         width: 640
@@ -50,6 +52,10 @@ Column {
 
         MediaPlayerBuffer {
             id: buffer
+        }
+
+        FileWriter {
+            id: fileWriter
         }
 
         MediaPlayer {
