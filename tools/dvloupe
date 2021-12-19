@@ -10,21 +10,23 @@ _usage(){
   echo "$(basename "${0}") [options] -i file.dv"
   echo
   echo "Options:"
-  echo " -i INPUT (provide an input file to examine)"
-  echo " -t PTS   (provide a timestamp to examine, otherwise the first frame is default)"
-  echo " -H       (only display DIF Blocks with a Section Type of Header)"
-  echo " -S       (only display DIF Blocks with a Section Type of Subcode)"
-  echo " -X       (only display DIF Blocks with a Section Type of VAUX)"
-  echo " -A       (only display DIF Blocks with a Section Type of Audio)"
-  echo " -V       (only display DIF Blocks with a Section Type of Video)"
+  echo " -i INPUT   (provide an input file to examine)"
+  echo " -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)"
+  echo " -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)"
+  echo " -H         (only display DIF Blocks with a Section Type of Header)"
+  echo " -S         (only display DIF Blocks with a Section Type of Subcode)"
+  echo " -X         (only display DIF Blocks with a Section Type of VAUX)"
+  echo " -A         (only display DIF Blocks with a Section Type of Audio)"
+  echo " -V         (only display DIF Blocks with a Section Type of Video)"
   exit
 }
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:HSXAVi:h" opt ; do
+while getopts ":t:b:HSXAVi:h" opt ; do
   case "${opt}" in
-    t) FFMPEG_INPUT_OPTS+=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
+    t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
+    b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
     H) SCT="header"  ; DIFB_FILTER="^1" ;;
     S) SCT="subcode" ; DIFB_FILTER="^3" ;;
     X) SCT="vaux"    ; DIFB_FILTER="^5" ;;
