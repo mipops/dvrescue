@@ -21,6 +21,10 @@ Options:
  -V         (only display DIF Blocks with a Section Type of Video)
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
+
+ -F <path> (provide a custom ffmpeg path)
+ -M <path> (provide a custom mediainfo path)
+ -X <path> (provide a custom xmlstarlet path)
 EOF
     exit
 }
@@ -38,7 +42,7 @@ FORMAT="txt"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVf:i:h" opt ; do
+while getopts ":t:b:HSXAVf:i:hF:M:X:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -49,6 +53,9 @@ while getopts ":t:b:HSXAVf:i:h" opt ; do
     V) SCT="video"   ; DIFB_FILTER="^9" ;;
     f) FORMAT="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
+    F) FFMPEG_PATH="${OPTARG}" ;;
+    M) MEDIAINFO_PATH="${OPTARG}" ;;
+    X) XMLSTARLET_PATH="${OPTARG}" ;;
     h) _usage ;;
     *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
@@ -63,6 +70,31 @@ if [[ ! -f "$DV_FILE" ]] ; then
     echo "Please provide an input file to examine."
     exit 1
   fi
+fi
+
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    FFMPEG_PATH="$(which ffmpeg)"
+fi
+if [[ ! -f "${FFMPEG_PATH}" ]] ; then
+    _report -w "The ffmpeg command-line tool is not found, but needed."
+    _report -w "Please install a ffmpeg CLI or provide a path to mediainfo with the -F argument."
+    exit 1
+else
+    FFPROBE_PATH="$(dirname "${FFMPEG_PATH}")/ffprobe"
+fi
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    MEDIAINFO_PATH="$(which mediainfo)"
+fi
+if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
+    _report -w "The mediainfo command-line tool is not found, but is used to add context to some outputs."
+    _report -w "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
+fi
+if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+    XMLSTARLET_PATH="$(which xmlstarlet)"
+fi
+if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+    _report -w "The xmlstarlet command-line tool is not found, but is used to add context to some outputs."
+    exit 1
 fi
 
 if [[ "${FORMAT}" == "txt" ]] ; then
@@ -128,7 +160,7 @@ else
     ROW_END="${RESET}\n"
 fi
 
-IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <(ffprobe -v 0 "${DV_FILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
+IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DV_FILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
 
 if [[ "${CODEC_NAME}" != "dvvideo" ]] ; then
   echo "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
@@ -150,9 +182,9 @@ MEDIATRACEXML="$(_maketemp)"
 LOOOKUP="$(_maketemp)"
 
 if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
-    ffmpeg -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
-    mediainfo  --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
-    xmlstarlet sel -N mt="https://mediaarea.net/mediatrace" -t -m "/mt:MediaTrace/mt:media//mt:data[not(@offset=preceding-sibling::mt:data/@offset)]" -v @offset --var off=@offset -o "|" -m "../mt:data[@offset=\$off]" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOOKUP}"
+    "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
+    "${MEDIAINFO_PATH}"  --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
+    "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -t -m "/mt:MediaTrace/mt:media//mt:data[not(@offset=preceding-sibling::mt:data/@offset)]" -v @offset --var off=@offset -o "|" -m "../mt:data[@offset=\$off]" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOOKUP}"
     echo -e "${HEADER}"
     xxd -ps -c 80 "${DVFRAME}" | \
         awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
@@ -179,7 +211,7 @@ if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
     echo -e "${FOOTER}"
 else
     echo -e "${HEADER}"
-    ffmpeg -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" - | xxd -c 80 -ps | grep "${DIFB_FILTER}" | \
+    "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" - | xxd -c 80 -ps | grep "${DIFB_FILTER}" | \
         awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
             -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
             -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
