@@ -5,7 +5,7 @@ _usage(){
 $(basename "${0}")
 
 Display a DV frame as hex with some labelling and color-coding. This script is part of the
-dvrescue project
+dvrescue project.
 
 Usage:
  $(basename "${0}") [options] -i file.dv
