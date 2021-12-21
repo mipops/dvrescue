@@ -19,17 +19,26 @@ Options:
  -g         (create gif from error jpgs)
  -o OUTPUT  (select a custom location for output files)
  -h         (Displays this help)
+ -F <path> (provide a custom ffmpeg path)
+ -D <path> (provide a custom dvrescue path)
+ -X <path> (provide a custom xmlstarlet path)
+ -d <path> (provide a custom path to a DVRescue XML that corresponds to the
+            input file)
 EOF
 exit
 }
 
 OPTIND=1
-while getopts ":s:mxgho:" OPT ; do
+while getopts ":s:mxgF:D:X:d:ho:" OPT ; do
     case "${OPT}" in
         s) START_TIME="${OPTARG}";;
         m) MASK_ONLY="Y" ;;
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
+        F) FFMPEG_PATH="${OPTARG}" ;;
+        D) DVRESCUE_PATH="${OPTARG}" ;;
+        X) XMLSTARLET_PATH="${OPTARG}" ;;
+        d) DVRESCUE_XML="${OPTARG}" ;;
         h) _usage ;;
         o) OUTPUTDIR="${OPTARG}";;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
@@ -37,6 +46,31 @@ while getopts ":s:mxgho:" OPT ; do
     esac
 done
 shift $(( ${OPTIND} - 1 ))
+
+if [[ -z "${FFMPEG_PATH}" ]] ; then
+    FFMPEG_PATH="$(which ffmpeg)"
+fi
+if [[ ! -f "${FFMPEG_PATH}" ]] ; then
+    _report -d "The ffmpeg command-line tool is not found, but needed."
+    _report -d "Please install a ffmpeg CLI  or provide a path to mediainfo with the -F argument."
+else
+    FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
+    FFPROBE_PATH="$(dirname "${FFMPEG_PATH}")/ffprobe"
+fi
+if [[ -z "${DVRESCUE_PATH}" ]] ; then
+    DVRESCUE_PATH="$(which dvrescue)"
+fi
+if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
+    _report -w "The dvrescue command-line tool is not found."
+    exit 1
+fi
+if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+    XMLSTARLET_PATH="$(which xmlstarlet)"
+fi
+if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+    _report -w "The xmlstarlet command-line tool is not found."
+    exit 1
+fi
 
 cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
 <?xml version="1.0"?>
@@ -368,18 +402,18 @@ LESSONE="$((${TILE_V}*${TILE_H}-1))"
 FILTER="scale=iw/4:ih/4,transpose=2,tile=layout=${TILE_V}x${TILE_H}:init_padding=${LESSONE}:overlap=${LESSONE}:padding=1,transpose=1,setsar=1/1"
 
 _play_dv(){
-  ffmpeg "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
+  "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
   xxd -p -c 80 | \
   perl -pe "s|${FIND}|${FILL}|g" | \
   xxd -r -p | \
-  ffplay - -vf "${FILTER}"
+  "${FFPLAY_PATH}" - -vf "${FILTER}"
 }
 
 _make_dvrescue_xml(){
   if [[ ! -f "${DVRESCUE_XML}" ]] ; then
     echo "Assessing $(basename "${DVFILE}")..."
     _mkdir2 "${SIDECAR_DIR}"
-    dvrescue "${DVFILE}" > "${DVRESCUE_XML}"
+    "${DVRESCUE_PATH}" "${DVFILE}" > "${DVRESCUE_XML}"
   fi
 }
 
@@ -423,14 +457,16 @@ while [[ "${@}" != "" ]] ; do
   fi
   IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
   DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
-  DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+  if [[ ! -s "${DVRESCUE_XML}" ]] ; then
+    DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+  fi
 
   if [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
     _make_dvrescue_xml
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
-    TOTAL_FRAMES="$(xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
+    TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
     COUNTER=1
-    xmlstarlet sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
+    "${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
       N="$(echo "${error_frame}" | cut -d "," -f1)"
       PTS="$(echo "${error_frame}" | cut -d "," -f2)"
       TC="$(echo "${error_frame}" | cut -d "," -f3)"
@@ -449,17 +485,17 @@ while [[ "${@}" != "" ]] ; do
         _mkdir2 "${IMAGE_DIR}"
         JPG_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
       fi
-      ffmpeg -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+      "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      ffmpeg -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
+      "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
       ((COUNTER=COUNTER+1))
     done
     if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
       GIF_PALETTE="$(_maketemp)"
-      ffmpeg -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
-      ffmpeg -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
+      "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
+      "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
       rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
     else
       xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
