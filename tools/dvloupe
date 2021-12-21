@@ -1,26 +1,28 @@
 #!/bin/bash
 
 _usage(){
-  echo "$(basename "${0}")"
-  echo
-  echo "Display a DV frame as hex with some labelling and color-coding. This script is part of the"
-  echo "dvrescue project"
-  echo
-  echo "Usage:"
-  echo "$(basename "${0}") [options] -i file.dv"
-  echo
-  echo "Options:"
-  echo " -i INPUT   (provide an input file to examine)"
-  echo " -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)"
-  echo " -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)"
-  echo " -H         (only display DIF Blocks with a Section Type of Header)"
-  echo " -S         (only display DIF Blocks with a Section Type of Subcode)"
-  echo " -X         (only display DIF Blocks with a Section Type of VAUX)"
-  echo " -A         (only display DIF Blocks with a Section Type of Audio)"
-  echo " -V         (only display DIF Blocks with a Section Type of Video)"
-  echo
-  echo " -f FMT     (print the output in a format. The options are: html, json, and txt)"
-  exit
+    cat <<EOF
+$(basename "${0}")
+
+Display a DV frame as hex with some labelling and color-coding. This script is part of the
+dvrescue project
+
+Usage:
+ $(basename "${0}") [options] -i file.dv
+
+Options:
+ -i INPUT   (provide an input file to examine)
+ -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)
+ -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
+ -H         (only display DIF Blocks with a Section Type of Header)
+ -S         (only display DIF Blocks with a Section Type of Subcode)
+ -X         (only display DIF Blocks with a Section Type of VAUX)
+ -A         (only display DIF Blocks with a Section Type of Audio)
+ -V         (only display DIF Blocks with a Section Type of Video)
+
+ -f FMT     (print the output in a format. The options are: html, json, and txt)
+EOF
+    exit
 }
 
 _maketemp(){
