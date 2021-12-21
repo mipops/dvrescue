@@ -19,6 +19,9 @@ Options:
  -g         (create gif from error jpgs)
  -o OUTPUT  (select a custom location for output files)
  -h         (Displays this help)
+ -B BLOCKS  (draw a box around a specific DIF Block(s). Use a comma-delimited list for more than one,
+             such as '-B 0,1348,1349')
+
  -F <path> (provide a custom ffmpeg path)
  -D <path> (provide a custom dvrescue path)
  -X <path> (provide a custom xmlstarlet path)
@@ -29,7 +32,7 @@ exit
 }
 
 OPTIND=1
-while getopts ":s:mxgF:D:X:d:ho:" OPT ; do
+while getopts ":s:mxgF:D:X:d:hB:o:" OPT ; do
     case "${OPT}" in
         s) START_TIME="${OPTARG}";;
         m) MASK_ONLY="Y" ;;
@@ -40,6 +43,7 @@ while getopts ":s:mxgF:D:X:d:ho:" OPT ; do
         X) XMLSTARLET_PATH="${OPTARG}" ;;
         d) DVRESCUE_XML="${OPTARG}" ;;
         h) _usage ;;
+        B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
@@ -396,10 +400,67 @@ else
 fi
 
 # filter handling
+_get_filters(){
 TILE_V="8"
 TILE_H="4"
 LESSONE="$((${TILE_V}*${TILE_H}-1))"
-FILTER="scale=iw/4:ih/4,transpose=2,tile=layout=${TILE_V}x${TILE_H}:init_padding=${LESSONE}:overlap=${LESSONE}:padding=1,transpose=1,setsar=1/1"
+if [[ -n "${BLOCKS}" ]] ; then
+    IFS=, read -ra BLOCK <<< "${BLOCKS}"
+    FORMAT="format=yuv444p,"
+    for BLOCK in "${BLOCK[@]}" ; do
+        BLO=$((BLOCK%135))
+        SEQ=$((BLOCK/135))
+        if [[ "${HEIGHT}" == "576" ]] ; then
+            SEQCOUNT=12
+        else
+            SEQCOUNT=10
+        fi
+        BLO_M5=$((BLO%5))
+        if [[ "${BLO_M5}" == "0" ]] ; then
+            I5=2 ; J=2
+        elif [[ "${BLO_M5}" == "1" ]] ; then
+            I5=6 ; J=1
+        elif [[ "${BLO_M5}" == "2" ]] ; then
+            I5=8 ; J=3
+        elif [[ "${BLO_M5}" == "3" ]] ; then
+            I5=0 ; J=0
+        else
+            I5=4 ; J=4
+        fi
+        I=$(((I5+SEQ)%SEQCOUNT))
+        K=$(((BLOCK/5)%27))
+        if [[ "${PIX_FMT}" = "yuv411p" && ( "${J}" -lt "4" || ( "${J}" -eq "4" && "${K}" -lt "24" )) ]] ; then
+            W=32 ; H=8
+        else
+            W=16 ; H=16
+        fi
+        if [[ "${PIX_FMT}" = "yuv411p" ]] ; then
+            WL=32 ; MACROBLOCK_ROWS=6 ; MBX_OFFSET=$(((J%2)*3))
+        else
+            WL=16 ; MACROBLOCK_ROWS=3 ; MBX_OFFSET=0
+        fi
+        MBx=$(((K+MBX_OFFSET)/MACROBLOCK_ROWS))
+        if [[ "$((MBx%2))" -eq "0" ]] ; then
+            MByt=$((K+MBX_OFFSET))
+        else
+            MByt=$((K+MBX_OFFSET+MACROBLOCK_ROWS-1-(((K+MBX_OFFSET)%MACROBLOCK_ROWS)*2)))
+        fi
+        MBy=$((MByt%MACROBLOCK_ROWS))
+        if [[ "${PIX_FMT}" = "yuv411p" && "$((J%2))" -eq "1" ]] ; then
+            SBx=$((J*144-16))
+        else
+            SBx=$((J*144))
+        fi
+        X=$((SBx+(WL*MBx)))
+        Y=$(((I*48)+(MBy*H)))
+        FILTER+="drawbox=w=${W}:h=${H}:x=${X}:y=${Y}:color=white@0.5:t=1,"
+    done
+    # remove trailing comma
+    FILTER="${FILTER%?}"
+else
+    FILTER="scale=iw/4:ih/4,transpose=2,tile=layout=${TILE_V}x${TILE_H}:init_padding=${LESSONE}:overlap=${LESSONE}:padding=1,transpose=1,setsar=1/1"
+fi
+}
 
 _play_dv(){
   "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
@@ -444,6 +505,8 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
+  IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DVFILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
+  _get_filters
   BASENAME="$(basename "${DVFILE}")"
   DIRNAME="$(dirname "${DVFILE}")"
   DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
