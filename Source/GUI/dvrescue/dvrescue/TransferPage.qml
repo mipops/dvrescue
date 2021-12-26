@@ -24,10 +24,21 @@ Rectangle {
 
     CaptureView {
         id: captureView
-        x: 275
-        y: 120
+        visible: false
     }
 
+    FunkyGridLayout {
+        width: parent.width
+        height: parent.height
+        Repeater {
+            id: captureViewRepeater
+            model: devicesModel
+            delegate: CaptureView {
+            }
+        }
+    }
+
+    /*
     Timer {
         repeat: true
         running: deviceNameTextField.text !== ''
@@ -50,14 +61,7 @@ Rectangle {
             }
         }
     }
-
-    AnalyseFileView {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.rightMargin: 10
-        anchors.topMargin: 10
-    }
+    */
 }
 
 /*##^##

@@ -96,5 +96,6 @@
         <file>icons/dvpackager_processing-in-process.svg</file>
         <file>icons/dvpackager_processing-in-queue.svg</file>
         <file>icons/dvpackager_processing-not-started.svg</file>
+        <file>FunkyGridLayout.qml</file>
     </qresource>
 </RCC>
