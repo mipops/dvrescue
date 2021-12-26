@@ -11,11 +11,6 @@ Rectangle {
 
     property var queryStatusCallback;
 
-    CaptureView {
-        id: captureView
-        visible: false
-    }
-
     FunkyGridLayout {
         width: parent.width
         height: parent.height
@@ -23,6 +18,7 @@ Rectangle {
             id: captureViewRepeater
             model: devicesModel
             delegate: CaptureView {
+                id: captureView
                 property bool pendingAction: false;
 
                 Timer {
@@ -42,6 +38,8 @@ Rectangle {
                                 if(pendingAction === false) {
                                     captureView.statusText = result.status.statusText
                                 }
+                                querying = false;
+                            }).catch((err) => {
                                 querying = false;
                             });
                         }
