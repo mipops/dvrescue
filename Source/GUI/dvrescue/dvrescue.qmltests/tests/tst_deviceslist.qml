@@ -33,9 +33,49 @@ Item {
 2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)";
 
         property var devicesList4: "2020-11-04 16:02:24.474 avfctl[55693:3849610] Devices:
-2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)"
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [0] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [3] DV-VCR (Sony GV-D1000)";
 
-        property var devicesLists: [ devicesList1, devicesList2, devicesList3, devicesList4 ]
+        property var devicesList5: "2020-11-04 16:02:24.474 avfctl[55693:3849610] Devices:
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [0] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [3] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [4] DV-VCR (Sony GV-D1000)";
+
+        property var devicesList6: "2020-11-04 16:02:24.474 avfctl[55693:3849610] Devices:
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [0] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [3] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [4] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [5] DV-VCR (Sony GV-D1000)";
+
+        property var devicesList7: "2020-11-04 16:02:24.474 avfctl[55693:3849610] Devices:
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [0] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [3] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [4] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [5] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [6] DV-VCR (Sony GV-D1000)";
+
+        property var devicesList8: "2020-11-04 16:02:24.474 avfctl[55693:3849610] Devices:
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [0] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [1] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [2] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [3] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [4] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [5] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [6] DV-VCR (Sony GV-D1000)
+2020-11-04 16:02:24.474 avfctl[55693:3849610] [7] DV-VCR (Sony GV-D1000)";
+
+        property var devicesLists: [
+            devicesList1, devicesList2, devicesList3, devicesList4,
+            devicesList5, devicesList6, devicesList7, devicesList8
+        ]
 
         function queryDecks() {
             var promise = new Promise((accept, reject) => {
@@ -43,7 +83,8 @@ Item {
                 console.debug('querying decks...');
                 Qt.callLater(() => {
                                  try {
-                                     var index = Math.round(Math.random() * 2);
+                                     var devicesListsLength = devicesLists.length;
+                                     var index = Math.round(Math.random() * devicesListsLength);
                                      var outputText = devicesLists[index];
                                      console.debug('outputText: ', outputText);
                                      accept(parser.parseDevicesList(outputText));

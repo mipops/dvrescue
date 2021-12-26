@@ -154,94 +154,9 @@ ApplicationWindow {
                 return FileUtils.getFilePath(url);
             }
 
-            queryStatusCallback: () => {
-                return avfctl.status(0)
+            queryStatusCallback: (index) => {
+                return avfctl.status(index)
             }
-
-            rewindButton.onClicked: {
-                pendingAction = true;
-                statusText = "rewinding..";
-                avfctl.rew(0, (launcher) => {
-                   commandsLogs.logCommand(launcher);
-                }).then((result) => {
-                   statusText = "rewinding.";
-                   pendingAction = false;
-                   commandsLogs.logResult(result.outputText);
-                   return result;
-                });
-            }
-
-            stopButton.onClicked: {
-                pendingAction = true;
-                statusText = "stopping..";
-                avfctl.stop(0, (launcher) => {
-                   commandsLogs.logCommand(launcher);
-                }).then((result) => {
-                   statusText = "stopping.";
-                   pendingAction = false;
-                   commandsLogs.logResult(result.outputText);
-                   return result;
-                });
-            }
-
-            playButton.onClicked: {
-                pendingAction = true;
-                statusText = "playing..";
-                avfctl.play(0, (launcher) => {
-                   commandsLogs.logCommand(launcher);
-                }).then((result) => {
-                   statusText = "playing.";
-                   pendingAction = false;
-                   commandsLogs.logResult(result.outputText);
-                   return result;
-                });
-            }
-
-            fastForwardButton.onClicked: {
-                pendingAction = true;
-                statusText = "fast-forwarding..";
-                avfctl.ff(0,  (launcher) => {
-                    commandsLogs.logCommand(launcher);
-                }).then((result) => {
-                    statusText = "fast-forwarding.";
-                    pendingAction = false;
-                    commandsLogs.logResult(result.outputText);
-                    return result;
-                });
-            }
-
-            captureButton.onClicked: {
-                specifyPathDialog.callback = (fileUrl) => {
-                    var filePath = urlToPath(fileUrl);
-
-                    pendingAction = true;
-                    player.play()
-
-                    fileWriter.fileName = filePath;
-                    fileWriter.open();
-
-                    dvrescue.grab(0, filePath, playbackBuffer, fileWriter, (launcher) => {
-                       launcher.errorChanged.connect((errorBytes) => {
-                           console.debug('grabbed errorString: ', errorBytes)
-                           var errorString = '' + errorBytes;
-                           var splitted = errorString.trim().split('\r');
-                           statusText = splitted[splitted.length - 1]
-                       });
-
-                       console.debug('logging grab command')
-                       commandsLogs.logCommand(launcher);
-                    }).then((result) => {
-                       commandsLogs.logResult(result.outputText);
-                       return result;
-                    }).catch((e) => {
-                       commandsLogs.logResult(e);
-                    });
-                }
-
-                specifyPathDialog.open();
-            }
-
-            deviceNameTextField.text: devicesModel.count === 0 ? '' : devicesModel.get(0).name + " (" + devicesModel.get(0).type + ")"
         }
 
         AnalysePage {
