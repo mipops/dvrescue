@@ -870,7 +870,7 @@ if [[ -f "${DVFILE}" ]] ; then
     if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
         _report -v "Performing test of QuickTime PTS coherency."
         MOV_INPUT_OPT=(-ignore_editlist true)
-        MOV_SHOWINFO="$("${FFMPEG_PATH}" "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
+        MOV_SHOWINFO="$("${FFMPEG_PATH}" -nostdin "${MOV_INPUT_OPT[@]}" -i "${DVFILE}" -vframes 2 -vf showinfo -f null -map 0:v - 2>&1)"
         MOV_PTS_0="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*0" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
         MOV_PTS_1="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*1" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
         MOV_PTS_2="$(echo "${MOV_SHOWINFO}" | grep "showinfo.*n:[ ]*2" | grep -o "pts:[ ]*[0-9.]*" | cut -d : -f2 | sed 's/ //g')"
