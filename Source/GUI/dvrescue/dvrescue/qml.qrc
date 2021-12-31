@@ -97,5 +97,8 @@
         <file>icons/dvpackager_processing-in-queue.svg</file>
         <file>icons/dvpackager_processing-not-started.svg</file>
         <file>FunkyGridLayout.qml</file>
+        <file>fonts/DS-DIGI.TTF</file>
+        <file>LCDLabel.qml</file>
+        <file>CaptureFrameInfo.qml</file>
     </qresource>
 </RCC>

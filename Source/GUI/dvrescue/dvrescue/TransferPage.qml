@@ -114,6 +114,14 @@ Rectangle {
                                var errorString = '' + errorBytes;
                                var splitted = errorString.trim().split('\r');
                                statusText = splitted[splitted.length - 1]
+
+                               var values = statusText.split('|')
+                               if(values.length === 4) {
+                                 captureFrameInfo.frameNumber = values[0];
+                                 captureFrameInfo.timeCode = values[1];
+                                 captureFrameInfo.recDate = values[2];
+                                 captureFrameInfo.recTime = values[3];
+                               }
                            });
 
                            console.debug('logging grab command')

@@ -46,3 +46,6 @@ SOURCES += \
 
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/3rdparty
+
+DISTFILES += \
+    $$PWD/fonts/DS-DIGI.TTF

@@ -15,6 +15,7 @@ Column {
     property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
+    property alias captureFrameInfo: captureFrameInfo
     property alias playbackBuffer: player.buffer
     property alias player: player
     property var fileWriter: fileWriter
@@ -123,12 +124,20 @@ Column {
 
         Text {
             id: statusText
+            visible: false
             anchors.left: row.right
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
+        }
+
+        CaptureFrameInfo {
+            id: captureFrameInfo
+            anchors.top: row.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
     }
 }
