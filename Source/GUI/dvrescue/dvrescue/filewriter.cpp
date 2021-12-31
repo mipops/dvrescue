@@ -15,8 +15,6 @@ FileWriter::~FileWriter()
 
 void FileWriter::write(const QByteArray &bytes)
 {
-    QThread::msleep(1000);
-
     if(file.isOpen())
         file.write(bytes);
 }

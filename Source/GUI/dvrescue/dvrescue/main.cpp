@@ -2,6 +2,7 @@
 #include "settingsutils.h"
 #include "qtavplayerutils.h"
 #include "launcher.h"
+#include "thread.h"
 #include "filewriter.h"
 #include "sortfiltertablemodel.h"
 #include "qqmltablemodel_p.h"
@@ -24,6 +25,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
+    qmlRegisterType<Thread>("Thread", 0, 1, "Thread");
     qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");

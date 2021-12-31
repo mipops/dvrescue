@@ -18,6 +18,7 @@ HEADERS += \
     $$PWD/qtavplayerutils.h \
     $$PWD/qwtquick2plot.h \
     $$PWD/settingsutils.h \
+    $$PWD/thread.h \
     $$PWD/xmlparser.h \
     $$PWD/plotdata.h \
     $$PWD/sortfiltertablemodel.h
@@ -38,6 +39,7 @@ SOURCES += \
     $$PWD/qtavplayerutils.cpp \
     $$PWD/qwtquick2plot.cpp \
     $$PWD/settingsutils.cpp \
+    $$PWD/thread.cpp \
     $$PWD/xmlparser.cpp \
     $$PWD/plotdata.cpp \
     $$PWD/sortfiltertablemodel.cpp

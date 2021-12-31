@@ -18,13 +18,13 @@ Item {
     }
 
     function grab(index, file, playbackBuffer, fileWriter, callback) {
-        console.debug('making report: ', file);
+        console.debug('making report: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
 
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
-            var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
+            var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
 
             launcher.errorChanged.connect((errorString) => {
                 console.debug('errorString: ', errorString)

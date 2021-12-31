@@ -98,6 +98,11 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlaye
     t.start();
 }
 
+MediaPlayer::~MediaPlayer()
+{
+    disconnect(player, 0, 0, 0);
+}
+
 QQuickItem *MediaPlayer::videoOutput() const
 {
     return m_videoOutput;

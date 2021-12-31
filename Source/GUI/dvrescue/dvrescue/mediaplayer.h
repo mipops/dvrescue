@@ -65,6 +65,7 @@ public:
     Q_ENUM(MediaStatus)
 
     explicit MediaPlayer(QObject *parent = nullptr);
+    ~MediaPlayer();
 
     QQuickItem *videoOutput() const;
     void setVideoOutput(QQuickItem *newVideoOutput);
