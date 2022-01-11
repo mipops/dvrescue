@@ -825,7 +825,13 @@ if [[ "${TECHSUBS}" = "Y" ]]; then
     fi
 fi
 if [[ "${SUBS}" = "Y" ]]; then
-    if [[ -z "${DVRESCUE_SCC}" ]] ; then
+    if [[ -s "${DVRESCUE_XML}" ]] ; then
+        CAPTION_SUMMARY="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media/d:frames[@captions]" -v @pts -o "-" -v @end_pts -o " captions=" -v @captions -n "${DVRESCUE_XML}")"
+        if [[ -z "${CAPTION_SUMMARY}" ]] ; then
+            _report -d "A caption track was requested, but the dvrescue xml shows that there were no captions in this DV file."
+        fi
+    fi
+    if [[ -z "${DVRESCUE_SCC}" && ( -n "${CAPTION_SUMMARY}" || ! -s "${DVRESCUE_XML}" ) ]] ; then
         DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
         if [[ ! -f "${DVRESCUE_SCC}" ]] ; then
             DVRESCUE_SCC_TEMP="$(_maketemp).scc"
