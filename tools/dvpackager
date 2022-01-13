@@ -43,6 +43,9 @@ Options:
            option will arrange the audio into tracks with mono channels.)
  -S       (embeds a caption track if there are captions to represent in the
            source DV)
+ -Z       (generate a DVRescue technical subtitle file, which contains
+           timecode and other frame-based metadata. This is an experimental
+           dvrescue subtitle format)
  -n       (do not repackage, simply generate a dvrescue xml if one doesn't
            already exist, and report on what the output files would be)
  -N <parts> (List the numbers of the segments that should not be packaged.
@@ -597,6 +600,7 @@ DV_VERBOSE=false
 REPORT_ONLY="N"
 EXT="mov"
 SUBS="N"
+TECHSUBS="N"
 REC_START_OPT="0"
 RDT_NC_OPT="0"
 TC_NC_OPT="0"
@@ -604,7 +608,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
+while getopts ":fsdto:e:l:L:mSZnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -618,6 +622,7 @@ while getopts ":fsdto:e:l:L:mSnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
         n) REPORT_ONLY="Y" ;;
         N) SEGMENT_SKIPS="${OPTARG}" ;;
         S) SUBS="Y" ;;
+        Z) TECHSUBS="Y" ;;
         v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
         z) DISABLE_COLORED_LOGGING="Y" ;;
         u) UNPACKAGER="Y" ;;
@@ -665,6 +670,7 @@ case "${EXT}" in
         FORMAT="rawvideo"
         EXTENSION="dv"
         SUBS="N"
+        TECHSUBS="N"
         VIDEO_MAP=(-map 0:v:0)
         ;;
     *)
@@ -809,7 +815,7 @@ if [[ -z "${DVRESCUE_XML}" ]] ; then
 else
     XML_TO_CHECK="${DVRESCUE_XML}"
 fi
-if [[ "${SUBS}" = "Y" ]]; then
+if [[ "${TECHSUBS}" = "Y" ]]; then
     if [[ -z "${DVRESCUE_TECHSUBS}" ]] ; then
         DVRESCUE_TECHSUBS="${SIDECAR_DIR}/${BASENAME}.dvrescue.techsubs.vtt"
         if [[ ! -f "${DVRESCUE_TECHSUBS}" ]] ; then
@@ -817,7 +823,15 @@ if [[ "${SUBS}" = "Y" ]]; then
             OUTPUTOPTS+=(--webvtt-output "${DVRESCUE_TECHSUBS_TEMP}")
         fi
     fi
-    if [[ -z "${DVRESCUE_SCC}" ]] ; then
+fi
+if [[ "${SUBS}" = "Y" ]]; then
+    if [[ -s "${DVRESCUE_XML}" ]] ; then
+        CAPTION_SUMMARY="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media/d:frames[@captions]" -v @pts -o "-" -v @end_pts -o " captions=" -v @captions -n "${DVRESCUE_XML}")"
+        if [[ -z "${CAPTION_SUMMARY}" ]] ; then
+            _report -d "A caption track was requested, but the dvrescue xml shows that there were no captions in this DV file."
+        fi
+    fi
+    if [[ -z "${DVRESCUE_SCC}" && ( -n "${CAPTION_SUMMARY}" || ! -s "${DVRESCUE_XML}" ) ]] ; then
         DVRESCUE_SCC="${SIDECAR_DIR}/${BASENAME}.dvrescue.scc"
         if [[ ! -f "${DVRESCUE_SCC}" ]] ; then
             DVRESCUE_SCC_TEMP="$(_maketemp).scc"
