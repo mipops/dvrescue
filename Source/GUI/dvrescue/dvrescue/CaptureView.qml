@@ -36,15 +36,17 @@ Column {
         }
     }
 
-    Image {
+    Rectangle {
         id: image
         width: 640
         height: 480
-        source: "colorbars.jpg"
-        autoTransform: true
-        sourceSize.height: 640
-        sourceSize.width: 480
-        fillMode: Image.PreserveAspectFit
+        color: 'black'
+
+        Text {
+            anchors.centerIn: parent
+            color: 'white'
+            text: "NO SIGNAL"
+        }
 
         QtMultimedia.VideoOutput {
             id: videoOutput
