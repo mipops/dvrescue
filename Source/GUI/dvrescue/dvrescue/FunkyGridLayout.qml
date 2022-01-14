@@ -3,7 +3,6 @@ import QtQuick.Layouts 1.3
 
 Rectangle {
     id: layout
-    color: 'green'
 
     onChildrenChanged: scheduleLayout()
     onWidthChanged: scheduleLayout()
