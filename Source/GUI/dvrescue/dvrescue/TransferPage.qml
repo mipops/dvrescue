@@ -115,7 +115,7 @@ Rectangle {
                                var splitted = errorString.trim().split('\r');
                                statusText = splitted[splitted.length - 1]
 
-                               var values = statusText.split('|')
+                               var values = statusText.split(' ')
                                if(values.length === 4) {
                                  captureFrameInfo.frameNumber = values[0];
                                  captureFrameInfo.timeCode = values[1];
