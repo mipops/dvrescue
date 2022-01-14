@@ -58,7 +58,10 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['device://' + index, '-m', '-']
+            var xml = file + ".dv.dvrescue.xml"
+            var scc = file + ".scc"
+
+            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-']
             // var arguments = ['device://' + index, '-m', file]
 
             launcher.execute(cmd + ' ' + arguments.join(' '));
