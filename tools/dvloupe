@@ -22,6 +22,8 @@ Options:
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
 
+ -T [y|n]   (for json and html outputs, enable or disable adding mediatrace data to the output, default is 'y')
+
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
  -X <path> (provide a custom xmlstarlet path)
@@ -39,10 +41,11 @@ _maketemp(){
 }
 
 FORMAT="txt"
+ADD_MEDIATRACE="y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVf:i:hF:M:X:" opt ; do
+while getopts ":t:b:HSXAVf:T:i:hF:M:X:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -52,6 +55,7 @@ while getopts ":t:b:HSXAVf:i:hF:M:X:" opt ; do
     A) SCT="audio"   ; DIFB_FILTER="^7" ;;
     V) SCT="video"   ; DIFB_FILTER="^9" ;;
     f) FORMAT="${OPTARG}" ;;
+    T) ADD_MEDIATRACE="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
     F) FFMPEG_PATH="${OPTARG}" ;;
     M) MEDIAINFO_PATH="${OPTARG}" ;;
@@ -178,37 +182,42 @@ else
 fi
 
 DVFRAME="$(_maketemp)"
-MEDIATRACEXML="$(_maketemp)"
-LOOKUP="$(_maketemp)"
 
 if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
     "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
+    if [[ "${ADD_MEDIATRACE}" == "y" ]] ; then
+        MEDIATRACEXML="$(_maketemp)"
+        LOOKUP="$(_maketemp)"
+        LOOKUP_PARSE_INSTRUCTIONS="{FS=OFS=\"\|\"}NR==FNR { trace[\$1]=\$2; next }"
+        LOOKUP_HEADER="CELL_2TITLE trace[(FNR-1)*80]"
+        LOOKUP_HEADER_3="CELL_2TITLE trace[(FNR-1)*80+3]"
     "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
     "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t -m "/mt:MediaTrace/mt:media/mt:block" --var off=@offset \
         -v @offset     -o "|" -m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]"      -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n \
         -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOKUP}"
+    fi
     echo -e "${HEADER}"
     xxd -ps -c 80 "${DVFRAME}" | \
         awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
             -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
             -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
             -v DELIMITER="${DELIMITER}" \
-    '{FS=OFS="|"}NR==FNR { trace[$1]=$2; next } {diftype=substr($0,1,1);
+    "${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
           if (FNR != "1" ) \
             printf DELIMITER ; \
-    printf     ROW_START CELL_START2ID (FNR-1)*80   CELL_2TITLE trace[(FNR-1)*80]   CELL_2VALUE substr($0,1,6) CELL_END DELIMITER ; \
+    printf     ROW_START CELL_START2ID (FNR-1)*80   '"${LOOKUP_HEADER}"'   CELL_2VALUE substr($0,1,6) CELL_END DELIMITER ; \
     if (diftype == "1" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_HEADER  CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_HEADER  CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else if (diftype == "3" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else if (diftype == "5" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else if (diftype == "7" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else if (diftype == "9" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_VIDEO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_VIDEO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
+        printf           CELL_START2ID (FNR-1)*80+3 '"${LOOKUP_HEADER_3}"' CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     }' "${LOOKUP}" -
     echo -e "${FOOTER}"
 else
