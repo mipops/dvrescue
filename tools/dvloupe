@@ -258,4 +258,7 @@ fi
 if [[ -f "${MEDIATRACEXML}" ]] ; then
     rm "${MEDIATRACEXML}"
 fi
+if [[ -f "${LOOKUP}" ]] ; then
+    rm "${LOOKUP}"
+fi
 
