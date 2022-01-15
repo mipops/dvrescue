@@ -179,14 +179,14 @@ fi
 
 DVFRAME="$(_maketemp)"
 MEDIATRACEXML="$(_maketemp)"
-LOOOKUP="$(_maketemp)"
+LOOKUP="$(_maketemp)"
 
 if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
     "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
     "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
     "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t -m "/mt:MediaTrace/mt:media/mt:block" --var off=@offset \
         -v @offset     -o "|" -m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]"      -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n \
-        -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOOKUP}"
+        -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOKUP}"
     echo -e "${HEADER}"
     xxd -ps -c 80 "${DVFRAME}" | \
         awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
@@ -209,7 +209,7 @@ if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
         printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_VIDEO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
     else \
         printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    }' "${LOOOKUP}" -
+    }' "${LOOKUP}" -
     echo -e "${FOOTER}"
 else
     echo -e "${HEADER}"
