@@ -191,8 +191,8 @@ if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
         LOOKUP_PARSE_INSTRUCTIONS="{FS=OFS=\"\|\"}NR==FNR { trace[\$1]=\$2; next }"
         LOOKUP_HEADER="CELL_2TITLE trace[(FNR-1)*80]"
         LOOKUP_HEADER_3="CELL_2TITLE trace[(FNR-1)*80+3]"
-    "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
-    "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t -m "/mt:MediaTrace/mt:media/mt:block" --var off=@offset \
+        "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
+        "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t -m "/mt:MediaTrace/mt:media/mt:block" --var off=@offset \
         -v @offset     -o "|" -m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]"      -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n \
         -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOKUP}"
     fi
