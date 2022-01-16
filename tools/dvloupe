@@ -170,6 +170,7 @@ if [[ "${FORMAT}" == "json" ]] ; then
     CELL_START2ID='{"id":"'
     CELL_2TITLE='", "tooltip": "'
     CELL_2STYLE='", "color": "'
+    CELL_2LOC='", "loc": "'
     CELL_2VALUE='", "value": "'
     CELL_END='"}'
     DELIMITER=",\n"
@@ -181,6 +182,7 @@ elif [[ "${FORMAT}" == "html" ]] ; then
     CELL_START2ID="<td id=\""
     CELL_2TITLE="\" title=\""
     CELL_2STYLE="\" style=\"color:#"
+    CELL_2LOC="\" loc=\""
     CELL_2VALUE="\">"
     CELL_END="</td>"
     DELIMITER=""
@@ -234,6 +236,7 @@ DV_BLOCK_INFO="VCOUNTER++;
     if(YUV411P == 1 && J%2 == 1){SBx=J*144-16} else {SBx=J*144}
     X=SBx+(WL*MBx)
     Y=(I*48)+(MBy*H)
+    LOC=(W\":\"H\":\"X\":\"Y)
 "
 
 "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
@@ -259,7 +262,7 @@ if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
     PRINT_SUBCODE="printf          CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_VAUX="printf             CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_AUDIO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
-    PRINT_VIDEO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VIDEO   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_VIDEO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VIDEO   CELL_2LOC LOC CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_OTHER="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
 else
     PRINT_ID="printf     substr(\"000000\"(FNR-1)*80,1+length(\"000000\"(FNR-1)*80)-6) \" | \" COLOR_ID substr(\$0,1,3) COLOR_RESET substr(\$0,4,3)"
@@ -274,7 +277,7 @@ fi
 echo -e "${HEADER}"
 xxd -ps -c 80 "${DVFRAME}" | grep "${DIFB_FILTER}" | \
     awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
-        -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
+        -v CELL_2LOC="${CELL_2LOC}" -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
         -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
         -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
         -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" \
