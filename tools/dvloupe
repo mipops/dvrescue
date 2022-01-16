@@ -40,6 +40,41 @@ _maketemp(){
     fi
 }
 
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local MAGENTA="$(tput setaf 5)" # Magenta - For Verbose Statements
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    local VERBOSE_CHECK=false
+    OPTIND=1
+    while getopts "vqdwstn" opt ; do
+        case "${opt}" in
+            v) VERBOSE_CHECK=true ;
+               COLOR="${MAGENTA}" ;
+               STARTMESSAGE+="#" ;; # only output the message if DV_VERBOSE=true
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
+        if [[ "${DISABLE_COLORED_LOGGING}" = "Y" ]] ; then
+            >&2 echo ${ECHOOPT} "${STARTMESSAGE[@]}${MESSAGE}"
+        else
+            >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        fi
+    fi
+}
+
 FORMAT="txt"
 ADD_MEDIATRACE="y"
 
@@ -71,7 +106,7 @@ if [[ ! -f "$DV_FILE" ]] ; then
   if [[ -f "${1}" ]] ; then
     DV_FILE="${1}"
   else
-    echo "Please provide an input file to examine."
+    _report -w "Please provide an input file to examine."
     exit 1
   fi
 fi
@@ -167,7 +202,7 @@ fi
 IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DV_FILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
 
 if [[ "${CODEC_NAME}" != "dvvideo" ]] ; then
-  echo "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
+  _report -w "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
   exit
 fi
 if [[ "${PIX_FMT}" = "yuv411p" ]] ; then
