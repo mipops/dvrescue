@@ -24,6 +24,22 @@ using namespace ZenLib;
 static const char* const Writer_Name = "XML";
 
 //***************************************************************************
+// Formating helpers
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+static string to_hexstring(uint16_t value)
+{
+    const char* hex = "0123456789ABCDEF";
+    string ToReturn("0x");
+    ToReturn += hex[value >> 12 & 0xF];
+    ToReturn += hex[value >>  8 & 0xF];
+    ToReturn += hex[value >>  4 & 0xF];
+    ToReturn += hex[value       & 0xF];
+    return ToReturn;
+}
+
+//***************************************************************************
 // Helpers
 //***************************************************************************
 
@@ -76,7 +92,7 @@ static void Sta_Elements(string& Text, size_t o, const size_t* const Stas, const
 }
 
 //---------------------------------------------------------------------------
-static void Aud_Element(string& Text, size_t o, size_t n, size_t n_even = size_t(-1))
+static void Aud_Element(string& Text, size_t o, size_t n, vector<uint16_t> Audio_Errors_Values, size_t n_even = size_t(-1))
 {
     if (!n)
         return;
@@ -85,6 +101,17 @@ static void Aud_Element(string& Text, size_t o, size_t n, size_t n_even = size_t
     Text += "<aud n=\"";
     Text += to_string(n);
     Text += "\"";
+    if (!Audio_Errors_Values.empty())
+    {
+        Text += " t=\"2\" v=\"";
+        for (size_t i = 0; i < Audio_Errors_Values.size(); i++)
+        {
+            if (i)
+                Text += ' ';
+            Text += to_hexstring(Audio_Errors_Values[i]);
+        }
+        Text += '\"';
+    }
     if (n_even != size_t(-1))
     {
         Text += " n_even=\"";
@@ -495,6 +522,33 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     if (Coherency.full_conceal_aud())
                     {
                         Text += " full_conceal_aud=\"1\"";
+                        if (Frame->MoreData)
+                        {
+                            // Compute
+                            computed_errors ComputedErrors;
+                            set<int16u> Values;
+                            for (int Dseq = 0; Dseq < Dseq_Size; Dseq++)
+                            {
+                                if (ComputedErrors.Compute(*Frame, Dseq))
+                                {
+                                    for (size_t i = 0; i < ComputedErrors.PerDseq.Audio_Errors_Values.size(); i++)
+                                    {
+                                        Values.insert(ComputedErrors.PerDseq.Audio_Errors_Values[i]);
+                                    }
+                                }
+                            }
+                            if (!Values.empty())
+                            {
+                                Text += " conceal_aud_type=\"2\" conceal_aud_value=\"";
+                                for (set<int16u>::iterator Value = Values.begin(); Value != Values.end(); ++Value)
+                                {
+                                    if (Value != Values.begin())
+                                        Text += ' ';
+                                    Text += to_hexstring(*Value);
+                                }
+                                Text += '\"';
+                            }
+                        }
                     }
                 }
 
@@ -516,7 +570,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                             if (!Coherency.full_conceal_vid())
                                 Sta_Elements(Text, 5, ComputedErrors.PerDseq.Video_Sta_TotalPerSta);
                             if (!Coherency.full_conceal_aud())
-                                Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total);
+                                Aud_Element(Text, 5, ComputedErrors.PerDseq.Audio_Data_Total, ComputedErrors.PerDseq.Audio_Errors_Values);
                             Dseq_End(Text, 4);
                         }
                     }
@@ -525,7 +579,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     if (!Coherency.full_conceal_vid())
                         Sta_Elements(Text, 4, ComputedErrors.Video_Sta_TotalPerSta, ComputedErrors.Video_Sta_EvenTotalPerSta);
                     if (!Coherency.full_conceal_aud())
-                        Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.Audio_Data_EvenTotal);
+                        Aud_Element(Text, 4, ComputedErrors.Audio_Data_Total, ComputedErrors.PerDseq.Audio_Errors_Values, ComputedErrors.Audio_Data_EvenTotal);
 
                     auto Size_After = Text.size();
                     if (Size_After == Size_Before)
