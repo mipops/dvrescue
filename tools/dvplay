@@ -13,11 +13,16 @@ Usage:
  $(basename "${0}") [options] file.dv
 
 Options:
- -s TIME    (choose a custom start time (in seconds) within file)
  -m         (Inverse of standard display)
  -x         (create output xml and jpgs)
  -g         (create gif from error jpgs)
  -o OUTPUT  (select a custom location for output files)
+
+ -O FILE    (provide a path to a single output file. When set a single frame will be exported, depending on
+             if -b or -t is set.)
+ -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)
+ -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
+
  -h         (Displays this help)
  -B BLOCKS  (draw a box around a specific DIF Block(s). Use a comma-delimited list for more than one,
              such as '-B 0,1348,1349')
@@ -31,10 +36,46 @@ EOF
 exit
 }
 
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local MAGENTA="$(tput setaf 5)" # Magenta - For Verbose Statements
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    local VERBOSE_CHECK=false
+    OPTIND=1
+    while getopts "vqdwstn" opt ; do
+        case "${opt}" in
+            v) VERBOSE_CHECK=true ;
+               COLOR="${MAGENTA}" ;
+               STARTMESSAGE+="#" ;; # only output the message if DV_VERBOSE=true
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
+        if [[ "${DISABLE_COLORED_LOGGING}" = "Y" ]] ; then
+            >&2 echo ${ECHOOPT} "${STARTMESSAGE[@]}${MESSAGE}"
+        else
+            >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        fi
+    fi
+}
+
 OPTIND=1
-while getopts ":s:mxgF:D:X:d:hB:o:" OPT ; do
+while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
     case "${OPT}" in
-        s) START_TIME="${OPTARG}";;
+        t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
+        b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
         m) MASK_ONLY="Y" ;;
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
@@ -45,6 +86,7 @@ while getopts ":s:mxgF:D:X:d:hB:o:" OPT ; do
         h) _usage ;;
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
+        O) OUTPUTFILE="${OPTARG}" ; ERROR_REVIEW="Y" ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
     esac
@@ -330,10 +372,6 @@ cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
 </xsl:stylesheet>
 DISPLAY_XSL
 
-if [[ -n "${START_TIME}" ]] ; then
-  INPUT_OPTS+=(-ss "${START_TIME}")
-fi
-
 # fill color handling
 _convert_array_to_macroblock(){
   LUMA_AC="ffffffffffffffffffffff"
@@ -346,31 +384,6 @@ _convert_array_to_macroblock(){
 
 _get_iso8601(){
     date +%FT%T
-}
-
-# report formatting function
-_report(){
-    local RED="$(tput setaf 1)"    # Red      - For Warnings
-    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
-    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
-    local NC="$(tput sgr0)"        # No Color
-    local COLOR=""
-    local STARTMESSAGE=""
-    local ECHOOPT=""
-    OPTIND=1
-    while getopts "qdwstn" opt ; do
-        case "${opt}" in
-            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
-            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
-            w) COLOR="${RED}" ;;                         # warning mode, use color red
-            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
-            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
-            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
-        esac
-    done
-    shift "$((OPTIND-1))"
-    MESSAGE="${1}"
-    echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
 }
 
 # font selection
@@ -524,7 +537,17 @@ while [[ "${@}" != "" ]] ; do
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
   fi
 
-  if [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+  if [[ -n "${OUTPUTFILE}" ]]  ; then
+    JPG_OUTPUT="${OUTPUTFILE}"
+    FRAMES=(-frames:v 1)
+    
+    echo "HEYY $JPG_OUTPUT"
+    "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+    xxd -p -c 80 | \
+    perl -pe "s|${FIND}|${FILL}|g" | \
+    xxd -r -p | \
+    "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" "${JPG_OUTPUT}"
+  elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
     _make_dvrescue_xml
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
     TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"

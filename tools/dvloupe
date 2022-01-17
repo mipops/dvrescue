@@ -22,6 +22,8 @@ Options:
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
 
+ -T [y|n]   (for json and html outputs, enable or disable adding mediatrace data to the output, default is 'y')
+
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
  -X <path> (provide a custom xmlstarlet path)
@@ -38,11 +40,47 @@ _maketemp(){
     fi
 }
 
+_report(){
+    local RED="$(tput setaf 1)"    # Red      - For Warnings
+    local GREEN="$(tput setaf 2)"  # Green    - For Declarations
+    local BLUE="$(tput setaf 4)"   # Blue     - For Questions
+    local MAGENTA="$(tput setaf 5)" # Magenta - For Verbose Statements
+    local NC="$(tput sgr0)"        # No Color
+    local COLOR=""
+    local STARTMESSAGE=""
+    local ECHOOPT=""
+    local VERBOSE_CHECK=false
+    OPTIND=1
+    while getopts "vqdwstn" opt ; do
+        case "${opt}" in
+            v) VERBOSE_CHECK=true ;
+               COLOR="${MAGENTA}" ;
+               STARTMESSAGE+="#" ;; # only output the message if DV_VERBOSE=true
+            q) COLOR="${BLUE}" ;;                        # question mode, use color blue
+            d) COLOR="${GREEN}" ;;                       # declaration mode, use color green
+            w) COLOR="${RED}" ;;                         # warning mode, use color red
+            s) STARTMESSAGE+=([${SCRIPTNAME}] ) ;;       # prepend scriptname to the message
+            t) STARTMESSAGE+=($(_get_iso8601) '- ' ) ;;  # prepend timestamp to the message
+            n) ECHOOPT="-n" ;;                           # to avoid line breaks after echo
+        esac
+    done
+    shift "$((OPTIND-1))"
+    MESSAGE="${1}"
+    if ! "${VERBOSE_CHECK}" || ( "${DV_VERBOSE}" && "${VERBOSE_CHECK}" ) ; then
+        if [[ "${DISABLE_COLORED_LOGGING}" = "Y" ]] ; then
+            >&2 echo ${ECHOOPT} "${STARTMESSAGE[@]}${MESSAGE}"
+        else
+            >&2 echo ${ECHOOPT} "${COLOR}${STARTMESSAGE[@]}${MESSAGE}${NC}"
+        fi
+    fi
+}
+
 FORMAT="txt"
+ADD_MEDIATRACE="y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVf:i:hF:M:X:" opt ; do
+while getopts ":t:b:HSXAVf:T:i:hF:M:X:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -52,6 +90,7 @@ while getopts ":t:b:HSXAVf:i:hF:M:X:" opt ; do
     A) SCT="audio"   ; DIFB_FILTER="^7" ;;
     V) SCT="video"   ; DIFB_FILTER="^9" ;;
     f) FORMAT="${OPTARG}" ;;
+    T) ADD_MEDIATRACE="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
     F) FFMPEG_PATH="${OPTARG}" ;;
     M) MEDIAINFO_PATH="${OPTARG}" ;;
@@ -67,7 +106,7 @@ if [[ ! -f "$DV_FILE" ]] ; then
   if [[ -f "${1}" ]] ; then
     DV_FILE="${1}"
   else
-    echo "Please provide an input file to examine."
+    _report -w "Please provide an input file to examine."
     exit 1
   fi
 fi
@@ -126,22 +165,24 @@ fi
 
 if [[ "${FORMAT}" == "json" ]] ; then
     HEADER='{"rows":['
-    FOOTER="]}"
+    FOOTER="]}\n"
     ROW_START='{"cells": [\n'
     CELL_START2ID='{"id":"'
     CELL_2TITLE='", "tooltip": "'
     CELL_2STYLE='", "color": "'
+    CELL_2LOC='", "loc": "'
     CELL_2VALUE='", "value": "'
     CELL_END='"}'
     DELIMITER=",\n"
     ROW_END="\n]}"
 elif [[ "${FORMAT}" == "html" ]] ; then
     HEADER="<html><body><table style='font-family:\"Courier New\", Courier, monospace; font-size:80%; white-space: pre-line'>"
-    FOOTER="</table></body></html>"
+    FOOTER="</table></body></html>\n"
     ROW_START="<tr>"
     CELL_START2ID="<td id=\""
     CELL_2TITLE="\" title=\""
     CELL_2STYLE="\" style=\"color:#"
+    CELL_2LOC="\" loc=\""
     CELL_2VALUE="\">"
     CELL_END="</td>"
     DELIMITER=""
@@ -163,7 +204,7 @@ fi
 IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DV_FILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
 
 if [[ "${CODEC_NAME}" != "dvvideo" ]] ; then
-  echo "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
+  _report -w "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
   exit
 fi
 if [[ "${PIX_FMT}" = "yuv411p" ]] ; then
@@ -178,84 +219,88 @@ else
 fi
 
 DVFRAME="$(_maketemp)"
-MEDIATRACEXML="$(_maketemp)"
-LOOOKUP="$(_maketemp)"
 
-if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
-    "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
+DV_BLOCK_INFO="VCOUNTER++;
+    BLO=(VCOUNTER-1)%135;
+    SEQ=int((VCOUNTER-1)/135);
+    if(PAL == 1){SEQCOUNT=12} else {SEQCOUNT=10}
+    BLO_M5=(BLO)%5;
+    if(BLO_M5 == 0) {I5=2; J=2} else if (BLO_M5 == 1) {I5=6; J=1} else if (BLO_M5 == 2) {I5=8; J=3} else if (BLO_M5 == 3) {I5=0; J=0} else {I5=4; J=4};
+    I=(I5+SEQ)%SEQCOUNT;
+    K=int(((VCOUNTER-1)/5)%27);
+    if(YUV411P == 1 && ((J < 4) || (J == 4 && K < 24))){W=32; H=8} else {W=16; H=16};
+    if(YUV411P == 1){WL=32; MACROBLOCK_ROWS=6; MBX_OFFSET=(J%2)*3} else {WL=16; MACROBLOCK_ROWS=3; MBX_OFFSET=0}
+    MBx=int((K+MBX_OFFSET)/MACROBLOCK_ROWS)
+    if(MBx%2 == 0){MByt=K+MBX_OFFSET} else {MByt=(K+MBX_OFFSET+MACROBLOCK_ROWS-1-(((K+MBX_OFFSET)%MACROBLOCK_ROWS)*2))}
+    MBy=MByt%MACROBLOCK_ROWS
+    if(YUV411P == 1 && J%2 == 1){SBx=J*144-16} else {SBx=J*144}
+    X=SBx+(WL*MBx)
+    Y=(I*48)+(MBy*H)
+    LOC=(W\":\"H\":\"X\":\"Y)
+"
+
+"${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
+if [[ "${ADD_MEDIATRACE}" == "y" && ( "${FORMAT}" == "html" || "${FORMAT}" == "json" ) ]] ; then
+    MEDIATRACEXML="$(_maketemp)"
+    LOOKUP="$(_maketemp)"
+    LOOKUP_PARSE_INSTRUCTIONS="{FS=OFS=\"\|\"}NR==FNR { trace[\$1]=\$2; next }"
+    LOOKUP_HEADER="CELL_2TITLE trace[(FNR-1)*80]"
+    LOOKUP_HEADER_3="CELL_2TITLE trace[(FNR-1)*80+3]"
     "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
     "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t -m "/mt:MediaTrace/mt:media/mt:block" --var off=@offset \
-        -v @offset     -o "|" -m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]"      -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n \
-        -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOOKUP}"
-    echo -e "${HEADER}"
-    xxd -ps -c 80 "${DVFRAME}" | \
-        awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
-            -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
-            -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
-            -v DELIMITER="${DELIMITER}" \
-    '{FS=OFS="|"}NR==FNR { trace[$1]=$2; next } {diftype=substr($0,1,1);
-          if (FNR != "1" ) \
-            printf DELIMITER ; \
-    printf     ROW_START CELL_START2ID (FNR-1)*80   CELL_2TITLE trace[(FNR-1)*80]   CELL_2VALUE substr($0,1,6) CELL_END DELIMITER ; \
-    if (diftype == "1" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_HEADER  CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    else if (diftype == "3" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    else if (diftype == "5" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    else if (diftype == "7" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    else if (diftype == "9" ) \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_VIDEO   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    else \
-        printf           CELL_START2ID (FNR-1)*80+3 CELL_2TITLE trace[(FNR-1)*80+3] CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr($0,7,160) CELL_END ROW_END ;\
-    }' "${LOOOKUP}" -
-    echo -e "${FOOTER}"
-else
-    echo -e "${HEADER}"
-    "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" - | xxd -c 80 -ps | grep "${DIFB_FILTER}" | \
-        awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
-            -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
-            -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
-            -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
-            -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" \
-        'NR==FNR {diftype=substr($0,1,1);offset="000000"(FNR-1)*80;
-    printf     substr(offset,1+length(offset)-6) " | " COLOR_ID substr($0,1,3) COLOR_RESET substr($0,4,3); \
-    if (diftype == "1" ) \
-        printf           COLOR_HEADER  substr($0,7,160) ROW_END ;\
-    else if (diftype == "3" ) \
-        printf           COLOR_SUBCODE substr($0,7,160) ROW_END ;\
-    else if (diftype == "5" ) \
-        printf           COLOR_VAUX    substr($0,7,160) ROW_END ;\
-    else if (diftype == "7" ) \
-        printf           COLOR_AUDIO   substr($0,7,160) ROW_END ;\
-    else if (diftype == "9" ) \
-        {VCOUNTER++;\
-        BLO=(VCOUNTER-1)%135;\
-        SEQ=int((VCOUNTER-1)/135);\
-        if(PAL == 1){SEQCOUNT=12} else {SEQCOUNT=10}
-        BLO_M5=(BLO)%5;
-        if(BLO_M5 == 0) {I5=2; J=2} else if (BLO_M5 == 1) {I5=6; J=1} else if (BLO_M5 == 2) {I5=8; J=3} else if (BLO_M5 == 3) {I5=0; J=0} else {I5=4; J=4};
-        I=(I5+SEQ)%SEQCOUNT;
-        K=int(((VCOUNTER-1)/5)%27);
-        if(YUV411P == 1 && ((J < 4) || (J == 4 && K < 24))){W=32; H=8} else {W=16; H=16};
-        if(YUV411P == 1){WL=32; MACROBLOCK_ROWS=6; MBX_OFFSET=(J%2)*3} else {WL=16; MACROBLOCK_ROWS=3; MBX_OFFSET=0}
-        MBx=int((K+MBX_OFFSET)/MACROBLOCK_ROWS)
-        if(MBx%2 == 0){MByt=K+MBX_OFFSET} else {MByt=(K+MBX_OFFSET+MACROBLOCK_ROWS-1-(((K+MBX_OFFSET)%MACROBLOCK_ROWS)*2))}
-        MBy=MByt%MACROBLOCK_ROWS
-        if(YUV411P == 1 && J%2 == 1){SBx=J*144-16} else {SBx=J*144}
-        X=SBx+(WL*MBx)
-        Y=(I*48)+(MBy*H)
-        printf           (COLOR_VIDEO   substr($0,7,154) RESET " | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i " ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y);}\
-    else \
-        printf           COLOR_OTHER   substr($0,7,160) ROW_END ;\
-    }' -
+    -v @offset     -o "|" -m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]"      -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n \
+    -v "(\$off+3)" -o "|" -m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n "${MEDIATRACEXML}" > "${LOOKUP}"
+    if [[ ! -s "${LOOKUP}" ]] ; then
+        unset LOOKUP_PARSE_INSTRUCTIONS LOOKUP_HEADER LOOKUP_HEADER_3
+        _report -w "The process to add MediaTrace metadata to the report did not work. :( Check that recent copies of mediainfo and xmlstarlet are installed."
+    fi
 fi
+
+if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
+    PRINT_ID="printf     ROW_START CELL_START2ID (FNR-1)*80   ${LOOKUP_HEADER}   CELL_2VALUE substr(\$0,1,6) CELL_END DELIMITER"
+    PRINT_HEADER="printf           CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_HEADER  CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_SUBCODE="printf          CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_VAUX="printf             CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_AUDIO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_VIDEO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VIDEO   CELL_2LOC LOC CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_OTHER="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+else
+    PRINT_ID="printf     substr(\"000000\"(FNR-1)*80,1+length(\"000000\"(FNR-1)*80)-6) \" | \" COLOR_ID substr(\$0,1,3) COLOR_RESET substr(\$0,4,3)"
+    PRINT_HEADER="printf           COLOR_HEADER  substr(\$0,7,160) ROW_END"
+    PRINT_SUBCODE="printf          COLOR_SUBCODE substr(\$0,7,160) ROW_END"
+    PRINT_VAUX="printf             COLOR_VAUX    substr(\$0,7,160) ROW_END"
+    PRINT_AUDIO="printf            COLOR_AUDIO   substr(\$0,7,160) ROW_END"
+    PRINT_VIDEO=" printf           (COLOR_VIDEO   substr(\$0,7,154) RESET \" | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i \" ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y)"
+    PRINT_OTHER="printf            COLOR_OTHER   substr(\$0,7,160) ROW_END"
+fi
+
+echo -e "${HEADER}"
+xxd -ps -c 80 "${DVFRAME}" | grep "${DIFB_FILTER}" | \
+    awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
+        -v CELL_2LOC="${CELL_2LOC}" -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
+        -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
+        -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
+        -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" \
+"${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
+      if (FNR != "1" ) \
+        printf DELIMITER ; \
+'"${PRINT_ID}"' ;
+if (diftype == "1" )      '"${PRINT_HEADER}"' ;
+else if (diftype == "3" ) '"${PRINT_SUBCODE}"' ;
+else if (diftype == "5" ) '"${PRINT_VAUX}"' ;
+else if (diftype == "7" ) '"${PRINT_AUDIO}"' ;
+else if (diftype == "9" ) {'"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
+else                      '"${PRINT_OTHER}"' ;
+}' "${LOOKUP}" -
+echo -n -e "${FOOTER}"
 
 if [[ -f "${DVFRAME}" ]] ; then
     rm "${DVFRAME}"
 fi
 if [[ -f "${MEDIATRACEXML}" ]] ; then
     rm "${MEDIATRACEXML}"
+fi
+if [[ -f "${LOOKUP}" ]] ; then
+    rm "${LOOKUP}"
 fi
 
