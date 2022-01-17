@@ -2,10 +2,14 @@
 #include "settingsutils.h"
 #include "qtavplayerutils.h"
 #include "launcher.h"
+#include "thread.h"
+#include "filewriter.h"
 #include "sortfiltertablemodel.h"
 #include "qqmltablemodel_p.h"
 #include "qqmltablemodelcolumn_p.h"
 #include "mediaplayer.h"
+#include "connectionutils.h"
+#include "playbackbuffer.h"
 #include <datamodel.h>
 #include <mediainfo.h>
 #include <logging.h>
@@ -22,9 +26,12 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
+    qmlRegisterType<Thread>("Thread", 0, 1, "Thread");
+    qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
     qmlRegisterType<MediaPlayer>("MediaPlayer", 1, 0, "MediaPlayer");
+    qmlRegisterType<BufferSequential>("MediaPlayerBuffer", 1, 0, "MediaPlayerBuffer");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
     qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
@@ -114,6 +121,14 @@ int main(int argc, char *argv[])
 
         auto *clipboard = new Clipboard();
         return clipboard;
+    });
+
+    qmlRegisterSingletonType<ConnectionUtils>("ConnectionUtils", 1, 0, "ConnectionUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        ConnectionUtils *utils = new ConnectionUtils();
+        return utils;
     });
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {

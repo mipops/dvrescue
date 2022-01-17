@@ -1,6 +1,11 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
+import QtMultimedia 5.12 as QtMultimedia
+import MediaPlayer 1.0
+import MediaPlayerBuffer 1.0
+import FileWriter 0.1
+import Thread 0.1
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -10,6 +15,10 @@ Column {
     property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
+    property alias captureFrameInfo: captureFrameInfo
+    property alias playbackBuffer: player.buffer
+    property alias player: player
+    property var fileWriter: fileWriter
 
     Rectangle {
         width: 640
@@ -27,15 +36,54 @@ Column {
         }
     }
 
-    Image {
+    Rectangle {
         id: image
         width: 640
         height: 480
-        source: "colorbars.jpg"
-        autoTransform: true
-        sourceSize.height: 640
-        sourceSize.width: 480
-        fillMode: Image.PreserveAspectFit
+        color: 'black'
+
+        Text {
+            anchors.centerIn: parent
+            color: 'white'
+            text: "NO SIGNAL"
+        }
+
+        QtMultimedia.VideoOutput {
+            id: videoOutput
+            anchors.fill: parent
+            objectName: "videoOutput"
+        }
+
+        MediaPlayerBuffer {
+            id: buffer
+        }
+
+        Thread {
+            id: fileWriterThread
+            worker: fileWriter
+        }
+
+        FileWriter {
+            id: fileWriter
+        }
+
+        MediaPlayer {
+            id: player
+            videoOutput: videoOutput
+            buffer: buffer
+            enableAudio: false
+
+            Component.onCompleted: {
+                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+
+                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+            }
+        }
     }
 
     Rectangle {
@@ -78,12 +126,20 @@ Column {
 
         Text {
             id: statusText
+            visible: false
             anchors.left: row.right
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: Text.AlignHCenter
+        }
+
+        CaptureFrameInfo {
+            id: captureFrameInfo
+            anchors.top: row.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
     }
 }

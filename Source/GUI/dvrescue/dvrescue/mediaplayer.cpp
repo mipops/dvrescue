@@ -98,6 +98,11 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlaye
     t.start();
 }
 
+MediaPlayer::~MediaPlayer()
+{
+    disconnect(player, 0, 0, 0);
+}
+
 QQuickItem *MediaPlayer::videoOutput() const
 {
     return m_videoOutput;
@@ -133,7 +138,8 @@ void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
     });
 
     QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
-        audioOutput->play(frame);
+        if(enableAudio())
+            audioOutput->play(frame);
     });
 
     Q_EMIT videoOutputChanged();
@@ -219,7 +225,7 @@ QUrl MediaPlayer::source() const
 void MediaPlayer::setSource(const QUrl &newSource)
 {
     qDebug() << "new source: " << newSource;
-    player->setSource(newSource);
+    player->setSource(newSource.toString());
 }
 
 void MediaPlayer::classBegin()
@@ -243,4 +249,31 @@ void MediaPlayer::setRanges(const QVector2D &newRanges)
         return;
     m_ranges = newRanges;
     Q_EMIT rangesChanged();
+}
+
+QIODevice* MediaPlayer::buffer() const
+{
+    return m_buffer;
+}
+
+void MediaPlayer::setBuffer(QIODevice* newBuffer)
+{
+    if (m_buffer == newBuffer)
+        return;
+    m_buffer = newBuffer;
+    player->setSource("dummy", m_buffer);
+    Q_EMIT bufferChanged();
+}
+
+bool MediaPlayer::enableAudio() const
+{
+    return m_enableAudio;
+}
+
+void MediaPlayer::setEnableAudio(bool newEnableAudio)
+{
+    if (m_enableAudio == newEnableAudio)
+        return;
+    m_enableAudio = newEnableAudio;
+    Q_EMIT enableAudioChanged();
 }

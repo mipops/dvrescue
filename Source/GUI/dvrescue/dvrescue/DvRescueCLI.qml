@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
 import FileUtils 1.0
+import ConnectionUtils 1.0
 
 Item {
     property string cmd
@@ -16,17 +17,25 @@ Item {
         }
     }
 
-    function grab(index, file, callback) {
-        console.debug('making report: ', file);
+    function grab(index, file, playbackBuffer, fileWriter, callback) {
+        console.debug('making report: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true });
+
+            var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
+            var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
+
             launcher.errorChanged.connect((errorString) => {
                 console.debug('errorString: ', errorString)
             });
+
+            // launcher.outputChanged.connect(fileWriter.write);
+            /*
             launcher.outputChanged.connect((outputString) => {
                 console.debug('outputString: ', outputString)
             });
+            */
 
             launcher.errorOccurred.connect((error) => {
                 try {
@@ -49,9 +58,13 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['device://' + index, '-m', file]
+            var xml = file + ".dv.dvrescue.xml"
+            var scc = file + ".scc"
 
-            launcher.execute(cmd, arguments);
+            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-']
+            // var arguments = ['device://' + index, '-m', file]
+
+            launcher.execute(cmd + ' ' + arguments.join(' '));
             if(callback)
                 callback(launcher)
         })

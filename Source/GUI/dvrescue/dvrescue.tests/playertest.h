@@ -23,6 +23,10 @@ public:
 
 private Q_SLOTS:
     void test();
+    void testPlaybackFromQIODevice();
+    void testPlaybackFromQIODevice2();
+    void testPlaybackFromQIODevice3();
+    void testPlaybackFromQIODevice4();
     void testMultipleSources();
 
 Q_SIGNALS:

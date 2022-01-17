@@ -2,6 +2,7 @@
 #define MEDIAPLAYER_H
 
 #include <QObject>
+#include <QIODevice>
 #include <QTimer>
 #include <QUrl>
 #include <QVector2D>
@@ -40,10 +41,12 @@ class MediaPlayer : public QObject, public QQmlParserStatus
     Q_PROPERTY(MediaStatus status READ status NOTIFY statusChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QIODevice* buffer READ buffer WRITE setBuffer NOTIFY bufferChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
     Q_PROPERTY(qreal videoFrameRate READ videoFrameRate NOTIFY videoFrameRateChanged)
     Q_PROPERTY(QVector2D ranges READ ranges WRITE setRanges NOTIFY rangesChanged)
+    Q_PROPERTY(bool enableAudio READ enableAudio WRITE setEnableAudio NOTIFY enableAudioChanged)
 public:
     enum State {
         StoppedState,
@@ -62,6 +65,7 @@ public:
     Q_ENUM(MediaStatus)
 
     explicit MediaPlayer(QObject *parent = nullptr);
+    ~MediaPlayer();
 
     QQuickItem *videoOutput() const;
     void setVideoOutput(QQuickItem *newVideoOutput);
@@ -86,6 +90,11 @@ public:
     const QVector2D &ranges() const;
     void setRanges(const QVector2D &newRanges);
 
+    QIODevice *buffer() const;
+    void setBuffer(QIODevice *newBuffer);
+    bool enableAudio() const;
+    void setEnableAudio(bool newEnableAudio);
+
 Q_SIGNALS:
     void videoOutputChanged();
     void positionChanged();
@@ -97,6 +106,8 @@ Q_SIGNALS:
     void videoFrameRateChanged(qreal frameRate);
     void stopped(qint64 pos);    
     void rangesChanged();
+    void bufferChanged();
+    void enableAudioChanged();
 
 private:
     QAVPlayer* player;
@@ -109,9 +120,12 @@ private:
     Source mediaSource;
 #endif //
 
-    // QQmlParserStatus interface
     QVector2D m_ranges;
+    QIODevice* m_buffer { nullptr };
 
+    bool m_enableAudio { true };
+
+    // QQmlParserStatus interface
 public:
     void classBegin();
     void componentComplete();
