@@ -1,0 +1,152 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\CLI">
+      <UniqueIdentifier>{b3ea77d3-32e5-494b-97da-897c816972d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Common">
+      <UniqueIdentifier>{7173fd77-1461-4cba-8297-66326c9c8a02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\CLI">
+      <UniqueIdentifier>{01bdcedf-1c7b-44f9-aef0-73abec8e9515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Common">
+      <UniqueIdentifier>{49d721f2-78b8-457e-b76b-63651ca2fc57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{0a671dd8-38cf-4f7e-9fa2-e3779af84e00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\TimeCode">
+      <UniqueIdentifier>{ff4098d5-5a86-4202-8011-8b32bdbd2d3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\ccdecoder">
+      <UniqueIdentifier>{d6176639-1250-4d3a-93b4-d66136a924c0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Source\CLI\CLI_Help.cpp">
+      <Filter>Source Files\CLI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\CLI\CLI_Main.cpp">
+      <Filter>Source Files\CLI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\CLI\CommandLine_Parser.cpp">
+      <Filter>Source Files\CLI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Core.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\ProcessFile.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output_Webvtt.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output_Xml.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output_Captions_Scc.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\timeCode\TimeCode.cpp">
+      <Filter>ThirdParty\TimeCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_internal.c">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output_Captions_Decode.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21.c">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21field.c">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_onscreen.c">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_subrip.c">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Merge.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Source\CLI\CommandLine_Parser.h">
+      <Filter>Header Files\CLI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Core.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\CLI\CLI_Help.h">
+      <Filter>Header Files\CLI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Config.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\ProcessFile.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output_Webvtt.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output_Xml.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output_Captions_Scc.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\timeCode\TimeCode.h">
+      <Filter>ThirdParty\TimeCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_common.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_internal.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_line21field.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_subrip.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ThirdParty\ccdecoder\ccdecoder_onscreen.h">
+      <Filter>ThirdParty\ccdecoder</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output_Captions_Decode.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Merge.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\..\Source\CLI\DVRescue.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
