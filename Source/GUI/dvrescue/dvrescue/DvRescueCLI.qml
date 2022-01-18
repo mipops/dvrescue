@@ -26,10 +26,11 @@ Item {
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
             var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
 
+            /*
             launcher.errorChanged.connect((errorString) => {
                 console.debug('errorString: ', errorString)
             });
-
+            */
             // launcher.outputChanged.connect(fileWriter.write);
             /*
             launcher.outputChanged.connect((outputString) => {

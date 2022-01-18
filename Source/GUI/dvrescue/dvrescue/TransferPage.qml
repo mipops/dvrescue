@@ -108,20 +108,35 @@ Rectangle {
                         fileWriter.fileName = filePath;
                         fileWriter.open();
 
+                        var stdErrBuffer = '';
+
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, (launcher) => {
                            launcher.errorChanged.connect((errorBytes) => {
-                               console.debug('grabbed errorString: ', errorBytes)
-                               var errorString = '' + errorBytes;
-                               var splitted = errorString.trim().split('\r');
-                               statusText = splitted[splitted.length - 1]
+                                 // console.debug('grabbed errorString: ', errorBytes)
+                                 var errorString = '' + errorBytes;
+                                 stdErrBuffer += errorString;
+                                 // console.debug('stdErrBuffer: ', stdErrBuffer)
 
-                               var values = statusText.split(' ')
-                               if(values.length === 4) {
-                                 captureFrameInfo.frameNumber = values[0];
-                                 captureFrameInfo.timeCode = values[1];
-                                 captureFrameInfo.recDate = values[2];
-                                 captureFrameInfo.recTime = values[3];
-                               }
+                                 var splitted = stdErrBuffer.split('\r');
+                                 var lastIndex = splitted.length - 1
+                                 var prevIndex = Math.max(0, splitted.length - 2);
+                                 for(var i = lastIndex; i >= prevIndex; --i)
+                                 {
+                                     var statusText = splitted[i]
+                                     var values = statusText.split(' ')
+                                     if(values.length === 4) {
+                                         captureFrameInfo.frameNumber = values[0];
+                                         captureFrameInfo.timeCode = values[1];
+                                         captureFrameInfo.recDate = values[2];
+                                         captureFrameInfo.recTime = values[3];
+
+                                         stdErrBuffer = (i === lastIndex ? '' : splitted[lastIndex]);
+                                         // console.debug('new stdErrBuffer: ', stdErrBuffer)
+                                         break;
+                                     } else {
+                                         // console.debug('got this: ', statusText);
+                                     }
+                                 }
                            });
 
                            console.debug('logging grab command')
