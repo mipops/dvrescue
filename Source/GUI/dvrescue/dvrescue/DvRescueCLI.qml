@@ -72,6 +72,8 @@ Item {
         return promise;
     }
 
+    property var pendingReports: ({})
+
     function makeReport(file, callback) {
         console.debug('making report: ', file);
 
@@ -112,8 +114,16 @@ Item {
             launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
+        }).then(() => {
+            console.debug('deleting pending report: ', file);
+            delete pendingReports[file]
+        }).catch((err) => {
+            console.debug('deleting pending report: ', file);
+            delete pendingReports[file]
         })
 
+        console.debug('adding pending report: ', file);
+        pendingReports[file] = promise;
         return promise;
     }
 }

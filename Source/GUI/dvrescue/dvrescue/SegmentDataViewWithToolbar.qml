@@ -20,7 +20,8 @@ ColumnLayout {
     property int framesCount: 0
     property var extraOpts: ({})
     onExtraOptsChanged: {
-        applyButton.clicked();
+        if(reportPath != '')
+            applyButton.clicked();
     }
 
     signal clicked(var index, var item);

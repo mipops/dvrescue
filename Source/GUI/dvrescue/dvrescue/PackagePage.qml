@@ -284,6 +284,23 @@ Item {
             onFileAdded: {
                 root.recentFilesModel.addRecent(filePath)
             }
+
+            onSelectedPathChanged: {
+                console.debug('PackageFileView.selectedPath: ', selectedPath);
+
+                Qt.callLater(() => {
+                                 if(dvrescue.pendingReports.hasOwnProperty(selectedPath)) {
+                                    var promise = dvrescue.pendingReports[selectedPath]
+                                    busy.running = true
+                                    promise.then(() => {
+                                         busy.running = false
+                                    }).catch((err) => {
+                                         busy.running = false
+                                    })
+                                 }
+                             });
+
+            }
         }
 
         SegmentDataViewWithToolbar {
@@ -294,7 +311,9 @@ Item {
             onReportPathChanged: {
                 console.debug('reportPath changed: ', reportPath)
                 // need to execute it after outputPath updated
-                Qt.callLater(() => { segmentDataView.populateSegmentData(reportPath, videoPath, outputPath) })
+                Qt.callLater(() => {
+                                    segmentDataView.populateSegmentData(reportPath, videoPath, outputPath)
+                })
             }
 
             videoPath: root.videoPath

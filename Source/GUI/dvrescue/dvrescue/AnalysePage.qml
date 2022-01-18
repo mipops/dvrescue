@@ -333,7 +333,10 @@ Item {
                                                                        dataModel.populate(dvRescueXmlPath);
 
                                                                        if(currentIndex !== -1 && currentIndex !== undefined) {
-                                                                           filesModel.get(currentIndex).reportPath = dvRescueXmlPath;
+                                                                           console.debug('reportPath resolved: ', dvRescueXmlPath)
+                                                                           filesModel.setProperty(currentIndex, 'reportPath', dvRescueXmlPath)
+
+                                                                           //filesModel.get(currentIndex).reportPath = dvRescueXmlPath;
 
                                                                            var mediaInfo = fileView.mediaInfoAt(currentIndex)
                                                                            mediaInfo.reportPath = dvRescueXmlPath;
