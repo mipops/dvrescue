@@ -731,14 +731,7 @@ if [[ -n "${SHOW_TABLE}" ]] ; then
 fi
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
-if [[ -z "${FFMPEG_PATH}" ]] ; then
-    FFMPEG_DL_GUESS="$(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl"
-    if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
-        FFMPEG_PATH="${FFMPEG_DL_GUESS}"
-    else
-        FFMPEG_PATH="$(which ffmpeg)"
-    fi
-fi
+FFMPEG_PATH="$(which ffmpeg)"
 # verify that ffmpeg is installed and qualifies
 if [[ -z "${FFMPEG_PATH}" ]] ; then
     _report -v "ffmpeg is not found. Please install ffmpeg. Version 4.4 or higher is recommended."
@@ -747,16 +740,19 @@ else
     _report -v "Using ${FFMPEG_PATH} for ffmpeg operations."
 fi
 FFversion="$("${FFMPEG_PATH}" -version)"
+REQ_LIBAVF_VERS_MAJOR=59
+REQ_LIBAVF_VERS_MINOR=5
+REQ_LIBAVF_VERS_MICRO=100
 LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
 LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
 LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
 LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
 if ! ( \
-    [[ "${LAVFversion_maj}" -gt 58 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+      [[ "${LAVFversion_maj}" -gt "${REQ_LIBAVF_VERS_MAJOR}" ]] || \
+    ( [[ "${LAVFversion_maj}" -eq "${REQ_LIBAVF_VERS_MAJOR}" ]] && [[ "${LAVFversion_min}" -gt "${REQ_LIBAVF_VERS_MINOR}" ]] ) || \
+    ( [[ "${LAVFversion_maj}" -eq "${REQ_LIBAVF_VERS_MAJOR}" ]] && [[ "${LAVFversion_min}" -eq "${REQ_LIBAVF_VERS_MINOR}" ]] && [[ "${LAVFversion_min}" -ge "${REQ_LIBAVF_VERS_MICRO}" ]] ) \
    ) ; then
-    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "FFmpeg's libavformat version  ${REQ_LIBAVF_VERS_MAJOR}.${REQ_LIBAVF_VERS_MINOR}.${REQ_LIBAVF_VERS_MICRO} or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
     _report -w "Please update ffmpeg."
     _report -w "Using this current install of ffmpeg may result in out of sync audio."
 fi
