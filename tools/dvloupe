@@ -27,7 +27,7 @@ Options:
 
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
- -X <path> (provide a custom xmlstarlet path)
+ -x <path> (provide a custom xmlstarlet path)
 EOF
     exit
 }
@@ -81,7 +81,7 @@ ADD_MEDIATRACE="y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVOf:T:i:hF:M:X:" opt ; do
+while getopts ":t:b:HSXAVOf:T:i:hF:M:x:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -96,7 +96,7 @@ while getopts ":t:b:HSXAVOf:T:i:hF:M:X:" opt ; do
     i) DV_FILE="$OPTARG" ;;
     F) FFMPEG_PATH="${OPTARG}" ;;
     M) MEDIAINFO_PATH="${OPTARG}" ;;
-    X) XMLSTARLET_PATH="${OPTARG}" ;;
+    x) XMLSTARLET_PATH="${OPTARG}" ;;
     h) _usage ;;
     *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
