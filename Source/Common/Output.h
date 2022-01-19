@@ -8,6 +8,7 @@
 #pragma once
 #include "ProcessFile.h"
 #include <string>
+#include <set>
 using namespace std;
 //---------------------------------------------------------------------------
 
@@ -165,6 +166,7 @@ public:
         size_t Video_Sta_EvenTotalPerSta[Sta_Size];
         size_t Audio_Data_Total;
         size_t Audio_Data_EvenTotal;
+        vector<uint16_t> Audio_Errors_Values;
     };
     dseq PerDseq;
 };

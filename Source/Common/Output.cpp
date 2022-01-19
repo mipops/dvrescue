@@ -132,6 +132,38 @@ char uint4_to_hex4(int Value)
 }
 
 //***************************************************************************
+// Helpers
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+static uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size)
+{
+    if (Buffer_Offset >= Buffer_Size)
+        return -1;
+
+    uint64_t ToReturn = Buffer[Buffer_Offset];
+    uint64_t s = 0;
+    while (ToReturn & (((uint64_t)1) << (7 - s)))
+        s++;
+    if (Buffer_Offset + s > Buffer_Size)
+        return -1;
+    ToReturn &= ((uint8_t)-1) >> s;
+    uint64_t UnknownValue = (((uint64_t)1) << ((s + 1) * 7)) - 1;
+    while (s)
+    {
+        ToReturn <<= 8;
+        Buffer_Offset++;
+        s--;
+        ToReturn |= Buffer[Buffer_Offset];
+    }
+    if (ToReturn == UnknownValue)
+        ToReturn = (uint64_t)-1; // Unknown size
+    Buffer_Offset++;
+
+    return ToReturn;
+}
+
+//***************************************************************************
 // Status of a frame
 //***************************************************************************
 
@@ -206,6 +238,40 @@ bool computed_errors::Compute(const MediaInfo_Event_DvDif_Analysis_Frame_1& Fram
                 PerDseq.Audio_Data_EvenTotal += n;
                 Audio_Data_EvenTotal += n;
             }
+        }
+    }
+    if (Frame.MoreData)
+    {
+        size_t MoreData_Size = *((size_t*)Frame.MoreData) + sizeof(size_t);
+        size_t MoreData_Offset = sizeof(size_t);
+        while (MoreData_Offset < MoreData_Size)
+        {
+            size_t BlockSize = VariableSize(Frame.MoreData, MoreData_Offset, MoreData_Size);
+            if (BlockSize == -1)
+                break;
+            size_t BlockName = VariableSize(Frame.MoreData, MoreData_Offset, MoreData_Size);
+            if (BlockName == -1)
+                break;
+            if (BlockName == 1 && BlockSize >= 2 && (BlockSize % 2) == 0)
+            {
+                MoreData_Offset++; // ChannelGroup, not used
+                uint8_t MoreData_Dseq = Frame.MoreData[MoreData_Offset++];
+                if (MoreData_Dseq == Dseq)
+                {
+                    BlockSize -= 2;
+                    while (BlockSize)
+                    {
+                        uint16_t Value = *((uint16_t*)(Frame.MoreData+MoreData_Offset));
+                        PerDseq.Audio_Errors_Values.push_back(Value);
+                        MoreData_Offset += 2;
+                        BlockSize -= 2;
+                    }
+                }
+                else
+                    MoreData_Offset += BlockSize - 2;
+            }
+            else
+                MoreData_Offset += BlockSize;
         }
     }
 

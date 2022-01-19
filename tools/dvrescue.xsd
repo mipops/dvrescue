@@ -458,6 +458,20 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="conceal_aud_type" type="xsd:integer" default="1">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          See audType@t.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="conceal_aud_value" type="xsd:string" default="1">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          See audType@v.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:simpleType name="captionType">
@@ -527,6 +541,14 @@
         <xsd:documentation xml:lang="en">
           Documents the type of audio errors within the frame.
           1 = An audio DIF block is filled with 0x8000 which indicates an invalid audio sample.
+          2 = An audio DIF block is filled with identical value not 0x8000 which indicates an invalid audio sample (not standard).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="v" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          In case @t is 2, the repeated values, separated by a space; as the test is per block, there may be several values; values may be in hexadecimal (in that case, they are prepended with 0x).
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
