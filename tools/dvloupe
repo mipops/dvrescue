@@ -19,6 +19,7 @@ Options:
  -X         (only display DIF Blocks with a Section Type of VAUX)
  -A         (only display DIF Blocks with a Section Type of Audio)
  -V         (only display DIF Blocks with a Section Type of Video)
+ -O         (only display DIF Blocks with that are not defined types. This indicates a rare and invalid block.)
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
 
@@ -80,7 +81,7 @@ ADD_MEDIATRACE="y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVf:T:i:hF:M:X:" opt ; do
+while getopts ":t:b:HSXAVOf:T:i:hF:M:X:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -89,6 +90,7 @@ while getopts ":t:b:HSXAVf:T:i:hF:M:X:" opt ; do
     X) SCT="vaux" ;;
     A) SCT="audio" ;;
     V) SCT="video" ;;
+    O) SCT="other" ;;
     f) FORMAT="${OPTARG}" ;;
     T) ADD_MEDIATRACE="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
@@ -289,7 +291,7 @@ else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '
 else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ;}
 else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ;}
 else if (diftype == "9" && (SCT == "video"   || SCT == "")) {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
-else if                    (SCT == "other"   || SCT == "")  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ;}
+else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ;}
 }' "${LOOKUP}" -
 echo -n -e "${FOOTER}"
 
