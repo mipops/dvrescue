@@ -147,6 +147,7 @@ if [[ "${FORMAT}" == "txt" ]] ; then
     COLOR_AUDIO="\033[32m"
     COLOR_VIDEO="\033[34m"
     COLOR_OTHER="\033[31m"
+    COLOR_ERROR="\033[31m"
 else
     COLOR_HEADER="800080"  #purple
     COLOR_SUBCODE="008080" #teal
@@ -154,6 +155,7 @@ else
     COLOR_AUDIO="008000"   #green
     COLOR_VIDEO="000080"   #navyblue
     COLOR_OTHER="800000"   #maroon
+    COLOR_ERROR="FF0000"   #red
 fi
 
 FFMPEG_OUTPUT_OPTS=(-vframes 1)
@@ -273,6 +275,7 @@ else
     PRINT_VAUX="printf             COLOR_VAUX    substr(\$0,7,160) ROW_END"
     PRINT_AUDIO="printf            COLOR_AUDIO   substr(\$0,7,160) ROW_END"
     PRINT_VIDEO=" printf           (COLOR_VIDEO   substr(\$0,7,154) RESET \" | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i \" ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y)"
+    PRINT_VIDEO_ERROR=" printf     (COLOR_ERROR   substr(\$0,7,154) RESET \" | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i \" ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y)"
     PRINT_OTHER="printf            COLOR_OTHER   substr(\$0,7,160) ROW_END"
 fi
 
@@ -280,7 +283,7 @@ echo -e "${HEADER}"
 xxd -ps -c 80 "${DVFRAME}" | \
     awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
         -v CELL_2LOC="${CELL_2LOC}" -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
-        -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
+        -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" -v COLOR_ERROR="${COLOR_ERROR}" \
         -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
         -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" -v SCT="${SCT}" \
 "${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
@@ -290,7 +293,11 @@ if      (diftype == "1" && (SCT == "header"  || SCT == "")) {'"${PRINT_ID}"' ; '
 else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ;}
 else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ;}
 else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ;}
-else if (diftype == "9" && (SCT == "video"   || SCT == "")) {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
+else if (diftype == "9" && (SCT == "video"   || SCT == "")) {
+    STA_VALUE=substr($0,7,1)
+    if (STA_VALUE == "0") {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
+    else                  {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO_ERROR}"';}
+}
 else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ;}
 }' "${LOOKUP}" -
 echo -n -e "${FOOTER}"
