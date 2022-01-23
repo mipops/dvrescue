@@ -10,6 +10,7 @@ CONFIG += console
 QT += quick testlib xmlpatterns widgets multimedia multimediawidgets
 
 SOURCES += \
+    csvparsingtest.cpp \
     datamodeltest.cpp \
     dummytest.cpp \
     main.cpp \
@@ -24,6 +25,7 @@ DISTFILES += \
     tests/tst_parsing.qml
 
 HEADERS += \
+    csvparsingtest.h \
     datamodeltest.h \
     dummytest.h \
     playertest.h \

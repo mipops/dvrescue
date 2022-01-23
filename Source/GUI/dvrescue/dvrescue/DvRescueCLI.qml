@@ -17,7 +17,7 @@ Item {
         }
     }
 
-    function grab(index, file, playbackBuffer, fileWriter, callback) {
+    function grab(index, file, playbackBuffer, fileWriter, csvParser, callback) {
         console.debug('making report: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
@@ -25,6 +25,8 @@ Item {
 
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
             var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
+
+            var result = ConnectionUtils.connectToSlotQueued(launcher, 'errorChanged(const QByteArray&)', csvParser, 'write(const QByteArray&)');
 
             /*
             launcher.errorChanged.connect((errorString) => {
@@ -62,7 +64,9 @@ Item {
             var xml = file + ".dv.dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-']
+            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9']
+            // var arguments = ['D:\\Projects\\dvrescue-work\\dvrescue.samples\\dave\\many_attributes.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9']
+
             // var arguments = ['device://' + index, '-m', file]
 
             launcher.execute(cmd + ' ' + arguments.join(' '));

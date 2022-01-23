@@ -1,6 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
+import ConnectionUtils 1.0
 
 Rectangle {
     id: rectangle
@@ -108,36 +109,28 @@ Rectangle {
                         fileWriter.fileName = filePath;
                         fileWriter.open();
 
-                        var stdErrBuffer = '';
+                        var columnNames = [];
+                        var indexOfFramePos = -1;
+                        var indexOfTimecode = -1;
 
-                        dvrescue.grab(index, filePath, playbackBuffer, fileWriter, (launcher) => {
-                           launcher.errorChanged.connect((errorBytes) => {
-                                 // console.debug('grabbed errorString: ', errorBytes)
-                                 var errorString = '' + errorBytes;
-                                 stdErrBuffer += errorString;
-                                 // console.debug('stdErrBuffer: ', stdErrBuffer)
+                        dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
+                                          csvParser.columnsChanged.connect((columns) => {
+                                                                               columnNames = columns
+                                                                               indexOfFramePos = columnNames.indexOf('FramePos');
+                                                                               indexOfTimecode = columnNames.indexOf('TimeCode');
+                                                                           });
 
-                                 var splitted = stdErrBuffer.split('\r');
-                                 var lastIndex = splitted.length - 1
-                                 var prevIndex = Math.max(0, splitted.length - 2);
-                                 for(var i = lastIndex; i >= prevIndex; --i)
-                                 {
-                                     var statusText = splitted[i]
-                                     var values = statusText.split(' ')
-                                     if(values.length === 4) {
-                                         captureFrameInfo.frameNumber = values[0];
-                                         captureFrameInfo.timeCode = values[1];
-                                         captureFrameInfo.recDate = values[2];
-                                         captureFrameInfo.recTime = values[3];
+                                          var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
 
-                                         stdErrBuffer = (i === lastIndex ? '' : splitted[lastIndex]);
-                                         // console.debug('new stdErrBuffer: ', stdErrBuffer)
-                                         break;
-                                     } else {
-                                         // console.debug('got this: ', statusText);
-                                     }
-                                 }
-                           });
+                                          csvParserUI.entriesReceived.connect((entries) => {
+                                                                                if(indexOfFramePos !== -1) {
+                                                                                    captureFrameInfo.frameNumber = entries[indexOfFramePos]
+                                                                                }
+
+                                                                                if(indexOfTimecode !== -1) {
+                                                                                    captureFrameInfo.timeCode = entries[indexOfTimecode]
+                                                                                }
+                                                                            });
 
                            console.debug('logging grab command')
                            commandsLogs.logCommand(launcher);
