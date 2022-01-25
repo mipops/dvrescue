@@ -19,6 +19,7 @@ Options:
  -X         (only display DIF Blocks with a Section Type of VAUX)
  -A         (only display DIF Blocks with a Section Type of Audio)
  -V         (only display DIF Blocks with a Section Type of Video)
+ -O         (only display DIF Blocks with that are not defined types. This indicates a rare and invalid block.)
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
 
@@ -26,7 +27,7 @@ Options:
 
  -F <path> (provide a custom ffmpeg path)
  -M <path> (provide a custom mediainfo path)
- -X <path> (provide a custom xmlstarlet path)
+ -x <path> (provide a custom xmlstarlet path)
 EOF
     exit
 }
@@ -80,21 +81,22 @@ ADD_MEDIATRACE="y"
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":t:b:HSXAVf:T:i:hF:M:X:" opt ; do
+while getopts ":t:b:HSXAVOf:T:i:hF:M:x:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
-    H) SCT="header"  ; DIFB_FILTER="^1" ;;
-    S) SCT="subcode" ; DIFB_FILTER="^3" ;;
-    X) SCT="vaux"    ; DIFB_FILTER="^5" ;;
-    A) SCT="audio"   ; DIFB_FILTER="^7" ;;
-    V) SCT="video"   ; DIFB_FILTER="^9" ;;
+    H) SCT="header" ;;
+    S) SCT="subcode" ;;
+    X) SCT="vaux" ;;
+    A) SCT="audio" ;;
+    V) SCT="video" ;;
+    O) SCT="other" ;;
     f) FORMAT="${OPTARG}" ;;
     T) ADD_MEDIATRACE="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
     F) FFMPEG_PATH="${OPTARG}" ;;
     M) MEDIAINFO_PATH="${OPTARG}" ;;
-    X) XMLSTARLET_PATH="${OPTARG}" ;;
+    x) XMLSTARLET_PATH="${OPTARG}" ;;
     h) _usage ;;
     *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
@@ -145,6 +147,7 @@ if [[ "${FORMAT}" == "txt" ]] ; then
     COLOR_AUDIO="\033[32m"
     COLOR_VIDEO="\033[34m"
     COLOR_OTHER="\033[31m"
+    COLOR_ERROR="\033[31m"
 else
     COLOR_HEADER="800080"  #purple
     COLOR_SUBCODE="008080" #teal
@@ -152,6 +155,7 @@ else
     COLOR_AUDIO="008000"   #green
     COLOR_VIDEO="000080"   #navyblue
     COLOR_OTHER="800000"   #maroon
+    COLOR_ERROR="FF0000"   #red
 fi
 
 FFMPEG_OUTPUT_OPTS=(-vframes 1)
@@ -263,6 +267,7 @@ if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
     PRINT_VAUX="printf             CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_AUDIO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_AUDIO   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_VIDEO="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VIDEO   CELL_2LOC LOC CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
+    PRINT_VIDEO_ERROR="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_ERROR   CELL_2LOC LOC CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_OTHER="printf            CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_OTHER   CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
 else
     PRINT_ID="printf     substr(\"000000\"(FNR-1)*80,1+length(\"000000\"(FNR-1)*80)-6) \" | \" COLOR_ID substr(\$0,1,3) COLOR_RESET substr(\$0,4,3)"
@@ -271,26 +276,30 @@ else
     PRINT_VAUX="printf             COLOR_VAUX    substr(\$0,7,160) ROW_END"
     PRINT_AUDIO="printf            COLOR_AUDIO   substr(\$0,7,160) ROW_END"
     PRINT_VIDEO=" printf           (COLOR_VIDEO   substr(\$0,7,154) RESET \" | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i \" ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y)"
+    PRINT_VIDEO_ERROR=" printf     (COLOR_ERROR   substr(\$0,7,154) RESET \" | %2i | %3i | %2i | %1i | %2i | %2i | %2i | %2i | %2i | %4i | %4i \" ROW_END, SEQ, BLO, I, J, K, MBx, MBy, W, H, X, Y)"
     PRINT_OTHER="printf            COLOR_OTHER   substr(\$0,7,160) ROW_END"
 fi
 
 echo -e "${HEADER}"
-xxd -ps -c 80 "${DVFRAME}" | grep "${DIFB_FILTER}" | \
+xxd -ps -c 80 "${DVFRAME}" | \
     awk -v ROW_START="${ROW_START}" -v CELL_START2ID="${CELL_START2ID}" -v CELL_2TITLE="${CELL_2TITLE}" -v CELL_2STYLE="${CELL_2STYLE}" \
         -v CELL_2LOC="${CELL_2LOC}" -v CELL_2VALUE="${CELL_2VALUE}" -v CELL_END="${CELL_END}" -v ROW_END="${ROW_END}" \
-        -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" \
+        -v COLOR_HEADER="${COLOR_HEADER}" -v COLOR_SUBCODE="${COLOR_SUBCODE}" -v COLOR_VAUX="${COLOR_VAUX}" -v COLOR_VIDEO="${COLOR_VIDEO}" -v COLOR_AUDIO="$COLOR_AUDIO" -v COLOR_OTHER="${COLOR_OTHER}" -v COLOR_ERROR="${COLOR_ERROR}" \
         -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
-        -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" \
+        -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" -v SCT="${SCT}" \
 "${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
       if (FNR != "1" ) \
-        printf DELIMITER ; \
-'"${PRINT_ID}"' ;
-if (diftype == "1" )      '"${PRINT_HEADER}"' ;
-else if (diftype == "3" ) '"${PRINT_SUBCODE}"' ;
-else if (diftype == "5" ) '"${PRINT_VAUX}"' ;
-else if (diftype == "7" ) '"${PRINT_AUDIO}"' ;
-else if (diftype == "9" ) {'"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
-else                      '"${PRINT_OTHER}"' ;
+        printf DELIMITER ;
+if      (diftype == "1" && (SCT == "header"  || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_HEADER}"' ;}
+else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ;}
+else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ;}
+else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ;}
+else if (diftype == "9" && (SCT == "video"   || SCT == "")) {
+    STA_VALUE=substr($0,7,1)
+    if (STA_VALUE == "0") {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
+    else                  {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO_ERROR}"';}
+}
+else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ;}
 }' "${LOOKUP}" -
 echo -n -e "${FOOTER}"
 
