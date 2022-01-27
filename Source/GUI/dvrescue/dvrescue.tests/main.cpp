@@ -8,6 +8,7 @@
 #include "datamodeltest.h"
 #include "xmlparsingtest.h"
 #include "playertest.h"
+#include "csvparsingtest.h"
 
 int main(int argc, char *argv[])
 {
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
 
     tests.emplace("datamodel", std::make_unique<DataModelTest>());
     tests.emplace("xmlparsing", std::make_unique<XmlParsingTest>());
+    tests.emplace("csvparsing", std::make_unique<CsvParsingTest>());
     tests.emplace("player", std::make_unique<PlayerTest>());
     tests.emplace("dummy", std::make_unique<DummyTest>());
 

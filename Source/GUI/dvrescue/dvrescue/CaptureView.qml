@@ -5,6 +5,7 @@ import QtMultimedia 5.12 as QtMultimedia
 import MediaPlayer 1.0
 import MediaPlayerBuffer 1.0
 import FileWriter 0.1
+import CsvParser 0.1
 import Thread 0.1
 
 Column {
@@ -19,6 +20,8 @@ Column {
     property alias playbackBuffer: player.buffer
     property alias player: player
     property var fileWriter: fileWriter
+    property var csvParser: csvParser
+    property var csvParserUI: csvParserUI
 
     Rectangle {
         width: 640
@@ -65,6 +68,21 @@ Column {
 
         FileWriter {
             id: fileWriter
+        }
+
+        /*
+        Thread {
+            id: csvWriterThread
+            worker: csvParser
+        }
+        */
+
+        CsvParser {
+            id: csvParser
+        }
+
+        CsvParser {
+            id: csvParserUI
         }
 
         MediaPlayer {

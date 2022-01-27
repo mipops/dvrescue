@@ -20,6 +20,7 @@ HEADERS += \
     $$PWD/settingsutils.h \
     $$PWD/thread.h \
     $$PWD/xmlparser.h \
+    $$PWD/csvparser.h \
     $$PWD/plotdata.h \
     $$PWD/sortfiltertablemodel.h
 
@@ -41,6 +42,7 @@ SOURCES += \
     $$PWD/settingsutils.cpp \
     $$PWD/thread.cpp \
     $$PWD/xmlparser.cpp \
+    $$PWD/csvparser.cpp \
     $$PWD/plotdata.cpp \
     $$PWD/sortfiltertablemodel.cpp
 

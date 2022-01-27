@@ -4,6 +4,7 @@
 #include "launcher.h"
 #include "thread.h"
 #include "filewriter.h"
+#include "csvparser.h"
 #include "sortfiltertablemodel.h"
 #include "qqmltablemodel_p.h"
 #include "qqmltablemodelcolumn_p.h"
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
     qmlRegisterType<Thread>("Thread", 0, 1, "Thread");
     qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
+    qmlRegisterType<CsvParser>("CsvParser", 0, 1, "CsvParser");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
     qmlRegisterType<MediaPlayer>("MediaPlayer", 1, 0, "MediaPlayer");
