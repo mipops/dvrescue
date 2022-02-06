@@ -90,7 +90,7 @@ while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
-shift $(( ${OPTIND} - 1 ))
+shift $((OPTIND - 1))
 
 if [[ -z "${FFMPEG_PATH}" ]] ; then
     FFMPEG_PATH="$(which ffmpeg)"
