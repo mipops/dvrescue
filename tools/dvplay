@@ -86,8 +86,8 @@ while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
         O) OUTPUTFILE="${OPTARG}" ; ERROR_REVIEW="Y" ;;
-        *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+        *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
 done
 shift $(( ${OPTIND} - 1 ))
