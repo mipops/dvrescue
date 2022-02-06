@@ -540,8 +540,6 @@ while [[ "${@}" != "" ]] ; do
   if [[ -n "${OUTPUTFILE}" ]]  ; then
     JPG_OUTPUT="${OUTPUTFILE}"
     FRAMES=(-frames:v 1)
-    
-    echo "HEYY $JPG_OUTPUT"
     "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
     xxd -p -c 80 | \
     perl -pe "s|${FIND}|${FILL}|g" | \
