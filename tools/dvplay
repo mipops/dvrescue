@@ -455,6 +455,8 @@ if [[ -n "${BLOCKS}" ]] ; then
     done
     # remove trailing comma
     FILTER="${FILTER%?}"
+elif [[ -n "${OUTPUTFILE}" ]] ; then
+    FILTER="copy"
 else
     FILTER="scale=iw/4:ih/4,transpose=2,tile=layout=${TILE_V}x${TILE_H}:init_padding=${LESSONE}:overlap=${LESSONE}:padding=1,transpose=1,setsar=1/1"
 fi
@@ -536,7 +538,7 @@ while [[ "${@}" != "" ]] ; do
     xxd -p -c 80 | \
     perl -pe "s|${FIND}|${FILL}|g" | \
     xxd -r -p | \
-    "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" "${JPG_OUTPUT}"
+    "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" -vf "${FILTER}" "${JPG_OUTPUT}"
   elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
     _make_dvrescue_xml
     if [[ -z "${XMLSTARLET_PATH}" ]] ; then
