@@ -103,20 +103,6 @@ else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
     FFPROBE_PATH="$(dirname "${FFMPEG_PATH}")/ffprobe"
 fi
-if [[ -z "${DVRESCUE_PATH}" ]] ; then
-    DVRESCUE_PATH="$(which dvrescue)"
-fi
-if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
-    _report -w "The dvrescue command-line tool is not found."
-    exit 1
-fi
-if [[ -z "${XMLSTARLET_PATH}" ]] ; then
-    XMLSTARLET_PATH="$(which xmlstarlet)"
-fi
-if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
-    _report -w "The xmlstarlet command-line tool is not found."
-    exit 1
-fi
 
 cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
 <?xml version="1.0"?>
@@ -484,6 +470,13 @@ _play_dv(){
 }
 
 _make_dvrescue_xml(){
+  if [[ -z "${DVRESCUE_PATH}" ]] ; then
+    DVRESCUE_PATH="$(which dvrescue)"
+  fi
+  if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
+    _report -w "The dvrescue command-line tool is not found."
+    exit 1
+  fi
   if [[ ! -f "${DVRESCUE_XML}" ]] ; then
     echo "Assessing $(basename "${DVFILE}")..."
     _mkdir2 "${SIDECAR_DIR}"
@@ -547,6 +540,13 @@ while [[ "${@}" != "" ]] ; do
     "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" "${JPG_OUTPUT}"
   elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
     _make_dvrescue_xml
+    if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+      XMLSTARLET_PATH="$(which xmlstarlet)"
+    fi
+    if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+      _report -w "The xmlstarlet command-line tool is not found."
+      exit 1
+    fi
     echo "Making jpegs of errors within $(basename "${DVFILE}")..."
     TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
     COUNTER=1
