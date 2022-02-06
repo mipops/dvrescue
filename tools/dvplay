@@ -1,5 +1,4 @@
 #!/bin/bash
-SCRIPTDIR="$(dirname $(which "${0}"))"
 
 _usage(){
 cat <<EOF
@@ -560,7 +559,6 @@ while [[ "${@}" != "" ]] ; do
         TC_E="XX\\:XX\\:XX\\:XX"
       fi
       TC_FILENAME_SAFE="n$(printf "%06d" ${N})_$(echo "${TC:-XX:XX:XX:XX}" | sed 's|:|-|g')"
-      PTS_C="$(echo "${PTS}" | sed 's|:|-|g')"
       PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
       if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
         _mkdir2 "${IMAGE_DIR}/dvrescue_tmp"
