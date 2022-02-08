@@ -9,9 +9,9 @@ GridLayout {
     property string recTime: "n/a"
 
     LCDLabel {
-        GridLayout.column: 0
-        GridLayout.row: 0
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 0
+        Layout.row: 0
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: frameNumber
@@ -19,18 +19,18 @@ GridLayout {
     }
 
     LCDLabel {
-        GridLayout.column: 0
-        GridLayout.row: 1
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 0
+        Layout.row: 1
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: "FRAME#"
     }
 
     LCDLabel {
-        GridLayout.column: 1
-        GridLayout.row: 0
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 1
+        Layout.row: 0
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: timeCode
@@ -38,18 +38,18 @@ GridLayout {
     }
 
     LCDLabel {
-        GridLayout.column: 1
-        GridLayout.row: 1
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 1
+        Layout.row: 1
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: "TIMECODE"
     }
 
     LCDLabel {
-        GridLayout.column: 2
-        GridLayout.row: 0
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 2
+        Layout.row: 0
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: recDate
@@ -57,18 +57,18 @@ GridLayout {
     }
 
     LCDLabel {
-        GridLayout.column: 2
-        GridLayout.row: 1
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 2
+        Layout.row: 1
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: "REC DATE"
     }
 
     LCDLabel {
-        GridLayout.column: 3
-        GridLayout.row: 0
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 3
+        Layout.row: 0
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: recTime
@@ -76,9 +76,9 @@ GridLayout {
     }
 
     LCDLabel {
-        GridLayout.column: 3
-        GridLayout.row: 1
-        GridLayout.alignment: Qt.AlignHCenter
+        Layout.column: 3
+        Layout.row: 1
+        Layout.alignment: Qt.AlignHCenter
 
         font.pixelSize: fontPixlSize
         text: "REC TIME"
