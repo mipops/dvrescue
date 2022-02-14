@@ -11,7 +11,7 @@ import QtQuick.Controls 1.4 as QQC1
 
 Dialog {
     id: toolsDialog
-    title: "Please, specify tool locations.."
+    title: "Please specify tool locations."
     contentWidth: 480
 
     property alias avfctlCmd: avfctlField.text
