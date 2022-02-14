@@ -188,7 +188,7 @@ void MediaPlayer::stepBackward()
 void MediaPlayer::clear()
 {
     qDebug() << "clear";
-    if(player->hasVideo())
+    if(!player->videoStreams().empty())
         Q_EMIT player->videoFrame(QAVVideoFrame());
 }
 
