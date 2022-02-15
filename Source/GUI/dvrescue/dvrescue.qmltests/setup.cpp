@@ -2,18 +2,46 @@
 #include <sortfiltertablemodel.h>
 #include <mediainfo.h>
 #include <fileutils.h>
+#include <clipboard.h>
 #include <settingsutils.h>
 #include <qqmltablemodel_p.h>
 #include <QQuickStyle>
+#include <launcher.h>
+#include <thread.h>
+#include <filewriter.h>
+#include <datamodel.h>
+#include <mediaplayer.h>
+#include <playbackbuffer.h>
+#include <qwtquick2plot.h>
+#include <csvparser.h>
 
 void Setup::applicationAvailable()
 {
     qDebug() << "applicationAvailable";
 
+    qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
+    qmlRegisterType<Thread>("Thread", 0, 1, "Thread");
+    qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
+    qmlRegisterType<CsvParser>("CsvParser", 0, 1, "CsvParser");
+    qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
+    qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
+    qmlRegisterType<MediaPlayer>("MediaPlayer", 1, 0, "MediaPlayer");
+    qmlRegisterType<BufferSequential>("MediaPlayerBuffer", 1, 0, "MediaPlayerBuffer");
+    qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
+    qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
+    qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
+    qmlRegisterType<QwtQuick2PlotPicker>("QwtQuick2", 1, 0, "QwtQuick2PlotPicker");
+    qmlRegisterType<QwtQuick2PlotLegend>("QwtQuick2", 1, 0, "QwtQuick2PlotLegend");
     qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
     qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
     qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");
-    qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
+
+    qRegisterMetaType<MarkerInfo>();
+    qRegisterMetaType<QList<MarkerInfo>>();
+    qRegisterMetaType<QAbstractTableModel*>();
+    qRegisterMetaType<QProcess::ProcessState>();
+    qRegisterMetaType<QProcess::ExitStatus>();
+    qRegisterMetaType<QProcess::ProcessError>();
 
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)
@@ -29,6 +57,14 @@ void Setup::applicationAvailable()
 
         SettingsUtils *utils = new SettingsUtils();
         return utils;
+    });
+
+    qmlRegisterSingletonType<Clipboard>("Clipboard", 1, 0, "Clipboard", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        auto *clipboard = new Clipboard();
+        return clipboard;
     });
 
     QQuickStyle::setStyle("Material");

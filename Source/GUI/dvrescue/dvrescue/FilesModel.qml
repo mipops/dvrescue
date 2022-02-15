@@ -3,7 +3,6 @@ import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
-import Launcher 0.1
 import FileUtils 1.0
 import SettingsUtils 1.0
 import MediaInfo 1.0

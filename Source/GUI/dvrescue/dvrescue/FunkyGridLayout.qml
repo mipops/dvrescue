@@ -4,9 +4,10 @@ import QtQuick.Layouts 1.3
 Rectangle {
     id: layout
 
-    onChildrenChanged: scheduleLayout()
-    onWidthChanged: scheduleLayout()
-    onHeightChanged: scheduleLayout()
+    property bool delayLayout: true
+    onChildrenChanged: delayLayout ? scheduleLayout() : performLayout()
+    onWidthChanged: delayLayout ? scheduleLayout() : performLayout()
+    onHeightChanged: delayLayout ? scheduleLayout() : performLayout()
 
     Timer {
         id: timer
@@ -36,6 +37,8 @@ Rectangle {
     }
 
     function performLayout() {
+        console.debug('re-layouting...', width, height);
+
         // exclude repeater from the list of items we are going to position
         var visualChildren = [];
         for(var i = 0; i < layout.children.length; ++i) {
@@ -55,18 +58,18 @@ Rectangle {
             centerInCell3x3(1, 1, visualChildren[0]);
             break;
         case 2:
-            fitToSpace(visualChildren[0], width / 3, height / 2)
-            fitToSpace(visualChildren[1], width / 3, height / 2)
-            centerInCell2x3(0, 1, visualChildren[0]);
-            centerInCell2x3(1, 1, visualChildren[1]);
+            fitToSpace(visualChildren[0], width / 2, height)
+            fitToSpace(visualChildren[1], width / 2, height)
+            centerInCell1x2(0, 0, visualChildren[0]);
+            centerInCell1x2(0, 1, visualChildren[1]);
             break;
         case 3:
-            fitToSpace(visualChildren[0], width / 3, height / 3)
-            fitToSpace(visualChildren[1], width / 3, height / 3)
-            fitToSpace(visualChildren[2], width / 3, height / 3)
-            centerInCell3x3(0, 1, visualChildren[0]);
-            centerInCell3x3(1, 1, visualChildren[1]);
-            centerInCell3x3(2, 1, visualChildren[2]);
+            fitToSpace(visualChildren[0], width / 2, height / 2)
+            fitToSpace(visualChildren[1], width / 2, height / 2)
+            fitToSpace(visualChildren[2], width / 2, height / 2)
+            centerInCell2x2(0, 0, visualChildren[0]);
+            centerInCell2x2(0, 1, visualChildren[1]);
+            centerInCell2x1(1, 0, visualChildren[2]);
             break;
         case 4:
             fitToSpace(visualChildren[0], width / 2, height / 2)
@@ -167,6 +170,14 @@ Rectangle {
 
         item.x = (i * cellWidth) + (cellWidth - item.width) / 2
         item.y = (j * cellHeight) + (cellHeight - item.height) / 2
+    }
+
+    function centerInCell1x2(j, i, item) {
+        centerInCell(j, i, item, 1, 2)
+    }
+
+    function centerInCell2x1(j, i, item) {
+        centerInCell(j, i, item, 2, 1)
     }
 
     function centerInCell3x3(j, i, item) {

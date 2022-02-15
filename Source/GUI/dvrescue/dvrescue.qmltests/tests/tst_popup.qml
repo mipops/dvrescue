@@ -9,12 +9,6 @@ Item {
     RecentsPopup {
         id: recentsPopup
         visible: false
-
-        files: [
-            ":/testdata/many_attributes.dv",
-            ":/testdata/many_attributes.dv.dvrescue.xml",
-            ":/testdata/sample.dvrescue.xml"
-        ]
     }
 
     TestCase {

@@ -6,16 +6,16 @@ Item {
     width: Math.max(1280, parent ? parent.width : 0)
     height: Math.max(1024, parent ? parent.height : 0)
 
-    AnalyseFileViewer {
+    AnalyseFileView {
         id: fileview
         visible: false
         anchors.fill: parent
 
-        files: [
-            ":/testdata/many_attributes.dv",
-            ":/testdata/many_attributes.dv.dvrescue.xml",
-            ":/testdata/sample.dvrescue.xml"
-        ]
+        filesModel: filesModel
+    }
+
+    FilesModel {
+        id: filesModel
     }
 
     TestCase {
