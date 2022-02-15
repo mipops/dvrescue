@@ -65,11 +65,21 @@ Options:
             corresponds to the input file, ignored if -S is not set)
  -C <path> (provide a custom path to a DVRescue SCC that corresponds to the
            input file, ignored if -S is not set)
- -3        (by default, dvpacakager will resample audio to 48000 Hz sampling
-            rate when muxing to a container. Enable this option to keep the
-            sampling rate in its native format. Setting this may result in
-            more output files as each change in sampling rate will require a
-            new output file. Automatically enabled when '-e dv'.)
+
+Audio Resample Options
+
+ By default, dvpacakager will preserve the sampling rate of the input DV stream;
+ however, if the input contains a mixture of 32000 Hz and 48000 Hz audio, then
+ dvpackager will resample the packaged audio to 48000 Hz when muxing to a
+ container.
+
+ -3        (Enable this option to keep the sampling rate in its native format.
+            Setting this may result in more output files as each change in
+            sampling rate will require a new output file. Automatically enabled
+            when '-e dv'.)
+ -4        (Force all audio to be resampled to 48000 Hz.)
+ 
+ Aspect Ratio Options
  -a <opt>  (Choose a strategy for handling mid-stream changes in aspect ratio.
             Options:
                 - n: Split segments for aspect ratio changes.
@@ -381,10 +391,18 @@ _condense_ranges(){
             if [[ "${AUDIO_RATE_FIRST}" = "48000" || "${AUDIO_RATE_PREV}" = "48000" ]] ; then
                 SR_FORCE="48000"
             else
-                SR_FORCE="${AUDIO_RATE_FIRST}"
+                if [[ -n "${FORCE_SAMPLE_RATE}" ]] ; then
+                    SR_FORCE="${FORCE_SAMPLE_RATE}"
+                else
+                    SR_FORCE="${AUDIO_RATE_FIRST}"
+                fi
             fi
         else
-            SR_FORCE="${AUDIO_RATE_FIRST}"
+            if [[ -n "${FORCE_SAMPLE_RATE}" ]] ; then
+                SR_FORCE="${FORCE_SAMPLE_RATE}"
+            else
+                SR_FORCE="${AUDIO_RATE_FIRST}"
+            fi
         fi
         if [[ "${CH_FIRST}" = "4" || "${CH_PREV}" = "4" ]] ; then
             CH_FORCE="4"
@@ -608,7 +626,7 @@ CONDENSE_OPTS=(-s)
 
 # command-line options to set media id and original variables
 OPTIND=1
-while getopts ":fsdto:e:l:L:mSZnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
+while getopts ":fsdto:e:l:L:mSZnN:vzuhF:M:D:X:x:V:C:34a:T:" opt ; do
     case "${opt}" in
         f) FORCE_FRAMES="Y" ;;
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
@@ -634,6 +652,7 @@ while getopts ":fsdto:e:l:L:mSZnN:vzuhF:M:D:X:x:V:C:3a:T:" opt ; do
         V) DVRESCUE_TECHSUBS="${OPTARG}" ;;
         C) DVRESCUE_SCC="${OPTARG}" ;;
         3) unset CONDENSE_OPTS ;;
+        4) FORCE_SAMPLE_RATE="48000" ;;
         a) ASPECT_RATIO_STRATEGY="${OPTARG}" ;;
         T) SHOW_TABLE="${OPTARG}" ;;
         h) _usage ; exit 0 ;;
