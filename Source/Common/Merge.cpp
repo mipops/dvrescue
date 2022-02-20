@@ -623,10 +623,6 @@ bool dv_merge_private::Process()
     }
     if (Segment_Pos >= MaxSegmentSize || Frame_Pos >= Frames_Status_Max)
         return true;
-    for (size_t i = 0; i < Input_Count; i++)
-    {
-        Inputs[i].Segments.resize(MaxSegmentSize);
-    }
 
     // Check abst coherency
     if (UseAbst && Inputs.size() == 2) // Currently limited to 2 inputs
