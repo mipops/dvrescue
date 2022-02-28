@@ -112,12 +112,16 @@ Rectangle {
                         var columnNames = [];
                         var indexOfFramePos = -1;
                         var indexOfTimecode = -1;
+                        var indexOfRecDateTime = -1;
 
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
+                                                                               console.debug('columnNames: ', JSON.stringify(columnNames))
+
                                                                                indexOfFramePos = columnNames.indexOf('FramePos');
-                                                                               indexOfTimecode = columnNames.indexOf('TimeCode');
+                                                                               indexOfTimecode = columnNames.indexOf('tc');
+                                                                               indexOfRecDateTime = columnNames.indexOf('rdt');
                                                                            });
 
                                           var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
@@ -129,6 +133,18 @@ Rectangle {
 
                                                                                 if(indexOfTimecode !== -1) {
                                                                                     captureFrameInfo.timeCode = entries[indexOfTimecode]
+                                                                                }
+
+                                                                                if(indexOfRecDateTime !== -1) {
+                                                                                    var rdt = entries[indexOfRecDateTime];
+                                                                                    if(rdt !== '') {
+                                                                                      var splitted = rdt.split(' ');
+                                                                                      captureFrameInfo.recDate = splitted[0];
+                                                                                      captureFrameInfo.recTime = splitted[1];
+                                                                                    } else {
+                                                                                      captureFrameInfo.recDate = '';
+                                                                                      captureFrameInfo.recTime = '';
+                                                                                    }
                                                                                 }
                                                                             });
 

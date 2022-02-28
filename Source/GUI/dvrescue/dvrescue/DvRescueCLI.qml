@@ -64,8 +64,8 @@ Item {
             var xml = file + ".dv.dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9']
-            // var arguments = ['D:\\Projects\\dvrescue-work\\dvrescue.samples\\dave\\many_attributes.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9']
+            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
+            // var arguments = ['D:\\Projects\\dvrescue-work\\dvrescue.samples\\dave\\many_attributes.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             // var arguments = ['device://' + index, '-m', file]
 
