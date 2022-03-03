@@ -985,18 +985,18 @@ if [[ -f "${DVFILE}" ]] ; then
                     _report -v "Prepping a mapping for ${CH} channel input (${MONO_CHANNELS})."
                     if [[ "${CH}" = "2" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
-                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
                             AUDIO_MAP=(-map "[c1]" -map "[c2]")
                         else
-                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud]")
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD}[aud]")
                             AUDIO_MAP=(-map "[aud]")
                         fi
                     elif [[ "${CH}" = "4" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
-                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2];[0:a:1]aresample=async=1:min_hard_comp=0.01${APAD},channelsplit[l2][r2];[l2]aformat=channel_layouts=mono[c3];[r2]aformat=channel_layouts=mono[c4]")
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD},channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2];[0:a:1]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD},channelsplit[l2][r2];[l2]aformat=channel_layouts=mono[c3];[r2]aformat=channel_layouts=mono[c4]")
                             AUDIO_MAP=(-map "[c1]" -map "[c2]" -map "[c3]" -map "[c4]")
                         else
-                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud1];[0:a:1]aresample=async=1:min_hard_comp=0.01${APAD}[aud2]")
+                            AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD}[aud1];[0:a:1]aresample=${AUDIO_RATE}:async=1:min_hard_comp=0.01${APAD}[aud2]")
                             AUDIO_MAP=(-map "[aud1]" -map "[aud2]")
                         fi
                     fi
