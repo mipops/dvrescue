@@ -45,6 +45,7 @@ private:
 struct abst_bf
 {
 public:
+    abst_bf() {}
     abst_bf(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::AbstBf) Value) : _Value(Value) {}
     inline int BlankFlag() { return _Value & 1; }                                  //  0
     inline int AbsoluteTrackNumber()
@@ -66,6 +67,7 @@ private:
 struct timecode
 {
 public:
+    timecode() {}
     timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value(Frame.TimeCode), _Value2(Frame.MoreFlags) {}
     timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value(Frame->TimeCode), _Value2(Frame->MoreFlags) {}
     inline bool HasValue() { return ((_Value >> 8) & 0x1FFFF) != 0x1FFFF; }
@@ -84,6 +86,7 @@ private:
 struct rec_date_time
 {
 public:
+    rec_date_time() {}
     rec_date_time(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value1(Frame.RecordedDateTime1), _Value2(Frame.RecordedDateTime2), _Value3(Frame.MoreFlags) {}
     rec_date_time(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value1(Frame->RecordedDateTime1), _Value2(Frame->RecordedDateTime2), _Value3(Frame->MoreFlags) {}
     inline bool HasDate() { return ((_Value1 >> 17) & 0x7F) != 0x7F; }

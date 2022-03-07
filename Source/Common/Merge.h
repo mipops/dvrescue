@@ -18,6 +18,7 @@ using namespace std;
 extern vector<string> Merge_InputFileNames;
 extern string Merge_OutputFileName;
 extern string MergeInfo_OutputFileName;
+extern uint8_t MergeInfo_Format;
 extern uint8_t Verbosity;
 extern uint8_t UseAbst;
 struct MediaInfo_Event_DvDif_Analysis_Frame_1;

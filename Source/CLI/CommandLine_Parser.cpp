@@ -191,6 +191,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             C.CaptionsFileNames[CurrentCaptionKind] = move(CurrentFileName);
         }
+        else if (!strcmp(argv_ansi[i], "--csv"))
+        {
+            MergeInfo_Format = 1;
+        }
         else if (!strcmp(argv_ansi[i], "--merge") || !strcmp(argv_ansi[i], "-m"))
         {
             if (++i >= argc)
@@ -416,6 +420,17 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 *C.Err << "Error: Closed Captions output is possible only with one input file.\n";
             return ReturnValue_ERROR;
         }
+    }
+
+    if (MergeInfo_Format)
+    {
+        if (Merge_OutputFileName.empty())
+        {
+            if (C.Err)
+                *C.Err << "Error: CSV format is available only for merge feature.\n";
+            return ReturnValue_ERROR;
+        }
+        Verbosity = 9;
     }
 
     if (ClearInput)
