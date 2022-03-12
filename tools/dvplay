@@ -27,6 +27,7 @@ Options:
              such as '-B 0,1348,1349')
 
  -F <path> (provide a custom ffmpeg path)
+ -M <path> (provide a custom mediainfo path)
  -D <path> (provide a custom dvrescue path)
  -X <path> (provide a custom xmlstarlet path)
  -d <path> (provide a custom path to a DVRescue XML that corresponds to the
@@ -71,7 +72,7 @@ _report(){
 }
 
 OPTIND=1
-while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
+while getopts ":t:b:mxgF:M:D:X:d:hB:o:O:" OPT ; do
     case "${OPT}" in
         t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
         b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -79,6 +80,7 @@ while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
         F) FFMPEG_PATH="${OPTARG}" ;;
+        M) MEDIAINFO_PATH="${OPTARG}" ;;
         D) DVRESCUE_PATH="${OPTARG}" ;;
         X) XMLSTARLET_PATH="${OPTARG}" ;;
         d) DVRESCUE_XML="${OPTARG}" ;;
@@ -92,6 +94,13 @@ while getopts ":t:b:mxgF:D:X:d:hB:o:O:" OPT ; do
 done
 shift $((OPTIND - 1))
 
+if [[ -z "${MEDIAINFO_PATH}" ]] ; then
+    MEDIAINFO_PATH="$(which mediainfo)"
+fi
+if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
+    _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
+    _report -d "Please install a mediainfo CLI from https://mediaarea.net/en/MediaInfo/Download or provide a path to mediainfo with the -M argument."
+fi
 if [[ -z "${FFMPEG_PATH}" ]] ; then
     FFMPEG_PATH="$(which ffmpeg)"
 fi
@@ -100,7 +109,6 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -d "Please install a ffmpeg CLI  or provide a path to mediainfo with the -F argument."
 else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
-    FFPROBE_PATH="$(dirname "${FFMPEG_PATH}")/ffprobe"
 fi
 
 cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
@@ -427,12 +435,12 @@ if [[ -n "${BLOCKS}" ]] ; then
         fi
         I=$(((I5+SEQ)%SEQCOUNT))
         K=$(((BLOCK/5)%27))
-        if [[ "${PIX_FMT}" = "yuv411p" && ( "${J}" -lt "4" || ( "${J}" -eq "4" && "${K}" -lt "24" )) ]] ; then
+        if [[ "${PIX_FMT}" = "4:1:1" && ( "${J}" -lt "4" || ( "${J}" -eq "4" && "${K}" -lt "24" )) ]] ; then
             W=32 ; H=8
         else
             W=16 ; H=16
         fi
-        if [[ "${PIX_FMT}" = "yuv411p" ]] ; then
+        if [[ "${PIX_FMT}" = "4:1:1" ]] ; then
             WL=32 ; MACROBLOCK_ROWS=6 ; MBX_OFFSET=$(((J%2)*3))
         else
             WL=16 ; MACROBLOCK_ROWS=3 ; MBX_OFFSET=0
@@ -444,7 +452,7 @@ if [[ -n "${BLOCKS}" ]] ; then
             MByt=$((K+MBX_OFFSET+MACROBLOCK_ROWS-1-(((K+MBX_OFFSET)%MACROBLOCK_ROWS)*2)))
         fi
         MBy=$((MByt%MACROBLOCK_ROWS))
-        if [[ "${PIX_FMT}" = "yuv411p" && "$((J%2))" -eq "1" ]] ; then
+        if [[ "${PIX_FMT}" = "4:1:1" && "$((J%2))" -eq "1" ]] ; then
             SBx=$((J*144-16))
         else
             SBx=$((J*144))
@@ -512,7 +520,7 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
   DVFILE="${1}"
   shift
-  IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DVFILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
+  IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
   _get_filters
   BASENAME="$(basename "${DVFILE}")"
   DIRNAME="$(dirname "${DVFILE}")"

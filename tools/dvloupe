@@ -120,8 +120,6 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -w "The ffmpeg command-line tool is not found, but needed."
     _report -w "Please install a ffmpeg CLI or provide a path to mediainfo with the -F argument."
     exit 1
-else
-    FFPROBE_PATH="$(dirname "${FFMPEG_PATH}")/ffprobe"
 fi
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
     MEDIAINFO_PATH="$(which mediainfo)"
@@ -205,13 +203,13 @@ else
     ROW_END="${RESET}\n"
 fi
 
-IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${FFPROBE_PATH}" -v 0 "${DV_FILE}" -select_streams v:0 -show_entries stream=codec_name,height,pix_fmt -of compact=p=0:nk=1)
+IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DV_FILE}")
 
-if [[ "${CODEC_NAME}" != "dvvideo" ]] ; then
+if [[ "${CODEC_NAME}" != "DV" ]] ; then
   _report -w "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
   exit
 fi
-if [[ "${PIX_FMT}" = "yuv411p" ]] ; then
+if [[ "${PIX_FMT}" = "4:1:1" ]] ; then
     YUV411P="1"
 else
     YUV411P="0"
