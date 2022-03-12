@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QIODevice>
 #include <QTimer>
-#include <QUrl>
 #include <QVector2D>
 #include <QtQml/QQmlParserStatus>
 #include <QQuickItem>
@@ -101,7 +100,7 @@ Q_SIGNALS:
     void statusChanged(MediaPlayer::MediaStatus status);
     void stateChanged(MediaPlayer::State state);
     void durationChanged(qint64 duration);
-    void sourceChanged(const QUrl &url);
+    void sourceChanged(const QString &url);
     void seekFinished();
     void videoFrameRateChanged(qreal frameRate);
     void stopped(qint64 pos);    
