@@ -312,7 +312,7 @@ Item {
                                 var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
                                 if(FileUtils.exists(videoPath))
                                 {
-                                    playerView.player.source = 'file:///' + videoPath;
+                                    playerView.player.source = videoPath;
                                     playerView.player.playPaused(0);
                                 }
                             }
@@ -349,7 +349,7 @@ Item {
                                                                     });
                             }
 
-                            playerView.player.source = 'file:///' + filePath;
+                            playerView.player.source = filePath;
                             playerView.player.playPaused(0);
                         }
                     }

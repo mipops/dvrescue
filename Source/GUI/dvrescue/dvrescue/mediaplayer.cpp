@@ -217,15 +217,16 @@ qreal MediaPlayer::videoFrameRate() const
     return player->videoFrameRate();
 }
 
-QUrl MediaPlayer::source() const
+QString MediaPlayer::source() const
 {
     return player->source();
 }
 
-void MediaPlayer::setSource(const QUrl &newSource)
+void MediaPlayer::setSource(const QString &newSource)
 {
     qDebug() << "new source: " << newSource;
-    player->setSource(newSource.toString());
+
+    player->setSource(newSource);
 }
 
 void MediaPlayer::classBegin()

@@ -14,7 +14,7 @@ void PlayerTest::test()
     QAVPlayer p;
 
     QFileInfo file(path());
-    p.setSource(QUrl::fromLocalFile(file.absoluteFilePath()).toString());
+    p.setSource(file.absoluteFilePath());
 
     QAVVideoFrame frame;
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&frame](const QAVVideoFrame &f) { frame = f; });
@@ -132,7 +132,7 @@ void PlayerTest::testPlaybackFromQIODevice()
             qDebug() << "got frame";
         });
 
-        p.setSource(QUrl(fileInfo.fileName()), &file);
+        p.setSource(fileInfo.fileName(), &file);
         p.stepForward();
 
         QTest::qWait(1000);
@@ -390,7 +390,7 @@ void PlayerTest::testPlaybackFromQIODevice2()
     });
 
     auto &buffer = client;
-    p.setSource(QUrl(fileInfo.fileName()).toString(), &buffer);
+    p.setSource(fileInfo.fileName(), &buffer);
 
     QThreadPool::globalInstance()->start([&file, &serverSocket]() {
         while(!file.atEnd()) {
@@ -601,15 +601,15 @@ void PlayerTest::testMultipleSources()
     });
 
     QFileInfo file(path());
-    qDebug() << "setSource: " << QUrl::fromLocalFile(file.absoluteFilePath());
-    p.setSource(QUrl::fromLocalFile(file.absoluteFilePath()).toString());
+    qDebug() << "setSource: " << file.absoluteFilePath();
+    p.setSource(file.absoluteFilePath());
     p.play();
     QTest::qWait(100);
 
     QFileInfo file2(path2());
 
-    qDebug() << "setSource: " << QUrl::fromLocalFile(file2.absoluteFilePath());
-    p.setSource(QUrl::fromLocalFile(file2.absoluteFilePath()).toString());
+    qDebug() << "setSource: " << file2.absoluteFilePath();
+    p.setSource(file2.absoluteFilePath());
     p.play();
     QTest::qWait(100);
 }
