@@ -773,9 +773,9 @@ LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
 if ! ( \
     [[ "${LAVFversion_maj}" -gt 58 ]] || \
     ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_min}" -ge 101 ]] ) \
+    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_mic}" -ge 101 ]] ) \
    ) ; then
-    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommend and ${FFMPEG_PATH} is running ${LAVFversion}."
+    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion}."
     _report -w "Please update ffmpeg."
     _report -w "Using this current install of ffmpeg may result in out of sync audio."
 fi
