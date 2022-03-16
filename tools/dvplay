@@ -106,7 +106,7 @@ if [[ -z "${FFMPEG_PATH}" ]] ; then
 fi
 if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -d "The ffmpeg command-line tool is not found, but needed."
-    _report -d "Please install a ffmpeg CLI  or provide a path to mediainfo with the -F argument."
+    _report -d "Please install a ffmpeg CLI  or provide a path to ffmpeg with the -F argument."
 else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
 fi
