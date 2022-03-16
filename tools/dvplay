@@ -384,12 +384,12 @@ DISPLAY_XSL
 
 # fill color handling
 _convert_array_to_macroblock(){
-  LUMA_AC="ffffffffffffffffffffff"
-  CHROMA_AC="ffffffffffffff"
-  COLOR_POINT="${1}"
-  echo "${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:6:6}${CHROMA_AC}${COLOR_POINT:12:6}${CHROMA_AC}"
-  # get dv color data via
-  # ffmpeg -f lavfi -i color=s=720x480:r=30000/1001:color=yellow -vframes 1 -f rawvideo -c:v dvvideo -pix_fmt yuv411p - | xxd -ps -c 80 | tail -n 1 | cut -c 9-14,121-126,141-146
+    LUMA_AC="ffffffffffffffffffffff"
+    CHROMA_AC="ffffffffffffff"
+    COLOR_POINT="${1}"
+    echo "${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:0:6}${LUMA_AC}${COLOR_POINT:6:6}${CHROMA_AC}${COLOR_POINT:12:6}${CHROMA_AC}"
+    # get dv color data via
+# ffmpeg -f lavfi -i color=s=720x480:r=30000/1001:color=yellow -vframes 1 -f rawvideo -c:v dvvideo -pix_fmt yuv411p - | xxd -ps -c 80 | tail -n 1 | cut -c 9-14,121-126,141-146
 }
 
 _get_iso8601(){
@@ -398,28 +398,28 @@ _get_iso8601(){
 
 # font selection
 if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
-  DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
+    DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
-  DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
+    DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
 elif [[ -f "/System/Library/Fonts/Monaco.dfont" ]] ; then
-  DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
+    DEFAULTFONT="/System/Library/Fonts/Monaco.dfont"
 elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
-  DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
+    DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
 elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
-  DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+    DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
 elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
-  DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+    DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 else
-  _report -wt "$(basename "${0}") can't find a preferred font to use :("
+    _report -wt "$(basename "${0}") can't find a preferred font to use :("
 fi
 
 DV_YELLOW="5206ff1216ff9016ff"
 DV_RED="d106ff7016ffda16ff"
 FILL=$(_convert_array_to_macroblock "${DV_YELLOW}")
 if [[ "${MASK_ONLY}" = "Y" ]] ; then
-  FIND="(?<=9[0-9a-f]{5}[0][0-9a-f])[0-9a-f]{152}"
+    FIND="(?<=9[0-9a-f]{5}[0][0-9a-f])[0-9a-f]{152}"
 else
-  FIND="(?<=9[0-9a-f]{5}[^0][0-9a-f])[0-9a-f]{152}"
+    FIND="(?<=9[0-9a-f]{5}[^0][0-9a-f])[0-9a-f]{152}"
 fi
 
 # filter handling
@@ -488,31 +488,31 @@ fi
 }
 
 _play_dv(){
-  if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
-    "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -bsf dv_error_marker -c:v copy -f rawvideo - | \
-    "${FFPLAY_PATH}" - -vf "${FILTER}"
-  else
-    "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
-    xxd -p -c 80 | \
-    perl -pe "s|${FIND}|${FILL}|g" | \
-    xxd -r -p | \
-    "${FFPLAY_PATH}" - -vf "${FILTER}"
-  fi
+    if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
+        "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -bsf dv_error_marker -c:v copy -f rawvideo - | \
+        "${FFPLAY_PATH}" - -vf "${FILTER}"
+    else
+        "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -c:v copy -f rawvideo - | \
+        xxd -p -c 80 | \
+        perl -pe "s|${FIND}|${FILL}|g" | \
+        xxd -r -p | \
+        "${FFPLAY_PATH}" - -vf "${FILTER}"
+    fi
 }
 
 _make_dvrescue_xml(){
-  if [[ -z "${DVRESCUE_PATH}" ]] ; then
-    DVRESCUE_PATH="$(which dvrescue)"
-  fi
-  if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
-    _report -w "The dvrescue command-line tool is not found."
-    exit 1
-  fi
-  if [[ ! -f "${DVRESCUE_XML}" ]] ; then
-    echo "Assessing $(basename "${DVFILE}")..."
-    _mkdir2 "${SIDECAR_DIR}"
-    "${DVRESCUE_PATH}" "${DVFILE}" > "${DVRESCUE_XML}"
-  fi
+    if [[ -z "${DVRESCUE_PATH}" ]] ; then
+        DVRESCUE_PATH="$(which dvrescue)"
+    fi
+    if [[ ! -f "${DVRESCUE_PATH}" ]] ; then
+        _report -w "The dvrescue command-line tool is not found."
+        exit 1
+    fi
+    if [[ ! -f "${DVRESCUE_XML}" ]] ; then
+        echo "Assessing $(basename "${DVFILE}")..."
+        _mkdir2 "${SIDECAR_DIR}"
+        "${DVRESCUE_PATH}" "${DVFILE}" > "${DVRESCUE_XML}"
+    fi
 }
 
 _maketemp(){
@@ -540,90 +540,90 @@ _mkdir2(){
 }
 
 while [[ "${@}" != "" ]] ; do
-  DVFILE="${1}"
-  shift
-  IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
-  _get_filters
-  BASENAME="$(basename "${DVFILE}")"
-  DIRNAME="$(dirname "${DVFILE}")"
-  DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
-  if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
-    SIDECAR_DIR="${OUTPUTDIR}"
-  elif [[ -n "${OUTPUTDIR}" ]] ; then
-    echo "User selected output is not a valid directory. Exiting"
-    exit 1
-  else
-    SIDECAR_DIR="${DIRNAME}"
-  fi
-  IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
-  DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
-  if [[ ! -s "${DVRESCUE_XML}" ]] ; then
-    DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-  fi
+    DVFILE="${1}"
+    shift
+    IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
+    _get_filters
+    BASENAME="$(basename "${DVFILE}")"
+    DIRNAME="$(dirname "${DVFILE}")"
+    DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
+    if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
+        SIDECAR_DIR="${OUTPUTDIR}"
+    elif [[ -n "${OUTPUTDIR}" ]] ; then
+        echo "User selected output is not a valid directory. Exiting"
+        exit 1
+    else
+        SIDECAR_DIR="${DIRNAME}"
+    fi
+    IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
+    DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
+    if [[ ! -s "${DVRESCUE_XML}" ]] ; then
+        DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+    fi
 
-  if [[ -n "${OUTPUTFILE}" ]]  ; then
-    DVPLAY_OUTPUT="${OUTPUTFILE}"
-    if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
-      "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
-      "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+    if [[ -n "${OUTPUTFILE}" ]]  ; then
+        DVPLAY_OUTPUT="${OUTPUTFILE}"
+        if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
+            "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
+            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+        else
+            "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+            xxd -p -c 80 | \
+            perl -pe "s|${FIND}|${FILL}|g" | \
+            xxd -r -p | \
+            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+        fi
+    elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+        _make_dvrescue_xml
+        if [[ -z "${XMLSTARLET_PATH}" ]] ; then
+            XMLSTARLET_PATH="$(which xmlstarlet)"
+        fi
+        if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
+            _report -w "The xmlstarlet command-line tool is not found."
+            exit 1
+        fi
+        echo "Making jpegs of errors within $(basename "${DVFILE}")..."
+        TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
+        COUNTER=1
+        "${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
+            N="$(echo "${error_frame}" | cut -d "," -f1)"
+            PTS="$(echo "${error_frame}" | cut -d "," -f2)"
+            TC="$(echo "${error_frame}" | cut -d "," -f3)"
+            if [[ -n "${TC}" ]] ; then
+                TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
+            else
+                TC_E="XX\\:XX\\:XX\\:XX"
+            fi
+            TC_FILENAME_SAFE="n$(printf "%06d" ${N})_$(echo "${TC:-XX:XX:XX:XX}" | sed 's|:|-|g')"
+            PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
+            if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+                _mkdir2 "${IMAGE_DIR}/dvrescue_tmp"
+                DVPLAY_OUTPUT="${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
+            else
+                _mkdir2 "${IMAGE_DIR}"
+                DVPLAY_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
+            fi
+            if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
+                "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
+                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
+            else
+                "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
+                xxd -p -c 80 | \
+                perl -pe "s|${FIND}|${FILL}|g" | \
+                xxd -r -p | \
+                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
+            fi
+            ((COUNTER=COUNTER+1))
+        done
+        if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+            GIF_PALETTE="$(_maketemp)"
+            "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
+            "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
+            rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
+        else
+            xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
+        fi
     else
-      "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
-      xxd -p -c 80 | \
-      perl -pe "s|${FIND}|${FILL}|g" | \
-      xxd -r -p | \
-      "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+        _play_dv "${DVFILE}"
     fi
-  elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
-    _make_dvrescue_xml
-    if [[ -z "${XMLSTARLET_PATH}" ]] ; then
-      XMLSTARLET_PATH="$(which xmlstarlet)"
-    fi
-    if [[ ! -f "${XMLSTARLET_PATH}" ]] ; then
-      _report -w "The xmlstarlet command-line tool is not found."
-      exit 1
-    fi
-    echo "Making jpegs of errors within $(basename "${DVFILE}")..."
-    TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
-    COUNTER=1
-    "${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
-      N="$(echo "${error_frame}" | cut -d "," -f1)"
-      PTS="$(echo "${error_frame}" | cut -d "," -f2)"
-      TC="$(echo "${error_frame}" | cut -d "," -f3)"
-      if [[ -n "${TC}" ]] ; then
-        TC_E="$(echo "${TC}" | sed 's|:|\\:|g')"
-      else
-        TC_E="XX\\:XX\\:XX\\:XX"
-      fi
-      TC_FILENAME_SAFE="n$(printf "%06d" ${N})_$(echo "${TC:-XX:XX:XX:XX}" | sed 's|:|-|g')"
-      PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
-      if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
-        _mkdir2 "${IMAGE_DIR}/dvrescue_tmp"
-        DVPLAY_OUTPUT="${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
-      else
-        _mkdir2 "${IMAGE_DIR}"
-        DVPLAY_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
-      fi
-      if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
-        "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
-        "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
-      else
-        "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
-        xxd -p -c 80 | \
-        perl -pe "s|${FIND}|${FILL}|g" | \
-        xxd -r -p | \
-        "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
-      fi
-      ((COUNTER=COUNTER+1))
-    done
-    if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
-      GIF_PALETTE="$(_maketemp)"
-      "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -vf palettegen "${GIF_PALETTE}.png"
-      "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
-      rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
-    else
-      xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
-    fi
-  else
-    _play_dv "${DVFILE}"
-  fi
 done
