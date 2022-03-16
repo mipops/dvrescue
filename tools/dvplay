@@ -540,13 +540,13 @@ while [[ "${@}" != "" ]] ; do
   fi
 
   if [[ -n "${OUTPUTFILE}" ]]  ; then
-    JPG_OUTPUT="${OUTPUTFILE}"
+    DVPLAY_OUTPUT="${OUTPUTFILE}"
     FRAMES=(-frames:v 1)
     "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
     xxd -p -c 80 | \
     perl -pe "s|${FIND}|${FILL}|g" | \
     xxd -r -p | \
-    "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" -vf "${FILTER}" "${JPG_OUTPUT}"
+    "${FFMPEG_PATH}" -nostdin -y -i - "${FRAMES[@]}" -vf "${FILTER}" "${DVPLAY_OUTPUT}"
   elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
     _make_dvrescue_xml
     if [[ -z "${XMLSTARLET_PATH}" ]] ; then
@@ -572,16 +572,16 @@ while [[ "${@}" != "" ]] ; do
       PTS_E="$(echo "${PTS}" | sed 's|:|\\:|g')"
       if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
         _mkdir2 "${IMAGE_DIR}/dvrescue_tmp"
-        JPG_OUTPUT="${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
+        DVPLAY_OUTPUT="${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_$(echo "$COUNTER" | awk '{ printf("%06i", $1) }').jpg"
       else
         _mkdir2 "${IMAGE_DIR}"
-        JPG_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
+        DVPLAY_OUTPUT="${IMAGE_DIR}/${BASENAME}_${TC_FILENAME_SAFE}.jpg"
       fi
       "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
       xxd -p -c 80 | \
       perl -pe "s|${FIND}|${FILL}|g" | \
       xxd -r -p | \
-      "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${JPG_OUTPUT}"
+      "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
       ((COUNTER=COUNTER+1))
     done
     if [[ "${GIF_OUTPUT}" = "Y" ]] ; then
