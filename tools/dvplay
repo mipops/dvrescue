@@ -2,7 +2,7 @@
 
 _usage(){
 cat <<EOF
-$(basename "${0}")
+"$(basename "${0}")"
 
 Visually display and/or generate xml and sidecars of errors in DV file.
 In visual display, error concealment data  in frames will be displayed
@@ -32,6 +32,8 @@ Options:
  -X <path> (provide a custom xmlstarlet path)
  -d <path> (provide a custom path to a DVRescue XML that corresponds to the
             input file)
+
+ -z       (disable colored terminal output)
 EOF
 exit
 }
@@ -72,7 +74,9 @@ _report(){
 }
 
 OPTIND=1
-while getopts ":t:b:mxgF:M:D:X:d:hB:o:O:" OPT ; do
+FFMPEG_VERBOSE=(-v quiet -stats)
+DV_VERBOSE=false
+while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:" OPT ; do
     case "${OPT}" in
         t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
         b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -85,6 +89,8 @@ while getopts ":t:b:mxgF:M:D:X:d:hB:o:O:" OPT ; do
         X) XMLSTARLET_PATH="${OPTARG}" ;;
         d) DVRESCUE_XML="${OPTARG}" ;;
         h) _usage ;;
+        v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
+        z) DISABLE_COLORED_LOGGING="Y" ;;
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
         O) OUTPUTFILE="${OPTARG}" ; ERROR_REVIEW="Y" ;;
@@ -109,23 +115,22 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -d "Please install a ffmpeg CLI  or provide a path to ffmpeg with the -F argument."
 else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
-fi
-
-FFversion="$("${FFMPEG_PATH}" -version)"
-LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
-LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
-LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
-LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
-if ! ( \
-    [[ "${LAVFversion_maj}" -gt 59 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 59 ]] && [[ "${LAVFversion_min}" -gt 19 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 59 ]] && [[ "${LAVFversion_min}" -eq 19 ]] && [[ "${LAVFversion_mic}" -ge 100 ]] ) \
-   ) ; then
-    _report -w "FFmpeg's libavformat version  59.19.100 or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion}."
-    _report -w "Please update ffmpeg."
-    BITSTREAM_FILTER_METHOD="hack"
-else
-    BITSTREAM_FILTER_METHOD="ffmpeg"
+    # the minimum recommanded version of libavformat, otherwise will use a hack to visualize errors
+    LAVF_MAJ_REQ=59
+    LAVF_MIN_REQ=19
+    LAVF_MIC_REQ=100
+    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
+    if ! { \
+          [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -eq ${LAVF_MIN_REQ} ]] && [[ ${LAVFversion_mic} -ge ${LAVF_MIC_REQ} ]]; }; \
+       } ; then
+        _report -w "FFmpeg's libavformat version  ${LAVF_MAJ_REQ}.${LAVF_MIN_REQ}.${LAVF_MIC_REQ} or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion_maj}.${LAVFversion_min}.${LAVFversion_mic}."
+        _report -w "Please update ffmpeg."
+        BITSTREAM_FILTER_METHOD="hack"
+    else
+        BITSTREAM_FILTER_METHOD="ffmpeg"
+    fi
 fi
 
 cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
@@ -410,7 +415,7 @@ elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
 elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 else
-    _report -wt "$(basename "${0}") can't find a preferred font to use :("
+    _report -w "$(basename "${0}") can't find a preferred font to use :("
 fi
 
 DV_YELLOW="5206ff1216ff9016ff"
@@ -531,7 +536,7 @@ _mkdir2(){
         if [ ! -d "${DIR2MAKE}" ] ; then
             mkdir -p "${DIR2MAKE}"
             if [ "${?}" -ne 0 ]; then
-                _report -wt "${0}: Can't create directory at ${DIR2MAKE}"
+                _report -w "${0}: Can't create directory at ${DIR2MAKE}"
                 exit 1
             fi
         fi
@@ -544,23 +549,6 @@ while [[ "${@}" != "" ]] ; do
     shift
     IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
     _get_filters
-    BASENAME="$(basename "${DVFILE}")"
-    DIRNAME="$(dirname "${DVFILE}")"
-    DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
-    if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
-        SIDECAR_DIR="${OUTPUTDIR}"
-    elif [[ -n "${OUTPUTDIR}" ]] ; then
-        echo "User selected output is not a valid directory. Exiting"
-        exit 1
-    else
-        SIDECAR_DIR="${DIRNAME}"
-    fi
-    IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
-    DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
-    if [[ ! -s "${DVRESCUE_XML}" ]] ; then
-        DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    fi
-
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         DVPLAY_OUTPUT="${OUTPUTFILE}"
         if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
@@ -574,6 +562,21 @@ while [[ "${@}" != "" ]] ; do
             "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
         fi
     elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+        BASENAME="$(basename "${DVFILE}")"
+        DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
+        if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
+            SIDECAR_DIR="${OUTPUTDIR}"
+        elif [[ -n "${OUTPUTDIR}" ]] ; then
+            echo "User selected output is not a valid directory. Exiting"
+            exit 1
+        else
+            SIDECAR_DIR="$(dirname "${DVFILE}")"
+        fi
+        IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
+        DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
+        if [[ ! -s "${DVRESCUE_XML}" ]] ; then
+            DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+        fi
         _make_dvrescue_xml
         if [[ -z "${XMLSTARLET_PATH}" ]] ; then
             XMLSTARLET_PATH="$(which xmlstarlet)"
