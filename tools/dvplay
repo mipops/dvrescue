@@ -546,22 +546,6 @@ while [[ "${@}" != "" ]] ; do
     shift
     IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
     _get_filters
-    BASENAME="$(basename "${DVFILE}")"
-    DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
-    if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
-        SIDECAR_DIR="${OUTPUTDIR}"
-    elif [[ -n "${OUTPUTDIR}" ]] ; then
-        echo "User selected output is not a valid directory. Exiting"
-        exit 1
-    else
-        SIDECAR_DIR="$(dirname "${DVFILE}")"
-    fi
-    IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
-    DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
-    if [[ ! -s "${DVRESCUE_XML}" ]] ; then
-        DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
-    fi
-
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         DVPLAY_OUTPUT="${OUTPUTFILE}"
         if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
@@ -575,6 +559,21 @@ while [[ "${@}" != "" ]] ; do
             "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
         fi
     elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
+        BASENAME="$(basename "${DVFILE}")"
+        DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
+        if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
+            SIDECAR_DIR="${OUTPUTDIR}"
+        elif [[ -n "${OUTPUTDIR}" ]] ; then
+            echo "User selected output is not a valid directory. Exiting"
+            exit 1
+        else
+            SIDECAR_DIR="$(dirname "${DVFILE}")"
+        fi
+        IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
+        DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
+        if [[ ! -s "${DVRESCUE_XML}" ]] ; then
+            DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
+        fi
         _make_dvrescue_xml
         if [[ -z "${XMLSTARLET_PATH}" ]] ; then
             XMLSTARLET_PATH="$(which xmlstarlet)"
