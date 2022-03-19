@@ -2,7 +2,7 @@
 
 _usage(){
 cat <<EOF
-$(basename "${0}")
+"$(basename "${0}")"
 
 Visually display and/or generate xml and sidecars of errors in DV file.
 In visual display, error concealment data  in frames will be displayed
