@@ -412,7 +412,7 @@ elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
 elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
 else
-    _report -wt "$(basename "${0}") can't find a preferred font to use :("
+    _report -w "$(basename "${0}") can't find a preferred font to use :("
 fi
 
 DV_YELLOW="5206ff1216ff9016ff"
@@ -533,7 +533,7 @@ _mkdir2(){
         if [ ! -d "${DIR2MAKE}" ] ; then
             mkdir -p "${DIR2MAKE}"
             if [ "${?}" -ne 0 ]; then
-                _report -wt "${0}: Can't create directory at ${DIR2MAKE}"
+                _report -w "${0}: Can't create directory at ${DIR2MAKE}"
                 exit 1
             fi
         fi
