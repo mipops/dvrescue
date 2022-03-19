@@ -764,20 +764,20 @@ if [[ -z "${FFMPEG_PATH}" ]] ; then
     exit 1
 else
     _report -v "Using ${FFMPEG_PATH} for ffmpeg operations."
-fi
-FFversion="$("${FFMPEG_PATH}" -version)"
-LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
-LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
-LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
-LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
-if ! ( \
-    [[ "${LAVFversion_maj}" -gt 58 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -gt 65 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 58 ]] && [[ "${LAVFversion_min}" -eq 65 ]] && [[ "${LAVFversion_mic}" -ge 101 ]] ) \
-   ) ; then
-    _report -w "FFmpeg's libavformat version  58.65.101 or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion}."
-    _report -w "Please update ffmpeg."
-    _report -w "Using this current install of ffmpeg may result in out of sync audio."
+    # the minimum recommanded version of libavformat, otherwise will use a hack to visualize errors
+    LAVF_MAJ_REQ=58
+    LAVF_MIN_REQ=65
+    LAVF_MIC_REQ=101
+    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
+    if ! { \
+          [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -eq ${LAVF_MIN_REQ} ]] && [[ ${LAVFversion_mic} -ge ${LAVF_MIC_REQ} ]]; }; \
+       } ; then
+        _report -w "FFmpeg's libavformat version  ${LAVF_MAJ_REQ}.${LAVF_MIN_REQ}.${LAVF_MIC_REQ} or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion_maj}.${LAVFversion_min}.${LAVFversion_mic}."
+        _report -w "Please update ffmpeg."
+        _report -w "Using this current install of ffmpeg may result in out of sync audio."
+    fi
 fi
 
 OPT_INPUT=(-y)

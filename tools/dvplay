@@ -109,23 +109,22 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -d "Please install a ffmpeg CLI  or provide a path to ffmpeg with the -F argument."
 else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
-fi
-
-FFversion="$("${FFMPEG_PATH}" -version)"
-LAVFversion="$(echo "${FFversion}" | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
-LAVFversion_maj="$(echo "${LAVFversion}" | cut -d. -f1)"
-LAVFversion_min="$(echo "${LAVFversion}" | cut -d. -f2)"
-LAVFversion_mic="$(echo "${LAVFversion}" | cut -d. -f3)"
-if ! ( \
-    [[ "${LAVFversion_maj}" -gt 59 ]] || \
-    ( [[ "${LAVFversion_maj}" -eq 59 ]] && [[ "${LAVFversion_min}" -gt 19 ]] ) || \
-    ( [[ "${LAVFversion_maj}" -eq 59 ]] && [[ "${LAVFversion_min}" -eq 19 ]] && [[ "${LAVFversion_mic}" -ge 100 ]] ) \
-   ) ; then
-    _report -w "FFmpeg's libavformat version  59.19.100 or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion}."
-    _report -w "Please update ffmpeg."
-    BITSTREAM_FILTER_METHOD="hack"
-else
-    BITSTREAM_FILTER_METHOD="ffmpeg"
+    # the minimum recommanded version of libavformat, otherwise will use a hack to visualize errors
+    LAVF_MAJ_REQ=59
+    LAVF_MIN_REQ=19
+    LAVF_MIC_REQ=100
+    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
+    if ! { \
+          [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
+        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -eq ${LAVF_MIN_REQ} ]] && [[ ${LAVFversion_mic} -ge ${LAVF_MIC_REQ} ]]; }; \
+       } ; then
+        _report -w "FFmpeg's libavformat version  ${LAVF_MAJ_REQ}.${LAVF_MIN_REQ}.${LAVF_MIC_REQ} or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion_maj}.${LAVFversion_min}.${LAVFversion_mic}."
+        _report -w "Please update ffmpeg."
+        BITSTREAM_FILTER_METHOD="hack"
+    else
+        BITSTREAM_FILTER_METHOD="ffmpeg"
+    fi
 fi
 
 cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
