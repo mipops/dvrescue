@@ -32,6 +32,8 @@ Options:
  -X <path> (provide a custom xmlstarlet path)
  -d <path> (provide a custom path to a DVRescue XML that corresponds to the
             input file)
+
+ -z       (disable colored terminal output)
 EOF
 exit
 }
@@ -72,7 +74,7 @@ _report(){
 }
 
 OPTIND=1
-while getopts ":t:b:mxgF:M:D:X:d:hB:o:O:" OPT ; do
+while getopts ":t:b:mxgF:M:D:X:d:hzB:o:O:" OPT ; do
     case "${OPT}" in
         t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
         b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -85,6 +87,7 @@ while getopts ":t:b:mxgF:M:D:X:d:hB:o:O:" OPT ; do
         X) XMLSTARLET_PATH="${OPTARG}" ;;
         d) DVRESCUE_XML="${OPTARG}" ;;
         h) _usage ;;
+        z) DISABLE_COLORED_LOGGING="Y" ;;
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
         O) OUTPUTFILE="${OPTARG}" ; ERROR_REVIEW="Y" ;;
