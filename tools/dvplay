@@ -74,7 +74,9 @@ _report(){
 }
 
 OPTIND=1
-while getopts ":t:b:mxgF:M:D:X:d:hzB:o:O:" OPT ; do
+FFMPEG_VERBOSE=(-v quiet -stats)
+DV_VERBOSE=false
+while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:" OPT ; do
     case "${OPT}" in
         t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
         b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -87,6 +89,7 @@ while getopts ":t:b:mxgF:M:D:X:d:hzB:o:O:" OPT ; do
         X) XMLSTARLET_PATH="${OPTARG}" ;;
         d) DVRESCUE_XML="${OPTARG}" ;;
         h) _usage ;;
+        v) unset FFMPEG_VERBOSE ; DV_VERBOSE=true ;;
         z) DISABLE_COLORED_LOGGING="Y" ;;
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
