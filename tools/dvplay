@@ -547,7 +547,6 @@ while [[ "${@}" != "" ]] ; do
     IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
     _get_filters
     BASENAME="$(basename "${DVFILE}")"
-    DIRNAME="$(dirname "${DVFILE}")"
     DV_IMAGE_DIR="${BASENAME//./_}_dvrescue_images"
     if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
         SIDECAR_DIR="${OUTPUTDIR}"
@@ -555,7 +554,7 @@ while [[ "${@}" != "" ]] ; do
         echo "User selected output is not a valid directory. Exiting"
         exit 1
     else
-        SIDECAR_DIR="${DIRNAME}"
+        SIDECAR_DIR="$(dirname "${DVFILE}")"
     fi
     IMAGE_DIR="${SIDECAR_DIR}/${DV_IMAGE_DIR}"
     DVRESCUE_HTML="${SIDECAR_DIR}/${DV_IMAGE_DIR}/${BASENAME}.dvrescue.html"
