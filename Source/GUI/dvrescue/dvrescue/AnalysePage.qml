@@ -428,6 +428,59 @@ Item {
                     return true;
                 }
 
+                DvPlayCtl {
+                    id: dvplay
+
+                    xmlStarletCmd: settings.xmlStarletCmd
+                    mediaInfoCmd: settings.mediaInfoCmd
+                    ffmpegCmd: settings.ffmpegCmd
+
+                    Component.onCompleted: {
+                        if(Qt.platform.os === "windows") {
+                            paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                                  FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+                        }
+                    }
+                }
+
+                DvLoupeCtl {
+                    id: dvloupe
+
+                    xmlStarletCmd: settings.xmlStarletCmd
+                    mediaInfoCmd: settings.mediaInfoCmd
+                    ffmpegCmd: settings.ffmpegCmd
+
+                    Component.onCompleted: {
+                        if(Qt.platform.os === "windows") {
+                            paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                                  FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+                        }
+                    }
+                }
+
+                onFrameInfoRequested: {
+                    var data = dataView.model.getRow(index);
+                    var offset = data['Byte Offset']
+
+                    // dvplay.exec('-O test.png -b' + ' ' + offset + ' ' + playerView.player.source)
+
+                    console.debug('executing dvloupe... ');
+
+                    var extraParams = " -M {mediainfo} -x {xml}"
+                    .replace("{mediainfo}", dvloupe.effectiveMediaInfoCmd)
+                    .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
+
+                    console.debug('executing dvloupe... 2');
+
+                    dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T y', (launcher) => {
+                        debugView.logCommand(launcher)
+                    }, extraParams).then(() => {
+                        console.debug('done!')
+                    }).catch((err) => {
+                        console.error('error: ', err)
+                    })
+                }
+
                 Connections {
                     target: playerView
                     onPositionChanged: {

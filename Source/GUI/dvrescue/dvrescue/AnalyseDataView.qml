@@ -16,6 +16,7 @@ Rectangle {
     property vector2d ranges: Qt.vector2d(-1, -1)
 
     signal tapped(int framePos);
+    signal frameInfoRequested(int index);
 
     function bringToView(framePos) {
         var sourceRow = cppDataModel.rowByFrame(framePos);
@@ -134,6 +135,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -205,6 +207,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -251,6 +254,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -297,7 +301,10 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
 
@@ -353,6 +360,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -402,6 +410,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -461,6 +470,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -507,6 +517,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -549,6 +560,7 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
+                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
