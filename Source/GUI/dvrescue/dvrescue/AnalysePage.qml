@@ -5,6 +5,7 @@ import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
+import ImageUtils 1.0
 import DataModel 1.0
 import Dialogs 1.0
 import QtAVPlayerUtils 1.0
@@ -434,6 +435,88 @@ Item {
                         return false;
 
                     return true;
+                }
+
+                DvLoupeView {
+                    id: dvloupeView
+                    property int index: -1
+
+                    canPrev: index > 0
+                    canNext: index < (dataView.model.rowCount - 1)
+                    onPrev: {
+                        --index
+                        imageSource = null
+                        fetch()
+                    }
+                    onNext: {
+                        ++index
+                        imageSource = null
+                        fetch()
+                    }
+
+                    function fetch() {
+                        var data = dataView.model.getRow(index);
+                        var offset = data['Byte Offset']
+
+                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + playerView.player.source).then((result) => {
+                            var dataUri = ImageUtils.toDataUri(result.output, "png");
+                            dvloupeView.imageSource = dataUri
+                        }).catch((err) => {
+                            console.error('dvplay.exec error: ', err)
+                        })
+
+                        console.debug('executing dvloupe... ');
+
+                        var extraParams = " -M {mediainfo} -x {xml} -F {ffmpeg}"
+                        .replace("{mediainfo}", dvloupe.effectiveMediaInfoCmd)
+                        .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
+                        .replace("{ffmpeg}", dvloupe.effectiveFfmpegCmd)
+
+                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n', (launcher) => {
+                            debugView.logCommand(launcher)
+                        }, extraParams).then((result) => {
+                            dvloupeView.data = JSON.parse(result.outputText)
+                        }).catch((err) => {
+                            console.error('dvloupe.exec error: ', err)
+                        })
+                    }
+                }
+
+                DvPlayCtl {
+                    id: dvplay
+
+                    xmlStarletCmd: settings.xmlStarletCmd
+                    mediaInfoCmd: settings.mediaInfoCmd
+                    ffmpegCmd: settings.ffmpegCmd
+
+                    Component.onCompleted: {
+                        if(Qt.platform.os === "windows") {
+                            paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                                  FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+                        }
+                    }
+                }
+
+                DvLoupeCtl {
+                    id: dvloupe
+
+                    xmlStarletCmd: settings.xmlStarletCmd
+                    mediaInfoCmd: settings.mediaInfoCmd
+                    ffmpegCmd: settings.ffmpegCmd
+
+                    Component.onCompleted: {
+                        if(Qt.platform.os === "windows") {
+                            paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                                  FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+                        }
+                    }
+                }
+
+                onFrameInfoRequested: {
+
+                    dvloupeView.index = index
+                    dvloupeView.fetch()
+                    dvloupeView.open()
                 }
 
                 Connections {

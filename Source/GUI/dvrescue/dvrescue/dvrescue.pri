@@ -32,6 +32,7 @@ HEADERS += \
     $$PWD/connectionutils.h \
     $$PWD/datamodel.h \
     $$PWD/filewriter.h \
+    $$PWD/imageutils.h \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
     $$PWD/logging.h \
@@ -54,6 +55,7 @@ SOURCES += \
     $$PWD/connectionutils.cpp \
     $$PWD/datamodel.cpp \
     $$PWD/filewriter.cpp \
+    $$PWD/imageutils.cpp \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \
     $$PWD/logging.cpp \

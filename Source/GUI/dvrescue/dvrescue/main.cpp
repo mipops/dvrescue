@@ -21,6 +21,7 @@
 #include <QQmlParserStatus>
 #include <QQuickStyle>
 #include <QFileInfo>
+#include <ImageUtils.h>
 
 int main(int argc, char *argv[])
 {
@@ -138,6 +139,14 @@ int main(int argc, char *argv[])
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<ImageUtils>("ImageUtils", 1, 0, "ImageUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        ImageUtils *utils = new ImageUtils();
         return utils;
     });
 
