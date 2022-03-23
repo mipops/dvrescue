@@ -243,17 +243,15 @@ DV_BLOCK_INFO="VCOUNTER++;
 
 "${FFMPEG_PATH}" -y -v 0 "${FFMPEG_INPUT_OPTS[@]}" -i "${DV_FILE}" "${FFMPEG_OUTPUT_OPTS[@]}" "${DVFRAME}"
 if [[ "${ADD_MEDIATRACE}" == "y" && ( "${FORMAT}" == "html" || "${FORMAT}" == "json" ) ]] ; then
-    MEDIATRACEXML="$(_maketemp)"
     LOOKUP="$(_maketemp)"
     LOOKUP_PARSE_INSTRUCTIONS="{FS=OFS=\"\|\"}NR==FNR { trace[\$1]=\$2; next }"
     LOOKUP_HEADER="CELL_2TITLE trace[(FNR-1)*80]"
     LOOKUP_HEADER_3="CELL_2TITLE trace[(FNR-1)*80+3]"
-    "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" > "${MEDIATRACEXML}"
     XML_QUERY=(-m "/mt:MediaTrace/mt:media/mt:block")
     XML_QUERY+=(--var off=@offset -v @offset -o "|")
     XML_QUERY+=(-m ".//mt:data[@offset>=\$off and @offset<(\$off+3)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n -v "(\$off+3)" -o "|")
     XML_QUERY+=(-m ".//mt:data[@offset>=(\$off+3) and @offset<(\$off+80)]" -v @offset -o ":" -v @name -o "=" -v . -o "&#013;&#010;" -b -n)
-    "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t "${XML_QUERY[@]}" "${MEDIATRACEXML}" > "${LOOKUP}"
+    "${MEDIAINFO_PATH}" --Details=1 --Output=XML "${DVFRAME}" | "${XMLSTARLET_PATH}" sel -N mt="https://mediaarea.net/mediatrace" -T -t "${XML_QUERY[@]}" > "${LOOKUP}"
     if [[ ! -s "${LOOKUP}" ]] ; then
         unset LOOKUP_PARSE_INSTRUCTIONS LOOKUP_HEADER LOOKUP_HEADER_3
         _report -w "The process to add MediaTrace metadata to the report did not work. :( Check that recent copies of mediainfo and xmlstarlet are installed."
@@ -305,9 +303,6 @@ echo -n -e "${FOOTER}"
 
 if [[ -f "${DVFRAME}" ]] ; then
     rm "${DVFRAME}"
-fi
-if [[ -f "${MEDIATRACEXML}" ]] ; then
-    rm "${MEDIATRACEXML}"
 fi
 if [[ -f "${LOOKUP}" ]] ; then
     rm "${LOOKUP}"
