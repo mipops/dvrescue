@@ -141,14 +141,7 @@ Rectangle {
 
                                                                                 if(indexOfRecDateTime !== -1) {
                                                                                     var rdt = entries[indexOfRecDateTime];
-                                                                                    if(rdt !== '') {
-                                                                                      var splitted = rdt.split(' ');
-                                                                                      captureFrameInfo.recDate = splitted[0];
-                                                                                      captureFrameInfo.recTime = splitted[1];
-                                                                                    } else {
-                                                                                      captureFrameInfo.recDate = '';
-                                                                                      captureFrameInfo.recTime = '';
-                                                                                    }
+                                                                                    captureFrameInfo.recTime = rdt;
                                                                                 }
                                                                             });
 
