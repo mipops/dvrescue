@@ -13,7 +13,7 @@ const QChar cr('\r');
 #elif _WIN32
     const QString eol = QString(cr) + QString(newline);
 #else
-    const QString eol = cr;
+    const QString eol = newline;
 #endif
 
 void CsvParser::write(const QByteArray &data)
