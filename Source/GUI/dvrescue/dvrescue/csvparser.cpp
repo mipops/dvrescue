@@ -46,7 +46,8 @@ void CsvParser::onNewEntry(const QString &entry)
 
     auto splitted = entry.split(',');
     if(m_columns.empty()) {
-        setColumns(splitted);
+        if(entry.startsWith("FramePos"))
+            setColumns(splitted);
     } else {
         auto now = QTime::currentTime();
         if(m_lastUpdateEmitted.msecsTo(now) > 25) {
