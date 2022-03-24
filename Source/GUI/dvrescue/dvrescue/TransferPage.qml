@@ -114,6 +114,7 @@ Rectangle {
                         var indexOfTimecode = -1;
                         var indexOfRecDateTime = -1;
 
+                        captureButton.enabled = false;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
@@ -122,6 +123,10 @@ Rectangle {
                                                                                indexOfFramePos = columnNames.indexOf('FramePos');
                                                                                indexOfTimecode = columnNames.indexOf('tc');
                                                                                indexOfRecDateTime = columnNames.indexOf('rdt');
+
+                                                                               console.debug('indexOfFramePos: ', indexOfFramePos)
+                                                                               console.debug('indexOfTimecode: ', indexOfTimecode)
+                                                                               console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
                                                                            });
 
                                           var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
@@ -137,23 +142,18 @@ Rectangle {
 
                                                                                 if(indexOfRecDateTime !== -1) {
                                                                                     var rdt = entries[indexOfRecDateTime];
-                                                                                    if(rdt !== '') {
-                                                                                      var splitted = rdt.split(' ');
-                                                                                      captureFrameInfo.recDate = splitted[0];
-                                                                                      captureFrameInfo.recTime = splitted[1];
-                                                                                    } else {
-                                                                                      captureFrameInfo.recDate = '';
-                                                                                      captureFrameInfo.recTime = '';
-                                                                                    }
+                                                                                    captureFrameInfo.recTime = rdt;
                                                                                 }
                                                                             });
 
                            console.debug('logging grab command')
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
+                           captureButton.enabled = true;
                            commandsLogs.logResult(result.outputText);
                            return result;
                         }).catch((e) => {
+                           captureButton.enabled = true;
                            commandsLogs.logResult(e);
                         });
                     }

@@ -11,7 +11,7 @@ GridLayout {
     LCDLabel {
         Layout.column: 0
         Layout.row: 0
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 4
 
         font.pixelSize: fontPixlSize
         text: frameNumber
@@ -21,7 +21,7 @@ GridLayout {
     LCDLabel {
         Layout.column: 0
         Layout.row: 1
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 4
 
         font.pixelSize: fontPixlSize
         text: "FRAME#"
@@ -30,7 +30,7 @@ GridLayout {
     LCDLabel {
         Layout.column: 1
         Layout.row: 0
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 4
 
         font.pixelSize: fontPixlSize
         text: timeCode
@@ -40,7 +40,7 @@ GridLayout {
     LCDLabel {
         Layout.column: 1
         Layout.row: 1
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 4
 
         font.pixelSize: fontPixlSize
         text: "TIMECODE"
@@ -49,26 +49,7 @@ GridLayout {
     LCDLabel {
         Layout.column: 2
         Layout.row: 0
-        Layout.alignment: Qt.AlignHCenter
-
-        font.pixelSize: fontPixlSize
-        text: recDate
-        color: "green"
-    }
-
-    LCDLabel {
-        Layout.column: 2
-        Layout.row: 1
-        Layout.alignment: Qt.AlignHCenter
-
-        font.pixelSize: fontPixlSize
-        text: "REC DATE"
-    }
-
-    LCDLabel {
-        Layout.column: 3
-        Layout.row: 0
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 2
 
         font.pixelSize: fontPixlSize
         text: recTime
@@ -76,9 +57,9 @@ GridLayout {
     }
 
     LCDLabel {
-        Layout.column: 3
+        Layout.column: 2
         Layout.row: 1
-        Layout.alignment: Qt.AlignHCenter
+        Layout.minimumWidth: parent.width / 2
 
         font.pixelSize: fontPixlSize
         text: "REC TIME"

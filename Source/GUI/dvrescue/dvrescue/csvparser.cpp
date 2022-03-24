@@ -13,7 +13,7 @@ const QChar cr('\r');
 #elif _WIN32
     const QString eol = QString(cr) + QString(newline);
 #else
-    const QString eol = cr;
+    const QString eol = newline;
 #endif
 
 void CsvParser::write(const QByteArray &data)
@@ -46,8 +46,14 @@ void CsvParser::onNewEntry(const QString &entry)
 
     auto splitted = entry.split(',');
     if(m_columns.empty()) {
-        setColumns(splitted);
+        if(entry.startsWith("FramePos"))
+            setColumns(splitted);
     } else {
+        bool ok = false;
+        splitted[0].toInt(&ok, 10);
+        if(!ok)
+            return;
+
         auto now = QTime::currentTime();
         if(m_lastUpdateEmitted.msecsTo(now) > 25) {
             m_lastUpdateEmitted = now;

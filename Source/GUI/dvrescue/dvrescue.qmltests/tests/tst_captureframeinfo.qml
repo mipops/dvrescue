@@ -8,11 +8,11 @@ import "../../dvrescue"
 
 Rectangle {
     color: 'white'
-    width: Math.max(1280, parent ? parent.width : 0)
-    height: Math.max(1024, parent ? parent.height : 0)
+    width: Math.max(640, parent ? parent.width : 0)
+    height: Math.max(480, parent ? parent.height : 0)
 
     CaptureFrameInfo {
-
+        width: parent.width
     }
 
     TestCase {
