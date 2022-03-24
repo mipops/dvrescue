@@ -114,6 +114,7 @@ Rectangle {
                         var indexOfTimecode = -1;
                         var indexOfRecDateTime = -1;
 
+                        captureButton.enabled = false;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
@@ -148,9 +149,11 @@ Rectangle {
                            console.debug('logging grab command')
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
+                           captureButton.enabled = true;
                            commandsLogs.logResult(result.outputText);
                            return result;
                         }).catch((e) => {
+                           captureButton.enabled = true;
                            commandsLogs.logResult(e);
                         });
                     }
