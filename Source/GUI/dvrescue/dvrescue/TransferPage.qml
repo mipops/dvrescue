@@ -122,11 +122,17 @@ Rectangle {
                                                                                indexOfFramePos = columnNames.indexOf('FramePos');
                                                                                indexOfTimecode = columnNames.indexOf('tc');
                                                                                indexOfRecDateTime = columnNames.indexOf('rdt');
+
+                                                                               console.debug('indexOfFramePos: ', indexOfFramePos)
+                                                                               console.debug('indexOfTimecode: ', indexOfTimecode)
+                                                                               console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
                                                                            });
 
                                           var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
 
                                           csvParserUI.entriesReceived.connect((entries) => {
+                                                                                console.debug('csvParserUI.entriesReceived: ', JSON.stringify(entries))
+
                                                                                 if(indexOfFramePos !== -1) {
                                                                                     captureFrameInfo.frameNumber = entries[indexOfFramePos]
                                                                                 }
