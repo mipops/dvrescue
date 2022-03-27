@@ -17,8 +17,48 @@ Item {
         }
     }
 
+    function play(index, playbackBuffer, csvParser, callback) {
+        console.debug('starting playback');
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true });
+            var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
+            var result = ConnectionUtils.connectToSlotQueued(launcher, 'errorChanged(const QByteArray&)', csvParser, 'write(const QByteArray&)');
+
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                try {
+                    accept();
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            var arguments = ['device://' + index, '-m', '-', '--verbosity', '9', '--csv']
+            // var arguments = ['sample.dv', '-m', '-', '--verbosity', '9', '--csv']
+
+            launcher.execute(cmd + ' ' + arguments.join(' '));
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
     function grab(index, file, playbackBuffer, fileWriter, csvParser, callback) {
-        console.debug('making report: ', file, fileWriter);
+        console.debug('starting grab: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
@@ -27,6 +67,7 @@ Item {
             var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
 
             var result = ConnectionUtils.connectToSlotQueued(launcher, 'errorChanged(const QByteArray&)', csvParser, 'write(const QByteArray&)');
+
 
             /*
             launcher.errorChanged.connect((errorString) => {
@@ -65,9 +106,7 @@ Item {
             var scc = file + ".scc"
 
             var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
-            // var arguments = ['D:\\Projects\\dvrescue-work\\dvrescue.samples\\dave\\many_attributes.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
-
-            // var arguments = ['device://' + index, '-m', file]
+            // var arguments = ['sample.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd + ' ' + arguments.join(' '));
             if(callback)

@@ -75,14 +75,63 @@ Rectangle {
 
                 playButton.onClicked: {
                     pendingAction = true;
+                    player.play()
+
                     statusText = "playing..";
-                    avfctl.play(index, (launcher) => {
+
+                    var columnNames = [];
+                    var indexOfFramePos = -1;
+                    var indexOfTimecode = -1;
+                    var indexOfRecDateTime = -1;
+
+                    playButton.enabled = false;
+                    captureButton.enabled = false;
+                    dvrescue.play(index, playbackBuffer, csvParser, (launcher) => {
+                                          csvParser.columnsChanged.connect((columns) => {
+                                                                               columnNames = columns
+                                                                               console.debug('columnNames: ', JSON.stringify(columnNames))
+
+                                                                               indexOfFramePos = columnNames.indexOf('FramePos');
+                                                                               indexOfTimecode = columnNames.indexOf('tc');
+                                                                               indexOfRecDateTime = columnNames.indexOf('rdt');
+
+                                                                               console.debug('indexOfFramePos: ', indexOfFramePos)
+                                                                               console.debug('indexOfTimecode: ', indexOfTimecode)
+                                                                               console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
+                                                                           });
+
+                                          var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
+
+                                          csvParserUI.entriesReceived.connect((entries) => {
+                                                                                if(indexOfFramePos !== -1) {
+                                                                                    captureFrameInfo.frameNumber = entries[indexOfFramePos]
+                                                                                }
+
+                                                                                if(indexOfTimecode !== -1) {
+                                                                                    captureFrameInfo.timeCode = entries[indexOfTimecode]
+                                                                                }
+
+                                                                                if(indexOfRecDateTime !== -1) {
+                                                                                    var rdt = entries[indexOfRecDateTime];
+                                                                                    captureFrameInfo.recTime = rdt;
+                                                                                }
+                                                                            });
+
+                       console.debug('logging play command')
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {
-                       statusText = "playing.";
-                       pendingAction = false;
-                       commandsLogs.logResult(result.outputText);
-                       return result;
+                        playButton.enabled = true;
+                        captureButton.enabled = true;
+                        pendingAction = false;
+                        player.stop();
+                        commandsLogs.logResult(result.outputText);
+                        return result;
+                    }).catch((e) => {
+                        playButton.enabled = true;
+                        captureButton.enabled = true;
+                        pendingAction = false
+                        player.stop();
+                        commandsLogs.logResult(e);
                     });
                 }
 
@@ -115,6 +164,9 @@ Rectangle {
                         var indexOfRecDateTime = -1;
 
                         captureButton.enabled = false;
+                        fastForwardButton.enabled = fase;
+                        rewindButton.enabled = false;
+                        playButton.enabled = false;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
@@ -150,10 +202,20 @@ Rectangle {
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
                            captureButton.enabled = true;
+                           fastForwardButton.enabled = true;
+                           rewindButton.enabled = true;
+                           playButton.enabled = true;
+                           pendingAction = false;
+                           player.stop();
                            commandsLogs.logResult(result.outputText);
                            return result;
                         }).catch((e) => {
                            captureButton.enabled = true;
+                           fastForwardButton.enabled = true;
+                           rewindButton.enabled = true;
+                           playButton.enabled = true;
+                           pendingAction = false;
+                           player.stop();
                            commandsLogs.logResult(e);
                         });
                     }

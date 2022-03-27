@@ -70,12 +70,10 @@ Column {
             id: fileWriter
         }
 
-        /*
         Thread {
             id: csvWriterThread
             worker: csvParser
         }
-        */
 
         CsvParser {
             id: csvParser

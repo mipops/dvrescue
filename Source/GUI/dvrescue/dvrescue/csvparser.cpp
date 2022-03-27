@@ -1,4 +1,5 @@
 #include "csvparser.h"
+#include <QDebug>
 
 CsvParser::CsvParser(QObject *parent)
     : QObject{parent}
