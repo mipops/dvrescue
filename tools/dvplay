@@ -18,7 +18,7 @@ Options:
  -o OUTPUT  (select a custom location for output files)
 
  -O FILE    (provide a path to a single output file. When set a single frame will be exported, depending on
-             if -b or -t is set.)
+             if -b or -t is set. If 'FILE' is set to '-', dvplay will output a png to stdout.)
  -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)
  -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
 
@@ -550,16 +550,19 @@ while [[ "${@}" != "" ]] ; do
     IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
     _get_filters
     if [[ -n "${OUTPUTFILE}" ]]  ; then
+        if [[ "${OUTPUTFILE}" == "-" ]] ; then
+            PIPE_FORMAT=(-c:v png)
+        fi
         DVPLAY_OUTPUT="${OUTPUTFILE}"
         if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
             "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
-            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
         else
             "${FFMPEG_PATH}" -nostdin "${FFMPEG_INPUT_OPTS[@]}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
             xxd -p -c 80 | \
             perl -pe "s|${FIND}|${FILL}|g" | \
             xxd -r -p | \
-            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${DVPLAY_OUTPUT}"
+            "${FFMPEG_PATH}" -nostdin -y -i - -frames:v 1 -vf "${FILTER}" "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
         fi
     elif [[ "${ERROR_REVIEW}" = "Y" ]] || [[ "${GIF_OUTPUT}" = "Y" ]] ; then
         BASENAME="$(basename "${DVFILE}")"
