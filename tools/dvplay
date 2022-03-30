@@ -514,7 +514,7 @@ _make_dvrescue_xml(){
         exit 1
     fi
     if [[ ! -f "${DVRESCUE_XML}" ]] ; then
-        echo "Assessing $(basename "${DVFILE}")..."
+        _report -d "Assessing $(basename "${DVFILE}")..."
         _mkdir2 "${SIDECAR_DIR}"
         "${DVRESCUE_PATH}" "${DVFILE}" > "${DVRESCUE_XML}"
     fi
@@ -523,7 +523,7 @@ _make_dvrescue_xml(){
 _maketemp(){
     mktemp -q "/tmp/$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
-        echo "${0}: Can't create temp file, exiting..."
+        _report -d "${0}: Can't create temp file, exiting..."
         _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
         exit 1
     fi
@@ -567,7 +567,7 @@ while [[ "${@}" != "" ]] ; do
         if [[ -n "${OUTPUTDIR}" ]] && [[ -d "${OUTPUTDIR}" ]] ; then
             SIDECAR_DIR="${OUTPUTDIR}"
         elif [[ -n "${OUTPUTDIR}" ]] ; then
-            echo "User selected output is not a valid directory. Exiting"
+            _report -w "User selected output is not a valid directory. Exiting"
             exit 1
         else
             SIDECAR_DIR="$(dirname "${DVFILE}")"
@@ -585,7 +585,7 @@ while [[ "${@}" != "" ]] ; do
             _report -w "The xmlstarlet command-line tool is not found."
             exit 1
         fi
-        echo "Making jpegs of errors within $(basename "${DVFILE}")..."
+        _report -d "Making jpegs of errors within $(basename "${DVFILE}")..."
         TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
         COUNTER=1
         "${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
