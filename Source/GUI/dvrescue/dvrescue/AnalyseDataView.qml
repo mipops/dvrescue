@@ -95,6 +95,21 @@ Rectangle {
 
         delegate: DelegateChooser {
             DelegateChoice {
+                column: dataModel.loupeColumn
+
+                Button {
+                    height: tableView.delegateHeight
+                    width: tableView.delegateHeight
+
+                    text: "O"
+                    onClicked: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        frameInfoRequested(sourceRow)
+                    }
+                }
+            }
+
+            DelegateChoice {
                 column: dataModel.timecodeColumn
 
                 JumpRepeatTextDelegate {
@@ -135,7 +150,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -207,7 +221,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -254,7 +267,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -304,7 +316,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
 
@@ -360,7 +371,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -410,7 +420,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -470,7 +479,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -517,7 +525,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -560,7 +567,6 @@ Rectangle {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
-                            dataView.frameInfoRequested(sourceRow);
                         }
                     }
                 }
@@ -600,6 +606,7 @@ Rectangle {
     TableModelEx {
         id: dataModel
 
+        property int loupeColumn: columnsNames.indexOf("Loupe Interface");
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
         property int sequenceNumberColumn: columnsNames.indexOf("Sequence Number");
@@ -610,6 +617,11 @@ Rectangle {
         property int videoErrorColumn: columnsNames.indexOf("Video Error %");
         property int audioErrorColumn: columnsNames.indexOf("Audio Error %");
         property int absoluteTrackNumberColumn: columnsNames.indexOf("Absolute Track Number")
+
+        TableModelColumn {
+            display: "Loupe Interface"
+            property int minWidth: 20
+        }
 
         TableModelColumn {
             display: "Frame #";
