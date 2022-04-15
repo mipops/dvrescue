@@ -36,6 +36,7 @@ HEADERS += \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
     $$PWD/logging.h \
+    $$PWD/loggingutils.h \
     $$PWD/mediainfo.h \
     $$PWD/mediaplayer.h \
     $$PWD/playbackbuffer.h \
@@ -59,6 +60,7 @@ SOURCES += \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \
     $$PWD/logging.cpp \
+    $$PWD/loggingutils.cpp \
     $$PWD/mediainfo.cpp \
     $$PWD/mediaplayer.cpp \
     $$PWD/playbackbuffer.cpp \

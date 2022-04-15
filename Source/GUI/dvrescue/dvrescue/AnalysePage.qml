@@ -6,6 +6,7 @@ import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import ImageUtils 1.0
+import LoggingUtils 1.0
 import DataModel 1.0
 import Dialogs 1.0
 import QtAVPlayerUtils 1.0
@@ -460,6 +461,9 @@ Item {
 
                         dvplay.exec('-O - -b' + ' ' + offset + ' ' + playerView.player.source).then((result) => {
                             var dataUri = ImageUtils.toDataUri(result.output, "png");
+                            if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
+                                console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
+                            }
                             dvloupeView.imageSource = dataUri
                         }).catch((err) => {
                             console.error('dvplay.exec error: ', err)

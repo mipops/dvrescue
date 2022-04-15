@@ -1,9 +1,11 @@
-import QtQuick 2.0
+import QtQuick 2.8
 import Launcher 0.1
 import Qt.labs.platform 1.1
 import FileUtils 1.0
+import LoggingUtils 1.0
 
 Item {
+    property alias dvplayCategory: dvplayCategory
     property string dvplayName: "dvplay"
     property string detectedDvPlayCmd: FileUtils.find(dvplayName);
     onDetectedDvPlayCmdChanged: {
@@ -88,14 +90,22 @@ Item {
         }
     }
 
+    LoggingCategory {
+        id: dvplayCategory
+        name: "dvrescue.dvplay"
+        Component.onCompleted: {
+            console.debug(dvplayCategory, "dvrescue.dvplay")
+        }
+    }
+
     function getCygwinPath(cygpath, path) {
 
         console.debug('getCygwinPath: ', path)
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null);
             var outputText = '';
-            launcher.outputChanged.connect((outputStringt) => {
-                outputText += outputStringt;
+            launcher.outputChanged.connect((outputString) => {
+                outputText += outputString;
             });
             launcher.processFinished.connect(() => {
                 console.debug('got from cygpath: \n' + outputText);
@@ -130,10 +140,35 @@ Item {
             var output;
             launcher.outputChanged.connect((out) => {
                 output = out;
+                if(LoggingUtils.isDebugEnabled(dvplayCategory.name)) {
+                   const byteToHex = [];
+
+                   for (let n = 0; n <= 0xff; ++n)
+                   {
+                       const hexOctet = n.toString(16).padStart(2, "0");
+                       byteToHex.push(hexOctet);
+                   }
+
+                   function hex(arrayBuffer)
+                   {
+                       const buff = new Uint8Array(arrayBuffer);
+                       const hexOctets = []; // new Array(buff.length) is even faster (preallocates necessary array size), then use hexOctets[i] instead of .push()
+
+                       for (let i = 0; i < buff.length; ++i)
+                           hexOctets.push(byteToHex[buff[i]]);
+
+                       return hexOctets.join("");
+                   }
+
+                   console.debug(dvplayCategory, "got from dvplay's stdout: ", hex(out))
+                }
             });
 
-            launcher.errorChanged.connect((outputStringt) => {
-                outputText += outputStringt;
+            launcher.errorChanged.connect((outputString) => {
+                if(LoggingUtils.isDebugEnabled(dvplayCategory.name)) {
+                    console.debug(dvplayCategory, "got from dvplay's stderr: ", outputString)
+                }
+                outputText += outputString;
             });
 
             launcher.errorOccurred.connect((error) => {
