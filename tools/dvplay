@@ -551,7 +551,7 @@ while [[ "${@}" != "" ]] ; do
     _get_filters
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
-            PIPE_FORMAT=(-c:v png)
+            PIPE_FORMAT=(-c:v png -f image2)
         fi
         DVPLAY_OUTPUT="${OUTPUTFILE}"
         if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
