@@ -33,6 +33,8 @@ void help(BOOL full)
         [output appendString:@"  stop      Set speed to 0.0 and mode to no-play.\n"];
         [output appendString:@"  rew       Set speed to -2.0 and mode to no-play.\n"];
         [output appendString:@"  ff        Set speed to 2.0 and mode to no-play.\n"];
+        [output appendString:@"  rewp      Set speed to -8.0 and mode to play.\n"];
+        [output appendString:@"  ffp       Set speed to 8.0 and mode to play.\n"];
         [output appendString:@"  capture   Set speed to 1.0 and mode to play and capture all raw-data and save to [OutputFile].\n\n"];
         [output appendString:@"If [OutputFile] is not specified, data will be written to ./out.dv.\n"];
         [output appendString:@"If [OutputFile] is \"-\", data will be written to standard output.\n"];
@@ -179,6 +181,18 @@ int main(int argc, char *argv[])
                 [avfctl waitForSessionEnd];
                 [avfctl stopCaptureSession];
             }
+        } else if ([cmd isEqualToString:@"REWP"] ||
+                   [cmd isEqualToString:@"rewp"]) {
+            // do REW-PLAY
+            if (foreground) {
+                [avfctl createCaptureSession:[[AVFCtlFileReceiver alloc] initWithOutputFileName:@"/dev/null"]];
+                [avfctl startCaptureSession];
+            }
+            [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:-8.0f];
+            if (foreground) {
+                [avfctl waitForSessionEnd];
+                [avfctl stopCaptureSession];
+            }
         } else if ([cmd isEqualToString:@"FF"] ||
                    [cmd isEqualToString:@"ff"]) {
             // do FF
@@ -187,6 +201,18 @@ int main(int argc, char *argv[])
                 [avfctl startCaptureSession];
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed:2.0f];
+            if (foreground) {
+                [avfctl waitForSessionEnd];
+                [avfctl stopCaptureSession];
+            }
+        } else if ([cmd isEqualToString:@"FFP"] ||
+                   [cmd isEqualToString:@"ffp"]) {
+            // do FF
+            if (foreground) {
+                [avfctl createCaptureSession:[[AVFCtlFileReceiver alloc] initWithOutputFileName:@"/dev/null"]];
+                [avfctl startCaptureSession];
+            }
+            [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:8.0f];
             if (foreground) {
                 [avfctl waitForSessionEnd];
                 [avfctl stopCaptureSession];
