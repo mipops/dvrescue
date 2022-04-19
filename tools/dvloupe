@@ -78,6 +78,7 @@ _report(){
 
 FORMAT="txt"
 ADD_MEDIATRACE="y"
+SCT=""
 
 # command-line options to set media id and original variables
 OPTIND=1
@@ -85,12 +86,12 @@ while getopts ":t:b:HSXAVOf:T:i:hF:M:x:" opt ; do
   case "${opt}" in
     t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
     b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
-    H) SCT="header" ;;
-    S) SCT="subcode" ;;
-    X) SCT="vaux" ;;
-    A) SCT="audio" ;;
-    V) SCT="video" ;;
-    O) SCT="other" ;;
+    H) SCT+="H" ;;
+    S) SCT+="S" ;;
+    X) SCT+="X" ;;
+    A) SCT+="A" ;;
+    V) SCT+="V" ;;
+    O) SCT+="O" ;;
     f) FORMAT="${OPTARG}" ;;
     T) ADD_MEDIATRACE="${OPTARG}" ;;
     i) DV_FILE="$OPTARG" ;;
@@ -160,7 +161,7 @@ FFMPEG_OUTPUT_OPTS=(-vframes 1)
 FFMPEG_OUTPUT_OPTS+=(-map 0:v)
 FFMPEG_OUTPUT_OPTS+=(-c copy)
 FFMPEG_OUTPUT_OPTS+=(-f rawvideo)
-if [[ "${SCT}" = "" || "${SCT}" = "video" ]] ; then
+if [[ "${SCT}" = "" || "${SCT}" =~ "V" ]] ; then
     VIDEO_TABLE_1="| Sq | Blo |  i | j |  k | Mx | My |  w |  h |    x |    y |"
     VIDEO_TABLE_2="|----|-----|----|---|----|----|----|----|----|------|------|"
 fi
@@ -286,16 +287,16 @@ xxd -ps -c 80 "${DVFRAME}" | \
         -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
         -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" -v SCT="${SCT}" \
 "${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
-if      (diftype == "1" && (SCT == "header"  || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_HEADER}"' ; OUTPUT=1 ;}
-else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ; OUTPUT=1 ;}
-else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ; OUTPUT=1 ;}
-else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ; OUTPUT=1 ;}
-else if (diftype == "9" && (SCT == "video"   || SCT == "")) {
+if      (diftype == "1" && (SCT ~ "H" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_HEADER}"' ; OUTPUT=1 ;}
+else if (diftype == "3" && (SCT ~ "S" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ; OUTPUT=1 ;}
+else if (diftype == "5" && (SCT ~ "X" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ; OUTPUT=1 ;}
+else if (diftype == "7" && (SCT ~ "A" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ; OUTPUT=1 ;}
+else if (diftype == "9" && (SCT ~ "V" || SCT == "")) {
     STA_VALUE=substr($0,7,1)
     if (STA_VALUE == "0") {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"'; OUTPUT=1 ;}
     else                  {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO_ERROR}"'; OUTPUT=1 ;}
 }
-else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ; OUTPUT=1 ;}
+else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT ~ "O" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ; OUTPUT=1 ;}
 }' "${LOOKUP}" -
 echo -n -e "${FOOTER}"
 
