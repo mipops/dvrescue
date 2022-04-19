@@ -259,7 +259,7 @@ if [[ "${ADD_MEDIATRACE}" == "y" && ( "${FORMAT}" == "html" || "${FORMAT}" == "j
 fi
 
 if [[ "${FORMAT}" == "html" || "${FORMAT}" == "json" ]] ; then
-    PRINT_ID="printf     ROW_START CELL_START2ID (FNR-1)*80   ${LOOKUP_HEADER}   CELL_2VALUE substr(\$0,1,6) CELL_END DELIMITER"
+    PRINT_ID="if (OUTPUT == 1 ) printf DELIMITER ; printf     ROW_START CELL_START2ID (FNR-1)*80   ${LOOKUP_HEADER}   CELL_2VALUE substr(\$0,1,6) CELL_END DELIMITER"
     PRINT_HEADER="printf           CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_HEADER  CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_SUBCODE="printf          CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_SUBCODE CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
     PRINT_VAUX="printf             CELL_START2ID (FNR-1)*80+3 ${LOOKUP_HEADER_3} CELL_2STYLE COLOR_VAUX    CELL_2VALUE substr(\$0,7,160) CELL_END ROW_END"
@@ -286,18 +286,16 @@ xxd -ps -c 80 "${DVFRAME}" | \
         -v COLOR_ID="${COLOR_ID}" -v COLOR_RESET="${COLOR_RESET}" -v RESET="${RESET}" -v CROP_ARRAY="${DIF_BLOCK_2_POS_MAP_NTSC_411_DV25[*]}" \
         -v DELIMITER="${DELIMITER}" -v YUV411P="${YUV411P}" -v PAL="${PAL}" -v SCT="${SCT}" \
 "${LOOKUP_PARSE_INSTRUCTIONS}"' {diftype=substr($0,1,1);
-      if (FNR != "1" ) \
-        printf DELIMITER ;
-if      (diftype == "1" && (SCT == "header"  || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_HEADER}"' ;}
-else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ;}
-else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ;}
-else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ;}
+if      (diftype == "1" && (SCT == "header"  || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_HEADER}"' ; OUTPUT=1 ;}
+else if (diftype == "3" && (SCT == "subcode" || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_SUBCODE}"' ; OUTPUT=1 ;}
+else if (diftype == "5" && (SCT == "vaux"    || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_VAUX}"' ; OUTPUT=1 ;}
+else if (diftype == "7" && (SCT == "audio"   || SCT == "")) {'"${PRINT_ID}"' ; '"${PRINT_AUDIO}"' ; OUTPUT=1 ;}
 else if (diftype == "9" && (SCT == "video"   || SCT == "")) {
     STA_VALUE=substr($0,7,1)
-    if (STA_VALUE == "0") {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"';}
-    else                  {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO_ERROR}"';}
+    if (STA_VALUE == "0") {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO}"'; OUTPUT=1 ;}
+    else                  {'"${PRINT_ID}"' ; '"${DV_BLOCK_INFO}${PRINT_VIDEO_ERROR}"'; OUTPUT=1 ;}
 }
-else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ;}
+else if (diftype != "1" && diftype != "3" && diftype != "5" && diftype != "7" && diftype != "9" && (SCT == "other" || SCT == ""))  {'"${PRINT_ID}"' ;'"${PRINT_OTHER}"' ; OUTPUT=1 ;}
 }' "${LOOKUP}" -
 echo -n -e "${FOOTER}"
 
