@@ -16,10 +16,10 @@ Options:
  -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
  -H         (only display DIF Blocks with a Section Type of Header)
  -S         (only display DIF Blocks with a Section Type of Subcode)
- -X         (only display DIF Blocks with a Section Type of VAUX)
+ -X         (only display DIF Blocks with a Section Type of vauX)
  -A         (only display DIF Blocks with a Section Type of Audio)
  -V         (only display DIF Blocks with a Section Type of Video)
- -O         (only display DIF Blocks with that are not defined types. This indicates a rare and invalid block.)
+ -O         (only display DIF Blocks with that are not defined types (Other). This indicates a rare and invalid block.)
 
  -f FMT     (print the output in a format. The options are: html, json, and txt)
 
