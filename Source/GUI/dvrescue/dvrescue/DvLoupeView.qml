@@ -6,6 +6,8 @@ import Qt.labs.qmlmodels 1.0
 Dialog {
     id: root
 
+    signal selectionChanged();
+    property alias dataModel: dataModel
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     parent: Overlay.overlay
@@ -37,6 +39,7 @@ Dialog {
                          rowEntry['value1'] = cell0.value
                          rowEntry['value2'] = cell1.value
                          rowEntry['value2Color'] = '#' + cell1.color
+                         rowEntry['selected'] = false
 
                          tableView.model.appendRow(rowEntry)
                      });
@@ -49,8 +52,8 @@ Dialog {
         RowLayout {
 
             Item {
-                Layout.minimumHeight: 300
-                Layout.minimumWidth: 300
+                Layout.minimumWidth: 720
+                Layout.minimumHeight: 480
 
                 Image {
                     id: image
@@ -72,12 +75,12 @@ Dialog {
             }
 
             Label {
-                text: 'frame metadata tbd'
+                text: ''
                 Layout.fillWidth: true
             }
 
             Layout.fillWidth: true
-            Layout.maximumHeight: 300
+            Layout.maximumHeight: 480
         }
 
         RowLayout {
@@ -94,6 +97,21 @@ Dialog {
             }
             Button {
                 text: "Deselect all"
+                onClicked: {
+
+                    var hasSelectionChanges = false;
+                    for(var i = 0; i < dataModel.rowCount; ++i) {
+                        var rowData = dataModel.getRow(i);
+                        if(rowData.selected) {
+                            hasSelectionChanges = true;
+                            rowData.selected = false;
+                            dataModel.setRow(i, rowData)
+                        }
+                    }
+
+                    if(hasSelectionChanges)
+                        selectionChanged();
+                }
             }
         }
 
@@ -132,11 +150,13 @@ Dialog {
 
                 TableModelColumn {
                     display: "value1"
+                    edit: "selected";
                 }
 
                 TableModelColumn {
                     display: "value2"
                     decoration: "value2Color"
+                    edit: "selected";
                 }
             }
 
@@ -150,7 +170,6 @@ Dialog {
 
                         color: (row % 2) == 0 ? 'white' : '#fefefe'
                         property real overlayColorOpacity: 0.5
-                        property alias overlayColor: overlay.color
                         property alias overlayVisible: overlay.visible
                         property alias text: textLabel.text
                         property alias textFont: textLabel.font
@@ -170,7 +189,19 @@ Dialog {
                             id: overlay
                             anchors.fill: parent
                             opacity: overlayColorOpacity
-                            visible: false
+                            color: 'purple'
+                            visible: edit
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                var rowData = dataModel.getRow(row);
+                                rowData.selected = !rowData.selected;
+                                dataModel.setRow(row, rowData)
+
+                                selectionChanged();
+                            }
                         }
                     }
                 }

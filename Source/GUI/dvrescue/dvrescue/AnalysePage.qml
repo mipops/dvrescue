@@ -455,11 +455,31 @@ Item {
                         fetch()
                     }
 
-                    function fetch() {
+                    onSelectionChanged: {
+                        var selectedRows = [];
+                        for(var i = 0; i < dvloupeView.dataModel.rowCount; ++i) {
+                            var rowData = dvloupeView.dataModel.getRow(i);
+                            if(rowData.selected)
+                                selectedRows.push(i);
+                        }
+
                         var data = dataView.model.getRow(index);
                         var offset = data['Byte Offset']
 
-                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + playerView.player.source).then((result) => {
+                        imageSource = null
+
+                        doDvPlay(offset, selectedRows)
+                    }
+
+                    function doDvPlay(offset, selection) {
+                        console.debug('executing dvplay... ');
+
+                        var extra = ''
+                        if(selection && selection.length !== 0) {
+                            extra = ' -B ' + selection.join(',') + ' '
+                        }
+
+                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source).then((result) => {
                             var dataUri = ImageUtils.toDataUri(result.output, "png");
                             if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
                                 console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
@@ -468,6 +488,13 @@ Item {
                         }).catch((err) => {
                             console.error('dvplay.exec error: ', err)
                         })
+                    }
+
+                    function fetch() {
+                        var data = dataView.model.getRow(index);
+                        var offset = data['Byte Offset']
+
+                        doDvPlay(offset)
 
                         console.debug('executing dvloupe... ');
 
