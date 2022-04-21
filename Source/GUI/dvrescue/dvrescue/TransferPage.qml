@@ -85,7 +85,6 @@ Rectangle {
                     var indexOfRecDateTime = -1;
 
                     playButton.enabled = false;
-                    captureButton.enabled = false;
                     dvrescue.play(index, playbackBuffer, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
@@ -121,14 +120,12 @@ Rectangle {
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {
                         playButton.enabled = true;
-                        captureButton.enabled = true;
                         pendingAction = false;
                         player.stop();
                         commandsLogs.logResult(result.outputText);
                         return result;
                     }).catch((e) => {
                         playButton.enabled = true;
-                        captureButton.enabled = true;
                         pendingAction = false
                         player.stop();
                         commandsLogs.logResult(e);
@@ -220,7 +217,18 @@ Rectangle {
                         });
                     }
 
-                    specifyPathDialog.open();
+                    if(!playButton.enabled) {
+                        avfctl.stop(index, (launcher) => {
+                           commandsLogs.logCommand(launcher);
+                        }).then((result) => {
+                           statusText = "stopping.";
+                           commandsLogs.logResult(result.outputText);
+
+                           specifyPathDialog.open();
+                        });
+                    } else {
+                        specifyPathDialog.open();
+                    }
                 }
 
                 deviceNameTextField.text: devicesModel.count === 0 ? '' : devicesModel.get(index).name + " (" + devicesModel.get(index).type + ")"
