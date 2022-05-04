@@ -1,0 +1,2 @@
+module Multimedia
+VideoOutput 1.0 VideoOutput.qml

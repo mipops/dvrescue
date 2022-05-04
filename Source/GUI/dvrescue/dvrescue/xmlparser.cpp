@@ -16,13 +16,13 @@ void XmlParser::exec(QIODevice *device)
         QXmlStreamReader xml(device);
         if(xml.readNextStartElement())
         {
-            if(xml.name() == "dvrescue")
+            if(xml.name() == QString("dvrescue"))
             {
                 if(xml.readNextStartElement())
                 {
                     qDebug() << "name: " << xml.name();
 
-                    if(xml.name() == "creator") {
+                    if(xml.name() == QString("creator")) {
 
                     }
 
@@ -33,7 +33,7 @@ void XmlParser::exec(QIODevice *device)
                 {
                     qDebug() << "name: " << xml.name();
 
-                    if(xml.name() == "media") {
+                    if(xml.name() == QString("media")) {
                         parseMedia(xml);
                     }
 
@@ -70,11 +70,11 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     QString format;
     int size = 0;
     for(auto & attr : xml.attributes()) {
-        if(attr.name() == "ref")
+        if(attr.name() == QString("ref"))
             ref = attr.value().toString();
-        else if(attr.name() == "format")
+        else if(attr.name() == QString("format"))
             format = attr.value().toString();
-        else if(attr.name() == "size")
+        else if(attr.name() == QString("size"))
             size = attr.value().toInt();
     }
 
@@ -83,7 +83,7 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
     bool firstFrames = true;
     while(xml.readNextStartElement())
     {
-        if(xml.name() == "frames")
+        if(xml.name() == QString("frames"))
         {
             auto attributes = xml.attributes();
             parseFrames(xml, attributes, firstFrames);
@@ -101,11 +101,11 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
     int count = 0;
 
     for(auto & attribute : framesAttributes) {
-        if(attribute.name() == "size")
+        if(attribute.name() == QString("size"))
             size = attribute.value().toString();
-        else if(attribute.name() == "chroma_subsampling")
+        else if(attribute.name() == QString("chroma_subsampling"))
             chroma_subsampling = attribute.value().toString();
-        else if(attribute.name() == "count")
+        else if(attribute.name() == QString("count"))
             count = attribute.value().toUInt();
     }
 
@@ -130,25 +130,25 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
     while(xml.readNextStartElement())
     {
-        if(xml.name() == "frame") {
+        if(xml.name() == QString("frame")) {
             // qDebug() << "frame";
 
             auto frameNumber = 0;
             auto frameAttributes = xml.attributes();
             for(auto & attribute : frameAttributes) {
                 // qDebug() << "\t" << attribute.name() << "=" << attribute.value();
-                if(attribute.name() == "n")
+                if(attribute.name() == QString("n"))
                     frameNumber = attribute.value().toUInt();
             }
 
-            if(framesAttributes.hasAttribute("captions") && framesAttributes.value("captions") == "p")
+            if(framesAttributes.hasAttribute("captions") && framesAttributes.value("captions") == QString("p"))
             {
                 if(frameAttributes.hasAttribute("caption"))
                 {
                     auto caption = frameAttributes.value("caption");
-                    if(caption == "on") {
+                    if(caption == QString("on")) {
                         captionOn = true;
-                    } else if(caption == "off") {
+                    } else if(caption == QString("off")) {
                         captionOn = false;
                     }
                 }
@@ -165,16 +165,16 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 
             while(xml.readNextStartElement())
             {
-                if(xml.name() == "dseq") {
+                if(xml.name() == QString("dseq")) {
                     // qDebug() << "\t\t" << "dseq";
 
                     while(xml.readNextStartElement()) {
-                        if(xml.name() == "sta") {
+                        if(xml.name() == QString("sta")) {
                             // qDebug() << "\t\t\t" << "sta";
                         }
                         xml.skipCurrentElement();
                     }
-                } else if(xml.name() == "sta") {
+                } else if(xml.name() == QString("sta")) {
                     // qDebug() << "\t\t" << "sta";
 
                     int t = 0;
@@ -182,11 +182,11 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                     int n_even = 0;
 
                     for(auto & attribute : xml.attributes()) {
-                        if(attribute.name() == "t")
+                        if(attribute.name() == QString("t"))
                             t = attribute.value().toUInt();
-                        else if(attribute.name() == "n")
+                        else if(attribute.name() == QString("n"))
                             n = attribute.value().toUInt();
-                        else if(attribute.name() == "n_even")
+                        else if(attribute.name() == QString("n_even"))
                             n_even = attribute.value().toUInt();
                     }
 
@@ -196,7 +196,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                     Q_EMIT gotSta(frameNumber, t, n, n_even, video_error_den);
 
                     xml.skipCurrentElement();
-                } else if(xml.name() == "aud") {
+                } else if(xml.name() == QString("aud")) {
                     // qDebug() << "\t\t" << "aud";
 
                     int t = 0;
@@ -204,11 +204,11 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                     int n_even = 0;
 
                     for(auto & attribute : xml.attributes()) {
-                        if(attribute.name() == "t")
+                        if(attribute.name() == QString("t"))
                             t = attribute.value().toUInt();
-                        else if(attribute.name() == "n")
+                        else if(attribute.name() == QString("n"))
                             n = attribute.value().toUInt();
-                        else if(attribute.name() == "n_even")
+                        else if(attribute.name() == QString("n_even"))
                             n_even = attribute.value().toUInt();
                     }
 

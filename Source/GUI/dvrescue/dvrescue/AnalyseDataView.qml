@@ -46,7 +46,7 @@ Rectangle {
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
-            width: tableView.columnWidths[modelData]
+            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false

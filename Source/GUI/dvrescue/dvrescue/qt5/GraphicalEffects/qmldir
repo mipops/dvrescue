@@ -1,0 +1,4 @@
+module GraphicalEffects
+DropShadow 1.0 DropShadow.qml
+Glow 1.0 Glow.qml
+ColorOverlay 1.0 ColorOverlay.qml

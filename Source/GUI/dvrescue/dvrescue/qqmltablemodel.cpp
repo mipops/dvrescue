@@ -657,6 +657,7 @@ void QQmlTableModel::columns_append(QQmlListProperty<QQmlTableModelColumn> *prop
         model->mColumns.append(column);
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 int QQmlTableModel::columns_count(QQmlListProperty<QQmlTableModelColumn> *property)
 {
     const QQmlTableModel *model = static_cast<QQmlTableModel*>(property->object);
@@ -668,6 +669,19 @@ QQmlTableModelColumn *QQmlTableModel::columns_at(QQmlListProperty<QQmlTableModel
     const QQmlTableModel *model = static_cast<QQmlTableModel*>(property->object);
     return model->mColumns.at(index);
 }
+#else
+qsizetype QQmlTableModel::columns_count(QQmlListProperty<QQmlTableModelColumn> *property)
+{
+    const QQmlTableModel *model = static_cast<QQmlTableModel*>(property->object);
+    return model->mColumns.count();
+}
+
+QQmlTableModelColumn *QQmlTableModel::columns_at(QQmlListProperty<QQmlTableModelColumn> *property, qsizetype index)
+{
+    const QQmlTableModel *model = static_cast<QQmlTableModel*>(property->object);
+    return model->mColumns.at(index);
+}
+#endif //
 
 void QQmlTableModel::columns_clear(QQmlListProperty<QQmlTableModelColumn> *property)
 {

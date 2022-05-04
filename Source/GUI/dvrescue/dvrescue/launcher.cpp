@@ -5,6 +5,13 @@
 #include <QGuiApplication>
 #include <QFileInfo>
 #include <QDir>
+#include <QString>
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using SplitBehaviour = QString::SplitBehavior;
+#else
+using SplitBehaviour = Qt::SplitBehaviorFlags;
+#endif //
 
 Launcher::Launcher(QObject *parent) : QObject(parent)
 {
@@ -113,7 +120,7 @@ void Launcher::execute(const QString &cmd)
 
         connect(m_thread, &QThread::started, this, [this, cmd]() {
             qDebug() << "starting process from thread: " << QThread::currentThread();
-            auto appAndArguments = cmd.split(" ", QString::SkipEmptyParts);
+            auto appAndArguments = cmd.split(" ", SplitBehaviour::SkipEmptyParts);
             m_process->setProgram(appAndArguments[0]);
             if(appAndArguments.size() > 1) {
                 appAndArguments.removeFirst();
@@ -128,7 +135,7 @@ void Launcher::execute(const QString &cmd)
 
         qDebug() << "starting command" << cmd;
 
-        auto appAndArguments = cmd.split(" ", QString::SkipEmptyParts);
+        auto appAndArguments = cmd.split(" ", SplitBehaviour::SkipEmptyParts);
         if(appAndArguments.length() == 0)
             return;
 

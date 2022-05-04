@@ -1,13 +1,11 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
-import QtQuick.Controls 1.4 as QQC1
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import DataModel 1.0
-import QtQuick.Dialogs 1.3
 import QtAVPlayerUtils 1.0
 
 ColumnLayout {

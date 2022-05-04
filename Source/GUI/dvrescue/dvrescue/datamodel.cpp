@@ -499,11 +499,11 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
             if(frameAttributes.hasAttribute("caption"))
             {
                 auto caption = frameAttributes.value("caption");
-                if(caption == "on")
+                if(caption == QString("on"))
                 {
                     map["CC"] = "┬";
                 }
-                else if(caption == "off")
+                else if(caption == QString("off"))
                 {
                     map["CC"] = "┴";
                 }

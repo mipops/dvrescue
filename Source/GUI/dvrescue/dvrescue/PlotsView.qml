@@ -1,9 +1,8 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import QtQuick.Controls 1.4 as QQC1
 import QwtQuick2 1.0
-import QtGraphicalEffects 1.0
+import SplitView 1.0
 
 Rectangle {
     id: root
@@ -75,7 +74,7 @@ Rectangle {
     }
 
 
-    QQC1.SplitView {
+    SplitView {
         id: plotsSplitView
 
         anchors.top: recMarkers.bottom
@@ -91,6 +90,10 @@ Rectangle {
 
         Item {
             id: videoLayout
+
+            Component.onCompleted: {
+                SplitView.preferredHeight = Qt.binding(function() { return height })
+            }
 
             RowLayout {
                 id: videoRow
@@ -121,7 +124,7 @@ Rectangle {
                         width: 1
                         height: parent.height
                         color: 'purple'
-                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(framePos, 0)).x
+                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transformPoint(Qt.point(framePos, 0)).x
                     }
 
                     Rectangle {
@@ -129,8 +132,8 @@ Rectangle {
                         opacity: overlayOpacity
                         parent: videoPlot.canvasItem
                         height: parent.height
-                        width: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(overlay.y - overlay.x, 0)).x
-                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transform(Qt.point(overlay.x, 0)).x
+                        width: videoPlot.xBottomAxisRange, videoPlotPicker.transformPoint(Qt.point(overlay.y - overlay.x, 0)).x
+                        x: videoPlot.xBottomAxisRange, videoPlotPicker.transformPoint(Qt.point(overlay.x, 0)).x
                         visible: overlay != Qt.vector2d(-1, -1)
                     }
 
@@ -228,7 +231,7 @@ Rectangle {
                     width: 1
                     height: parent.height
                     color: 'purple'
-                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(framePos, 0)).x
+                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transformPoint(Qt.point(framePos, 0)).x
                 }
 
                 Rectangle {
@@ -236,8 +239,8 @@ Rectangle {
                     opacity: overlayOpacity
                     parent: audioPlot.canvasItem
                     height: parent.height
-                    width: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(overlay.y - overlay.x, 0)).x
-                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transform(Qt.point(overlay.x, 0)).x
+                    width: audioPlot.xBottomAxisRange, audioPlotPicker.transformPoint(Qt.point(overlay.y - overlay.x, 0)).x
+                    x: audioPlot.xBottomAxisRange, audioPlotPicker.transformPoint(Qt.point(overlay.x, 0)).x
                     visible: overlay != Qt.vector2d(-1, -1)
                 }
 

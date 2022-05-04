@@ -7,7 +7,6 @@ import Launcher 0.1
 import FileUtils 1.0
 import SettingsUtils 1.0
 import QwtQuick2 1.0
-import QtQuick.Controls 1.4 as QQC1
 
 Dialog {
     id: toolsDialog

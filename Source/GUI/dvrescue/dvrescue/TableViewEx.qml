@@ -110,7 +110,7 @@ Item {
     }
 
     columnWidthProvider: function(column) {
-        return columnWidths[column];
+        return columnWidths[column]
     }
 
     Component.onCompleted: {

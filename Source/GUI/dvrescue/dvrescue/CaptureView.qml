@@ -1,12 +1,12 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
-import QtMultimedia 5.12 as QtMultimedia
-import MediaPlayer 1.0
+import QtAVMediaPlayer 1.0
 import MediaPlayerBuffer 1.0
 import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
+import Multimedia 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -51,7 +51,7 @@ Column {
             text: "NO SIGNAL"
         }
 
-        QtMultimedia.VideoOutput {
+        VideoOutput {
             id: videoOutput
             anchors.fill: parent
             objectName: "videoOutput"
@@ -85,7 +85,7 @@ Column {
             id: csvParserUI
         }
 
-        MediaPlayer {
+        QtAVMediaPlayer {
             id: player
             videoOutput: videoOutput
             buffer: buffer

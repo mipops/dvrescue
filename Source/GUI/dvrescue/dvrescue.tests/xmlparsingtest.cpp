@@ -4,8 +4,10 @@
 #include <QtTest>
 #include <QFile>
 #include <QDebug>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QXmlQuery>
 #include <QXmlResultItems>
+#endif //
 #include <QBuffer>
 
 XmlParsingTest::XmlParsingTest(QObject *parent) : QObject(parent)
@@ -39,6 +41,8 @@ void XmlParsingTest::f1()
 
     parser.exec(&file);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+
     QXmlQuery query;
     auto expectedTotalFrames = 0;
 
@@ -63,6 +67,7 @@ void XmlParsingTest::f1()
 
     qDebug() << "totalFrames: " << totalFrames;
     QCOMPARE(totalFrames, expectedTotalFrames);
+#endif //
 }
 
 void XmlParsingTest::f2()

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qt512/SplitView/SplitView.qml</file>
+        <file>qt512/SplitView/qmldir</file>
+    </qresource>
+</RCC>

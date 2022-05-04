@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qt5/GraphicalEffects/Glow.qml</file>
+        <file>qt5/GraphicalEffects/DropShadow.qml</file>
+        <file>qt5/GraphicalEffects/ColorOverlay.qml</file>
+        <file>qt5/GraphicalEffects/qmldir</file>
+    </qresource>
+</RCC>

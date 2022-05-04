@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<CsvParser>("CsvParser", 0, 1, "CsvParser");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
-    qmlRegisterType<MediaPlayer>("MediaPlayer", 1, 0, "MediaPlayer");
+    qmlRegisterType<MediaPlayer>("QtAVMediaPlayer", 1, 0, "QtAVMediaPlayer");
     qmlRegisterType<BufferSequential>("MediaPlayerBuffer", 1, 0, "MediaPlayerBuffer");
     qmlRegisterType<QwtQuick2Plot>("QwtQuick2", 1, 0, "QwtQuick2Plot");
     qmlRegisterType<QwtQuick2PlotCurve>("QwtQuick2", 1, 0, "QwtQuick2PlotCurve");
@@ -158,6 +158,19 @@ int main(int argc, char *argv[])
     });
 
     QQmlApplicationEngine engine;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    engine.addImportPath("qrc:/qt5");
+    #if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)
+        engine.addImportPath("qrc:/qt512");
+    #endif //
+#else
+    engine.addImportPath("qrc:/qt6");
+#endif //
+
+#if QT_VERSION > QT_VERSION_CHECK(5, 13, 0) || QT_VERSION == QT_VERSION_CHECK(5, 13, 0)
+    engine.addImportPath("qrc:/qt513+");
+#endif //
+
     DataModel::setEngine(&engine);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

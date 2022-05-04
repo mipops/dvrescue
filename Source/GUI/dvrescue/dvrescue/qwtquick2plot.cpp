@@ -136,9 +136,16 @@ void QwtQuick2Plot::routeMouseEvents(QMouseEvent* event)
 void QwtQuick2Plot::routeWheelEvents(QWheelEvent* event)
 {
     if (m_qwtPlot) {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         QWheelEvent* newEvent = new QWheelEvent(event->pos(), event->delta(),
                                                 event->buttons(), event->modifiers(),
                                                 event->orientation());
+#else
+        QWheelEvent* newEvent = new QWheelEvent(event->position(), event->globalPosition(),
+                                                event->pixelDelta(), event->angleDelta(),
+                                                event->buttons(), event->modifiers(),
+                                                event->phase(), event->isInverted());
+#endif //
         QCoreApplication::postEvent(m_qwtPlot, newEvent);
     }
 }
@@ -817,7 +824,7 @@ QPointF QwtQuick2PlotPicker::point() const
     return m_point;
 }
 
-QPoint QwtQuick2PlotPicker::transform(const QPointF &p)
+QPoint QwtQuick2PlotPicker::transformPoint(const QPointF &p)
 {
     if(m_qwtPlotPicker)
         return static_cast<PlotPicker*>(m_qwtPlotPicker)->transform(p);
@@ -825,7 +832,7 @@ QPoint QwtQuick2PlotPicker::transform(const QPointF &p)
     return QPoint(p.x(), p.y());
 }
 
-QPointF QwtQuick2PlotPicker::invTransform(const QPoint &p)
+QPointF QwtQuick2PlotPicker::invTransformPoint(const QPoint &p)
 {
     if(m_qwtPlotPicker)
         return static_cast<PlotPicker*>(m_qwtPlotPicker)->invTransform(p);
@@ -889,9 +896,18 @@ void QwtQuick2PlotLegend::paint(QPainter *painter)
     m_legend->renderLegend(painter, this->boundingRect(), true);
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void QwtQuick2PlotLegend::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     QQuickPaintedItem::geometryChanged(newGeometry, oldGeometry);
     m_legend->setGeometry(newGeometry.toRect());
     update();
 }
+#else
+void QwtQuick2PlotLegend::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
+{
+    QQuickPaintedItem::geometryChange(newGeometry, oldGeometry);
+    m_legend->setGeometry(newGeometry.toRect());
+    update();
+}
+#endif //

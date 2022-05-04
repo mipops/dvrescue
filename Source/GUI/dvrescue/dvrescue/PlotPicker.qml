@@ -95,8 +95,8 @@ QwtQuick2PlotPicker {
         height: canvasItem.height
         visible: mouseArea.actionType === PlotPicker.ActionType.Zooming
 
-        readonly property int start: picker.invTransform(Qt.point(x,0)).x;
-        readonly property int end: picker.invTransform(Qt.point(x + width, 0)).x;
+        readonly property int start: picker.invTransformPoint(Qt.point(x,0)).x;
+        readonly property int end: picker.invTransformPoint(Qt.point(x + width, 0)).x;
 
         function handleMousePress(mouse) {
             x = mouse.x
@@ -129,16 +129,16 @@ QwtQuick2PlotPicker {
         }
 
         onMouseXChanged: {
-            picker.point = picker.invTransform(Qt.point(mouse.x, mouse.y))
+            picker.point = picker.invTransformPoint(Qt.point(mouse.x, mouse.y))
             picker.x = mouse.x
             if(actionType === PlotPicker.ActionType.Zooming) {
                 zoomArea.handleMouseMove(mouse, pressX);
             } else if(actionType === PlotPicker.ActionType.Moving) {
-                moved(startX1 + picker.invTransform(Qt.point(pressX, 0)).x - picker.invTransform(Qt.point(mouse.x, 0)).x)
+                moved(startX1 + picker.invTransformPoint(Qt.point(pressX, 0)).x - picker.invTransformPoint(Qt.point(mouse.x, 0)).x)
             }
         }
         onMouseYChanged: {
-            picker.point = picker.invTransform(Qt.point(mouse.x, mouse.y))
+            picker.point = picker.invTransformPoint(Qt.point(mouse.x, mouse.y))
             picker.y = mouse.y
         }
         onPressed: {

@@ -1,5 +1,30 @@
 include(./qwt.pri)
 
+lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 13) RESOURCES += $$PWD/splitview_qt5.12.qrc
+
+lessThan(QT_MAJOR_VERSION, 6): {
+    RESOURCES += $$PWD/graphicaleffects_qt5.qrc
+    RESOURCES += $$PWD/multimedia_qt5.qrc
+    RESOURCES += $$PWD/dialogs_qt5.qrc
+    QML_IMPORT_PATH += $$PWD/qt5
+
+    lessThan(QT_MINOR_VERSION, 13): {
+        QML_IMPORT_PATH += $$PWD/qt512
+        RESOURCES += $$PWD/splitview_qt5.12.qrc
+    }
+}
+equals(QT_MAJOR_VERSION, 6): {
+    RESOURCES += $$PWD/graphicaleffects.qrc
+    RESOURCES += $$PWD/multimedia.qrc
+    RESOURCES += $$PWD/dialogs.qrc
+    QML_IMPORT_PATH += $$PWD/qt6
+}
+
+versionAtLeast(QT_VERSION, 5.13.0): {
+    QML_IMPORT_PATH += $$PWD/qt513+
+    RESOURCES += $$PWD/splitview_qt5.13+.qrc
+}
+
 RESOURCES += $$PWD/qml.qrc
 
 HEADERS += \
@@ -51,3 +76,5 @@ INCLUDEPATH += $$PWD/3rdparty
 
 DISTFILES += \
     $$PWD/fonts/DS-DIGI.TTF
+
+message("QML_IMPORT_PATH: " $$QML_IMPORT_PATH)
