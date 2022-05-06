@@ -64,6 +64,65 @@ jobs:
         export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
         open ./dvrescue/dvrescue.app
 
+  build-macos-brew-Qt6:
+
+    strategy:
+      matrix:
+        compiler: ['clang-9']
+        include:
+          - compiler: clang-9
+            packages: llvm@9
+            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+
+    runs-on: macos-latest
+
+    env: ${{ matrix.env }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch: 1
+
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        GIT_PATH=https://github.com/.extraheader
+        AUTH_HEADER="$(git config --local --get http.$GIT_PATH)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$AUTH_HEADER" \
+            -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+    - name: Install dependencies
+      run: |
+        brew install ${{ matrix.packages }} pkg-config qt ffmpeg
+
+    - name: Install qwt
+      run: |
+        brew install qwt
+
+    - name: Set Qt6 environment path
+      run: |
+        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
+
+    - name: Build dvrescue-gui
+      env:
+        USE_BREW: true
+      run: |
+        cd Source/GUI/dvrescue/
+        mkdir build
+        cd build
+        qmake ..
+        make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/build
+        ls
+        ls ./dvrescue
+        export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
+        open ./dvrescue/dvrescue.app
+
   build-macos-no-brew:
 
     strategy:
@@ -104,6 +163,84 @@ jobs:
     - name: Build qwt
       run: |
         git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        cd ../qwt
+        qmake -r
+        make -j4
+
+    - name: Build FFmpeg
+      run: |
+        git clone --depth 1 --branch n4.4 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        cd ../ffmpeg
+        ./configure --enable-gpl \
+                    --enable-static \
+                    --disable-shared \
+                    --disable-autodetect \
+                    --disable-securetransport \
+                    --disable-videotoolbox \
+                    --disable-doc \
+                    --disable-ffplay \
+                    --disable-ffprobe \
+                    --disable-debug
+        make -j12
+
+    - name: Build dvrescue-gui
+      env:
+        USE_BREW: false
+      run: |
+        cd Source/GUI/dvrescue/
+        mkdir build
+        cd build
+        qmake .. 
+        make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/build
+        ls
+        ls ./dvrescue
+        export DYLD_LIBRARY_PATH=.:$DYLD_LIBRARY_PATH
+        open ./dvrescue/dvrescue.app
+
+  build-macos-no-brew-Qt6:
+
+    strategy:
+      matrix:
+        compiler: ['clang-9']
+        include:
+          - compiler: clang-9
+            packages: llvm@9
+            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+
+    runs-on: macos-latest
+
+    env: ${{ matrix.env }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch: 1
+
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        GIT_PATH=https://github.com/.extraheader
+        AUTH_HEADER="$(git config --local --get http.$GIT_PATH)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$AUTH_HEADER" \
+            -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+    - name: Install dependencies
+      run: |
+        brew install ${{ matrix.packages }} nasm qt
+
+    - name: Set Qt6 environment path
+      run: |
+        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
+
+    - name: Build qwt
+      run: |
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
         qmake -r
         make -j4
@@ -230,6 +367,96 @@ jobs:
         sleep 1
         pidof dvrescue
 
+  build-linux-Qt6:
+
+    strategy:
+      matrix:
+        compiler: ['gcc-9', 'clang-9']
+        include:
+          - compiler: gcc-9
+            packages: gcc-9 g++-9
+            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
+          - compiler: clang-9
+            packages: 'clang-9'
+            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+
+    runs-on: ubuntu-latest
+
+    env: ${{ matrix.env }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch: 1
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        GIT_PATH=https://github.com/.extraheader
+        AUTH_HEADER="$(git config --local --get http.$GIT_PATH)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$AUTH_HEADER" \
+            -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+    - name: Install Python 3.7 version
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+        architecture: 'x64'
+
+    - name: Add Clang apt repository
+      if: matrix.compiler == 'clang-9'
+      run: |
+        echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" \
+        | sudo tee -a /etc/apt/sources.list.d/llvm.list
+        curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo apt-get update
+
+    - name: Install compiler and FFmpeg dependencies
+      run: |
+        sudo apt-get update &&
+        sudo apt-get install -y ${{ matrix.packages }} \
+                                libavcodec-dev \
+                                libavformat-dev \
+                                libavdevice-dev \
+                                libegl1-mesa-dev \
+                                libglew-dev \
+                                libxkbcommon-dev \
+                                libxv-dev
+
+    - name: Install Qt 6.3
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: 6.3.0
+        modules: 'addons.qtmultimedia'
+
+    - name: Cleanup
+      run: |
+        sudo apt-get clean -y
+        sudo rm -rf /var/lib/apt/lists/*
+
+    - name: Build qwt
+      run: |
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
+        cd ../qwt
+        qmake -r
+        make -j4
+
+    - name: Build dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
+        qmake
+        make -j4
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
+        ls
+        ls ./dvrescue
+        ./dvrescue/dvrescue --platform minimal > /dev/null 2>&1 &
+        sleep 1
+        pidof dvrescue
+
   build-windows-mingw:
 
     runs-on: windows-latest
@@ -275,6 +502,87 @@ jobs:
     - name: Download and configure qwt
       run: |
         git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        copy .github\workflows\qwtconfig.pri ..\qwt
+        cd ../qwt
+        qmake -r
+
+    - name: Build qwt
+      shell: cmd
+      run: |
+        cd ../qwt
+        mingw32-make -j4
+
+    - name: Configure dvrescue-gui
+      shell: cmd
+      run: |
+        cd Source/GUI/dvrescue/
+        qmake
+
+#    - name: Start SSH session
+#      uses: luchihoratiu/debug-via-ssh@main
+#      with:
+#        NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+#        SSH_PASS: ${{ secrets.SSH_PASS }}
+
+    - name: Build dvrescue-gui
+      shell: cmd
+      run: |
+        cd Source/GUI/dvrescue/
+        mingw32-make
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
+        ls
+        ls ./dvrescue
+        ./dvrescue/release/dvrescue
+
+  build-windows-mingw-Qt6:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch: 1
+
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        GIT_PATH=https://github.com/.extraheader
+        AUTH_HEADER="$(git config --local --get http.$GIT_PATH)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$AUTH_HEADER" \
+            -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+    - name: Install Qt 6.3
+      uses: jurplel/install-qt-action@v2
+      with:
+        arch: win64_mingw81
+        version: 6.3.0
+        modules: 'addons.qtmultimedia'
+
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip xidel
+
+    - name: Install FFmpeg
+      shell: cmd
+      run: |
+        cd ..
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "//a[contains(@href, '-gpl-shared-4.4.zip')]/@href[1]" --silent > ffmpeg.url
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "(//a[contains(@href, '-gpl-shared-4.4.zip')])[1]/substring(., 0, string-length(.) - 3)" --silent > ffmpeg.name
+        set /P FFMPEG_URL=< ffmpeg.url
+        set /P FFMPEG_NAME=< ffmpeg.name
+        wget https://github.com%FFMPEG_URL%
+        unzip %FFMPEG_NAME%.zip
+        ren %FFMPEG_NAME% ffmpeg
+        dir ffmpeg
+
+    - name: Download and configure qwt
+      run: |
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         copy .github\workflows\qwtconfig.pri ..\qwt
         cd ../qwt
         qmake -r
@@ -373,6 +681,99 @@ jobs:
     - name: Download and configure qwt
       run: |
         git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        cd ../qwt
+        qmake -r
+
+    - name: Build qwt
+      shell: cmd
+      run: |
+        cd ../qwt
+        nmake
+
+    - name: Configure dvrescue-gui
+      shell: cmd
+      run: |
+        cd Source/GUI/dvrescue/
+        qmake
+
+    - name: Build dvrescue-gui
+      shell: cmd
+      run: |
+        cd Source/GUI/dvrescue/
+        nmake
+
+    - name: Launch dvrescue-gui
+      run: |
+        cd Source/GUI/dvrescue/
+        ls
+        ls ./dvrescue
+        ./dvrescue/release/dvrescue
+
+  build-windows-vs-Qt6:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch: 1
+
+    - name: Checkout submodules
+      shell: bash
+      run: |
+        GIT_PATH=https://github.com/.extraheader
+        AUTH_HEADER="$(git config --local --get http.$GIT_PATH)"
+        git submodule sync --recursive
+        git -c "http.extraheader=$AUTH_HEADER" \
+            -c protocol.version=2 \
+            submodule update --init --force --recursive --depth=1
+
+    - name: Init vs environment
+      uses: egor-tensin/vs-shell@v2
+      with:
+        arch: x64
+
+    - name: Build and install zlib
+      shell: cmd
+      run: |
+        git clone --depth 1 https://github.com/madler/zlib ../zlib-dev
+        cd ../zlib-dev
+        mkdir build
+        cd build
+        cmake -G "NMake Makefiles" ^
+              -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\..\zlib" ^
+              -DBUILD_SHARED_LIBS=0 ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              ..
+        nmake install
+
+    - name: Install Qt 6.3
+      uses: jurplel/install-qt-action@v2
+      with:
+        arch: win64_mingw81
+        version: 6.3.0
+        modules: 'addons.qtmultimedia'
+
+    - name: Install wget & unzip
+      run: |
+        choco install wget unzip xidel
+
+    - name: Install FFmpeg
+      shell: cmd
+      run: |
+        cd ..
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "//a[contains(@href, '-gpl-shared-4.4.zip')]/@href[1]" --silent > ffmpeg.url
+        xidel https://github.com/BtbN/FFmpeg-Builds/releases -e "(//a[contains(@href, '-gpl-shared-4.4.zip')])[1]/substring(., 0, string-length(.) - 3)" --silent > ffmpeg.name
+        set /P FFMPEG_URL=< ffmpeg.url
+        set /P FFMPEG_NAME=< ffmpeg.name
+        wget https://github.com%FFMPEG_URL%
+        unzip %FFMPEG_NAME%.zip
+        ren %FFMPEG_NAME% ffmpeg
+        dir ffmpeg
+
+    - name: Download and configure qwt
+      run: |
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
         qmake -r
 
