@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
                 auto key = keyValue.takeFirst();
                 auto value = keyValue.join("=");
 
-                props.append(QPair(key, value));
+                props.append(QPair<QString, QString>(key, value));
 
                 it = args.erase(it);
                 it = args.erase(it);

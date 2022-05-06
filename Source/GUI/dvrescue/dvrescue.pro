@@ -65,15 +65,15 @@ contains(DEFINES, USE_BREW) {
 SUBDIRS += \
         dvrescue-qtavplayer \
 	dvrescue \
-        #dvrescue_tests \
-        #dvrescue_qmltests
+        dvrescue_tests \
+        dvrescue_qmltests
 
 dvrescue-qtavplayer.file = dvrescue-QtAVPlayer/QtAVPlayerLib.pro
 
 dvrescue.subdir = dvrescue
-#dvrescue_tests.subdir = dvrescue.tests
-#dvrescue_qmltests.subdir = dvrescue.qmltests
+dvrescue_tests.subdir = dvrescue.tests
+dvrescue_qmltests.subdir = dvrescue.qmltests
 
 dvrescue.depends = dvrescue-qtavplayer
-#dvrescue_tests.depends = dvrescue-qtavplayer
-#dvrescue_qmltests.depends = dvrescue-qtavplayer
+dvrescue_tests.depends = dvrescue-qtavplayer
+dvrescue_qmltests.depends = dvrescue-qtavplayer
