@@ -8,7 +8,7 @@ import FileUtils 1.0
 
 FileDialog {
     id: selectPathDialog
-    // selectExisting: true
+    selectExisting: true
     property var callback;
 
     onAccepted: {

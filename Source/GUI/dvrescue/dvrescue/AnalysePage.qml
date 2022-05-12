@@ -111,7 +111,7 @@ Item {
 
     SelectPathDialog {
         id: selectPath
-        // selectMultiple: true
+        selectMultiple: true
         nameFilters: [
             "Report and video files (*.dvrescue.xml *.mov *.mkv *.avi *.dv *.mxf)",
             "Report files (*.dvrescue.xml)",
