@@ -372,10 +372,13 @@ _condense_ranges(){
     _report_condensed_line(){
         if [[ -n "${ASPECT_MERGE}" && "${ASPECT_FLIP}" = "Y" ]] ; then
             if [[ "${ASPECT_MERGE}" = "4" ]] ; then
+                _report -v "The aspect ratio will be forced to 4/3."
                 AR_FORCE="4/3"
             elif [[ "${ASPECT_MERGE}" = "9" ]] ; then
+                _report -v "The aspect ratio will be forced to 16/9."
                 AR_FORCE="16/9"
             elif [[ "${ASPECT_MERGE}" = "c" ]] ; then
+                _report -v "The aspect ratio will be forced to most common occurence. We found ${COUNT_43} frames with 4/3 aspect ratio and ${COUNT_169} frames with 16/9 or will use the greater value (4/3 in a tie)."
                 if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
                     AR_FORCE="4/3"
                 else
@@ -469,6 +472,11 @@ _condense_ranges(){
             fi
         fi
     done < <(echo "${RANGES}")
+    if [[ "${AR_PREV}" = "4/3" ]] ; then
+        COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
+    elif [[ "${AR_PREV}" = "16/9" ]] ; then
+        COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
+    fi
     _report_condensed_line
 }
 
@@ -546,21 +554,21 @@ _make_chapter_metadata_file(){
     _report -v "Found ${CHAPTER_SET_COUNT} point(s) for chapter marks."
     if [[ "${CHAPTER_SET_COUNT}" -gt 1 ]] ; then
         echo ";FFMETADATA1"
-        while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC ; do
-             START_CHAPTER="$(_convert_hhmmssmmm2s "${PTS}" | awk '{printf "%i", $1 * 100000}')"
-             END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTS}" | awk '{printf "%i", $1 * 100000}')"
+        while IFS="|" read -r PTSc END_PTSc FRAME_STARTc FRAME_ENDc TCc PKT_POSc RDTc SIZEc VIDEO_RATEc CH_SUBc ARc AUDIO_RATEc CHc REC_STc RDT_NCc TC_NCc ; do
+             START_CHAPTER="$(_convert_hhmmssmmm2s "${PTSc}" | awk '{printf "%i", $1 * 100000}')"
+             END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTSc}" | awk '{printf "%i", $1 * 100000}')"
              START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
              END_CHAPTER_OFFSET="$((END_CHAPTER-CHAP_RANGE_START))"
              if [[ "${START_CHAPTER}" -ge "${CHAP_RANGE_START}" ]] && [[ "${END_CHAPTER}" -le "${CHAP_RANGE_END}" ]] ; then
                  unset CHAP_TITLE
-                 if [[ -n "${TC}" ]] && [[ -n ${RDT} ]] ; then
-                     CHAP_TITLE+="${TC} - ${RDT}"
-                 elif [[ -n ${TC} ]] ; then
-                     CHAP_TITLE+="${TC}"
-                 elif [[ -n ${RDT} ]] ; then
-                     CHAP_TITLE+="--:--:--:-- - ${RDT}"
+                 if [[ -n "${TCc}" ]] && [[ -n "${RDTc}" ]] ; then
+                     CHAP_TITLE+="${TCc} - ${RDTc}"
+                 elif [[ -n "${TCc}" ]] ; then
+                     CHAP_TITLE+="${TCc}"
+                 elif [[ -n "${RDTc}" ]] ; then
+                     CHAP_TITLE+="--:--:--:-- - ${RDTc}"
                  fi
-                 _report -v "Chapter: ${PTS}-${END_PTS} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
+                 _report -v "Chapter: ${PTSc}-${END_PTSc} (${START_CHAPTER_OFFSET}-${END_CHAPTER_OFFSET}): ${CHAP_TITLE}"
                  echo "[CHAPTER]"
                  echo "TIMEBASE=1/100000"
                  echo "START=${START_CHAPTER_OFFSET}"
