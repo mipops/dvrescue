@@ -115,30 +115,30 @@ Column {
             Button {
                 id: rewindButton
                 icon.color: 'transparent'
-                icon.source: "icons/rewind.svg"
+                icon.source: "/icons/rewind.svg"
             }
 
             Button {
                 id: playButton
                 icon.color: 'transparent'
-                icon.source: "icons/play.svg"
+                icon.source: "/icons/play.svg"
             }
 
             Button {
                 id: stopButton
                 icon.color: 'transparent'
-                icon.source: "icons/stop.svg"
+                icon.source: "/icons/stop.svg"
             }
 
             Button {
                 id: fastForwardButton
                 icon.color: 'transparent'
-                icon.source: "icons/fastforward.svg"
+                icon.source: "/icons/fastforward.svg"
             }
             Button {
                 id: captureButton
                 icon.color: "transparent"
-                icon.source: "icons/capture.svg"
+                icon.source: "/icons/capture.svg"
             }
         }
 

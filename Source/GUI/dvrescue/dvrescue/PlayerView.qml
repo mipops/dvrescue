@@ -160,7 +160,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== QtAVMediaPlayer.NoMedia
-                icon.source: "icons/first-frame.svg"
+                icon.source: "/icons/first-frame.svg"
                 onClicked: {
                     player.seek(0)
                 }
@@ -168,7 +168,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== QtAVMediaPlayer.NoMedia
-                icon.source: "icons/previous-frame.svg"
+                icon.source: "/icons/previous-frame.svg"
                 onClicked: {
                     player.stepBackward()
                 }
@@ -176,7 +176,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== QtAVMediaPlayer.NoMedia
-                icon.source: player.state === QtAVMediaPlayer.PlayingState ? "icons/stop.svg" : "icons/play.svg"
+                icon.source: player.state === QtAVMediaPlayer.PlayingState ? "/icons/stop.svg" : "/icons/play.svg"
                 onClicked: {
                     if(player.state === QtAVMediaPlayer.PlayingState)
                         player.pause()
@@ -187,7 +187,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== QtAVMediaPlayer.NoMedia
-                icon.source: "icons/next-frame.svg"
+                icon.source: "/icons/next-frame.svg"
                 onClicked: {
                     player.stepForward()
                 }
@@ -195,7 +195,7 @@ Rectangle {
 
             Button {
                 enabled: player.status !== QtAVMediaPlayer.NoMedia
-                icon.source: "icons/last-frame.svg"
+                icon.source: "/icons/last-frame.svg"
                 onClicked: {
                     player.seek(player.duration - 1)
                 }

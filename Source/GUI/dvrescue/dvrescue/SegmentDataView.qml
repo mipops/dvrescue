@@ -164,11 +164,11 @@ Rectangle {
 
                         property string imageUrl: {
                             if(editRole === Qt.point(1, 1)) {
-                                return "icons/record-marker-stop+start-table.svg"
+                                return "/icons/record-marker-stop+start-table.svg"
                             } else if(editRole === Qt.point(1, 0)) {
-                                return "icons/record-marker-start-table.svg"
+                                return "/icons/record-marker-start-table.svg"
                             } else if(editRole === Qt.point(0, 1)) {
-                                return "icons/record-marker-stop-table.svg"
+                                return "/icons/record-marker-stop-table.svg"
                             }
 
                             return null;

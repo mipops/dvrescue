@@ -249,7 +249,7 @@ Rectangle {
                         anchors.leftMargin: 2
 
                         icon.color: "black"
-                        icon.source: "icons/exit.svg"
+                        icon.source: "/icons/exit.svg"
                         implicitHeight: parent.height
                         implicitWidth: implicitHeight
 

@@ -249,7 +249,7 @@ Item {
                     property int fileViewerHeight: 0
 
                     CustomButton {
-                        icon.source: "icons/add-files.svg"
+                        icon.source: "/icons/add-files.svg"
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
@@ -262,7 +262,7 @@ Item {
                     }
 
                     CustomButton {
-                        icon.source: "icons/recent.svg"
+                        icon.source: "/icons/recent.svg"
 
                         onClicked: {
                             var mapped = mapToItem(root, 0, 0);

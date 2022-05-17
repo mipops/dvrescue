@@ -137,7 +137,7 @@ Rectangle {
                     property alias overlayVisible: overlay.visible
 
                     Image {
-                        source: "icons/dvpackager_processing-not-started.svg"
+                        source: "/icons/dvpackager_processing-not-started.svg"
                         height: statusDelegate.height
                         width: height
                         anchors.centerIn: parent
@@ -145,7 +145,7 @@ Rectangle {
                     }
 
                     Image {
-                        source: "icons/dvpackager_processing-in-queue.svg"
+                        source: "/icons/dvpackager_processing-in-queue.svg"
                         height: statusDelegate.height
                         width: height
                         anchors.centerIn: parent
@@ -153,7 +153,7 @@ Rectangle {
                     }
 
                     Image {
-                        source: "icons/dvpackager_processing-in-process.svg"
+                        source: "/icons/dvpackager_processing-in-process.svg"
                         height: statusDelegate.height
                         width: height
                         anchors.centerIn: parent
@@ -168,7 +168,7 @@ Rectangle {
                     }
 
                     Image {
-                        source: "icons/dvpackager_processing-done.svg"
+                        source: "/icons/dvpackager_processing-done.svg"
                         height: statusDelegate.height
                         width: height
                         anchors.centerIn: parent
@@ -176,7 +176,7 @@ Rectangle {
                     }
 
                     Image {
-                        source: "icons/dvpackager_processing-failed-canceled.svg"
+                        source: "/icons/dvpackager_processing-failed-canceled.svg"
                         height: statusDelegate.height
                         width: height
                         anchors.centerIn: parent

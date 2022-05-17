@@ -300,7 +300,7 @@ Rectangle {
 
         CustomButton {
             id: zoomInButton
-            icon.source: "icons/button-zoom-in.svg"
+            icon.source: "/icons/button-zoom-in.svg"
 
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) / scrollLayout.zoomFactor;
@@ -313,7 +313,7 @@ Rectangle {
         }
         CustomButton {
             id: zoomAllButton
-            icon.source: "icons/button-fit-to-screen.svg"
+            icon.source: "/icons/button-fit-to-screen.svg"
 
             onClicked: {
                 scroll.size = 1
@@ -325,7 +325,7 @@ Rectangle {
 
         CustomButton {
             id: customZoomButton
-            icon.source: "icons/button-custom-range.svg"
+            icon.source: "/icons/button-custom-range.svg"
 
             Connections {
                 target: dataModel
@@ -394,7 +394,7 @@ Rectangle {
 
         CustomButton {
             id: zoomOutButton
-            icon.source: "icons/button-zoom-out.svg"
+            icon.source: "/icons/button-zoom-out.svg"
 
             onClicked: {
                 var newRight = videoPlot.xBottomAxisRange.x + (videoPlot.xBottomAxisRange.y - videoPlot.xBottomAxisRange.x) * scrollLayout.zoomFactor;

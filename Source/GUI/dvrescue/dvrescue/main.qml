@@ -43,7 +43,7 @@ ApplicationWindow {
             // text: qsTr("Transfer")
             checkable: true;
             property int index: 0
-            icon.source: "icons/menu-transfer.svg"
+            icon.source: "/icons/menu-transfer.svg"
         }
         NavButton {
             id: analysisButton
@@ -51,32 +51,32 @@ ApplicationWindow {
             checkable: true;
             property int index: 1
             checked: true
-            icon.source: "icons/menu-analysis.svg"
+            icon.source: "/icons/menu-analysis.svg"
         }
         NavButton {
             id: packageButton
             // text: qsTr("Package")
             checkable: true;
             property int index: 2
-            icon.source: "icons/menu-package.svg"
+            icon.source: "/icons/menu-package.svg"
         }
         NavButton {
             // text: qsTr("Settings")
             onClicked: {
                 toolsDialog.show();
             }
-            icon.source: "icons/menu-settings.svg"
+            icon.source: "/icons/menu-settings.svg"
         }
         NavButton {
             // text: qsTr("Help")
-            icon.source: "icons/menu-help.svg"
+            icon.source: "/icons/menu-help.svg"
         }
         NavButton {
             // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
             }
-            icon.source: "icons/menu-debug.svg"
+            icon.source: "/icons/menu-debug.svg"
         }
     }
 
