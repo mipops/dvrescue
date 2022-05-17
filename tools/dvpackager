@@ -469,6 +469,11 @@ _condense_ranges(){
             fi
         fi
     done < <(echo "${RANGES}")
+    if [[ "${AR_PREV}" = "4/3" ]] ; then
+        COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
+    elif [[ "${AR_PREV}" = "16/9" ]] ; then
+        COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
+    fi
     _report_condensed_line
 }
 
