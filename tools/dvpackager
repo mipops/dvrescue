@@ -378,7 +378,7 @@ _condense_ranges(){
                 _report -v "The aspect ratio will be forced to 16/9."
                 AR_FORCE="16/9"
             elif [[ "${ASPECT_MERGE}" = "c" ]] ; then
-                _report -v "The aspect ratio will be forced to most common occurence. We found ${COUNT_43} frames of 4/3 aspect ratio and ${COUNT_169} frames of 16/9 and will use the greater value (4/3 in a tie)."
+                _report -v "The aspect ratio will be forced to most common occurence. We found ${COUNT_43} frames with 4/3 aspect ratio and ${COUNT_169} frames with 16/9 or will use the greater value (4/3 in a tie)."
                 if [[ "${COUNT_43}" -ge "${COUNT_169}" ]] ; then
                     AR_FORCE="4/3"
                 else
