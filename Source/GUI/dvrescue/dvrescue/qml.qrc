@@ -102,5 +102,6 @@
         <file>DvLoupeCtl.qml</file>
         <file>DvPlayCtl.qml</file>
         <file>DvLoupeView.qml</file>
+        <file>HyperlinkDelegate.qml</file>
     </qresource>
 </RCC>
