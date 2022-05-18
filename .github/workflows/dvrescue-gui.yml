@@ -424,10 +424,10 @@ jobs:
                                 libxkbcommon-dev \
                                 libxv-dev
 
-    - name: Install Qt 6.3
+    - name: Install Qt 6.2
       uses: jurplel/install-qt-action@v2
       with:
-        version: 6.3.0
+        version: 6.2.0
         modules: 'addons.qtmultimedia'
 
     - name: Cleanup
@@ -556,11 +556,11 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Qt 6.3
+    - name: Install Qt 6.2
       uses: jurplel/install-qt-action@v2
       with:
         arch: win64_mingw81
-        version: 6.3.0
+        version: 6.2.0
         modules: 'addons.qtmultimedia'
 
     - name: Install wget & unzip
@@ -747,11 +747,11 @@ jobs:
               ..
         nmake install
 
-    - name: Install Qt 6.3
+    - name: Install Qt 6.2
       uses: jurplel/install-qt-action@v2
       with:
         arch: win64_mingw81
-        version: 6.3.0
+        version: 6.2.0
         modules: 'addons.qtmultimedia'
 
     - name: Install wget & unzip
