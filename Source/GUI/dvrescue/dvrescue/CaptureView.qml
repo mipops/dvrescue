@@ -92,14 +92,14 @@ Column {
             enableAudio: false
 
             Component.onCompleted: {
-                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
-                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
-                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+                console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', QtAVMediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', QtAVMediaPlayer.PausedState);
 
-                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
-                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
-                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
-                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+                console.debug('MediaPlayer.NoMedia: ', QtAVMediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', QtAVMediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', QtAVMediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', QtAVMediaPlayer.InvalidMedia);
             }
         }
     }

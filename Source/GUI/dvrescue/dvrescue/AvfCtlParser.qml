@@ -78,20 +78,38 @@ Item {
             ++indexOfDevices;
             for(var i = indexOfDevices; i < splitted.length; ++i)
             {
+                console.debug('parsing device entry: ', splitted[i]);
+
                 var entry = splitted[i];
                 if(entry === '')
                     continue;
 
                 var indexOfOpeningBracket = entry.indexOf('[')
+                if(indexOfOpeningBracket === -1)
+                    continue;
+
                 indexOfOpeningBracket = entry.indexOf('[', indexOfOpeningBracket + 1);
+                if(indexOfOpeningBracket === -1)
+                    continue;
+
                 var indexOfClosingBracket = entry.indexOf(']', indexOfOpeningBracket + 1);
+                if(indexOfClosingBracket === -1)
+                    continue;
 
                 var deviceIndex = entry.substr(indexOfOpeningBracket + 1, indexOfClosingBracket - indexOfOpeningBracket - 1);
+                if(deviceIndex.length === 0)
+                    continue;
 
                 indexOfOpeningBracket = entry.indexOf('(', indexOfClosingBracket);
+                if(indexOfOpeningBracket === -1)
+                    continue;
+
                 var deviceName = entry.substr(indexOfClosingBracket + 1, indexOfOpeningBracket - indexOfClosingBracket - 1).trim();
 
                 indexOfClosingBracket = entry.indexOf(')', indexOfOpeningBracket + 1);
+                if(indexOfClosingBracket === -1)
+                    continue;
+
                 var deviceType = entry.substr(indexOfOpeningBracket + 1, indexOfClosingBracket - indexOfOpeningBracket - 1);
 
                 console.debug('deviceIndex: ', deviceIndex, 'deviceName: ', deviceName, 'deviceType: ', deviceType);
