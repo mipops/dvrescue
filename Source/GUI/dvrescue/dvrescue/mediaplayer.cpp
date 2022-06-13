@@ -1,50 +1,17 @@
 #include "mediaplayer.h"
 #include <QtAVPlayer/qavplayer.h>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QAbstractVideoSurface>
-#include <QVideoFrame>
 #include <QVideoSurfaceFormat>
+#else
+#include <QVideoSink>
+#endif //
+#include <QVideoFrame>
 #include <QDebug>
 
 extern "C" {
 #include <libavutil/pixdesc.h>
 }
-
-class PlanarVideoBuffer : public QAbstractPlanarVideoBuffer
-{
-public:
-    PlanarVideoBuffer(const QAVVideoFrame &frame, HandleType type = NoHandle)
-        : QAbstractPlanarVideoBuffer(type), m_frame(frame)
-    {
-    }
-
-    MapMode mapMode() const override { return m_mode; }
-    int map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4]) override
-    {
-        if (m_mode != NotMapped || mode == NotMapped)
-            return 0;
-
-        auto mapData = m_frame.map();
-        m_mode = mode;
-        if (numBytes)
-            *numBytes = mapData.size;
-
-        int i = 0;
-        for (; i < 4; ++i) {
-            if (!mapData.bytesPerLine[i])
-                break;
-
-            bytesPerLine[i] = mapData.bytesPerLine[i];
-            data[i] = mapData.data[i];
-        }
-
-        return i;
-    }
-    void unmap() override { m_mode = NotMapped; }
-
-private:
-    QAVVideoFrame m_frame;
-    MapMode m_mode = NotMapped;
-};
 
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlayer(this))
 {
@@ -127,6 +94,7 @@ void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
 
     QObject::connect(vo, SIGNAL(sourceRectChanged()), vo, SLOT(update()));
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSurface](QAVVideoFrame frame) {
         qDebug() << "got video frame";
 
@@ -136,6 +104,14 @@ void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
         if (videoSurface->isActive())
             videoSurface->present(videoFrame);
     });
+#else
+    auto videoSink = vo->property("videoSink").value<QVideoSink*>();
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [videoSink](const QAVVideoFrame &frame) {
+        QVideoFrame videoFrame = frame;
+
+        videoSink->setVideoFrame(videoFrame);
+    });
+#endif //
 
     QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
         if(enableAudio())
@@ -217,15 +193,15 @@ qreal MediaPlayer::videoFrameRate() const
     return player->videoFrameRate();
 }
 
-QUrl MediaPlayer::source() const
+QString MediaPlayer::source() const
 {
     return player->source();
 }
 
-void MediaPlayer::setSource(const QUrl &newSource)
+void MediaPlayer::setSource(const QString &newSource)
 {
     qDebug() << "new source: " << newSource;
-    player->setSource(newSource.toString());
+    player->setSource(newSource);
 }
 
 void MediaPlayer::classBegin()

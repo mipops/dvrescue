@@ -45,7 +45,7 @@ Rectangle {
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
-            width: tableView.columnWidths[modelData]
+            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
             text: dataModel.columns[modelData].display
             canFilter: false
             canSort: false
@@ -164,11 +164,11 @@ Rectangle {
 
                         property string imageUrl: {
                             if(editRole === Qt.point(1, 1)) {
-                                return "icons/record-marker-stop+start-table.svg"
+                                return "/icons/record-marker-stop+start-table.svg"
                             } else if(editRole === Qt.point(1, 0)) {
-                                return "icons/record-marker-start-table.svg"
+                                return "/icons/record-marker-start-table.svg"
                             } else if(editRole === Qt.point(0, 1)) {
-                                return "icons/record-marker-stop-table.svg"
+                                return "/icons/record-marker-stop-table.svg"
                             }
 
                             return null;

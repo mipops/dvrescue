@@ -1,14 +1,14 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
-import QtQuick.Controls 1.4 as QQC1
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
 import Launcher 0.1
 import FileUtils 1.0
 import DataModel 1.0
-import QtQuick.Dialogs 1.3
+import Dialogs 1.0
 import QtAVPlayerUtils 1.0
+import SplitView 1.0
 
 Item {
     id: root
@@ -32,7 +32,7 @@ Item {
 
     MessageDialog {
         id: errorDialog
-        icon: StandardIcon.Critical
+        // icon: StandardIcon.Critical
         title: "Error on parsing xml"
     }
 
@@ -126,7 +126,7 @@ Item {
         }
     }
 
-    QQC1.SplitView {
+    SplitView {
         id: splitView
         anchors.fill: parent
         orientation: Qt.Horizontal
@@ -135,7 +135,7 @@ Item {
             playerAndPlotsSplitView.width = width / 2
         }
 
-        QQC1.SplitView {
+        SplitView {
             id: playerAndPlotsSplitView
 
             orientation: Qt.Vertical
@@ -144,8 +144,16 @@ Item {
                 playerView.height = height / 2
             }
 
+            Component.onCompleted: {
+                SplitView.preferredWidth = Qt.binding(function() { return playerView.width  })
+            }
+
             PlayerView {
                 id: playerView
+
+                Component.onCompleted: {
+                    SplitView.preferredHeight = Qt.binding(function() { return height })
+                }
 
                 startOffset: fps == 0 ? 0 : (root.startFrame / fps * 1000)
                 endOffset: fps == 0 ? player.duration : (root.endFrame / fps * 1000)
@@ -221,7 +229,7 @@ Item {
             }
         }
 
-        QQC1.SplitView {
+        SplitView {
             id: tables
             orientation: Qt.Vertical
 
@@ -241,7 +249,7 @@ Item {
                     property int fileViewerHeight: 0
 
                     CustomButton {
-                        icon.source: "icons/add-files.svg"
+                        icon.source: "/icons/add-files.svg"
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
@@ -254,7 +262,7 @@ Item {
                     }
 
                     CustomButton {
-                        icon.source: "icons/recent.svg"
+                        icon.source: "/icons/recent.svg"
 
                         onClicked: {
                             var mapped = mapToItem(root, 0, 0);
@@ -312,7 +320,7 @@ Item {
                                 var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
                                 if(FileUtils.exists(videoPath))
                                 {
-                                    playerView.player.source = 'file:///' + videoPath;
+                                    playerView.player.source = videoPath;
                                     playerView.player.playPaused(0);
                                 }
                             }
@@ -349,7 +357,7 @@ Item {
                                                                     });
                             }
 
-                            playerView.player.source = 'file:///' + filePath;
+                            playerView.player.source = filePath;
                             playerView.player.playPaused(0);
                         }
                     }

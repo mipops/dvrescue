@@ -27,7 +27,7 @@ Rectangle {
 
         Image {
             id: jumpImage
-            source: "icons/alert-non-continuous-jump.svg"
+            source: "/icons/alert-non-continuous-jump.svg"
             height: textDelegate.height
             width: height
             visible: false
@@ -35,7 +35,7 @@ Rectangle {
 
         Image {
             id: repeatImage
-            source: "icons/alert-repeat-frame.svg"
+            source: "/icons/alert-repeat-frame.svg"
             height: textDelegate.height
             width: height
             visible: false

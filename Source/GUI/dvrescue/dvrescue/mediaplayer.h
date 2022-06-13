@@ -40,7 +40,7 @@ class MediaPlayer : public QObject, public QQmlParserStatus
     Q_PROPERTY(QQuickItem* videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
     Q_PROPERTY(MediaStatus status READ status NOTIFY statusChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QString source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(QIODevice* buffer READ buffer WRITE setBuffer NOTIFY bufferChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(qint64 position READ position NOTIFY positionChanged)
@@ -84,8 +84,8 @@ public:
     qint64 position() const;
     qreal videoFrameRate() const;
 
-    QUrl source() const;
-    void setSource(const QUrl& newSource);
+    QString source() const;
+    void setSource(const QString& newSource);
 
     const QVector2D &ranges() const;
     void setRanges(const QVector2D &newRanges);

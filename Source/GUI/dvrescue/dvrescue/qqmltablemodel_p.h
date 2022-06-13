@@ -87,8 +87,13 @@ public:
     QQmlListProperty<QQmlTableModelColumn> columns();
 
     static void columns_append(QQmlListProperty<QQmlTableModelColumn> *property, QQmlTableModelColumn *value);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     static int columns_count(QQmlListProperty<QQmlTableModelColumn> *property);
     static QQmlTableModelColumn *columns_at(QQmlListProperty<QQmlTableModelColumn> *property, int index);
+#else
+    static qsizetype columns_count(QQmlListProperty<QQmlTableModelColumn> *property);
+    static QQmlTableModelColumn *columns_at(QQmlListProperty<QQmlTableModelColumn> *property, qsizetype index);
+#endif //
     static void columns_clear(QQmlListProperty<QQmlTableModelColumn> *property);
     static void columns_replace(QQmlListProperty<QQmlTableModelColumn> *property, int index, QQmlTableModelColumn *value);
     static void columns_removeLast(QQmlListProperty<QQmlTableModelColumn> *property);

@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qt5/Dialogs/FileDialog.qml</file>
+        <file>qt5/Dialogs/MessageDialog.qml</file>
+        <file>qt5/Dialogs/qmldir</file>
+    </qresource>
+</RCC>

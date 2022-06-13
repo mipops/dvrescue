@@ -155,7 +155,7 @@ Rectangle {
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
-            width: tableView.columnWidths[modelData]
+            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
             text: dataModel.columns[modelData].display
             canFilter: false
             canSort: false
@@ -249,7 +249,7 @@ Rectangle {
                         anchors.leftMargin: 2
 
                         icon.color: "black"
-                        icon.source: "icons/exit.svg"
+                        icon.source: "/icons/exit.svg"
                         implicitHeight: parent.height
                         implicitWidth: implicitHeight
 

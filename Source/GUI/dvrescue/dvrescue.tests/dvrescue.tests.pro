@@ -7,7 +7,8 @@ CONFIG += c++17 warn_on
 CONFIG += no_keywords
 CONFIG += console
 
-QT += quick testlib xmlpatterns widgets multimedia multimediawidgets
+QT += quick testlib widgets multimedia multimediawidgets
+equals(QT_MAJOR_VERSION, 5): QT += xmlpatterns
 
 SOURCES += \
     csvparsingtest.cpp \

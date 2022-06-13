@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.12
 import FileUtils 1.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
-import QtQuick.Controls 1.4 as QQC1
+import SplitView 1.0
 
 Item {
     id: root
@@ -128,7 +128,7 @@ Item {
 
         CustomButton {
             id: addFiles
-            icon.source: "icons/add-files.svg"
+            icon.source: "/icons/add-files.svg"
             onClicked: {
                 selectPath.callback = (urls) => {
                     urls.forEach((url) => {
@@ -143,7 +143,7 @@ Item {
         }
 
         CustomButton {
-            icon.source: "icons/recent.svg"
+            icon.source: "/icons/recent.svg"
 
             onClicked: {
                 var mapped = mapToItem(root, 0, 0);
@@ -264,7 +264,7 @@ Item {
     }
 
 
-    QQC1.SplitView {
+    SplitView {
         id: splitView
         anchors.top: toolsLayout.bottom
         anchors.left: parent.left
@@ -280,6 +280,10 @@ Item {
 
         PackageFileView {
             id: fileView
+
+            Component.onCompleted: {
+                SplitView.preferredHeight = Qt.binding(function() { return height })
+            }
 
             onFileAdded: {
                 root.recentFilesModel.addRecent(filePath)
@@ -305,6 +309,10 @@ Item {
 
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
+
+            Component.onCompleted: {
+                SplitView.preferredHeight = Qt.binding(function() { return height })
+            }
 
             framesCount: root.framesCount
             reportPath: root.reportPath
@@ -337,6 +345,10 @@ Item {
 
         PackageOutputFileView {
             id: packageOutputFileView
+
+            Component.onCompleted: {
+                SplitView.preferredHeight = Qt.binding(function() { return height })
+            }
 
             function updatePackagingErrorByPath(path, error) {
                 updatePropertyByPath(path, 'Error', error)

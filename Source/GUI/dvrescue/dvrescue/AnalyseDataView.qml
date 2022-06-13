@@ -46,7 +46,7 @@ Rectangle {
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
-            width: tableView.columnWidths[modelData]
+            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
@@ -170,11 +170,11 @@ Rectangle {
 
                         property string imageUrl: {
                             if(editRole === Qt.point(1, 1)) {
-                                return "icons/record-marker-stop+start-table.svg"
+                                return "/icons/record-marker-stop+start-table.svg"
                             } else if(editRole === Qt.point(1, 0)) {
-                                return "icons/record-marker-start-table.svg"
+                                return "/icons/record-marker-start-table.svg"
                             } else if(editRole === Qt.point(0, 1)) {
-                                return "icons/record-marker-stop-table.svg"
+                                return "/icons/record-marker-stop-table.svg"
                             }
 
                             return null;
@@ -418,11 +418,11 @@ Rectangle {
 
                     property string imageUrl: {
                         if(display === '┬') {
-                            return decoration ? "icons/closed-caption-start-error.svg" : "icons/closed-caption-start.svg"
+                            return decoration ? "/icons/closed-caption-start-error.svg" : "/icons/closed-caption-start.svg"
                         } else if(display === '┴') {
-                            return decoration ? "icons/closed-caption-end-error.svg" : "icons/closed-caption-end.svg"
+                            return decoration ? "/icons/closed-caption-end-error.svg" : "/icons/closed-caption-end.svg"
                         } else if(display === '│' || display === 'y') {
-                            return decoration ? "icons/closed-caption-middle-error.svg" : "icons/closed-caption-middle.svg"
+                            return decoration ? "/icons/closed-caption-middle-error.svg" : "/icons/closed-caption-middle.svg"
                         }
 
                         return null;

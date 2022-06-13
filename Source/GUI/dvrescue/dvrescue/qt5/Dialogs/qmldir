@@ -1,0 +1,3 @@
+module Dialogs
+FileDialog 1.0 FileDialog.qml
+MessageDialog 1.0 MessageDialog.qml

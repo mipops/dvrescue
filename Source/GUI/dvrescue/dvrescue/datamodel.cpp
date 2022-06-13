@@ -361,11 +361,11 @@ void DataModel::populate(const QString &fileName)
         auto recStart = (frameAttributes.hasAttribute("rec_start") ? frameAttributes.value("rec_start").toInt() : 0);
         auto recEnd = (frameAttributes.hasAttribute("rec_end") ? frameAttributes.value("rec_end").toInt() : 0);
         if(recStart && recEnd) {
-            frameStats.markers["rec"] = std::make_pair("Recording Start&End", "icons/record-marker-stop+start-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording Start&End", "/icons/record-marker-stop+start-graph.svg");
         } else if(recStart) {
-            frameStats.markers["rec"] = std::make_pair("Recording Start", "icons/record-marker-start-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording Start", "/icons/record-marker-start-graph.svg");
         } else if(recEnd) {
-            frameStats.markers["rec"] = std::make_pair("Recording End", "icons/record-marker-stop-graph.svg");
+            frameStats.markers["rec"] = std::make_pair("Recording End", "/icons/record-marker-stop-graph.svg");
         }
 
         if(isSubstantial)
@@ -438,7 +438,7 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
     auto timecodeJump = 0;
     if(frameAttributes.hasAttribute("tc_nc")) {
         timecodeJump = frameAttributes.value("tc_nc").toInt();
-        frameStats.markers["tc_n"] = std::make_pair("Timecode: Jump", "icons/record-marker-stop+start-graph.svg");
+        frameStats.markers["tc_n"] = std::make_pair("Timecode: Jump", "/icons/record-marker-stop+start-graph.svg");
     }
 
     map["Timecode: Jump/Repeat"] = QPoint(timecodeJump, timecodeRepeat);
@@ -499,11 +499,11 @@ void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAt
             if(frameAttributes.hasAttribute("caption"))
             {
                 auto caption = frameAttributes.value("caption");
-                if(caption == "on")
+                if(caption == QString("on"))
                 {
                     map["CC"] = "┬";
                 }
-                else if(caption == "off")
+                else if(caption == QString("off"))
                 {
                     map["CC"] = "┴";
                 }

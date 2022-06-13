@@ -226,8 +226,8 @@ public:
     bool active() const;    
     QPointF point() const;
 
-    Q_INVOKABLE QPoint transform(const QPointF& p);
-    Q_INVOKABLE QPointF invTransform(const QPoint& p);
+    Q_INVOKABLE QPoint transformPoint(const QPointF& p);
+    Q_INVOKABLE QPointF invTransformPoint(const QPoint& p);
 
     QwtQuick2Plot* plotItem() const;
 
@@ -263,8 +263,14 @@ Q_SIGNALS:
 
 protected:
     void paint(QPainter* painter);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     virtual void geometryChanged(const QRectF &newGeometry,
                                  const QRectF &oldGeometry);
+#else
+    virtual void geometryChange(const QRectF &newGeometry,
+                                 const QRectF &oldGeometry);
+#endif //
+
 
 private:
     QwtLegend* m_legend;

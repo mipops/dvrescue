@@ -1,12 +1,12 @@
 import QtQuick 2.12
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
-import QtMultimedia 5.12 as QtMultimedia
-import MediaPlayer 1.0
+import QtAVMediaPlayer 1.0
 import MediaPlayerBuffer 1.0
 import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
+import Multimedia 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -51,7 +51,7 @@ Column {
             text: "NO SIGNAL"
         }
 
-        QtMultimedia.VideoOutput {
+        VideoOutput {
             id: videoOutput
             anchors.fill: parent
             objectName: "videoOutput"
@@ -85,21 +85,21 @@ Column {
             id: csvParserUI
         }
 
-        MediaPlayer {
+        QtAVMediaPlayer {
             id: player
             videoOutput: videoOutput
             buffer: buffer
             enableAudio: false
 
             Component.onCompleted: {
-                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
-                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
-                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+                console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', QtAVMediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', QtAVMediaPlayer.PausedState);
 
-                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
-                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
-                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
-                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+                console.debug('MediaPlayer.NoMedia: ', QtAVMediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', QtAVMediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', QtAVMediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', QtAVMediaPlayer.InvalidMedia);
             }
         }
     }
@@ -115,30 +115,30 @@ Column {
             Button {
                 id: rewindButton
                 icon.color: 'transparent'
-                icon.source: "icons/rewind.svg"
+                icon.source: "/icons/rewind.svg"
             }
 
             Button {
                 id: playButton
                 icon.color: 'transparent'
-                icon.source: "icons/play.svg"
+                icon.source: "/icons/play.svg"
             }
 
             Button {
                 id: stopButton
                 icon.color: 'transparent'
-                icon.source: "icons/stop.svg"
+                icon.source: "/icons/stop.svg"
             }
 
             Button {
                 id: fastForwardButton
                 icon.color: 'transparent'
-                icon.source: "icons/fastforward.svg"
+                icon.source: "/icons/fastforward.svg"
             }
             Button {
                 id: captureButton
                 icon.color: "transparent"
-                icon.source: "icons/capture.svg"
+                icon.source: "/icons/capture.svg"
             }
         }
 

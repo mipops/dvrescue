@@ -2,8 +2,8 @@ import QtQuick 2.12
 import QtQuick.Layouts 1.12
 import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
-import QtMultimedia 5.12 as QtMultimedia
-import MediaPlayer 1.0
+import QtAVMediaPlayer 1.0
+import Multimedia 1.0
 
 Rectangle {
     id: root
@@ -32,26 +32,26 @@ Rectangle {
     ColumnLayout {
         anchors.fill: parent
 
-        QtMultimedia.VideoOutput {
+        VideoOutput {
             id: videoOutput
             Layout.fillHeight: true
             Layout.fillWidth: true
             objectName: "videoOutput"
         }
 
-        MediaPlayer {
+        QtAVMediaPlayer {
             id: player
             videoOutput: videoOutput
 
             Component.onCompleted: {
-                console.debug('MediaPlayer.StoppedState: ', MediaPlayer.StoppedState);
-                console.debug('MediaPlayer.PlayingState: ', MediaPlayer.PlayingState);
-                console.debug('MediaPlayer.PausedState: ', MediaPlayer.PausedState);
+                console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
+                console.debug('MediaPlayer.PlayingState: ', QtAVMediaPlayer.PlayingState);
+                console.debug('MediaPlayer.PausedState: ', QtAVMediaPlayer.PausedState);
 
-                console.debug('MediaPlayer.NoMedia: ', MediaPlayer.NoMedia);
-                console.debug('MediaPlayer.LoadedMedia: ', MediaPlayer.LoadedMedia);
-                console.debug('MediaPlayer.EndOfMedia: ', MediaPlayer.EndOfMedia);
-                console.debug('MediaPlayer.InvalidMedia: ', MediaPlayer.InvalidMedia);
+                console.debug('MediaPlayer.NoMedia: ', QtAVMediaPlayer.NoMedia);
+                console.debug('MediaPlayer.LoadedMedia: ', QtAVMediaPlayer.LoadedMedia);
+                console.debug('MediaPlayer.EndOfMedia: ', QtAVMediaPlayer.EndOfMedia);
+                console.debug('MediaPlayer.InvalidMedia: ', QtAVMediaPlayer.InvalidMedia);
             }
 
             /*
@@ -60,12 +60,12 @@ Rectangle {
 
             onStatusChanged: {
                 console.debug('status: ', status);
-                if(status === MediaPlayer.LoadedMedia) {
+                if(status === QtAVMediaPlayer.LoadedMedia) {
                     console.debug('status: MediaPlayer.LoadedMedia');
                     fps = QtAVPlayerUtils.fps(player);
                     console.debug('status: MediaPlayer.LoadedMedia: fps = ', fps);
                 }
-                else if(status === MediaPlayer.NoMedia || status === MediaPlayer.InvalidMedia) {
+                else if(status === QtAVMediaPlayer.NoMedia || status === QtAVMediaPlayer.InvalidMedia) {
                     console.debug('status: MediaPlayer.NoMedia || MediaPlayer.InvalidMedia');
                     fps =  0;
                     QtAVPlayerUtils.emitEmptyFrame(playerView.player);
@@ -159,26 +159,26 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
 
             Button {
-                enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/first-frame.svg"
+                enabled: player.status !== QtAVMediaPlayer.NoMedia
+                icon.source: "/icons/first-frame.svg"
                 onClicked: {
                     player.seek(0)
                 }
             }
 
             Button {
-                enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/previous-frame.svg"
+                enabled: player.status !== QtAVMediaPlayer.NoMedia
+                icon.source: "/icons/previous-frame.svg"
                 onClicked: {
                     player.stepBackward()
                 }
             }
 
             Button {
-                enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: player.state === MediaPlayer.PlayingState ? "icons/stop.svg" : "icons/play.svg"
+                enabled: player.status !== QtAVMediaPlayer.NoMedia
+                icon.source: player.state === QtAVMediaPlayer.PlayingState ? "/icons/stop.svg" : "/icons/play.svg"
                 onClicked: {
-                    if(player.state === MediaPlayer.PlayingState)
+                    if(player.state === QtAVMediaPlayer.PlayingState)
                         player.pause()
                     else
                         player.play()
@@ -186,16 +186,16 @@ Rectangle {
             }
 
             Button {
-                enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/next-frame.svg"
+                enabled: player.status !== QtAVMediaPlayer.NoMedia
+                icon.source: "/icons/next-frame.svg"
                 onClicked: {
                     player.stepForward()
                 }
             }
 
             Button {
-                enabled: player.status !== MediaPlayer.NoMedia
-                icon.source: "icons/last-frame.svg"
+                enabled: player.status !== QtAVMediaPlayer.NoMedia
+                icon.source: "/icons/last-frame.svg"
                 onClicked: {
                     player.seek(player.duration - 1)
                 }

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qt6/Multimedia/VideoOutput.qml</file>
+        <file>qt6/Multimedia/qmldir</file>
+    </qresource>
+</RCC>

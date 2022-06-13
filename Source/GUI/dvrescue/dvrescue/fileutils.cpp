@@ -6,6 +6,12 @@
 #include <QFileInfo>
 #include <QDebug>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using SplitBehaviour = QString::SplitBehavior;
+#else
+using SplitBehaviour = Qt::SplitBehaviorFlags;
+#endif //
+
 FileUtils::FileUtils(QObject *parent) : QObject(parent)
 {
 
@@ -139,7 +145,7 @@ QString FileUtils::find(const QString &what)
     qDebug() << "FileUtils::find: " << what;
 
     QByteArray pEnv = qgetenv("PATH");
-    const QStringList rawPaths = QString::fromLocal8Bit(pEnv.constData()).split(QDir::listSeparator(), QString::SkipEmptyParts);
+    const QStringList rawPaths = QString::fromLocal8Bit(pEnv.constData()).split(QDir::listSeparator(), SplitBehaviour::SkipEmptyParts);
 
     QStringList searchPaths;
     searchPaths.reserve(rawPaths.size());

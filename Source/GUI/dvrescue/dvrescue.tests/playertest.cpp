@@ -3,33 +3,14 @@
 #include <QThread>
 #include <QtAVPlayer/QtAVPlayer>
 #include <QVideoWidget>
+#include <QtAVPlayer/qavaudiooutput.h>
+#include <QtAVPlayer/qavplayer.h>
 
-PlayerTest::PlayerTest(QObject *parent)
-{
-    qRegisterMetaType<QAVAudioFrame>();
-}
-
-void PlayerTest::test()
-{
-    QAVPlayer p;
-
-    QFileInfo file(path());
-    p.setSource(QUrl::fromLocalFile(file.absoluteFilePath()).toString());
-
-    QAVVideoFrame frame;
-    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&frame](const QAVVideoFrame &f) { frame = f; });
-
-    p.play();
-    QTRY_VERIFY(frame);
-
-    auto mapData = frame.map();
-    QVERIFY(mapData.size > 0);
-    QVERIFY(mapData.bytesPerLine[0] > 0);
-    QVERIFY(mapData.bytesPerLine[1] > 0);
-    QVERIFY(mapData.data[0] != nullptr);
-    QVERIFY(mapData.data[1] != nullptr);
-}
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QMediaService>
+#include <QVideoRendererControl>
+#include <QAbstractVideoSurface>
+#include <QVideoSurfaceFormat>
 
 class VideoRenderer : public QVideoRendererControl
 {
@@ -90,22 +71,56 @@ public:
     }
 };
 
+#else
+#include <QVideoSink>
+#endif //
+
+PlayerTest::PlayerTest(QObject *parent)
+{
+    qRegisterMetaType<QAVAudioFrame>();
+}
+
+void PlayerTest::test()
+{
+    QAVPlayer p;
+
+    QFileInfo file(path());
+    p.setSource(QUrl::fromLocalFile(file.absoluteFilePath()).toString());
+
+    QAVVideoFrame frame;
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&frame](const QAVVideoFrame &f) { frame = f; });
+
+    p.play();
+    QTRY_VERIFY(frame);
+
+    auto mapData = frame.map();
+    QVERIFY(mapData.size > 0);
+    QVERIFY(mapData.bytesPerLine[0] > 0);
+    QVERIFY(mapData.bytesPerLine[1] > 0);
+    QVERIFY(mapData.data[0] != nullptr);
+    QVERIFY(mapData.data[1] != nullptr);
+}
 
 void PlayerTest::testPlaybackFromQIODevice()
 {
-
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     VideoRenderer vr;
     VideoWidget w;
-    w.show();
-
     MediaObject mo(&vr);
+
+    w.show();
     w.setMediaObject(&mo);
+#else
+    QVideoWidget m_w;
+    m_w.show();
+#endif
 
     QAVPlayer p;
 
     QAVAudioOutput audioOutput;
     QObject::connect(&p, &QAVPlayer::audioFrame, &p, [&audioOutput](const QAVAudioFrame &frame) { audioOutput.play(frame); });
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&vr](const QAVVideoFrame &frame) {
         if (vr.m_surface == nullptr)
             return;
@@ -118,7 +133,12 @@ void PlayerTest::testPlaybackFromQIODevice()
         if (vr.m_surface->isActive())
             vr.m_surface->present(videoFrame);
     });
-
+#else
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&m_w](const QAVVideoFrame &frame) {
+        QVideoFrame videoFrame = frame.convertTo(AV_PIX_FMT_RGB32);
+        m_w.videoSink()->setVideoFrame(videoFrame);
+    });
+#endif
 
     QFileInfo fileInfo(path());
     QFile file(path());
@@ -291,18 +311,24 @@ void PlayerTest::testPlaybackFromQIODevice()
 
 void PlayerTest::testPlaybackFromQIODevice2()
 {
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     VideoRenderer vr;
     VideoWidget w;
     w.show();
 
     MediaObject mo(&vr);
     w.setMediaObject(&mo);
+#else
+    QVideoWidget m_w;
+    m_w.show();
+#endif //
 
     QAVPlayer p;
 
     QAVAudioOutput audioOutput;
     QObject::connect(&p, &QAVPlayer::audioFrame, &p, [&audioOutput](const QAVAudioFrame &frame) { audioOutput.play(frame); });
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&vr](const QAVVideoFrame &frame) {
         if (vr.m_surface == nullptr)
             return;
@@ -315,7 +341,12 @@ void PlayerTest::testPlaybackFromQIODevice2()
         if (vr.m_surface->isActive())
             vr.m_surface->present(videoFrame);
     });
-
+#else
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&m_w](const QAVVideoFrame &frame) {
+        QVideoFrame videoFrame = frame.convertTo(AV_PIX_FMT_RGB32);
+        m_w.videoSink()->setVideoFrame(videoFrame);
+    });
+#endif //
 
     QFileInfo fileInfo(path());
     QFile file(path());
@@ -491,18 +522,24 @@ void PlayerTest::testPlaybackFromQIODevice3()
     QFile file(path());
     file.open(QFile::ReadOnly);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     VideoRenderer vr;
     VideoWidget w;
     w.show();
 
     MediaObject mo(&vr);
     w.setMediaObject(&mo);
+#else
+    QVideoWidget m_w;
+    m_w.show();
+#endif //
 
     QAVPlayer p;
 
     QAVAudioOutput audioOutput;
     QObject::connect(&p, &QAVPlayer::audioFrame, &p, [&audioOutput](const QAVAudioFrame &frame) { audioOutput.play(frame); });
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&vr](const QAVVideoFrame &frame) {
         if (vr.m_surface == nullptr)
             return;
@@ -515,6 +552,12 @@ void PlayerTest::testPlaybackFromQIODevice3()
         if (vr.m_surface->isActive())
             vr.m_surface->present(videoFrame);
     });
+#else
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&m_w](const QAVVideoFrame &frame) {
+        QVideoFrame videoFrame = frame.convertTo(AV_PIX_FMT_RGB32);
+        m_w.videoSink()->setVideoFrame(videoFrame);
+    });
+#endif //
 
     QObject::connect(&p, &QAVPlayer::errorOccurred, &p, [&](QAVPlayer::Error err, const QString &) {
         if (err == QAVPlayer::ResourceError) {
@@ -545,18 +588,24 @@ void PlayerTest::testPlaybackFromQIODevice4()
     buffer.m_size = file.size();
     buffer.open(QIODevice::ReadWrite);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     VideoRenderer vr;
     VideoWidget w;
     w.show();
 
     MediaObject mo(&vr);
     w.setMediaObject(&mo);
+#else
+    QVideoWidget m_w;
+    m_w.show();
+#endif //
 
     QAVPlayer p;
 
     QAVAudioOutput audioOutput;
     QObject::connect(&p, &QAVPlayer::audioFrame, &p, [&audioOutput](const QAVAudioFrame &frame) { audioOutput.play(frame); });
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&vr](const QAVVideoFrame &frame) {
         if (vr.m_surface == nullptr)
             return;
@@ -569,6 +618,12 @@ void PlayerTest::testPlaybackFromQIODevice4()
         if (vr.m_surface->isActive())
             vr.m_surface->present(videoFrame);
     });
+#else
+    QObject::connect(&p, &QAVPlayer::videoFrame, &p, [&m_w](const QAVVideoFrame &frame) {
+        QVideoFrame videoFrame = frame.convertTo(AV_PIX_FMT_RGB32);
+        m_w.videoSink()->setVideoFrame(videoFrame);
+    });
+#endif //
 
     p.setSource(fileInfo.fileName(), &buffer);
     p.play();
