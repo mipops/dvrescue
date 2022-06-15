@@ -18,7 +18,7 @@ Options:
  -o OUTPUT  (select a custom location for output files)
 
  -O FILE    (provide a path to a single output file. When set a single frame will be exported, depending on
-             if -b or -t is set. If 'FILE' is set to '-', dvplay will output a png to stdout.)
+             if -b or -t is set. If 'FILE' is set to '-', dvplay will output a jpeg to stdout.)
  -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)
  -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
 
@@ -551,7 +551,7 @@ while [[ "${@}" != "" ]] ; do
     _get_filters
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
-            PIPE_FORMAT=(-c:v png -f image2)
+            PIPE_FORMAT=(-c:v mjpeg -f image2)
         fi
         DVPLAY_OUTPUT="${OUTPUTFILE}"
         if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
