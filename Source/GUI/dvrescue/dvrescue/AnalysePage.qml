@@ -480,7 +480,7 @@ Item {
                         }
 
                         dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source).then((result) => {
-                            var dataUri = ImageUtils.toDataUri(result.output, "png");
+                            var dataUri = ImageUtils.toDataUri(result.output, "jpg");
                             if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
                                 console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
                             }
