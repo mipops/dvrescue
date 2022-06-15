@@ -136,7 +136,7 @@ Dialog {
 
             ScrollBar.vertical: ScrollBar {
                 id: vscroll
-                policy: ScrollBar.AsNeeded
+                policy: ScrollBar.AlwaysOn
             }
 
             ScrollBar.horizontal: ScrollBar {
