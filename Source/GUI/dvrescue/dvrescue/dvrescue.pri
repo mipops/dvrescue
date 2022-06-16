@@ -32,9 +32,11 @@ HEADERS += \
     $$PWD/connectionutils.h \
     $$PWD/datamodel.h \
     $$PWD/filewriter.h \
+    $$PWD/imageutils.h \
     $$PWD/launcher.h \
     $$PWD/fileutils.h \
     $$PWD/logging.h \
+    $$PWD/loggingutils.h \
     $$PWD/mediainfo.h \
     $$PWD/mediaplayer.h \
     $$PWD/playbackbuffer.h \
@@ -54,9 +56,11 @@ SOURCES += \
     $$PWD/connectionutils.cpp \
     $$PWD/datamodel.cpp \
     $$PWD/filewriter.cpp \
+    $$PWD/imageutils.cpp \
     $$PWD/launcher.cpp \
     $$PWD/fileutils.cpp \
     $$PWD/logging.cpp \
+    $$PWD/loggingutils.cpp \
     $$PWD/mediainfo.cpp \
     $$PWD/mediaplayer.cpp \
     $$PWD/playbackbuffer.cpp \

@@ -14,6 +14,7 @@
 #include <playbackbuffer.h>
 #include <qwtquick2plot.h>
 #include <csvparser.h>
+#include <imageutils.h>
 
 void Setup::applicationAvailable()
 {
@@ -48,6 +49,14 @@ void Setup::applicationAvailable()
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<ImageUtils>("ImageUtils", 1, 0, "ImageUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        ImageUtils *utils = new ImageUtils();
         return utils;
     });
 

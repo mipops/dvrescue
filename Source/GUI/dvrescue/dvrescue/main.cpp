@@ -21,9 +21,12 @@
 #include <QQmlParserStatus>
 #include <QQuickStyle>
 #include <QFileInfo>
+#include <imageutils.h>
+#include <loggingutils.h>
 
 int main(int argc, char *argv[])
 {
+    LoggingUtils::installFilter();
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
@@ -100,6 +103,9 @@ int main(int argc, char *argv[])
     QCommandLineOption enableLoggingOption(QStringList() << "l" << "log", "enable file logging");
     parser.addOption(enableLoggingOption);
 
+    QCommandLineOption loggingFilterRulesOption(QStringList() << "f" << "filter", "logging filter", "logging filter");
+    parser.addOption(loggingFilterRulesOption);
+
     parser.process(app.arguments());
     if(parser.isSet(resetSettingsOption)) {
         qDebug() << "resetting settings...";
@@ -112,6 +118,12 @@ int main(int argc, char *argv[])
     if(parser.isSet(enableLoggingOption)) {
         qDebug() << "enable file logging...";
         logging.enable();
+    }
+
+    QString filter;
+    if(parser.isSet(loggingFilterRulesOption)) {
+        filter = parser.value(loggingFilterRulesOption);
+        qDebug() << "got logging filter rules: " << filter;
     }
 
     qDebug() << "PATH: " << qEnvironmentVariable("PATH");
@@ -133,11 +145,27 @@ int main(int argc, char *argv[])
         return utils;
     });
 
+    qmlRegisterSingletonType<LoggingUtils>("LoggingUtils", 1, 0, "LoggingUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        LoggingUtils *utils = new LoggingUtils();
+        return utils;
+    });
+
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)
         Q_UNUSED(scriptEngine)
 
         FileUtils *utils = new FileUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<ImageUtils>("ImageUtils", 1, 0, "ImageUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        ImageUtils *utils = new ImageUtils();
         return utils;
     });
 
@@ -180,6 +208,22 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
+
+    for(auto category : LoggingUtils::allCategories()) {
+        qDebug() << "category: " << category->categoryName() << category->isDebugEnabled();
+    }
+
+    qDebug() << "\tapply logging filter rules: " << filter;
+
+    if(!filter.isEmpty()) {
+        LoggingUtils::uninstallFilter();
+        QLoggingCategory::setFilterRules(filter);
+    }
+
+    // --filter "dvrescue.dvplay.debug=true"
+    for(auto category : LoggingUtils::allCategories()) {
+        qDebug() << "category: " << category->categoryName() << category->isDebugEnabled();
+    }
 
     return app.exec();
 }

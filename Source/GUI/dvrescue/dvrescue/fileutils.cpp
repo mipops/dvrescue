@@ -5,6 +5,7 @@
 #include <QUrl>
 #include <QFileInfo>
 #include <QDebug>
+#include <QImage>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 using SplitBehaviour = QString::SplitBehavior;
@@ -123,6 +124,36 @@ QString FileUtils::read(const QString &filePath)
     }
 
     return content;
+}
+
+QByteArray FileUtils::readBinary(const QString &filePath)
+{
+    QFile file(filePath);
+    if(file.open(QIODevice::ReadOnly))
+    {
+        return file.readAll();
+    }
+
+    return QByteArray();
+}
+
+void FileUtils::write(const QString &filePath, const QString &content)
+{
+    QFile file(filePath);
+    if(file.open(QIODevice::WriteOnly))
+    {
+        QTextStream stream(&file);
+        stream << content;
+    }
+}
+
+void FileUtils::write(const QString &filePath, const QByteArray &content)
+{
+    QFile file(filePath);
+    if(file.open(QIODevice::WriteOnly))
+    {
+        file.write(content);
+    }
 }
 
 bool FileUtils::remove(const QString &filePath)

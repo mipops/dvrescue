@@ -99,5 +99,9 @@
         <file>fonts/DS-DIGI.TTF</file>
         <file>LCDLabel.qml</file>
         <file>CaptureFrameInfo.qml</file>
+        <file>DvLoupeCtl.qml</file>
+        <file>DvPlayCtl.qml</file>
+        <file>DvLoupeView.qml</file>
+        <file>HyperlinkDelegate.qml</file>
     </qresource>
 </RCC>

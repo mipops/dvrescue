@@ -16,6 +16,7 @@ Rectangle {
     property vector2d ranges: Qt.vector2d(-1, -1)
 
     signal tapped(int framePos);
+    signal frameInfoRequested(int index);
 
     function bringToView(framePos) {
         var sourceRow = cppDataModel.rowByFrame(framePos);
@@ -93,6 +94,51 @@ Rectangle {
         }
 
         delegate: DelegateChooser {
+            DelegateChoice {
+                column: dataModel.frameColumn
+
+                HyperlinkDelegate {
+                    height: tableView.delegateHeight
+                    implicitHeight: tableView.delegateHeight
+                    property color evenColor: '#e3e3e3'
+                    property color oddColor: '#f3f3f3'
+                    textFont.pixelSize: 13
+                    text: '<a href="#">' + display + '</a>'
+                    onLinkActivated: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        frameInfoRequested(sourceRow)
+                    }
+
+                    color: (row % 2) == 0 ? evenColor : oddColor
+                    overlayVisible: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        // var frameNumber = dataModel.getRow(sourceRow)[0]; // slow approach
+                        return frameNumber === framePos
+                    }
+                    overlayColor: rowHighlightColor
+
+                    Rectangle {
+                        function isInRange(row) {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                            return frameNumber <= ranges.y && frameNumber >= ranges.x
+                        }
+
+                        anchors.fill: parent
+                        color: 'purple'
+                        opacity: 0.25
+                        visible: ranges !== Qt.vector2d(-1, -1) && isInRange(row)
+                    }
+
+                    onClicked: {
+                        var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                        var frameNumber = cppDataModel.frameByIndex(sourceRow);
+                        dataView.tapped(frameNumber);
+                    }
+                }
+            }
+
             DelegateChoice {
                 column: dataModel.timecodeColumn
 
@@ -297,6 +343,8 @@ Rectangle {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var frameNumber = cppDataModel.frameByIndex(sourceRow);
                             dataView.tapped(frameNumber);
                         }
                     }
@@ -588,6 +636,7 @@ Rectangle {
     TableModelEx {
         id: dataModel
 
+        property int frameColumn: columnsNames.indexOf("Frame #");
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
         property int sequenceNumberColumn: columnsNames.indexOf("Sequence Number");

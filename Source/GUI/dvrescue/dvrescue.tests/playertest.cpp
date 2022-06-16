@@ -152,7 +152,7 @@ void PlayerTest::testPlaybackFromQIODevice()
             qDebug() << "got frame";
         });
 
-        p.setSource(QUrl(fileInfo.fileName()), &file);
+        p.setSource(fileInfo.fileName(), &file);
         p.stepForward();
 
         QTest::qWait(1000);
@@ -289,6 +289,7 @@ void PlayerTest::testPlaybackFromQIODevice()
     p.setSource(QUrl(fileInfo.fileName()).toString(), &buffer);
     // p.play();
 
+#if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
     QThreadPool::globalInstance()->start([&file, &serverSocket]() {
         while(!file.atEnd()) {
             auto bytes = file.read(4096);
@@ -305,6 +306,7 @@ void PlayerTest::testPlaybackFromQIODevice()
             QThread::msleep(1000);
         }
     });
+#endif //
 
     QTest::qWait(100000);
 }
@@ -421,8 +423,9 @@ void PlayerTest::testPlaybackFromQIODevice2()
     });
 
     auto &buffer = client;
-    p.setSource(QUrl(fileInfo.fileName()).toString(), &buffer);
+    p.setSource(fileInfo.fileName(), &buffer);
 
+#if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
     QThreadPool::globalInstance()->start([&file, &serverSocket]() {
         while(!file.atEnd()) {
             auto bytes = file.read(4096);
@@ -439,6 +442,7 @@ void PlayerTest::testPlaybackFromQIODevice2()
             QThread::msleep(2000);
         }
     });
+#endif //
 
     QTest::qWait(100000);
 }
@@ -628,6 +632,7 @@ void PlayerTest::testPlaybackFromQIODevice4()
     p.setSource(fileInfo.fileName(), &buffer);
     p.play();
 
+#if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
     QThreadPool::globalInstance()->start([&file, &buffer]() {
         while(!file.atEnd()) {
             auto bytes = file.read(1 * 1024);
@@ -636,6 +641,7 @@ void PlayerTest::testPlaybackFromQIODevice4()
             // QTest::qWait(50);
         }
     });
+#endif //
 
     QTest::qWait(30000);
 }
@@ -656,15 +662,15 @@ void PlayerTest::testMultipleSources()
     });
 
     QFileInfo file(path());
-    qDebug() << "setSource: " << QUrl::fromLocalFile(file.absoluteFilePath());
-    p.setSource(QUrl::fromLocalFile(file.absoluteFilePath()).toString());
+    qDebug() << "setSource: " << file.absoluteFilePath();
+    p.setSource(file.absoluteFilePath());
     p.play();
     QTest::qWait(100);
 
     QFileInfo file2(path2());
 
-    qDebug() << "setSource: " << QUrl::fromLocalFile(file2.absoluteFilePath());
-    p.setSource(QUrl::fromLocalFile(file2.absoluteFilePath()).toString());
+    qDebug() << "setSource: " << file2.absoluteFilePath();
+    p.setSource(file2.absoluteFilePath());
     p.play();
     QTest::qWait(100);
 }

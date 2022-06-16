@@ -5,5 +5,7 @@
         <file>testdata/many_attributes.dv.dvrescue.scc</file>
         <file>testdata/many_attributes.dv.dvrescue.vtt</file>
         <file>testdata/many_attributes.dv.dvrescue.xml</file>
+        <file>testdata/dvloupe.json</file>
+        <file>testdata/dvplay.data</file>
     </qresource>
 </RCC>
