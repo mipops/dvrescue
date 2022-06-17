@@ -454,6 +454,10 @@ Item {
                         imageSource = null
                         fetch()
                     }
+                    onRefresh: {
+                        imageSource = null
+                        fetch();
+                    }
 
                     onSelectionChanged: {
                         var selectedRows = [];
@@ -479,7 +483,32 @@ Item {
                             extra = ' -B ' + selection.join(',') + ' '
                         }
 
-                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source).then((result) => {
+                        var filterOptions = ''
+                        if(headerCheckboxChecked) {
+                            filterOptions += ' -H'
+                        }
+
+                        if(subcodeCheckboxChecked) {
+                            filterOptions += ' -S'
+                        }
+
+                        if(vauxCheckboxChecked) {
+                            filterOptions += ' -X'
+                        }
+
+                        if(audioCheckboxChecked) {
+                            filterOptions += ' -A'
+                        }
+
+                        if(videoCheckboxChecked) {
+                            filterOptions += ' -V'
+                        }
+
+                        if(errorOnlyCheckboxChecked) {
+                            filterOptions += ' -E'
+                        }
+
+                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source + filterOptions).then((result) => {
                             var dataUri = ImageUtils.toDataUri(result.output, "jpg");
                             if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
                                 console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)

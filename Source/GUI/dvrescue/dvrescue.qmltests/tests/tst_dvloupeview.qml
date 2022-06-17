@@ -3,20 +3,19 @@ import QtTest 1.0
 import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import QtQuick.Controls 1.4 as QQC1
 import FileUtils 1.0
 import ImageUtils 1.0
 import "../../dvrescue"
 
 Rectangle {
     id: root
-    width: Math.max(640, parent ? parent.width : 0)
-    height: Math.max(480, parent ? parent.height : 0)
+    width: Math.max(1280, parent ? parent.width : 0)
+    height: Math.max(760, parent ? parent.height : 0)
 
     DvLoupeView {
         id: dvloupeView
-        width: 1280
-        height: 760
+        width: root.width
+        height: root.height
     }
 
     TestCase {
