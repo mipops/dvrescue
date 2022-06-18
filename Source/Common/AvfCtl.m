@@ -272,7 +272,7 @@
     [_session stopRunning];
 }
 
-- (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
+- (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed
 {
     @try {
         NSError *error = nil;
@@ -286,6 +286,16 @@
     @catch (NSException *e) {
         NSLog(@"Exception: %@", e);
     }
+}
+
+- (AVCaptureDeviceTransportControlsSpeed) getSpeed
+{
+    return [_device transportControlsSpeed];
+}
+
+- (AVCaptureDeviceTransportControlsPlaybackMode) getMode
+{
+    return [_device transportControlsPlaybackMode];
 }
 
 - (void) waitForSessionEnd

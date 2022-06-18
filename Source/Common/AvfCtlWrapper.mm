@@ -79,6 +79,11 @@ string AVFCtlWrapper::GetDeviceName(size_t DeviceIndex)
     return string([[AVFCtl getDeviceName:DeviceIndex] UTF8String]);
 }
 
+string AVFCtlWrapper::GetStatus()
+{
+    return string([[(id)Ctl getStatus] UTF8String]);
+}
+
 void AVFCtlWrapper::CreateCaptureSession(FileWrapper* Wrapper)
 {
     AVFCtlBufferReceiver *receiver = [[AVFCtlBufferReceiver alloc] initWithFileWrapper:Wrapper];
@@ -98,6 +103,16 @@ void AVFCtlWrapper::StopCaptureSession()
 void AVFCtlWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
 {
     [(id)Ctl setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)Mode speed:Speed];
+}
+
+float AVFCtlWrapper::GetSpeed()
+{
+    return (float)[(id)Ctl getSpeed];
+}
+
+playback_mode AVFCtlWrapper::GetMode()
+{
+    return (playback_mode)[(id)Ctl getMode];
 }
 
 void AVFCtlWrapper::WaitForSessionEnd()
