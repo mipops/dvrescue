@@ -455,8 +455,7 @@ Item {
                         fetch()
                     }
                     onRefresh: {
-                        imageSource = null
-                        fetch();
+                        fetch('dvloupe');
                     }
 
                     onSelectionChanged: {
@@ -483,6 +482,32 @@ Item {
                             extra = ' -B ' + selection.join(',') + ' '
                         }
 
+                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source).then((result) => {
+                            var dataUri = ImageUtils.toDataUri(result.output, "jpg");
+                            if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
+                                console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
+                            }
+                            dvloupeView.imageSource = dataUri
+                        }).catch((err) => {
+                            console.error('dvplay.exec error: ', err)
+                        })
+                    }
+
+                    function fetch(args) {
+                        var data = dataView.model.getRow(index);
+                        var offset = data['Byte Offset']
+
+                        if(args !== 'dvloupe') {
+                            doDvPlay(offset)
+                        }
+
+                        console.debug('executing dvloupe... ');
+
+                        var extraParams = " -M {mediainfo} -x {xml} -F {ffmpeg}"
+                        .replace("{mediainfo}", dvloupe.effectiveMediaInfoCmd)
+                        .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
+                        .replace("{ffmpeg}", dvloupe.effectiveFfmpegCmd)
+
                         var filterOptions = ''
                         if(headerCheckboxChecked) {
                             filterOptions += ' -H'
@@ -508,31 +533,7 @@ Item {
                             filterOptions += ' -E'
                         }
 
-                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source + filterOptions).then((result) => {
-                            var dataUri = ImageUtils.toDataUri(result.output, "jpg");
-                            if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
-                                console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
-                            }
-                            dvloupeView.imageSource = dataUri
-                        }).catch((err) => {
-                            console.error('dvplay.exec error: ', err)
-                        })
-                    }
-
-                    function fetch() {
-                        var data = dataView.model.getRow(index);
-                        var offset = data['Byte Offset']
-
-                        doDvPlay(offset)
-
-                        console.debug('executing dvloupe... ');
-
-                        var extraParams = " -M {mediainfo} -x {xml} -F {ffmpeg}"
-                        .replace("{mediainfo}", dvloupe.effectiveMediaInfoCmd)
-                        .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
-                        .replace("{ffmpeg}", dvloupe.effectiveFfmpegCmd)
-
-                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n', (launcher) => {
+                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n' + filterOptions, (launcher) => {
                             debugView.logCommand(launcher)
                         }, extraParams).then((result) => {
                             dvloupeView.data = JSON.parse(result.outputText)
