@@ -10,8 +10,6 @@ Rectangle {
     width: 1190
     height: 768
 
-    property var queryStatusCallback;
-
     FunkyGridLayout {
         width: parent.width
         height: parent.height
@@ -34,10 +32,10 @@ Rectangle {
                         if(querying === false)
                         {
                             querying = true;
-                            queryStatusCallback(index).then((result) => {
-                                console.debug('status: ', JSON.stringify(result.status, 0, 4))
+                            dvrescue.status(index).then((result) => {
+                                console.debug('status: ', result.status)
                                 if(pendingAction === false) {
-                                    captureView.statusText = result.status.statusText
+                                    captureView.statusText = result.status
                                 }
                                 querying = false;
                             }).catch((err) => {
@@ -50,7 +48,7 @@ Rectangle {
                 rewindButton.onClicked: {
                     pendingAction = true;
                     statusText = "rewinding..";
-                    avfctl.rew(index, (launcher) => {
+                    dvrescue.control(index, 'rew', (launcher) => {
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {
                        statusText = "rewinding.";
@@ -63,10 +61,23 @@ Rectangle {
                 stopButton.onClicked: {
                     pendingAction = true;
                     statusText = "stopping..";
-                    avfctl.stop(index, (launcher) => {
+                    dvrescue.control(index, 'stop', (launcher) => {
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {
                        statusText = "stopping.";
+                       pendingAction = false;
+                       commandsLogs.logResult(result.outputText);
+                       return result;
+                    });
+                }
+
+                rplayButton.onClicked: {
+                    pendingAction = true;
+                    statusText = "rplaying..";
+                    dvrescue.control(index, 'srew', (launcher) => {
+                       commandsLogs.logCommand(launcher);
+                    }).then((result) => {
+                       statusText = "rplaying.";
                        pendingAction = false;
                        commandsLogs.logResult(result.outputText);
                        return result;
@@ -135,7 +146,7 @@ Rectangle {
                 fastForwardButton.onClicked: {
                     pendingAction = true;
                     statusText = "fast-forwarding..";
-                    avfctl.ff(index,  (launcher) => {
+                    dvrescue.control(index, 'ff', (launcher) => {
                         commandsLogs.logCommand(launcher);
                     }).then((result) => {
                         statusText = "fast-forwarding.";
@@ -161,7 +172,7 @@ Rectangle {
                         var indexOfRecDateTime = -1;
 
                         captureButton.enabled = false;
-                        fastForwardButton.enabled = fase;
+                        fastForwardButton.enabled = false;
                         rewindButton.enabled = false;
                         playButton.enabled = false;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
@@ -218,7 +229,7 @@ Rectangle {
                     }
 
                     if(!playButton.enabled) {
-                        avfctl.stop(index, (launcher) => {
+                        dvrescue.control(index, 'stop', (launcher) => {
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
                            statusText = "stopping.";

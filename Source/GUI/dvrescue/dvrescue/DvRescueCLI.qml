@@ -17,6 +17,125 @@ Item {
         }
     }
 
+    DvRescueParser {
+        id: parser
+    }
+
+    function queryDecks(callback) {
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true});
+            var outputText = '';
+            launcher.outputChanged.connect((outputString) => {
+                outputText += outputString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                console.debug('got from dvrescue: \n' + outputText);
+                try {
+                    accept({devices: parser.parseDevicesList(outputText), launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err, launcher);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(cmd + " -list_devices");
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
+    function status(index, callback) {
+        console.debug('querying status: ', index);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null);
+            var outputText = '';
+            launcher.outputChanged.connect((outputString) => {
+                outputText += outputString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                console.debug('got status from dvrescue: \n' + outputText.trim());
+                try {
+                    accept({status: outputText.trim(), launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(cmd + " device://" + index + " -status");
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
+    function control(index, command, callback) {
+        console.debug('stopping: ', index);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null);
+            var outputText = '';
+            launcher.errorChanged.connect((errorString) => {
+                outputText += errorString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                console.debug('got from dvrescue: \n' + outputText);
+                try {
+                    accept({launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(cmd + ' device://' + index + ' -cmd ' + command);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
     function play(index, playbackBuffer, csvParser, callback) {
         console.debug('starting playback');
 

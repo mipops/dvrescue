@@ -152,10 +152,6 @@ ApplicationWindow {
             property var urlToPath: function(url) {
                 return FileUtils.getFilePath(url);
             }
-
-            queryStatusCallback: (index) => {
-                return avfctl.status(index)
-            }
         }
 
         AnalysePage {
@@ -174,15 +170,6 @@ ApplicationWindow {
             xmlStarletCmd: settings.xmlStarletCmd
             mediaInfoCmd: settings.mediaInfoCmd
             ffmpegCmd: settings.ffmpegCmd
-        }
-    }
-
-    AvfCtl {
-        id: avfctl
-        cmd: settings.avfctlCmd
-
-        Component.onCompleted: {
-            console.debug('avfctl completed...');
         }
     }
 
@@ -217,7 +204,6 @@ ApplicationWindow {
 
     Settings {
         id: settings;
-        property string avfctlCmd
         property string dvrescueCmd
         onDvrescueCmdChanged: {
             console.debug('dvrescueCmd = ', dvrescueCmd)
@@ -237,7 +223,6 @@ ApplicationWindow {
         id: toolsDialog
 
         onReset: {
-            avfctlCmd = pathResolver.resolve("avfctl")
             dvrescueCmd = pathResolver.resolve("dvrescue")
             ffmpegCmd = pathResolver.resolve("ffmpeg")
             mediaInfoCmd = pathResolver.resolve("mediainfo")
@@ -245,7 +230,6 @@ ApplicationWindow {
         }
 
         onAccepted: {
-            settings.avfctlCmd = avfctlCmd
             settings.dvrescueCmd = dvrescueCmd
             settings.ffmpegCmd = ffmpegCmd
             settings.mediaInfoCmd = mediaInfoCmd
@@ -253,7 +237,6 @@ ApplicationWindow {
         }
 
         function show() {
-            avfctlCmd = settings.avfctlCmd
             dvrescueCmd = settings.dvrescueCmd
             xmlStarletCmd = settings.xmlStarletCmd
             mediaInfoCmd = settings.mediaInfoCmd
@@ -279,7 +262,7 @@ ApplicationWindow {
     DevicesModelUpdater {
         model: devicesModel
         getDevices: function() {
-            return avfctl.queryDecks((launcher) => {
+            return dvrescue.queryDecks((launcher) => {
                 statusLogs.logCommand(launcher);
             }).then((result) => {
                 statusLogs.logResult(result.outputText);
@@ -391,8 +374,6 @@ ApplicationWindow {
             console.debug('setting key: ', key, 'value: ', settings.value(key))
         }
 
-        if(!toolsDialog.validateTool(settings.avfctlCmd))
-            settings.avfctlCmd = pathResolver.resolve("avfctl")
         if(!toolsDialog.validateTool(settings.dvrescueCmd))
             settings.dvrescueCmd = pathResolver.resolve("dvrescue")
         if(!toolsDialog.validateTool(settings.ffmpegCmd))
@@ -403,7 +384,7 @@ ApplicationWindow {
             settings.xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
 
         console.debug('checking tools...')
-        if(!toolsDialog.areToolsSpecified([settings.avfctlCmd, settings.dvrescueCmd, settings.ffmpegCmd,
+        if(!toolsDialog.areToolsSpecified([settings.dvrescueCmd, settings.ffmpegCmd,
                                            settings.mediaInfoCmd, settings.xmlStarletCmd]))
         {
             toolsDialog.show()

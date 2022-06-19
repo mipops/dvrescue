@@ -13,7 +13,6 @@ Dialog {
     title: "Please specify tool locations."
     contentWidth: 480
 
-    property alias avfctlCmd: avfctlField.text
     property alias dvrescueCmd: dvrescueField.text
     property alias ffmpegCmd: ffmpegField.text
     property alias mediaInfoCmd: mediaInfoField.text
@@ -49,15 +48,6 @@ Dialog {
     }
 
     Column {
-        ValidatedTextField {
-            id: avfctlField
-            width: 480
-
-            placeholderText: "avfctl path..."
-            selectByMouse: true
-            validate: validateTool
-        }
-
         ValidatedTextField {
             id: dvrescueField
             width: 480
