@@ -20,8 +20,17 @@ Dialog {
     property bool canPrev: true
     property bool canNext: true
 
+    property alias headerCheckboxChecked: headerCheckbox.checked
+    property alias subcodeCheckboxChecked: subcodeCheckbox.checked
+    property alias vauxCheckboxChecked: vauxCheckbox.checked
+    property alias audioCheckboxChecked: audioCheckbox.checked
+    property alias videoCheckboxChecked: videoCheckbox.checked
+    property alias allCheckboxChecked: allCheckbox.checked
+    property alias errorOnlyCheckboxChecked: errorOnlyCheckbox.checked
+
     signal prev();
     signal next();
+    signal refresh();
 
     onClosed: {
         imageSource = null
@@ -86,7 +95,10 @@ Dialog {
         }
 
         RowLayout {
-            Layout.alignment: Qt.AlignHCenter
+            id: buttonsLayout
+            anchors.right: parent.right
+            Layout.alignment: Qt.AlignRight
+
             Button {
                 text: "<"
                 enabled: canPrev
@@ -115,6 +127,87 @@ Dialog {
                         selectionChanged();
                 }
             }
+        }
+
+        RowLayout {
+            anchors.top: buttonsLayout.top
+            anchors.bottom: buttonsLayout.bottom
+            anchors.left: parent.left
+            anchors.right: buttonsLayout.left
+
+            Label {
+                text: "Show DV DIF block types: "
+            }
+
+            Button {
+                id: headerCheckbox
+                checkable: true
+                text: "Header"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            Button {
+                id: subcodeCheckbox
+                checkable: true
+                text: "Subcode"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            Button {
+                id: vauxCheckbox
+                checkable: true
+                text: "Vaux"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            Button {
+                id: audioCheckbox
+                checkable: true
+                text: "Audio"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            Button {
+                id: videoCheckbox
+                checkable: true
+                text: "Video"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            Label {
+                text: "Show Video DIF blocks: "
+            }
+
+            RadioButton {
+                id: allCheckbox
+                text: "All"
+                checked: true
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+
+            RadioButton {
+                id: errorOnlyCheckbox
+                text: "Errors Only"
+                onCheckedChanged: {
+                    refresh();
+                }
+            }
+        }
+
+        ButtonGroup {
+            buttons: [allCheckbox, errorOnlyCheckbox]
         }
 
         TableView {

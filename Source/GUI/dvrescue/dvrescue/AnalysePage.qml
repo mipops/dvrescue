@@ -454,6 +454,9 @@ Item {
                         imageSource = null
                         fetch()
                     }
+                    onRefresh: {
+                        fetch('dvloupe');
+                    }
 
                     onSelectionChanged: {
                         var selectedRows = [];
@@ -490,11 +493,13 @@ Item {
                         })
                     }
 
-                    function fetch() {
+                    function fetch(args) {
                         var data = dataView.model.getRow(index);
                         var offset = data['Byte Offset']
 
-                        doDvPlay(offset)
+                        if(args !== 'dvloupe') {
+                            doDvPlay(offset)
+                        }
 
                         console.debug('executing dvloupe... ');
 
@@ -503,7 +508,32 @@ Item {
                         .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
                         .replace("{ffmpeg}", dvloupe.effectiveFfmpegCmd)
 
-                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n', (launcher) => {
+                        var filterOptions = ''
+                        if(headerCheckboxChecked) {
+                            filterOptions += ' -H'
+                        }
+
+                        if(subcodeCheckboxChecked) {
+                            filterOptions += ' -S'
+                        }
+
+                        if(vauxCheckboxChecked) {
+                            filterOptions += ' -X'
+                        }
+
+                        if(audioCheckboxChecked) {
+                            filterOptions += ' -A'
+                        }
+
+                        if(videoCheckboxChecked) {
+                            filterOptions += ' -V'
+                        }
+
+                        if(errorOnlyCheckboxChecked) {
+                            filterOptions += ' -E'
+                        }
+
+                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n' + filterOptions, (launcher) => {
                             debugView.logCommand(launcher)
                         }, extraParams).then((result) => {
                             dvloupeView.data = JSON.parse(result.outputText)
