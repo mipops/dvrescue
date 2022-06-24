@@ -13,6 +13,8 @@ dvrescue_SOURCES = \
     ../../../Source/Common/Output_Xml.cpp \
     ../../../Source/Common/Output_Webvtt.cpp \
     ../../../Source/Common/ProcessFile.cpp \
+    ../../../Source/Common/ProcessFileWrapper.cpp \
+    ../../../Source/Common/SimulatorWrapper.cpp \
     ../../../Source/ThirdParty/ccdecoder/ccdecoder_internal.c \
     ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21.c \
     ../../../Source/ThirdParty/ccdecoder/ccdecoder_line21field.c \
@@ -37,8 +39,7 @@ bin_SCRIPTS = \
 if BUILD_AVFCTL
     dvrescue_SOURCES += \
         ../../../Source/Common/AvfCtl.m \
-        ../../../Source/Common/AvfCtlWrapper.mm \
-        ../../../Source/Common/ProcessFileWrapper.cpp
+        ../../../Source/Common/AvfCtlWrapper.mm
     dvrescue_LDFLAGS = -framework IOKit -framework Foundation -framework AVFoundation -framework CoreMedia
 
     AVFCTL = ../../../tools/avfctl/avfctl

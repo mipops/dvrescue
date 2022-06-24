@@ -87,6 +87,12 @@
     <ClCompile Include="..\..\..\Source\Common\Merge.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\SimulatorWrapper.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\ProcessFileWrapper.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\CLI\CommandLine_Parser.h">
@@ -144,6 +150,12 @@
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\SimulatorWrapper.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\ProcessFileWrapper.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\AvfCtlWrapper.h">
       <Filter>Header Files\Common</Filter>
     </ClInclude>
   </ItemGroup>

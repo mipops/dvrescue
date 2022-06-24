@@ -23,6 +23,7 @@
 #include "TimeCode.h"
 #include "CLI/CLI_Help.h"
 using namespace ZenLib;
+uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size);
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -120,6 +121,7 @@ namespace
         uint8_t*            BlockStatus = nullptr;
         size_t              BlockStatus_Count = 0;
         uint8_t             RepeatCount = 0;
+        int                 Speed = INT_MIN;
 
         per_frame() = default;
         per_frame(status const& Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
@@ -141,7 +143,7 @@ namespace
             size_t          Size = 0;
         };
 
-        void push_back(uint8_t* Buffer, size_t Buffer_Size)
+        void push_back(const uint8_t* Buffer, size_t Buffer_Size)
         {
             Data.resize(Data.size() + 1);
             Data.back().Data = new uint8_t[Buffer_Size];
@@ -242,8 +244,8 @@ namespace
     class dv_merge_private
     {
     public:
-        void AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
-        void AddFrame(size_t InputPos, const MediaInfo_Event_Global_Demux_4* FrameData);
+        void AddFrameAnalysis(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData, float Speed);
+        void AddFrameData(size_t InputPos, const uint8_t* Buffer, size_t Buffer_Size);
         void Finish();
 
     private:
@@ -253,7 +255,7 @@ namespace
         bool ManagePartialFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
         bool TcSyncStart();
         bool SyncEnd();
-        bool Process();
+        bool Process(float Speed);
         bool Stats();
 
         mutex Mutex;
@@ -296,15 +298,15 @@ namespace
 }
 
 //---------------------------------------------------------------------------
-void dv_merge::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+void dv_merge::AddFrameAnalysis(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData, float Speed)
 {
-    Merge_Private.AddFrame(InputPos, FrameData);
+    Merge_Private.AddFrameAnalysis(InputPos, FrameData, Speed);
 }
 
 //---------------------------------------------------------------------------
-void dv_merge::AddFrame(size_t InputPos, const MediaInfo_Event_Global_Demux_4* FrameData)
+void dv_merge::AddFrameData(size_t InputPos, const uint8_t* Buffer, size_t Buffer_Size)
 {
-    Merge_Private.AddFrame(InputPos, FrameData);
+    Merge_Private.AddFrameData(InputPos, Buffer, Buffer_Size);
 }
 
 //---------------------------------------------------------------------------
@@ -387,7 +389,7 @@ bool dv_merge_private::Init()
         }
         if (MergeInfo_Format == 1)
         {
-            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,IssueFixed";
+            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,IssueFixed,SourceSpeed,FrameSpeed";
         }
         *Log << Log_Line.str() << endl;;
     }
@@ -447,6 +449,37 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
         CurrentFrame.Abst = AbstBf_Temp.AbsoluteTrackNumber();
     }
 
+    // Fill informational data
+    CurrentFrame.RecDateTime = rec_date_time(FrameData);
+    CurrentFrame.TC_SMPTE = timecode(FrameData);
+    CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
+
+    if (FrameData->MoreData)
+    {
+        size_t MoreData_Size = *((size_t*)FrameData->MoreData) + sizeof(size_t);
+        size_t MoreData_Offset = sizeof(size_t);
+        while (MoreData_Offset < MoreData_Size)
+        {
+            size_t BlockSize = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
+            if (BlockSize == -1)
+                break;
+            size_t BlockName = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
+            if (BlockName == -1)
+                break;
+            if (BlockName == 2 && BlockSize >= 1)
+            {
+                auto RawSpeed = FrameData->MoreData[MoreData_Offset++];
+                int Speed = RawSpeed & 0x7F;
+                if (!(RawSpeed & 0x80))
+                    Speed = -Speed;
+                CurrentFrame.Speed = Speed;
+            }
+            else
+                MoreData_Offset += BlockSize;
+        }
+    }
+
+
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
     if (TC_Temp.HasValue())
@@ -477,11 +510,6 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
             CurrentFrame.Status.set(Status_TimeCodeIssue);
         }
     }
-
-    // Fill informational data
-    CurrentFrame.RecDateTime = rec_date_time(FrameData);
-    CurrentFrame.TC_SMPTE = timecode(FrameData);
-    CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
 
     Frames.emplace_back(move(CurrentFrame));
 
@@ -605,7 +633,7 @@ bool dv_merge_private::SyncEnd()
 }
 
 //---------------------------------------------------------------------------
-bool dv_merge_private::Process()
+bool dv_merge_private::Process(float Speed)
 {
     auto Input_Count = Merge_InputFileNames.size();
     size_t Frames_Status_Max;
@@ -967,7 +995,11 @@ bool dv_merge_private::Process()
         if (Verbosity <= 7)
             Count_Last_Missing_Frames++;
         else
+        {
+            Log_Line << ',';
+            Log_Line << ::to_string(Speed);
             *Log << Log_Line.str() << endl;
+        }
         return false;
     }
 
@@ -1168,14 +1200,24 @@ bool dv_merge_private::Process()
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
         fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
     if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
+    {
+        Log_Line << ',';
+        Log_Line << ::to_string(Speed);
+        Log_Line << ',';
+        auto& Input = Inputs[0];
+        auto& Frames = Input.Segments[Segment_Pos].Frames;
+        auto& Frame = Frames[Frame_Pos];
+        if (Frame.Speed != INT_MIN)
+            Log_Line << std::to_string(Frame.Speed);
         *Log << Log_Line.str() << endl;
+    }
 
     Frame_Pos++;
     return false;
 }
 
 //---------------------------------------------------------------------------
-void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+void dv_merge_private::AddFrameAnalysis(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData, float Speed)
 {
     // Coherency check
     lock_guard<mutex> Lock(Mutex);
@@ -1193,7 +1235,7 @@ void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_DvDif_Ana
         return;
 
     // Processing
-    while (!Process());
+    while (!Process(Speed));
 }
 
 //---------------------------------------------------------------------------
@@ -1225,7 +1267,7 @@ void dv_merge_private::Finish()
         }
         Count_Last_OK_Frames = 0;
     }
-    while (!Process());
+    while (!Process(0));
 
     // Post-processing
     if (Stats())
@@ -1355,7 +1397,7 @@ bool dv_merge_private::Stats()
 }
 
 //---------------------------------------------------------------------------
-void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_Global_Demux_4* FrameData)
+void dv_merge_private::AddFrameData(size_t InputPos, const uint8_t* Buffer, size_t Buffer_Size)
 {
     // Coherency check
     lock_guard<mutex> Lock(Mutex);
@@ -1368,5 +1410,5 @@ void dv_merge_private::AddFrame(size_t InputPos, const MediaInfo_Event_Global_De
     auto& Input = Inputs[InputPos];
     if (!Input.DV_Data)
         Input.DV_Data = new dv_data;
-    Input.DV_Data->push_back((uint8_t*)FrameData->Content, FrameData->Content_Size);
+    Input.DV_Data->push_back(Buffer, Buffer_Size);
 }
