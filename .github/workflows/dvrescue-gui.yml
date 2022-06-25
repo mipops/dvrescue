@@ -416,6 +416,7 @@ jobs:
       run: |
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
+                                libgstreamer-plugins-base1.0-dev \
                                 libavcodec-dev \
                                 libavformat-dev \
                                 libavdevice-dev \
@@ -428,7 +429,7 @@ jobs:
       uses: jurplel/install-qt-action@v2
       with:
         version: 6.2.0
-        modules: 'addons.qtmultimedia'
+        modules: 'addons.qtmultimedia qt5compat'
 
     - name: Cleanup
       run: |
@@ -750,7 +751,6 @@ jobs:
     - name: Install Qt 6.2
       uses: jurplel/install-qt-action@v2
       with:
-        arch: win64_mingw81
         version: 6.2.0
         modules: 'addons.qtmultimedia'
 
@@ -772,9 +772,13 @@ jobs:
         dir ffmpeg
 
     - name: Download and configure qwt
+      shell: bash
       run: |
         git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
+        sed -i -e 's/QWT_CONFIG     += QwtTests//g' \
+               -e 's/QWT_CONFIG     += QwtExamples//g' \
+               -e 's/QWT_CONFIG     += QwtPlayground//g' qwtconfig.pri
         qmake -r
 
     - name: Build qwt
