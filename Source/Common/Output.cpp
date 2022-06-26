@@ -136,7 +136,7 @@ char uint4_to_hex4(int Value)
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-static uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size)
+uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size)
 {
     if (Buffer_Offset >= Buffer_Size)
         return -1;

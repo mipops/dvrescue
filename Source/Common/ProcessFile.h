@@ -17,15 +17,19 @@
     #include "MediaInfo/MediaInfoList.h"
     #define MediaInfoNameSpace MediaInfoLib
 #endif
+#ifndef DISABLE_SIMULATOR
+    #define ENABLE_SIMULATOR
+#endif
 #include "Common/Merge.h"
 #include "TimeCode.h"
 #include "MediaInfo/MediaInfo_Events.h"
+#include <chrono>
 #include <vector>
 using namespace MediaInfoNameSpace;
 using namespace std;
 
-#ifdef ENABLE_AVFCTL
-class AVFCtlWrapper;
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#include "Common/ProcessFileWrapper.h"
 #endif
 //---------------------------------------------------------------------------
 
@@ -38,7 +42,7 @@ string MediaInfo_Version();
 // Enums
 //***************************************************************************
 
-#ifdef ENABLE_AVFCTL
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
 enum rewind_mode {
     Rewind_Mode_None,
     Rewind_Mode_TimeCode,
@@ -94,8 +98,8 @@ public:
         vector<captions_fielddata> FieldData[2];
     };
     vector<captions_data> PerFrame_Captions_PerSeq_PerField;
-    size_t FrameNumber;
-    double FrameRate;
+    size_t FrameNumber = 0;
+    double FrameRate = 0;
 
     file();
     ~file();
@@ -103,14 +107,14 @@ public:
     void Parse(const String& FileName);
     void Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size);
 
-    #ifdef ENABLE_AVFCTL
     bool TransportControlsSupported();
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     void RewindToTimeCode(TimeCode TC);
     void RewindToAbst(int Abst);
     #endif
     void AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData);
-    void AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
-    void AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData);
+    void AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
+    void AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData);
 
     // Merge
     void Merge_Finish() { Merge.Finish(); }
@@ -120,10 +124,14 @@ private:
     dv_merge Merge;
     bool no_sourceorcontrol_aud_set_in_first_frame = false;
 
-    #ifdef ENABLE_AVFCTL
-    AVFCtlWrapper* Controller;
-    rewind_mode RewindMode;
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+public:
+    BaseWrapper* Controller = nullptr;
+    float Speed_Before = 0;
+    float Speed_After = 0;
+    bool PauseRequested = false;
+    rewind_mode RewindMode = Rewind_Mode_None;
     TimeCode RewindTo_TC;
-    int RewindTo_Abst;
+    int RewindTo_Abst = 0;
     #endif
 };

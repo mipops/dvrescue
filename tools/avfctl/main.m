@@ -30,6 +30,7 @@ void help(BOOL full)
         [output appendString:@"Stay at foreground during play, ff or rew operation.\n\n"];
         [output appendString:@"-cmd <arg>\n"];
         [output appendString:@"  play      Set speed to 1.0 and mode to play.\n"];
+        [output appendString:@"  srew      Set speed to -1.0 and mode to play.\n"];
         [output appendString:@"  stop      Set speed to 0.0 and mode to no-play.\n"];
         [output appendString:@"  rew       Set speed to -2.0 and mode to no-play.\n"];
         [output appendString:@"  ff        Set speed to 2.0 and mode to no-play.\n"];
@@ -175,6 +176,18 @@ int main(int argc, char *argv[])
                 [avfctl startCaptureSession];
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed:-2.0f];
+            if (foreground) {
+                [avfctl waitForSessionEnd];
+                [avfctl stopCaptureSession];
+            }
+        } else if ([cmd isEqualToString:@"SREW"] ||
+                   [cmd isEqualToString:@"srew"]) {
+            // do SREW
+            if (foreground) {
+                [avfctl createCaptureSession:[[AVFCtlFileReceiver alloc] initWithOutputFileName:@"/dev/null"]];
+                [avfctl startCaptureSession];
+            }
+            [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:-1.0f];
             if (foreground) {
                 [avfctl waitForSessionEnd];
                 [avfctl stopCaptureSession];

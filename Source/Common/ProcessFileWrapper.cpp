@@ -15,5 +15,6 @@ FileWrapper::FileWrapper(file* File) : File(File)
 
 void FileWrapper::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 {
+    File->Speed_After = File->Controller->GetSpeed();
     File->Parse_Buffer(Buffer, Buffer_Size);
 }

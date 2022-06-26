@@ -5,16 +5,35 @@
  */
 
 //---------------------------------------------------------------------------
+#include "Output.h"
+#include "ZenLib/Ztring.h"
+#include <cfloat>
+#include <chrono>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <thread>
+using namespace ZenLib;
+using namespace std;
+using namespace std::chrono;
 #include "Common/ProcessFile.h"
 #ifdef ENABLE_AVFCTL
 #include "Common/AvfCtlWrapper.h"
 #endif
-#include "ZenLib/Ztring.h"
-#include "Output.h"
-using namespace ZenLib;
-using namespace std;
+#ifdef ENABLE_SIMULATOR
+#include "Common/SimulatorWrapper.h"
+#endif
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+FileWrapper* Wrapper = nullptr;
+#endif
+bool InControl = false;
+uint64_t Device_Pos = (uint64_t)-1;
+char Device_Command = 0;
+bool Device_ForceCapture = false;
+unsigned int Device_Mode = (unsigned int)-1;
+float Device_Speed = FLT_MIN;
+auto Device_LastPacketTime = chrono::steady_clock::now();
+uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size);
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -43,19 +62,51 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
     case MediaInfo_Parser_DvDif:
         switch (EventID)
         {
-        case MediaInfo_Event_DvDif_Analysis_Frame: if (EventVersion == 1 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Analysis_Frame_1)) UserHandler->AddFrame((MediaInfo_Event_DvDif_Analysis_Frame_1*)Event_Generic); break;
+        case MediaInfo_Event_DvDif_Analysis_Frame: if (EventVersion == 1 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Analysis_Frame_1)) UserHandler->AddFrameAnalysis((MediaInfo_Event_DvDif_Analysis_Frame_1*)Event_Generic); break;
         case MediaInfo_Event_DvDif_Change: if (EventVersion == 0 && Data_Size >= sizeof(struct MediaInfo_Event_DvDif_Change_0)) UserHandler->AddChange((MediaInfo_Event_DvDif_Change_0*)Event_Generic); break;
-        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrame((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
+        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrameData((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
         }
         break;
     case MediaInfo_Parser_Global:
         switch (EventID)
         {
-        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrame((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
+        case MediaInfo_Event_Global_Demux: if (EventVersion == 4 && Data_Size >= sizeof(struct MediaInfo_Event_Global_Demux_4)) UserHandler->AddFrameData((MediaInfo_Event_Global_Demux_4*)Event_Generic); break;
         }
         break;
     }
 }
+
+//***************************************************************************
+// Control
+//***************************************************************************
+
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+void InputControl_Char(file* F, char C)
+{
+    switch (C)
+    {
+    case 'R': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   , -2.0); break;
+    case 'r': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   , -1.0); break;
+    case 'q': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
+    case 's': F->PauseRequested = true ; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
+    case 'f': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   ,  1.0); break;
+    case 'F': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   ,  2.0); break;
+    default: return;
+    }
+}
+void InputControl (file* F)
+{
+    for (;;)
+    {
+        auto C = getc(stdin);
+        InputControl_Char(F, C);
+        if (C == 'q')
+            return;
+
+        this_thread::yield();
+    }
+}
+#endif
 
 //***************************************************************************
 // Constructor/Destructor
@@ -66,11 +117,6 @@ size_t Merge_FilePos_Total = 0;
 file::file()
 {
     Merge_FilePos = Merge_FilePos_Total++;
-    FrameNumber = 0;
-    #ifdef ENABLE_AVFCTL
-    Controller=nullptr;
-    RewindMode=Rewind_Mode_None;
-    #endif
 }
 
 //---------------------------------------------------------------------------
@@ -78,28 +124,112 @@ void file::Parse(const String& FileName)
 {
     MI.Option(__T("File_Event_CallBackFunction"), __T("CallBack=memory://") + Ztring::ToZtring((size_t)&Event_CallBackFunction) + __T(";UserHandler=memory://") + Ztring::ToZtring((size_t)this));
     MI.Option(__T("File_DvDif_Analysis"), __T("1"));
-    if (Merge_InputFileNames.size() && (Merge_InputFileNames.front() == "-" || Merge_InputFileNames.front().find("device://")==0)) // Only if from stdin (not supported in other cases)
+    if (!Merge_InputFileNames.empty() && (Merge_InputFileNames.front() == "-" || TransportControlsSupported())) // Only if from stdin (not supported in other cases)
         MI.Option(__T("File_Demux_Unpacketize"), __T("1"));
+    if (!Merge_InputFileNames.empty() && TransportControlsSupported())
+        MI.Option(__T("File_FrameIsAlwaysComplete"), __T("1"));
 
     if (Verbosity == 10)
         cerr << "Debug: opening (in) \"" << Ztring(FileName).To_Local() << "\"..." << endl;
-    #ifdef ENABLE_AVFCTL
-    Ztring ZFileName(FileName);
-    if (ZFileName.size()>9 && ZFileName.find(__T("device://"))==0)
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    if (Device_Command == 1)
     {
-        size_t Device=(size_t)ZFileName.SubString(__T("device://"), __T("")).To_int64u();
-        if (Device<AVFCtlWrapper::GetDeviceCount())
+        size_t i = 0;
+        #ifdef ENABLE_SIMULATOR
+            for (;;)
+            {
+                auto Name = SimulatorWrapper::GetDeviceName(i);
+                if (Name.empty())
+                    break;
+                cout << Name << '\n';
+                i++;
+            }
+        #endif
+        #ifdef ENABLE_AVFCTL
+            for (;;)
+            {
+                auto Name = AVFCtlWrapper::GetDeviceName(i);
+                if (Name.empty())
+                    break;
+                cout << Name << '\n';
+                i++;
+            }
+        #endif
+        return;
+    }
+    Controller = nullptr;
+    if (Device_Pos == (size_t)-1 && FileName.rfind(__T("device://"), 0) == 0)
+        Device_Pos = (size_t)Ztring(FileName.substr(9)).To_int64u();
+    if (Device_Pos == (size_t)-1 && Device_Command)
+        Device_Pos = 0;
+    if (Device_Pos != (size_t)-1)
+    {
+        if (false)
+            ;
+        #ifdef ENABLE_SIMULATOR
+            else if (Device_Pos < SimulatorWrapper::GetDeviceCount())
+                Controller = new SimulatorWrapper(Device_Pos);
+        #endif
+        #ifdef ENABLE_AVFCTL
+            else if (Device_Pos < AVFCtlWrapper::GetDeviceCount())
+                Controller = new AVFCtlWrapper(Device_Pos);
+        #endif
+    }
+    if (Controller)
+    {
+        if (Device_Command && !Device_ForceCapture)
         {
-            Controller=new AVFCtlWrapper(Device);
-            FileWrapper Wrapper(this);
-            MI.Open_Buffer_Init();
-            Controller->CreateCaptureSession(&Wrapper);
+            if (Device_Command == 2)
+            {
+                FileWrapper Wrapper(this);
+                Controller->CreateCaptureSession(&Wrapper);
+                this_thread::sleep_for(chrono::milliseconds(500)); // give time for the driver to retrieves status from the device
+                auto Status = Controller->GetStatus();
+                Controller->StopCaptureSession();
+                cout << Status << '\n';
+            }
+            if (Device_Command == 3)
+            {
+                Controller->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+            }
+            if (Device_Command >= 0x20)
+            {
+                InputControl_Char(this, Device_Command);
+            }
+            return;
+        }
+        Speed_Before = Controller->GetSpeed();
+        auto InputHelper = InControl ? new thread(InputControl, this) : nullptr;
+        FileWrapper Wrapper(this);
+        MI.Open_Buffer_Init();
+        Controller->CreateCaptureSession(&Wrapper);
+        for (;;)
+        {
             Controller->StartCaptureSession();
-            Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+            if (!Device_Command)
+                Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+            else if (Device_Command != -1)
+            {
+                if (Device_Command == 3)
+                    Controller->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+                else if (Device_Command >= 0x20)
+                    InputControl_Char(this, Device_Command);
+                Device_Command = -1;
+            }
             Controller->WaitForSessionEnd();
             Controller->StopCaptureSession();
-            MI.Open_Buffer_Finalize();
+            if (!InputHelper)
+                break;
+            if (!PauseRequested) // If stop was not requested, it is end of stream
+            {
+                InputHelper->join();
+                delete InputHelper;
+                break;
+            }
+            while (PauseRequested)
+                this_thread::yield();
         }
+        MI.Open_Buffer_Finalize();
     }
     else
     #endif
@@ -126,7 +256,7 @@ void file::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 //---------------------------------------------------------------------------
 file::~file()
 {
-    #ifdef ENABLE_AVFCTL
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     if (Controller)
         delete Controller;
     #endif
@@ -150,15 +280,21 @@ file::~file()
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-#ifdef ENABLE_AVFCTL
 bool file::TransportControlsSupported()
 {
-    return Merge_InputFileNames[0].find("device://") == 0;
-}
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    if (!Merge_InputFileNames[0].find("device://"))
+        return true;
 #endif
+#ifdef ENABLE_SIMULATOR
+    if (!Merge_InputFileNames[0].find("simulator://"))
+        return true;
+#endif
+    return false;
+}
 
 //---------------------------------------------------------------------------
-#ifdef ENABLE_AVFCTL
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
 void file::RewindToTimeCode(TimeCode TC)
 {
     RewindMode=Rewind_Mode_TimeCode;
@@ -168,7 +304,7 @@ void file::RewindToTimeCode(TimeCode TC)
 #endif
 
 //---------------------------------------------------------------------------
-#ifdef ENABLE_AVFCTL
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
 void file::RewindToAbst(int Abst)
 {
     RewindMode=Rewind_Mode_Abst;
@@ -180,7 +316,7 @@ void file::RewindToAbst(int Abst)
 //---------------------------------------------------------------------------
 void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
 {
-    #ifdef ENABLE_AVFCTL
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     if (RewindMode!=Rewind_Mode_None)
         return;
     #endif
@@ -216,9 +352,9 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
 }
 
 //---------------------------------------------------------------------------
-void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
+void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
-    #ifdef ENABLE_AVFCTL
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     abst_bf AbstBf_Temp(FrameData->AbstBf);
     if (RewindMode==Rewind_Mode_TimeCode)
     {
@@ -230,7 +366,6 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
             {
                 RewindMode=Rewind_Mode_None;
                 Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
-                return;
             }
             else
                 return; //Continue in rewind mode
@@ -247,10 +382,22 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
             {
                 RewindMode=Rewind_Mode_None;
                 Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
-                return;
             }
             else
                 return; //Continue in rewind mode
+        }
+        else
+            return; //Continue in rewind mode
+    }
+    else if (RewindTo_TC.HasValue())
+    {
+        timecode TC_Temp(FrameData);
+        if (TC_Temp.HasValue())
+        {
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            if (TC.ToFrames()<RewindTo_TC.ToFrames())
+                return;
+            RewindTo_TC = TimeCode();
         }
         else
             return; //Continue in rewind mode
@@ -316,7 +463,11 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
     }
 
     if (!Merge_OutputFileName.empty())
-        Merge.AddFrame(Merge_FilePos, FrameData);
+    {
+        auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
+        Speed_Before = Speed_After;
+        Merge.AddFrameAnalysis(Merge_FilePos, FrameData, Speed);
+    }
 
     // Information
     if (!Merge_FilePos && Verbosity > 0 && Verbosity <= 7)
@@ -345,14 +496,51 @@ void file::AddFrame(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
             Text += ' ';
             timecode_to_string(Text, RecDateTime.TimeInSeconds(), TC_Temp.DropFrame(), RecDateTime.Frames());
         }
+        if (Controller)
+        {
+            Text += ' ';
+            Text += '(';
+            Text += ::to_string(Speed_After);
+            Text += 'x';
+            if (FrameData->MoreData)
+            {
+                size_t MoreData_Size = *((size_t*)FrameData->MoreData) + sizeof(size_t);
+                size_t MoreData_Offset = sizeof(size_t);
+                while (MoreData_Offset < MoreData_Size)
+                {
+                    size_t BlockSize = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
+                    if (BlockSize == -1)
+                        break;
+                    size_t BlockName = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
+                    if (BlockName == -1)
+                        break;
+                    if (BlockName == 2 && BlockSize >= 1)
+                    {
+                        auto RawSpeed = FrameData->MoreData[MoreData_Offset++];
+                        int Speed = RawSpeed & 0x7F;
+                        if (!(RawSpeed & 0x80))
+                            Speed = -Speed;
+                        Text += ',';
+                        Text += ' ';
+                        Text += 'D';
+                        Text += 'V';
+                        Text += ' ';
+                        Text += std::to_string(Speed);
+                    }
+                    else
+                        MoreData_Offset += BlockSize;
+                }
+            }
+            Text += ')';
+        }
         UpdateDynamicDisplay(Text);
     }
 }
 
 //---------------------------------------------------------------------------
-void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
+void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
 {
-    #ifdef ENABLE_AVFCTL
+    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     if (RewindMode!=Rewind_Mode_None)
         return;
     #endif
@@ -361,7 +549,10 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
     if (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
     {
         if (!Merge_OutputFileName.empty() && (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-" || Merge_InputFileNames[0].find("device://") == 0)) // Only for stdin
-            Merge.AddFrame(Merge_FilePos, FrameData);
+            Merge.AddFrameData(Merge_FilePos, FrameData->Content, FrameData->Content_Size);
+
+        Device_LastPacketTime = chrono::steady_clock::now();
+
         return;
     }
 
@@ -405,11 +596,12 @@ void file::AddFrame(const MediaInfo_Event_Global_Demux_4* FrameData)
 void UpdateDynamicDisplay(const string& Content)
 {
     static size_t Content_Previous_Size = 0;
-    cerr << Content;
+    string Temp(Content);
     if (Content_Previous_Size > Content.size())
-        cerr << setw(Content_Previous_Size - Content.size()) << ' ';
+        Temp.resize(Content_Previous_Size, ' ');
+    Temp += '\r';
+    cerr << Temp;
     Content_Previous_Size = Content.size();
-    cerr << '\r';
 }
 
 string MediaInfo_Version()

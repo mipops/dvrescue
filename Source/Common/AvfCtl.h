@@ -48,5 +48,7 @@
 - (void) startCaptureSession;
 - (void) stopCaptureSession;
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
+- (AVCaptureDeviceTransportControlsPlaybackMode) getMode;
+- (AVCaptureDeviceTransportControlsSpeed) getSpeed;
 - (void) waitForSessionEnd;
 @end

@@ -15,6 +15,7 @@ struct IUnknown; // Workaround for "combaseapi.h(229): error C2187: syntax error
 #else
 #include <ZenLib/Ztring.h>
 #endif
+#include <cfloat>
 #include <fstream>
 using namespace std;
 //---------------------------------------------------------------------------
@@ -191,9 +192,17 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             C.CaptionsFileNames[CurrentCaptionKind] = move(CurrentFileName);
         }
+        else if (!strcmp(argv_ansi[i], "--capture") || !strcmp(argv_ansi[i], "-capture"))
+        {
+            Device_ForceCapture = true;
+        }
         else if (!strcmp(argv_ansi[i], "--csv"))
         {
             MergeInfo_Format = 1;
+        }
+        else if (!strcmp(argv_ansi[i], "--in-control"))
+        {
+            InControl = true;
         }
         else if (!strcmp(argv_ansi[i], "--merge") || !strcmp(argv_ansi[i], "-m"))
         {
@@ -228,6 +237,91 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             else
                 MergeInfo_OutputFileName = argv_ansi[i];
+        }
+        else if (!strcmp(argv_ansi[i], "--status") || !strcmp(argv_ansi[i], "-status"))
+        {
+            Device_Command = 2;
+        }
+        else if (!strcmp(argv_ansi[i], "--list_devices") || !strcmp(argv_ansi[i], "-list_devices"))
+        {
+            Device_Command = 1;
+        }
+        else if (!strcmp(argv_ansi[i], "--device") || !strcmp(argv_ansi[i], "-device"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Device_Pos = atoi(argv_ansi[i]);
+            C.Inputs.push_back(String(__T("device://")) + argv[i]);
+        }
+        else if (!strcmp(argv_ansi[i], "--cmd") || !strcmp(argv_ansi[i], "-cmd"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "play"))
+                Device_Command = 'f';
+            else if (!strcmp(argv_ansi[i], "pause"))
+                Device_Command = 's';
+            else if (!strcmp(argv_ansi[i], "stop"))
+                Device_Command = 'q';
+            else if (!strcmp(argv_ansi[i], "srew"))
+                Device_Command = 'r';
+            else if (!strcmp(argv_ansi[i], "rew"))
+                Device_Command = 'R';
+            else if (!strcmp(argv_ansi[i], "ff"))
+                Device_Command = 'F';
+            else if (!strcmp(argv_ansi[i], "capture"))
+                Device_Command = (char)-1;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: wrong command after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
+        else if (!strcmp(argv_ansi[i], "--mode") || !strcmp(argv_ansi[i], "-mode"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "p"))
+                Device_Mode = Playback_Mode_Playing;
+            else if (!strcmp(argv_ansi[i], "n"))
+                Device_Mode = Playback_Mode_Playing;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: wrong command after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Device_Command = 3;
+        }
+        else if (!strcmp(argv_ansi[i], "--speed") || !strcmp(argv_ansi[i], "-speed"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Device_Speed = (float)atof(argv_ansi[i]);
+            Device_Command = 3;
         }
         else if (!strcmp(argv_ansi[i], "--use-abst"))
         {
@@ -376,6 +470,27 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             C.Inputs.push_back(argv[i]);
             Merge_InputFileNames.push_back(argv_ansi[i]);
+        }
+    }
+
+    if (Device_Command && C.Inputs.empty())
+        C.Inputs.push_back(__T("device://0"));
+    if (Device_Command == 3)
+    {
+        if (Device_Mode == -1)
+        {
+            if (Device_Speed == 1)
+                Device_Mode = Playback_Mode_Playing;
+            else
+                Device_Mode = Playback_Mode_Playing; // Playback_Mode_NotPlaying;
+        }
+        if (Device_Speed == FLT_MIN)
+        {
+            if (Device_Mode == Playback_Mode_Playing)
+                Device_Speed = 1.0;
+            else
+                Device_Speed = 0.0;
+
         }
     }
 

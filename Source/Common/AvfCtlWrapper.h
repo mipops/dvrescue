@@ -13,19 +13,10 @@
 #include "Common/ProcessFileWrapper.h"
 
 //***************************************************************************
-// Enums
-//***************************************************************************
-
-enum playback_mode {
-    Playback_Mode_NotPlaying=0,
-    Playback_Mode_Playing
-};
-
-//***************************************************************************
 // Class AVFCtlWrapper
 //***************************************************************************
 
-class AVFCtlWrapper {
+class AVFCtlWrapper : public BaseWrapper {
 public:
     // Constructor/Destructor
     AVFCtlWrapper(std::size_t DeviceIndex);
@@ -35,6 +26,8 @@ public:
     static std::size_t GetDeviceCount();
     static std::string GetDeviceName(std::size_t DeviceIndex);
     std::string GetStatus();
+    float GetSpeed();
+    playback_mode GetMode();
     void CreateCaptureSession(FileWrapper* Wrapper);
     void StartCaptureSession();
     void StopCaptureSession();

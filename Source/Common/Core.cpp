@@ -58,6 +58,8 @@ return_value Core::Process()
     for (auto &future : futures) {
        future.get();
     }
+    if (Device_Command)
+        return ReturnValue_OK;
     if (!Merge_OutputFileName.empty())
     {
         PerFile[0]->Merge_Finish();
