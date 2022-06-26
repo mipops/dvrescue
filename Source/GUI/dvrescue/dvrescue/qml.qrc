@@ -2,8 +2,7 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>DevicesModelUpdater.qml</file>
-        <file>AvfCtl.qml</file>
-        <file>AvfCtlParser.qml</file>
+        <file>DvRescueParser.qml</file>
         <file>DevicesModel.qml</file>
         <file>DevicesView.qml</file>
         <file>TransferPage.qml</file>
@@ -103,5 +102,6 @@
         <file>DvPlayCtl.qml</file>
         <file>DvLoupeView.qml</file>
         <file>HyperlinkDelegate.qml</file>
+        <file>icons/srew.svg</file>
     </qresource>
 </RCC>

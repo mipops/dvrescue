@@ -10,6 +10,7 @@ import Multimedia 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
+    property alias rplayButton: rplayButton
     property alias playButton: playButton
     property alias stopButton: stopButton
     property alias rewindButton: rewindButton
@@ -70,12 +71,10 @@ Column {
             id: fileWriter
         }
 
-        /*
         Thread {
             id: csvWriterThread
             worker: csvParser
         }
-        */
 
         CsvParser {
             id: csvParser
@@ -119,6 +118,12 @@ Column {
             }
 
             Button {
+                id: rplayButton
+                icon.color: 'transparent'
+                icon.source: "/icons/srew.svg"
+            }
+
+            Button {
                 id: playButton
                 icon.color: 'transparent'
                 icon.source: "/icons/play.svg"
@@ -142,22 +147,20 @@ Column {
             }
         }
 
-        Text {
-            id: statusText
-            visible: false
-            anchors.left: row.right
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
-        }
-
         CaptureFrameInfo {
             id: captureFrameInfo
             anchors.top: row.bottom
             anchors.left: parent.left
             anchors.right: parent.right
+        }
+
+        Text {
+            id: statusText
+            anchors.right: captureFrameInfo.right
+            anchors.top: captureFrameInfo.top
+            anchors.bottom: captureFrameInfo.bottom
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
         }
     }
 }
