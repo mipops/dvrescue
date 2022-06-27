@@ -150,13 +150,54 @@ void Launcher::execute(const QString &cmd)
 
 void Launcher::execute(const QString &app, const QStringList arguments)
 {
-    qDebug() << "launching process: " << app;
+    qDebug() << "launching process: " << app << ", arguments: " << arguments;
     applyEnvironment();
 
-    m_process->setProgram(app);
-    m_process->setArguments(arguments);
+    if(m_useThread) {
+        qDebug() << "in a separate thread...";
 
-    m_process->start();
+        m_thread = new QThread;
+        m_process->moveToThread(m_thread);
+
+        connect(m_thread, &QThread::finished, this, [this]() {
+            m_process->deleteLater();
+        }, Qt::DirectConnection);
+
+        connect(m_process, &QProcess::stateChanged, this, [this](QProcess::ProcessState state) {
+            Q_UNUSED(state);
+
+            qDebug() << "process: " << &m_process << "state changed: " << m_processState << "=>" << state;
+            if(m_processState == QProcess::Starting && state == QProcess::NotRunning) {
+                // process wasn't started - incorrectly typed command?
+
+                QByteArray output = "incorrectly typed command";
+
+                qDebug() << "error changed " << QThread::currentThread() << ": " << output;
+                Q_EMIT errorChanged(output);
+
+                qDebug() << "QProcess::finished: " << m_process->exitCode() << m_process->exitStatus() << "thread: " << QThread::currentThread();
+                Q_EMIT m_process->finished(m_process->exitCode(), m_process->exitStatus());
+            }
+            m_processState = state;
+        }, Qt::DirectConnection);
+
+        connect(m_thread, &QThread::started, this, [this, app, arguments]() {
+            qDebug() << "starting process from thread: " << QThread::currentThread();
+            m_process->setProgram(app);
+            m_process->setArguments(arguments);
+            m_process->start();
+        }, Qt::DirectConnection);
+
+        qDebug() << "starting thread...";
+        m_thread->start();
+    } else {
+
+        qDebug() << "in the same thread...";
+
+        m_process->setProgram(app);
+        m_process->setArguments(arguments);
+        m_process->start();
+    }
 }
 
 void Launcher::setPaths(const QStringList paths)

@@ -50,7 +50,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd + " -list_devices");
+            launcher.execute(cmd, [ "-list_devices" ]);
             if(callback)
                 callback(launcher)
         })
@@ -89,7 +89,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd + " device://" + index + " -status");
+            launcher.execute(cmd + ["device://" + index, "-status"]);
             if(callback)
                 callback(launcher)
         })
@@ -128,7 +128,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd + ' device://' + index + ' -cmd ' + command);
+            launcher.execute(cmd, ['device://' + index, '-cmd', command]);
             if(callback)
                 callback(launcher)
         })
@@ -168,7 +168,7 @@ Item {
             var arguments = ['device://' + index, '-m', '-', '--verbosity', '9', '--csv']
             // var arguments = ['sample.dv', '-m', '-', '--verbosity', '9', '--csv']
 
-            launcher.execute(cmd + ' ' + arguments.join(' '));
+            launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
         })
@@ -227,7 +227,7 @@ Item {
             var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
             // var arguments = ['sample.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
-            launcher.execute(cmd + ' ' + arguments.join(' '));
+            launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
         })
