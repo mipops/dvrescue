@@ -176,6 +176,7 @@ namespace
     struct per_file
     {
         FILE*               F = nullptr;
+        uint64_t            F_Pos = 0;
         uint8_t             Buffer[144000 * 4];
         size_t              Count_Blocks[BlockStatus_Max] = {};
         size_t              Count_Blocks_NOK_Frames_NOK = 0;
@@ -389,7 +390,9 @@ bool dv_merge_private::Init()
         }
         if (MergeInfo_Format == 1)
         {
-            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,IssueFixed,SourceSpeed,FrameSpeed";
+            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,IssueFixed";
+            if (Verbosity > 5)
+                Log_Line << ",SourceSpeed,FrameSpeed,InputPos,OutputPos";
         }
         *Log << Log_Line.str() << endl;;
     }
@@ -800,6 +803,7 @@ bool dv_merge_private::Process(float Speed)
     }
 
     // Copy 1 frame in memory, for each input
+    vector<uint64_t> Input_Previous_F_Pos;
     for (size_t i = 0; i < Input_Count; i++)
     {
         auto& Input = Inputs[i];
@@ -807,9 +811,12 @@ bool dv_merge_private::Process(float Speed)
         auto& Frame = Frames[Frame_Pos];
         if (!Frame.Status[Status_FrameMissing])
         {
+            Input_Previous_F_Pos.push_back(Input.F_Pos);
             if (Input.F)
             {
-                auto BytesRead = fread(Input.Buffer, 1, Frame.BlockStatus_Count * 80, Input.F);
+                auto Frame_Size = Frame.BlockStatus_Count * 80;
+                auto BytesRead = fread(Input.Buffer, 1, Frame_Size, Input.F);
+                Input.F_Pos += BytesRead;
                 if (BytesRead != Frame.BlockStatus_Count * 80)
                     *Log << "File read issue." << endl;
                 if (Frame.RepeatCount)
@@ -821,8 +828,13 @@ bool dv_merge_private::Process(float Speed)
             else if (Input.DV_Data && !Input.DV_Data->empty())
             {
                 memcpy(Input.Buffer, Input.DV_Data->front().Data, Input.DV_Data->front().Size); // TODO: avoid this copy
+                Input.F_Pos += Input.DV_Data->front().Size;
                 Input.DV_Data->pop_front();
             }
+        }
+        else
+        {
+            Input_Previous_F_Pos.push_back((uint64_t) - 1);
         }
     }
 
@@ -1197,8 +1209,14 @@ bool dv_merge_private::Process(float Speed)
         }
     }
 
+    uint64_t F_OldPos;
     if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
-        fwrite(Output.Buffer, BlockStatus_Count * 80, 1, Output.F);
+    {
+        auto Write_Size = BlockStatus_Count * 80;
+        fwrite(Output.Buffer, Write_Size, 1, Output.F);
+        F_OldPos = Output.F_Pos;
+        Output.F_Pos += Write_Size;
+    }
     if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
     {
         Log_Line << ',';
@@ -1209,6 +1227,18 @@ bool dv_merge_private::Process(float Speed)
         auto& Frame = Frames[Frame_Pos];
         if (Frame.Speed != INT_MIN)
             Log_Line << std::to_string(Frame.Speed);
+        Log_Line << ',';
+        if (Prefered_Frame != -1)
+            for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
+            {
+                if (i)
+                    Log_Line << '|';
+                if (Input_Previous_F_Pos[i] != (uint64_t)-1)
+                    Log_Line << Input_Previous_F_Pos[i];
+            }
+        Log_Line << ',';
+        if (Prefered_Frame != -1)
+            Log_Line << F_OldPos;
         *Log << Log_Line.str() << endl;
     }
 
