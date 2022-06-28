@@ -224,9 +224,9 @@ namespace
     const int Formating_BlockCount_Width = 9;
     const int Formating_FrameBlockCount_Width = 4;
     const int Formating_Precision = 6;
-    void ShowFrames(size_t Count, size_t Total, const char* Next = nullptr)
+    void ShowFrames(size_t Count, size_t Total, const char* Next = nullptr, bool AlwaysShow = false)
     {
-        if (!Count)
+        if (!Count && !AlwaysShow)
             return;
         auto Percent = (float)Count / Total * 100;
         *Log << fixed << setw(Formating_FrameCount_Width) << Count << " = " << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << Percent << "% of frames";
@@ -292,7 +292,7 @@ namespace
         }
         size_t Count_Frames_Total()
         {
-            return Count_Frames_OK + Count_Frames_NOK + Count_Frames_Missing;
+            return Count_Frames_OK + Count_Frames_Recovered + Count_Frames_NOK + Count_Frames_Missing;
         }
     };
     dv_merge_private Merge_Private;
@@ -1381,7 +1381,7 @@ bool dv_merge_private::Stats()
         if (Blocks_Bad)
         {
             ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
-            ShowFrames(Frames_Bad, Count_Frames_Total, "\n");
+            ShowFrames(Frames_Bad, Count_Frames_Total, "\n", true);
         }
         else
         {
@@ -1398,7 +1398,7 @@ bool dv_merge_private::Stats()
     *Log << "Result:\n";
     *Log << std::setw(8) << ' ';
     ShowBlocks(Blocks_Bad, Count_Blocks_Total, " have errors, in ");
-    ShowFrames(Frames_Bad, Count_Frames_Total, "\n");
+    ShowFrames(Frames_Bad, Count_Frames_Total, "\n", true);
     if (Frames_Bad_MinRatio != Frames_Bad_FinalRatio || Blocks_Bad_MinRatio != Blocks_Bad_FinalRatio)
     {
         *Log << std::setw(Formating_BlockCount_Width + 9) << ' ';
