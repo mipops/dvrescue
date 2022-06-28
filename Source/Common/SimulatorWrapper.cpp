@@ -382,7 +382,7 @@ void SimulatorWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
     P->Time_Previous_Frame = steady_clock::now();
 
     // Switch to next file
-    if (P->IsCapturing)
+    if (P->IsCapturing && P->Speed < 0)
     {
         auto SeekPos = P->F[P->F_Pos]->Position_Get();
         P->F_Pos++;
