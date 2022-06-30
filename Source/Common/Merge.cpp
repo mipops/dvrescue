@@ -1227,26 +1227,29 @@ bool dv_merge_private::Process(float Speed)
     }
     if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
     {
-        Log_Line << ',';
-        Log_Line << ::to_string(Speed);
-        Log_Line << ',';
-        auto& Input = Inputs[0];
-        auto& Frames = Input.Segments[Segment_Pos].Frames;
-        auto& Frame = Frames[Frame_Pos];
-        if (Frame.Speed != INT_MIN)
-            Log_Line << std::to_string(Frame.Speed);
-        Log_Line << ',';
-        if (Prefered_Frame != -1)
-            for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
-            {
-                if (i)
-                    Log_Line << '|';
-                if (Input_Previous_F_Pos[i] != (uint64_t)-1)
-                    Log_Line << Input_Previous_F_Pos[i];
-            }
-        Log_Line << ',';
-        if (Prefered_Frame != -1)
-            Log_Line << F_OldPos;
+        if (MergeInfo_Format)
+        {
+            Log_Line << ',';
+            Log_Line << ::to_string(Speed);
+            Log_Line << ',';
+            auto& Input = Inputs[0];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Speed != INT_MIN)
+                Log_Line << std::to_string(Frame.Speed);
+            Log_Line << ',';
+            if (Prefered_Frame != -1)
+                for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
+                {
+                    if (i)
+                        Log_Line << '|';
+                    if (Input_Previous_F_Pos[i] != (uint64_t)-1)
+                        Log_Line << Input_Previous_F_Pos[i];
+                }
+            Log_Line << ',';
+            if (Prefered_Frame != -1)
+                Log_Line << F_OldPos;
+        }
         *Log << Log_Line.str() << endl;
     }
 
