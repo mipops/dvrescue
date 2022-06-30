@@ -33,6 +33,14 @@ Options:
  -d <path> (provide a custom path to a DVRescue XML that corresponds to the
             input file)
 
+To vizualize the relationship between inputs and a merged output (-s, -S, and -b are required):
+ -s <list> (provide a pipe-delimited list of the input files for the merge)
+ -S <list> (provide a pipe-delimited list of the offsets to the input files listed in '-s')
+
+ For example `dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv` would show
+ an image that depicts the input frames (at the corresponding offsets of the corresponding input
+ file) with the corresponding merged output frame at the corresponding offset.
+
  -z       (disable colored terminal output)
 EOF
 exit
@@ -84,7 +92,7 @@ _maketemp(){
 OPTIND=1
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
-while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:" OPT ; do
+while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:s:S:" OPT ; do
     case "${OPT}" in
         t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
         b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
@@ -102,6 +110,8 @@ while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:" OPT ; do
         B) BLOCKS="${OPTARG}" ;;
         o) OUTPUTDIR="${OPTARG}";;
         O) OUTPUTFILE="${OPTARG}" ; ERROR_REVIEW="Y" ;;
+        s) INPUTFILE_PATHS="${OPTARG}" ;;
+        S) INPUTFILE_OFFSETS="${OPTARG}" ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
         *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     esac
@@ -561,7 +571,54 @@ while [[ "${@}" != "" ]] ; do
     HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
     PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
     _get_filters
-    if [[ -n "${OUTPUTFILE}" ]]  ; then
+    if [[ -n "${INPUTFILE_PATHS}" ]] ; then
+        IFS="|" read -ra INPUTFILE_PATH <<< "${INPUTFILE_PATHS}"
+        IFS="|" read -ra INPUTFILE_OFFSET <<< "${INPUTFILE_OFFSETS}"
+        COUNT_INPUT_PATH="${#INPUTFILE_PATH[@]}"
+        COUNT_INPUT_OFFSET="${#INPUTFILE_OFFSET[@]}"
+        COLOR=(red green blue magenta yellow cyan)
+        INPUT_COUNTER=0
+        MAP_COUNTER=0
+        unset INPUT_SET MAP_SET FILTER_SET
+
+        while [[ "${INPUT_COUNTER}" < "${COUNT_INPUT_PATH}" ]]; do
+            INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
+            INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
+            MAP_SET+=(-map "${MAP_COUNTER}:v")
+            FILTER_SET+="[0:v:${MAP_COUNTER}]"
+            MAP_COUNTER=$((MAP_COUNTER+1))
+            MAP_SET+=(-map "${MAP_COUNTER}:v")
+            MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
+            FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=16:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER} $(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}")@${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
+            FILTER_OUTS+="[v${INPUT_COUNTER}]"
+            INPUT_COUNTER=$((INPUT_COUNTER+1))
+            MAP_COUNTER=$((MAP_COUNTER+1))
+        done
+        INPUT_SET+=(-skip_initial_bytes "${OFFSET}" -i "${DVFILE}")
+        INPUT_SET+=(-skip_initial_bytes "${OFFSET}" -i "${DVFILE}")
+
+        MAP_SET+=(-map "${MAP_COUNTER}:v")
+        FILTER_SET+="[0:v:${MAP_COUNTER}]"
+        MAP_COUNTER=$((MAP_COUNTER+1))
+        MAP_SET+=(-map "${MAP_COUNTER}:v")
+        MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
+        FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=16:fontcolor=white:shadowx=1:shadowy=2:text='Result $(basename "${DVFILE}")@${OFFSET}'[v${INPUT_COUNTER}];"
+        FILTER_OUTS+="[v${INPUT_COUNTER}]"
+        INPUT_COUNTER=$((INPUT_COUNTER+1))
+        MAP_COUNTER=$((MAP_COUNTER+1))
+        if [[ -n "${OUTPUTFILE}" ]]  ; then
+            if [[ "${OUTPUTFILE}" == "-" ]] ; then
+                PIPE_FORMAT=(-c:v mjpeg -f image2)
+            fi
+            DVPLAY_OUTPUT="${OUTPUTFILE}"
+            ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|w0+w1+w2_0|w0+w1+w2+w3_0|w0+w1+w2+w3+w4_0|w0+w1+w2+w3+w4+w5_0" -frames:v 1 "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
+        else
+            ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|w0+w1+w2_0|w0+w1+w2+w3_0|w0+w1+w2+w3+w4_0|w0+w1+w2+w3+w4+w5_0" -f nut -frames:v 1 -c:v rawvideo - | \
+            ffplay -
+        fi
+    elif [[ -n "${OUTPUTFILE}" ]]  ; then
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
             PIPE_FORMAT=(-c:v mjpeg -f image2)
         fi
