@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1041" height="747" viewBox="0 0 1041 747">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        stroke: #fff;
+        stroke-width: 4.68px;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        font-size: 625px;
+        fill: #2e3436;
+        font-family: "VCR OSD Mono";
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M0.344,88.175H1041.66V747.826H0.344V88.175Z"/>
+  <path class="cls-1" d="M1.591,0.055H363.409V86.32H1.591V0.055Z"/>
+  <text id="_" data-name="+" class="cls-2" x="336.628" y="636.381">+</text>
+</svg>
