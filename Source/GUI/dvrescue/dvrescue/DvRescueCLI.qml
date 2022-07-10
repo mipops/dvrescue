@@ -136,8 +136,8 @@ Item {
         return promise;
     }
 
-    function play(index, playbackBuffer, csvParser, callback) {
-        console.debug('starting playback');
+    function capture(index, playbackBuffer, csvParser, captureCmd, callback) {
+        console.debug('starting capture');
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
@@ -165,7 +165,7 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['device://' + index, '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
