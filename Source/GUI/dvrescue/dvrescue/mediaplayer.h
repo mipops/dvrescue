@@ -46,6 +46,7 @@ class MediaPlayer : public QObject, public QQmlParserStatus
     Q_PROPERTY(qreal videoFrameRate READ videoFrameRate NOTIFY videoFrameRateChanged)
     Q_PROPERTY(QVector2D ranges READ ranges WRITE setRanges NOTIFY rangesChanged)
     Q_PROPERTY(bool enableAudio READ enableAudio WRITE setEnableAudio NOTIFY enableAudioChanged)
+    Q_PROPERTY(QString filter READ filter WRITE setFilter NOTIFY filterChanged)
 public:
     enum State {
         StoppedState,
@@ -94,6 +95,9 @@ public:
     bool enableAudio() const;
     void setEnableAudio(bool newEnableAudio);
 
+    QString filter() const;
+    void setFilter(const QString &newFilter);
+
 Q_SIGNALS:
     void videoOutputChanged();
     void positionChanged();
@@ -107,6 +111,7 @@ Q_SIGNALS:
     void rangesChanged();
     void bufferChanged();
     void enableAudioChanged();
+    void filterChanged();
 
 private:
     QAVPlayer* player;

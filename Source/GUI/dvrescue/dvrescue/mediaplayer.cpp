@@ -254,3 +254,23 @@ void MediaPlayer::setEnableAudio(bool newEnableAudio)
     m_enableAudio = newEnableAudio;
     Q_EMIT enableAudioChanged();
 }
+
+QString MediaPlayer::filter() const
+{
+    return player->filter();
+}
+
+void MediaPlayer::setFilter(const QString &newFilter)
+{
+    if (filter() == newFilter)
+        return;
+
+    player->setFilter(newFilter);
+    if(player->state() == QAVPlayer::PausedState)
+    {
+        player->seek(player->position());
+        player->pause();
+    }
+
+    Q_EMIT filterChanged();
+}
