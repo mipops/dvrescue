@@ -28,7 +28,8 @@ class QwtQuick2Plot : public QQuickPaintedItem
 {
     Q_OBJECT
     Q_PROPERTY(QQuickItem* canvasItem READ canvasItem NOTIFY canvasItemChanged);
-    Q_PROPERTY(QColor yLeftAxisColor READ yLeftAxisColor WRITE setYLeftAxisColor NOTIFY yLeftAxisColorChanged)
+    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE setBackgroundColor NOTIFY backgroundColorChanged);
+    Q_PROPERTY(QColor yLeftAxisColor READ yLeftAxisColor WRITE setYLeftAxisColor NOTIFY yLeftAxisColorChanged);
     Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setYLeftAxisTitle NOTIFY leftYAxisTitleChanged);
     Q_PROPERTY(QFont yLeftAxisFont READ yLeftAxisFont WRITE setYLeftAxisFont NOTIFY yLeftAxisFontChanged);
     Q_PROPERTY(QColor xBottomAxisColor READ xBottomAxisColor WRITE setXBottomAxisColor NOTIFY xBottomAxisColorChanged);
@@ -36,7 +37,7 @@ class QwtQuick2Plot : public QQuickPaintedItem
     Q_PROPERTY(QFont xBottomAxisFont READ xBottomAxisFont WRITE setXBottomAxisFont NOTIFY xBottomAxisFontChanged);
     Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
     Q_PROPERTY(QVector2D xBottomAxisRange READ xBottomAxisRange WRITE setXBottomAxisRange NOTIFY xBottomAxisRangeChanged);
-    Q_PROPERTY(bool xBottomAxisEnabled READ xBottomAxisEnabled WRITE setXBottomAxisEnabled NOTIFY xBottomAxisEnabledChanged)
+    Q_PROPERTY(bool xBottomAxisEnabled READ xBottomAxisEnabled WRITE setXBottomAxisEnabled NOTIFY xBottomAxisEnabledChanged);
 public:
     QwtQuick2Plot(QQuickItem* parent = nullptr);
     virtual ~QwtQuick2Plot();
@@ -56,6 +57,7 @@ public:
     bool xBottomAxisEnabled() const;    
     QColor yLeftAxisColor() const;
     QColor xBottomAxisColor() const;
+    const QColor &backgroundColor() const;
 
 public Q_SLOTS:
     void setYLeftAxisTitle(QString yLeftAxisTitle);
@@ -67,6 +69,7 @@ public Q_SLOTS:
     void setXBottomAxisEnabled(bool xBottomAxisEnabled);
     void setYLeftAxisColor(QColor yLeftAxisColor);
     void setXBottomAxisColor(QColor xBottomAxisColor);
+    void setBackgroundColor(const QColor &newBackgroundColor);
 
 Q_SIGNALS:
     void canvasItemChanged();
@@ -79,6 +82,7 @@ Q_SIGNALS:
     void xBottomAxisEnabledChanged(bool xBottomAxisEnabled);
     void yLeftAxisColorChanged(QColor yLeftAxisColor);
     void xBottomAxisColorChanged(QColor xBottomAxisColor);
+    void backgroundColorChanged();
 
 protected:
     void routeMouseEvents(QMouseEvent* event);
