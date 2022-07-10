@@ -111,6 +111,7 @@ Rectangle {
                     xBottomAxisEnabled: false
                     yLeftAxisTitle: "video error concealment (%)"
                     yLeftAxisColor: "darkgray"
+                    backgroundColor: "Cornsilk"
 
                     Component.onCompleted: {
                         yLeftAxisFont.bold = false
@@ -218,6 +219,7 @@ Rectangle {
                 xBottomAxisColor: "darkgray"
                 yLeftAxisTitle: "audio error (%)"
                 yLeftAxisColor: "darkgray"
+                backgroundColor: "Cornsilk"
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
