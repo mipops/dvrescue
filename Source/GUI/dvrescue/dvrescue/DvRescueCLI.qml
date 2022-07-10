@@ -221,7 +221,7 @@ Item {
                 launcher.destroy();
             });
 
-            var xml = file + ".dv.dvrescue.xml"
+            var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
             var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
