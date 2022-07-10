@@ -89,7 +89,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd + ["device://" + index, "-status"]);
+            launcher.execute(cmd, ["device://" + index, "-status"]);
             if(callback)
                 callback(launcher)
         })
@@ -156,7 +156,7 @@ Item {
             });
             launcher.processFinished.connect(() => {
                 try {
-                    accept();
+                    accept({'outputText' : 'capture finished'});
                 }
                 catch(err) {
                     reject(err);
@@ -166,7 +166,6 @@ Item {
             });
 
             var arguments = ['device://' + index, '-m', '-', '--verbosity', '9', '--csv']
-            // var arguments = ['sample.dv', '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
@@ -212,7 +211,7 @@ Item {
             });
             launcher.processFinished.connect(() => {
                 try {
-                    accept();
+                    accept({'outputText' : 'grab finished'});
                 }
                 catch(err) {
                     reject(err);
@@ -225,7 +224,6 @@ Item {
             var scc = file + ".scc"
 
             var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
-            // var arguments = ['sample.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
