@@ -10,6 +10,8 @@ Rectangle {
     width: 1190
     height: 768
 
+    signal grabCompleted(string filePath);
+
     FunkyGridLayout {
         width: parent.width
         height: parent.height
@@ -216,6 +218,7 @@ Rectangle {
                            pendingAction = false;
                            player.stop();
                            commandsLogs.logResult(result.outputText);
+                           grabCompleted(filePath)
                            return result;
                         }).catch((e) => {
                            captureButton.enabled = true;
