@@ -79,7 +79,7 @@ Rectangle {
 
             onStopped: {
                 console.debug('stopped: ', pos, ', status: ', status, ', state: ', state);
-                if(status !== MediaPlayer.EndOfMedia) {
+                if(status !== QtAVMediaPlayer.EndOfMedia) {
                     QtAVPlayerUtils.emitEmptyFrame(player);
                 }
             }
