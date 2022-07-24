@@ -17,6 +17,7 @@ message('QML_ROOT_PATH: ' $$QML_ROOT_PATH)
 
 DISTFILES += \
     tests/tst_captureframeinfo.qml \
+    tests/tst_captureview.qml \
     tests/tst_dvloupeview.qml \
     tests/tst_fileview.qml \
     tests/tst_navbar.qml \
@@ -28,6 +29,8 @@ HEADERS += \
 
 RESOURCES += \
     testdata.qrc
+
+RESOURCES += $$PWD/../dvrescue/qml.qrc
 
 QTAVPLAYER_SRC=$$absolute_path(../dvrescue-QtAVPlayer)
 QTAVPLAYER_LIB=$$absolute_path($$OUT_PWD/../dvrescue-QtAVPlayer)

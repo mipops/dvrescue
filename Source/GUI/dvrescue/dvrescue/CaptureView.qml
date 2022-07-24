@@ -7,6 +7,7 @@ import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
 import Multimedia 1.0
+import GraphicalEffects 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -18,11 +19,15 @@ Column {
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
     property alias captureFrameInfo: captureFrameInfo
+    property alias speedValueText: speedValue.text
+    property alias speedInterpretation: speedInterpretation.source
     property alias playbackBuffer: player.buffer
     property alias player: player
     property var fileWriter: fileWriter
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
+
+    property int frameSpeed: 0
 
     Rectangle {
         width: 640
@@ -144,6 +149,66 @@ Column {
                 id: captureButton
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
+            }
+
+            Item {
+                width: 15
+                height: 50
+            }
+
+            Item {
+                height: rewindButton.icon.height
+                width: rewindButton.icon.width
+                anchors.verticalCenter: parent.verticalCenter
+
+                Image {
+                    id: speedInterpretation
+                    anchors.fill: parent
+                    source: {
+                        if(frameSpeed <= -50)
+                            return rewindButton.icon.source
+                        if(frameSpeed < 0)
+                            return rplayButton.icon.source
+                        if(frameSpeed === 0)
+                            return stopButton.icon.source
+                        if(frameSpeed <= 49)
+                            return playButton.icon.source
+
+                        return fastForwardButton.icon.source
+                    }
+                }
+
+                ColorOverlay {
+                    anchors.fill: speedInterpretation
+                    source: speedInterpretation
+                    color: {
+                        if(frameSpeed <= -50 || frameSpeed >= 50)
+                            return "purple"
+
+                        if(frameSpeed <= -33 || frameSpeed >= 33)
+                            return "blue"
+
+                        if(frameSpeed <= -31 || frameSpeed >= 31)
+                            return "green"
+
+                        if(frameSpeed < 0 || frameSpeed > 0)
+                            return "red"
+
+                        return "black"
+                    }
+                }
+            }
+
+            Item {
+                width: 15
+                height: 50
+            }
+
+            Text {
+                id: speedValue
+                width: 50
+                anchors.verticalCenter: parent.verticalCenter
+                text: frameSpeed
             }
         }
 

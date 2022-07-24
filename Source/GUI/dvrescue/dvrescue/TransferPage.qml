@@ -63,10 +63,13 @@ Rectangle {
                     statusText = "capturing..";
                     capturingMode = captureCmd;
 
+                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
                     var columnNames = [];
                     var indexOfFramePos = -1;
                     var indexOfTimecode = -1;
                     var indexOfRecDateTime = -1;
+                    var indexOfSourceSpeed = -1;
+                    var indexOfFrameSpeed = -1;
 
                     dvrescue.capture(index, playbackBuffer, csvParser, captureCmd, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
@@ -76,6 +79,8 @@ Rectangle {
                                                                                indexOfFramePos = columnNames.indexOf('FramePos');
                                                                                indexOfTimecode = columnNames.indexOf('tc');
                                                                                indexOfRecDateTime = columnNames.indexOf('rdt');
+                                                                               indexOfSourceSpeed = columnNames.indexOf('SourceSpeed');
+                                                                               indexOfFrameSpeed = columnNames.indexOf('FrameSpeed')
 
                                                                                console.debug('indexOfFramePos: ', indexOfFramePos)
                                                                                console.debug('indexOfTimecode: ', indexOfTimecode)
@@ -96,6 +101,17 @@ Rectangle {
                                                                                 if(indexOfRecDateTime !== -1) {
                                                                                     var rdt = entries[indexOfRecDateTime];
                                                                                     captureFrameInfo.recTime = rdt;
+                                                                                }
+
+                                                                                /*
+                                                                                if(indexOfSourceSpeed !== -1) {
+                                                                                    var sourceSpeed = entries[indexOfSourceSpeed]
+                                                                                    speedValueText = sourceSpeed
+                                                                                }
+                                                                                */
+
+                                                                                if(indexOfFrameSpeed !== -1) {
+                                                                                    frameSpeed = entries[indexOfFrameSpeed]
                                                                                 }
                                                                             });
 
