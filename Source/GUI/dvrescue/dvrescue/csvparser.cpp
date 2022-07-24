@@ -55,11 +55,13 @@ void CsvParser::onNewEntry(const QString &entry)
         if(!ok)
             return;
 
-        auto now = QTime::currentTime();
-        if(m_lastUpdateEmitted.msecsTo(now) > 25) {
-            m_lastUpdateEmitted = now;
-            Q_EMIT entriesReceived(splitted);
+        // 2do: remove check after Jerome suppress 'M' entries
+        auto& InputPos = splitted[splitted.length() - 2];
+        if(InputPos == "M") {
+            return;
         }
+
+        Q_EMIT entriesReceived(splitted);
     }
 }
 
