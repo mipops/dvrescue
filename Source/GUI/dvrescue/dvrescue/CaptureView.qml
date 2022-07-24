@@ -28,14 +28,47 @@ Column {
     property var csvParserUI: csvParserUI
 
     property int frameSpeed: 0
+    onFrameSpeedChanged: {
+        if(frameSpeed <= -50)
+            capturingModeInt = rewing
+        if(frameSpeed < 0)
+            capturingModeInt = srewing
+        if(frameSpeed === 0)
+            capturingModeInt = stopped
+        if(frameSpeed <= 49)
+            capturingModeInt = playing
+        else
+            capturingModeInt = ffing
+    }
+
     property bool capturing: false;
-    property string capturingMode: ''
+    property string capturingMode: '' // stop
+    onCapturingModeChanged: {
+        if(capturingMode == 'play')
+            capturingModeInt = playing
+        else if(capturingMode == 'srew')
+            capturingModeInt = srewing
+        else if(capturingMode == 'rew')
+            capturingModeInt = rewing
+        else if(capturingMode == 'ff')
+            capturingModeInt = ffing
+        else
+            capturingModeInt = stopped
+    }
+    property int capturingModeInt: stopped // stop
+
+    readonly property int stopped: 0
+    readonly property int playing: 1
+    readonly property int srewing: -1
+    readonly property int ffing: 2
+    readonly property int rewing: -2
+
     property bool grabbing: false;
 
-    playButton.enabled: !grabbing && capturingMode != 'play'
-    rewindButton.enabled: !grabbing && capturingMode != 'rew'
-    rplayButton.enabled: !grabbing && capturingMode != 'srew'
-    fastForwardButton.enabled: !grabbing && capturingMode != 'ff'
+    playButton.enabled: !grabbing && capturingModeInt !== playing
+    rewindButton.enabled: !grabbing && capturingModeInt !== rewing
+    rplayButton.enabled: !grabbing && capturingModeInt !== srewing
+    fastForwardButton.enabled: !grabbing && capturingModeInt !== ffing
 
     Rectangle {
         width: 640
