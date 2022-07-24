@@ -21,14 +21,6 @@ Rectangle {
             delegate: CaptureView {
                 id: captureView
                 property bool pendingAction: false;
-                property bool capturing: false;
-                property string capturingMode: ''
-                property bool grabbing: false;
-
-                playButton.enabled: !grabbing && capturingMode != 'play'
-                rewindButton.enabled: !grabbing && capturingMode != 'rew'
-                rplayButton.enabled: !grabbing && capturingMode != 'srew'
-                fastForwardButton.enabled: !grabbing && capturingMode != 'ff'
 
                 Timer {
                     repeat: true

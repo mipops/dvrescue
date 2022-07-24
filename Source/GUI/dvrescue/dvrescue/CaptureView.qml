@@ -28,6 +28,14 @@ Column {
     property var csvParserUI: csvParserUI
 
     property int frameSpeed: 0
+    property bool capturing: false;
+    property string capturingMode: ''
+    property bool grabbing: false;
+
+    playButton.enabled: !grabbing && capturingMode != 'play'
+    rewindButton.enabled: !grabbing && capturingMode != 'rew'
+    rplayButton.enabled: !grabbing && capturingMode != 'srew'
+    fastForwardButton.enabled: !grabbing && capturingMode != 'ff'
 
     Rectangle {
         width: 640
