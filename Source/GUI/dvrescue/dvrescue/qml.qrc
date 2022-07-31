@@ -4,7 +4,6 @@
         <file>DevicesModelUpdater.qml</file>
         <file>DvRescueParser.qml</file>
         <file>DevicesModel.qml</file>
-        <file>DevicesView.qml</file>
         <file>TransferPage.qml</file>
         <file>icons/icon.png</file>
         <file>icons/fastforward.svg</file>
