@@ -19,7 +19,6 @@ Column {
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
     property alias captureFrameInfo: captureFrameInfo
-    property alias speedValueText: speedValue.text
     property alias speedInterpretation: speedInterpretation.source
     property alias playbackBuffer: player.buffer
     property alias player: player
@@ -42,6 +41,11 @@ Column {
     }
 
     property bool capturing: false;
+    onCapturingChanged: {
+        if(!capturing)
+            frameSpeed = 0
+    }
+
     property string capturingMode: '' // stop
     onCapturingModeChanged: {
         if(capturingMode == 'play')
@@ -64,6 +68,10 @@ Column {
     readonly property int rewing: -2
 
     property bool grabbing: false;
+    onGrabbingChanged: {
+        if(!grabbing)
+            frameSpeed = 0
+    }
 
     playButton.enabled: !grabbing && capturingModeInt !== playing
     rewindButton.enabled: !grabbing && capturingModeInt !== rewing
@@ -238,18 +246,17 @@ Column {
                         return "black"
                     }
                 }
-            }
 
-            Item {
-                width: 15
-                height: 50
-            }
+                ToolTip {
+                    text: "Frame Speed: " + frameSpeed
+                    visible: mouseArea.containsMouse
+                }
 
-            Text {
-                id: speedValue
-                width: 50
-                anchors.verticalCenter: parent.verticalCenter
-                text: frameSpeed
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
             }
         }
 
