@@ -192,7 +192,7 @@ Item {
                 }
 
                 property bool notifyPositionUpdates: true
-                property var prevDisplayPosition: -1
+                property int prevDisplayPosition: -1
                 player.onPositionChanged: {
                     var displayPosition = QtAVPlayerUtils.displayPosition(player)
                     if(prevDisplayPosition === displayPosition)

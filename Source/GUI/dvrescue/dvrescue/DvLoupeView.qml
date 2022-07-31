@@ -55,6 +55,21 @@ Dialog {
                          rowEntry['value2Color'] = '#' + cell1.color
                          rowEntry['selected'] = false
 
+                         if(cell1.hasOwnProperty('loc'))
+                         {
+                             var loc = cell1['loc']
+                             var splitted = loc.split(':');
+                             var w = splitted[0]
+                             var h = splitted[1]
+                             var x = splitted[2]
+                             var y = splitted[3]
+
+                             rowEntry['x'] = x;
+                             rowEntry['y'] = y;
+                             rowEntry['xw'] = x + w;
+                             rowEntry['yh'] = y + h;
+                         }
+
                          tableView.model.appendRow(rowEntry)
                      });
     }
@@ -80,6 +95,42 @@ Dialog {
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectFit
                     source: imageSource
+                }
+
+                MouseArea {
+                    x: image.width / 2 - image.paintedWidth / 2
+                    y: image.height / 2 - image.paintedHeight / 2
+                    width: image.paintedWidth
+                    height: image.paintedHeight
+
+                    onClicked: {
+                        var cx = mouse.x
+                        var cy = mouse.y
+
+                        console.debug('cx: ', cx, 'cy:', cy)
+                        for(var i = 0; i < tableView.model.rowCount; ++i) {
+                            var rowData = dataModel.getRow(i);
+                            if(!rowData.x)
+                                continue;
+
+                            var x = rowData.x
+                            var xw = rowData.xw
+                            var y = rowData.y
+                            var yh = rowData.yh
+
+                            if(x <= cx && cx < xw && y <= cy && cy < yh) {
+                                var rowIndex = i;
+                                console.debug('rowIndex: ', rowIndex);
+
+                                rowData.selected = !rowData.selected;
+                                dataModel.setRow(rowIndex, rowData)
+                                tableView.bringToView(rowIndex)
+                                root.selectionChanged()
+
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 Rectangle {
@@ -233,6 +284,28 @@ Dialog {
             id: tableView
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            function bringToView(index) {
+                console.debug('bringingToView: ', index, 'topMargin: ', tableView.topMargin);
+
+                if(index === 0) {
+                    tableView.contentY = -tableView.topMargin
+                    return
+                }
+
+                var expectedContentY = (index) * (delegateHeight + tableView.rowSpacing) - tableView.topMargin
+                var maxContentY = model.rowCount === 0 ? 0 :
+                                                         (model.rowCount * (delegateHeight + tableView.rowSpacing) - tableView.rowSpacing - tableView.height - tableView.topMargin)
+
+                if(tableView.contentHeight < tableView.height)
+                    return;
+
+                if(maxContentY >= 0) {
+                    // console.debug('adjusting contentY...');
+                    tableView.contentY = Math.min(expectedContentY, maxContentY)
+                    // console.debug('adjusting contentY... done: ', tableView.contentY);
+                }
+            }
 
             onWidthChanged: {
                 forceLayout();
