@@ -976,9 +976,9 @@ bool dv_merge_private::Process(float Speed)
             Out << Log_Separator << 'M';
         else
             Out << Log_Separator << 'X';
+        Out << Log_Separator;
         if (!IsMissing && !IsOK)
         {
-            Out << Log_Separator;
             for (size_t i = 0; i < Input_Count; i++)
             {
                 auto& Input = Inputs[i];
