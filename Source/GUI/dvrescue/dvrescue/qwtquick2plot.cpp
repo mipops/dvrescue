@@ -911,3 +911,16 @@ void QwtQuick2PlotLegend::geometryChange(const QRectF &newGeometry, const QRectF
     update();
 }
 #endif //
+
+const QColor &QwtQuick2Plot::backgroundColor() const
+{
+    return m_qwtPlot->canvasBackground().color();
+}
+
+void QwtQuick2Plot::setBackgroundColor(const QColor &newBackgroundColor)
+{
+    if(backgroundColor() != newBackgroundColor) {
+        m_qwtPlot->setCanvasBackground(QBrush(newBackgroundColor));
+        Q_EMIT backgroundColorChanged();
+    }
+}

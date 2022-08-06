@@ -10,6 +10,8 @@ Rectangle {
     width: 1190
     height: 768
 
+    signal grabCompleted(string filePath);
+
     FunkyGridLayout {
         width: parent.width
         height: parent.height
@@ -45,58 +47,23 @@ Rectangle {
                     }
                 }
 
-                rewindButton.onClicked: {
-                    pendingAction = true;
-                    statusText = "rewinding..";
-                    dvrescue.control(index, 'rew', (launcher) => {
-                       commandsLogs.logCommand(launcher);
-                    }).then((result) => {
-                       statusText = "rewinding.";
-                       pendingAction = false;
-                       commandsLogs.logResult(result.outputText);
-                       return result;
-                    });
-                }
-
-                stopButton.onClicked: {
-                    pendingAction = true;
-                    statusText = "stopping..";
-                    dvrescue.control(index, 'stop', (launcher) => {
-                       commandsLogs.logCommand(launcher);
-                    }).then((result) => {
-                       statusText = "stopping.";
-                       pendingAction = false;
-                       commandsLogs.logResult(result.outputText);
-                       return result;
-                    });
-                }
-
-                rplayButton.onClicked: {
-                    pendingAction = true;
-                    statusText = "rplaying..";
-                    dvrescue.control(index, 'srew', (launcher) => {
-                       commandsLogs.logCommand(launcher);
-                    }).then((result) => {
-                       statusText = "rplaying.";
-                       pendingAction = false;
-                       commandsLogs.logResult(result.outputText);
-                       return result;
-                    });
-                }
-
-                playButton.onClicked: {
+                function doCapture(captureCmd) {
+                    capturing = true;
                     pendingAction = true;
                     player.play()
 
-                    statusText = "playing..";
+                    statusText = "capturing..";
+                    capturingMode = captureCmd;
 
+                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
                     var columnNames = [];
                     var indexOfFramePos = -1;
                     var indexOfTimecode = -1;
                     var indexOfRecDateTime = -1;
+                    var indexOfSourceSpeed = -1;
+                    var indexOfFrameSpeed = -1;
 
-                    playButton.enabled = false;
-                    dvrescue.play(index, playbackBuffer, csvParser, (launcher) => {
+                    dvrescue.capture(index, playbackBuffer, csvParser, captureCmd, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
                                                                                console.debug('columnNames: ', JSON.stringify(columnNames))
@@ -104,6 +71,8 @@ Rectangle {
                                                                                indexOfFramePos = columnNames.indexOf('FramePos');
                                                                                indexOfTimecode = columnNames.indexOf('tc');
                                                                                indexOfRecDateTime = columnNames.indexOf('rdt');
+                                                                               indexOfSourceSpeed = columnNames.indexOf('SourceSpeed');
+                                                                               indexOfFrameSpeed = columnNames.indexOf('FrameSpeed')
 
                                                                                console.debug('indexOfFramePos: ', indexOfFramePos)
                                                                                console.debug('indexOfTimecode: ', indexOfTimecode)
@@ -125,35 +94,82 @@ Rectangle {
                                                                                     var rdt = entries[indexOfRecDateTime];
                                                                                     captureFrameInfo.recTime = rdt;
                                                                                 }
+
+                                                                                /*
+                                                                                if(indexOfSourceSpeed !== -1) {
+                                                                                    var sourceSpeed = entries[indexOfSourceSpeed]
+                                                                                    speedValueText = sourceSpeed
+                                                                                }
+                                                                                */
+
+                                                                                if(indexOfFrameSpeed !== -1) {
+                                                                                    frameSpeed = entries[indexOfFrameSpeed]
+                                                                                }
                                                                             });
 
-                       console.debug('logging play command')
+                       console.debug('logging start capture command')
                        commandsLogs.logCommand(launcher);
                     }).then((result) => {
-                        playButton.enabled = true;
+                        capturing = false;
+                        capturingMode = '';
                         pendingAction = false;
                         player.stop();
                         commandsLogs.logResult(result.outputText);
                         return result;
                     }).catch((e) => {
-                        playButton.enabled = true;
+                        capturing = false;
+                        capturingMode = '';
                         pendingAction = false
                         player.stop();
                         commandsLogs.logResult(e);
                     });
                 }
 
-                fastForwardButton.onClicked: {
+                function doDeckControl(deckControlCmd, deckControlStatus) {
                     pendingAction = true;
-                    statusText = "fast-forwarding..";
-                    dvrescue.control(index, 'ff', (launcher) => {
+                    capturingMode = deckControlCmd;
+
+                    statusText = deckControlStatus + "..";
+                    dvrescue.control(index, deckControlCmd, (launcher) => {
                         commandsLogs.logCommand(launcher);
                     }).then((result) => {
-                        statusText = "fast-forwarding.";
+                        statusText = deckControlCmd + ".";
                         pendingAction = false;
                         commandsLogs.logResult(result.outputText);
                         return result;
                     });
+                }
+
+                rewindButton.onClicked: {
+                    if(!capturing)
+                        doCapture('rew')
+                    else
+                        doDeckControl('rew', 'rewinding')
+                }
+
+                stopButton.onClicked: {
+                    doDeckControl('stop', 'stopping')
+                }
+
+                rplayButton.onClicked: {
+                    if(!capturing)
+                        doCapture('srew')
+                    else
+                        doDeckControl('srew', 'rplaying')
+                }
+
+                playButton.onClicked: {
+                    if(!capturing)
+                        doCapture('play')
+                    else
+                        doDeckControl('play', 'playing')
+                }
+
+                fastForwardButton.onClicked: {
+                    if(!capturing)
+                        doCapture('ff')
+                    else
+                        doDeckControl('ff', 'fast-forwarding')
                 }
 
                 captureButton.onClicked: {
@@ -171,10 +187,7 @@ Rectangle {
                         var indexOfTimecode = -1;
                         var indexOfRecDateTime = -1;
 
-                        captureButton.enabled = false;
-                        fastForwardButton.enabled = false;
-                        rewindButton.enabled = false;
-                        playButton.enabled = false;
+                        grabbing = true;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
@@ -209,26 +222,21 @@ Rectangle {
                            console.debug('logging grab command')
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
-                           captureButton.enabled = true;
-                           fastForwardButton.enabled = true;
-                           rewindButton.enabled = true;
-                           playButton.enabled = true;
+                           grabbing = false;
                            pendingAction = false;
                            player.stop();
                            commandsLogs.logResult(result.outputText);
+                           grabCompleted(filePath)
                            return result;
                         }).catch((e) => {
-                           captureButton.enabled = true;
-                           fastForwardButton.enabled = true;
-                           rewindButton.enabled = true;
-                           playButton.enabled = true;
+                           grabbing = false;
                            pendingAction = false;
                            player.stop();
                            commandsLogs.logResult(e);
                         });
                     }
 
-                    if(!playButton.enabled) {
+                    if(capturing) {
                         dvrescue.control(index, 'stop', (launcher) => {
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {

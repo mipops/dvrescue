@@ -7,6 +7,7 @@ import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
 import Multimedia 1.0
+import GraphicalEffects 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -18,11 +19,64 @@ Column {
     property alias deviceNameTextField: deviceNameTextField
     property alias statusText: statusText.text
     property alias captureFrameInfo: captureFrameInfo
+    property alias speedInterpretation: speedInterpretation.source
     property alias playbackBuffer: player.buffer
     property alias player: player
     property var fileWriter: fileWriter
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
+
+    property int frameSpeed: 0
+    onFrameSpeedChanged: {
+        if(frameSpeed <= -50)
+            capturingModeInt = rewing
+        if(frameSpeed < 0)
+            capturingModeInt = srewing
+        if(frameSpeed === 0)
+            capturingModeInt = stopped
+        if(frameSpeed <= 49)
+            capturingModeInt = playing
+        else
+            capturingModeInt = ffing
+    }
+
+    property bool capturing: false;
+    onCapturingChanged: {
+        if(!capturing)
+            frameSpeed = 0
+    }
+
+    property string capturingMode: '' // stop
+    onCapturingModeChanged: {
+        if(capturingMode == 'play')
+            capturingModeInt = playing
+        else if(capturingMode == 'srew')
+            capturingModeInt = srewing
+        else if(capturingMode == 'rew')
+            capturingModeInt = rewing
+        else if(capturingMode == 'ff')
+            capturingModeInt = ffing
+        else
+            capturingModeInt = stopped
+    }
+    property int capturingModeInt: stopped // stop
+
+    readonly property int stopped: 0
+    readonly property int playing: 1
+    readonly property int srewing: -1
+    readonly property int ffing: 2
+    readonly property int rewing: -2
+
+    property bool grabbing: false;
+    onGrabbingChanged: {
+        if(!grabbing)
+            frameSpeed = 0
+    }
+
+    playButton.enabled: !grabbing && capturingModeInt !== playing
+    rewindButton.enabled: !grabbing && capturingModeInt !== rewing
+    rplayButton.enabled: !grabbing && capturingModeInt !== srewing
+    fastForwardButton.enabled: !grabbing && capturingModeInt !== ffing
 
     Rectangle {
         width: 640
@@ -144,6 +198,65 @@ Column {
                 id: captureButton
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
+            }
+
+            Item {
+                width: 15
+                height: 50
+            }
+
+            Item {
+                height: rewindButton.icon.height
+                width: rewindButton.icon.width
+                anchors.verticalCenter: parent.verticalCenter
+
+                Image {
+                    id: speedInterpretation
+                    anchors.fill: parent
+                    source: {
+                        if(frameSpeed <= -50)
+                            return rewindButton.icon.source
+                        if(frameSpeed < 0)
+                            return rplayButton.icon.source
+                        if(frameSpeed === 0)
+                            return stopButton.icon.source
+                        if(frameSpeed <= 49)
+                            return playButton.icon.source
+
+                        return fastForwardButton.icon.source
+                    }
+                }
+
+                ColorOverlay {
+                    anchors.fill: speedInterpretation
+                    source: speedInterpretation
+                    color: {
+                        if(frameSpeed <= -50 || frameSpeed >= 50)
+                            return "purple"
+
+                        if(frameSpeed <= -33 || frameSpeed >= 33)
+                            return "blue"
+
+                        if(frameSpeed <= -31 || frameSpeed >= 31)
+                            return "green"
+
+                        if(frameSpeed < 0 || frameSpeed > 0)
+                            return "red"
+
+                        return "black"
+                    }
+                }
+
+                ToolTip {
+                    text: "Frame Speed: " + frameSpeed
+                    visible: mouseArea.containsMouse
+                }
+
+                MouseArea {
+                    id: mouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
             }
         }
 

@@ -29,7 +29,6 @@ Q_SIGNALS:
 
 private:
     QString m_buffer;
-    QTime m_lastUpdateEmitted { QTime::currentTime() };
 };
 
 #endif // CSVPARSER_H

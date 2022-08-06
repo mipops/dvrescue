@@ -42,6 +42,7 @@ Rectangle {
         QtAVMediaPlayer {
             id: player
             videoOutput: videoOutput
+            filter: tcButton.checked ? "format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36" : ""
 
             Component.onCompleted: {
                 console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
@@ -78,7 +79,7 @@ Rectangle {
 
             onStopped: {
                 console.debug('stopped: ', pos, ', status: ', status, ', state: ', state);
-                if(status !== MediaPlayer.EndOfMedia) {
+                if(status !== QtAVMediaPlayer.EndOfMedia) {
                     QtAVPlayerUtils.emitEmptyFrame(player);
                 }
             }
@@ -199,6 +200,12 @@ Rectangle {
                 onClicked: {
                     player.seek(player.duration - 1)
                 }
+            }
+
+            Button {
+                id: tcButton
+                checkable: true
+                text: "TC"
             }
         }
     }

@@ -89,7 +89,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd + ["device://" + index, "-status"]);
+            launcher.execute(cmd, ["device://" + index, "-status"]);
             if(callback)
                 callback(launcher)
         })
@@ -136,8 +136,8 @@ Item {
         return promise;
     }
 
-    function play(index, playbackBuffer, csvParser, callback) {
-        console.debug('starting playback');
+    function capture(index, playbackBuffer, csvParser, captureCmd, callback) {
+        console.debug('starting capture');
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
@@ -156,7 +156,7 @@ Item {
             });
             launcher.processFinished.connect(() => {
                 try {
-                    accept();
+                    accept({'outputText' : 'capture finished'});
                 }
                 catch(err) {
                     reject(err);
@@ -165,8 +165,7 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['device://' + index, '-m', '-', '--verbosity', '9', '--csv']
-            // var arguments = ['sample.dv', '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
@@ -212,7 +211,7 @@ Item {
             });
             launcher.processFinished.connect(() => {
                 try {
-                    accept();
+                    accept({'outputText' : 'grab finished'});
                 }
                 catch(err) {
                     reject(err);
@@ -221,11 +220,10 @@ Item {
                 launcher.destroy();
             });
 
-            var xml = file + ".dv.dvrescue.xml"
+            var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
             var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
-            // var arguments = ['sample.dv', '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)

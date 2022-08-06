@@ -152,6 +152,10 @@ ApplicationWindow {
             property var urlToPath: function(url) {
                 return FileUtils.getFilePath(url);
             }
+
+            onGrabCompleted: {
+                filesModel.add(filePath)
+            }
         }
 
         AnalysePage {
