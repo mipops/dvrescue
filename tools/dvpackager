@@ -773,9 +773,9 @@ if [[ -z "${FFMPEG_PATH}" ]] ; then
 else
     _report -v "Using ${FFMPEG_PATH} for ffmpeg operations."
     # the minimum recommanded version of libavformat, otherwise will use a hack to visualize errors
-    LAVF_MAJ_REQ=58
-    LAVF_MIN_REQ=65
-    LAVF_MIC_REQ=101
+    LAVF_MAJ_REQ=59
+    LAVF_MIN_REQ=5
+    LAVF_MIC_REQ=100
     IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
     if ! { \
           [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
