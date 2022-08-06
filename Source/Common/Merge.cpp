@@ -390,7 +390,7 @@ bool dv_merge_private::Init()
         }
         if (MergeInfo_Format == 1)
         {
-            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,IssueFixed";
+            Log_Line << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed";
             if (Verbosity > 5)
                 Log_Line << ",SourceSpeed,FrameSpeed,InputPos,OutputPos";
         }
@@ -1023,6 +1023,7 @@ bool dv_merge_private::Process(float Speed)
 
     // Find valid blocks
     size_t IssueCount = 0;
+    size_t IssueCount_Even = 0;
     size_t IssueFixed = 0;
     if (Verbosity > 5 && MergeInfo_Format)
         Log_Line << ',';
@@ -1115,7 +1116,12 @@ bool dv_merge_private::Process(float Speed)
                     }
                 }
                 if (!NoIssue)
+                {
                     IssueCount++;
+                    auto Dseq = Output.Buffer[b * 80 + 1] >> 4;
+                    if (!(Dseq % 2))
+                        IssueCount_Even++;
+                }
             }
             if (Verbosity > 5 && !MergeInfo_Format)
                 Log_Line << ", ";
@@ -1156,6 +1162,8 @@ bool dv_merge_private::Process(float Speed)
     {
         Log_Line << ',';
         Log_Line << IssueCount; // Remaining block errors for this frame
+        Log_Line << ',';
+        Log_Line << IssueCount_Even; // Remaining block errors for this frame (even Dseq)
         Log_Line << ',';
         Log_Line << IssueFixed; // Corrections of blocks for this frame
     }
