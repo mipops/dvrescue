@@ -9,6 +9,7 @@
 #include "ZenLib/ZtringListList.h"
 #include <chrono>
 #include <mutex>
+#include <cstdlib>
 #include <thread>
 #include <vector>
 
@@ -35,6 +36,7 @@ struct ctl
     vector<File*>               F;
     mutex                       Mutex;
     steady_clock::time_point    Time_Previous_Frame;
+    float                       Speed_Simulated = 0;
 
     // I/O
     size_t                      Io_Pos = (size_t)-1;
@@ -281,12 +283,13 @@ void SimulatorWrapper::WaitForSessionEnd()
         // Sleep
         auto Mode = P->Mode;
         auto Speed = P->Speed;
+        auto Speed_Simulated = P->Speed_Simulated;
         P->Mutex.unlock();
         if (!Speed)
         {
             break;
         }
-        auto LastFrameTheoriticalDuration = std::chrono::microseconds((int)(1000000.0 / (30.0 / 1.001) / abs(Speed)));
+        auto LastFrameTheoriticalDuration = std::chrono::microseconds(abs(Speed_Simulated) < 0.3 ? 100000 : (int)(1000000.0 / (30.0 / 1.001) / abs(Speed_Simulated)));
         auto Now = steady_clock::now();
         auto LastFrameDuration = duration_cast<std::chrono::microseconds>(Now - P->Time_Previous_Frame);
         if (LastFrameTheoriticalDuration > LastFrameDuration)
@@ -302,7 +305,7 @@ void SimulatorWrapper::WaitForSessionEnd()
         P->Mutex.lock();
         auto& F = P->F[P->F_Pos];
         Mode = P->Mode;
-        if (P->Speed < 0)
+        if (Speed_Simulated < 0)
         {
             auto Position = F->Position_Get();
             if (Position < 120000 * 2)
@@ -321,7 +324,35 @@ void SimulatorWrapper::WaitForSessionEnd()
         if (BytesRead != 120000)
             break;
         if (Mode == Playback_Mode_Playing)
-            P->Wrapper->Parse_Buffer(Buffer, 120000);
+        {
+            uint8_t* Buffer2;
+            if (Speed != 1.0 || Speed_Simulated != 1.0)
+            {
+                Buffer2 = new uint8_t[120000];
+                memcpy(Buffer2, Buffer, 120000);
+                for (int Buffer_Offset = 0; Buffer_Offset < 120000; Buffer_Offset += 80)
+                    if ((Buffer[Buffer_Offset] & 0xE0) == 0x60 && Buffer[Buffer_Offset + 3] == 0x51) // Audio SCT, audio_source_control, speed near 1.0
+                        Buffer2[Buffer_Offset + 3 + 3] = (Speed_Simulated > 0 ? 0x80 : 0) | int(0x20 * abs(Speed_Simulated));
+                if (P->Speed_Simulated != P->Speed)
+                {
+                    if (abs(P->Speed_Simulated - P->Speed) <= 0.1)
+                        P->Speed_Simulated = Speed;
+                    else if (P->Speed_Simulated < P->Speed)
+                        P->Speed_Simulated += (float)0.1;
+                    else if (P->Speed_Simulated > P->Speed)
+                        P->Speed_Simulated -= (float)0.1;
+                    else
+                        P->Speed_Simulated = Speed;
+                }
+            }
+            else
+                Buffer2 = Buffer;
+
+            P->Wrapper->Parse_Buffer(Buffer2, 120000);
+
+            if (Buffer2 != Buffer)
+                delete[] Buffer2;
+        }
     }
 
     SetPlaybackMode(Playback_Mode_NotPlaying, 0);
@@ -342,6 +373,10 @@ void SimulatorWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
     P->Mutex.lock();
 
     // Update
+    if (P->Mode == Playback_Mode_NotPlaying && P->Speed == 0 && Speed >= -1.0 && Speed <= 1.0)
+        P->Speed_Simulated = Speed; // Simulating direct target speed in the case deck is stopped and request is to no fast speed
+    else
+        P->Speed_Simulated = P->Speed;
     P->Mode = Mode;
     P->Speed = Speed;
     P->Time_Previous_Frame = steady_clock::now();
