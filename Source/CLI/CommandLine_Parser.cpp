@@ -584,7 +584,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             String Value;
             if (EqualPos != string::npos)
             {
-                Value.assign(Option, EqualPos + 1);
+                Value.assign(Option.c_str(), EqualPos + 1);
                 Option.resize(EqualPos);
                 EqualPos = 0;
             }
