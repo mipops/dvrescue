@@ -70,6 +70,11 @@ Dialog {
                              rowEntry['yh'] = y + h;
                          }
 
+                         if(cell1.hasOwnProperty('vbl'))
+                         {
+                             rowEntry['vbl'] = cell1['vbl']
+                         }
+
                          tableView.model.appendRow(rowEntry)
                      });
     }
@@ -119,15 +124,21 @@ Dialog {
                             var yh = rowData.yh
 
                             if(x <= cx && cx < xw && y <= cy && cy < yh) {
-                                var rowIndex = i;
+                                var rowIndex = i
                                 console.debug('rowIndex: ', rowIndex);
 
-                                rowData.selected = !rowData.selected;
-                                dataModel.setRow(rowIndex, rowData)
-                                tableView.bringToView(rowIndex)
-                                root.selectionChanged()
+                                if(rowData.hasOwnProperty('vbl')) {
 
-                                break;
+                                    rowIndex = rowData.vbl
+                                    rowData = dataModel.getRow(rowIndex)
+
+                                    rowData.selected = !rowData.selected;
+                                    dataModel.setRow(rowIndex, rowData)
+                                    tableView.bringToView()
+                                    root.selectionChanged()
+
+                                    break;
+                                }
                             }
                         }
                     }
