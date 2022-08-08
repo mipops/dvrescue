@@ -441,7 +441,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         if (!PerChange.empty() && ToPush->FrameNumber == PerChange.back()->FrameNumber)
             no_sourceorcontrol_aud_set_in_first_frame = true;
     }
-    if (no_sourceorcontrol_aud_set_in_first_frame && (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()))
+    if (no_sourceorcontrol_aud_set_in_first_frame && (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()) || DvSpeedHasChanged(PerFrame))
     {
         if (PerChange.back()->FrameNumber != FrameNumber - 1)
         {

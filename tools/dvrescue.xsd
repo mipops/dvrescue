@@ -134,6 +134,13 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="speed" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Integer that indicates the speed stored in the DV frames. Range from -127 to 127. Not provided if value is 31 or 32 (considered as normal playback).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:simpleType name="sizeType">
