@@ -8,60 +8,88 @@ title: DVRescue Schema Documentation
 The schema used in DVRescue can be found [here](https://github.com/mipops/dvrescue/blob/main/tools/dvrescue.xsd)
 
 ### creator:
-  - _program_:
-  - _version_:
-  - _library_:
+References the name and versioning of libraries used by the application listed as creator.
+  - _program_: name of program
+  - _version_: version of program
+  - _library_: version of library
 
 ### media:
-  - _ref_:
-  - _format_:
-  - _size_:
+A media element refers to an input to dvrescue, commonly a file which includes dv data or a piped input.
+  - _ref_: Reference to the original file path.
+  - _format_: Format of the file, for example DV, AVI, MPEG-4.
+  - _size_: File size, in bytes.
+  - _error_: Provides an error message is there is an issue parsing the file.
 
-### frames
-  - _scan_type_:
-  - _count_:
-  - _pts_:
-  - _end_pts_:
-  - _size_:
-  - _video_rate_:
-  - _chroma_subsampling_:
-  - _aspect_ratio_:
-  - _audio_rate_:
-  - _channels_:
-  - _captions_:
-  - _no_sourceorcontrol_aud_:
+### frames:
+As the qualities of a dv stream can change from frame to frame, the frames element groups together frames of like qualities. If a dv frame contains a specific quality that is different than that of the previous frame (such as a change from 4/3 aspect ratio to 16/9 or a change from 48000 Hz audio to 32000 Hz audio), then a new frames element will start.
+  - _scan_type_: String representing the interlacement pattern of the frame. Options are:
+
+        T: top, 
+        TT: top field only, 
+        B: bottom, 
+        BB: bottom field only,
+        P: progressive
+
+  - _count_: Frame count within the current frames sequence.
+  - _pts_: Presentation timestamp for start of sequence.
+  - _end_pts_: Presentation timestamp for end of sequence.
+  - _size_: Dimensions of frame represented as width x height in pixels.
+  - _video_rate_: Frame rate.
+  - _chroma_subsampling_:  Chroma subsampling value represented in three part ratio notation.
+  - _aspect_ratio_: Frame aspect ratio represented in fractional notation.
+  - _audio_rate_: Frame audio rate represented in full integer notation.
+  - _channels_:  Number of audio channels, between 0-8.
+
+            DV25: 0-2
+            DV50: 0-4
+            DV100: 0-8
+
+  - _captions_: Values of 'y' and 'n' indicate whether there is or is not the presence of EIA-608 closed captioning packs with the VAUX section of the DV frames. 'p' when some but not all frames have captions; in that case frame/@cap contains information about begin and end of the closed captioning packs presence.
+  - _no_sourceorcontrol_aud_: Boolean that indicates if no audio source and no audio source control pack is present in audio but at least 1 pack
 
 ### frame
-  - _n_:
-  - _pos_:
-  - _pts_:
-  - _abst_:
-  - _abst_r_:
-  - _abst_nc_:
-  - _tc_:
-  - _tc_r_:
-  - _tc_nc_:
-  - _rdt_:
-  - _rdt_r_:
-  - _rdt_nc_:
-  - _rec_start_:
-  - _rec_end_:
-  - _seqn_:
-  - _seqn_r_:
-  - _seqn_nc_:
-  - _caption-parity_:
-  - _no_pack_:
-  - _no_pack_sub_:
-  - _no_pack_vid_:
-  - _no_pack_aud_:
-  - _no_sourceorcontrol_vid_:
-  - _no_sourceorcontrol_aud_:
-  - _full_conceal_:
-  - _full_conceal_vid_:
-  - _full_conceal_aud_:
-  - _conceal_aud_type_:
-  - _conceal_aud_value_:
-  - _captionType_:
+A frame element holds notable information about frames that have been identified to include errors.
+  - _n_: The number of the DIF sequence within the frame starting from zero.
+  - _pos_: Position (byte offset) of the frame.
+  - _pts_: Presentation timestamp for frame element.
+  - _abst_: The Absolute Track number for frame element, which references its corresponding tape position.
+  - _abst_r_: Boolean that indicates if absolute track number is repeating.
+  - _abst_nc_: Boolean that indicates if absolute track number is non-consecutive.
+  - _tc_:  Timecode.
+  - _tc_r_: Boolean that indicates if timecode is repeating.
+  - _tc_nc_: A value indicating if timecode is non-consecutive.
+
+            1: The timecode is non-continuous and the current value is greater than the previous value.
+            2: The timecode is non-continuous and the current value is less than the prev value.
+
+  - _rdt_: Recorded Date Time.
+  - _rdt_r_: Boolean that indicates if recorded date time is repeating.
+  - _rdt_nc_: A value indicating if recorded date time is non-consecutive.
+
+        1: The recorded date time is non-continuous and the current value is greater than the previous value.
+        2: The recorded date time is non-continuous and the current value is less than the prev value.
+
+  - _rec_start_: Recording start.
+  - _rec_end_: Recording end.
+  - _seqn_: Sequence number. DVRescue represents this four bit value in hexadecimal. For 525-60 systems values of 0, 2, 4, 6, 8, and A imply the frame is a colour frame A and values of 1, 3, 5, 7, 9, and B imply the frame is a colour frame B. For 625-50 systems values of 0, 4, and 8 imply the frame is field 1 and field 2, values of 1, 5, and 9 imply the frame is field 3 and field 4, values of 2, 6, and A imply the frame is field 5 and field 6, and values of 3, 7, and B imply the frame is field 7 and field 8. Values of C, D, and E are not used and a value of F implies that there is no sequence number information. Generally sequence numbers are recorded in a repeating pattern of 0 through B sequentially.
+  - _seqn_r_: Boolean that indicates if the sequence number is repeating.
+  - _seqn_nc_: Boolean that indicates if the sequence number is non-consecutive.
+  - _caption-parity_: A value of 'mismatch' indicates that a EIA-608 closed captioning pack is present within the VAUX section of the frame, but that at least one of the contained captioning values fails its parity check.
+  - _no_pack_: Boolean that indicates if no pack is present in subcode/video/audio.
+  - _no_pack_sub_: Boolean that indicates if no pack is present in subcode but at least 1 pack is present is video or audio.
+  - _no_pack_vid_: Boolean that indicates if no pack is present in video but at least 1 pack is present is subcode or audio.
+  - _no_pack_aud_: Boolean that indicates if no pack is present in audio but at least 1 pack is present in subcode or video.
+  - _no_sourceorcontrol_vid_: Boolean that indicates if no video source and no video source control pack is present in video but at least 1 pack is present in video.
+  - _no_sourceorcontrol_aud_: Boolean that indicates if no audio source and no audio source control pack is present in audio but at least 1 pack is present in audio.
+  - _full_conceal_: Boolean that indicates that all video information in frame consists of error concealment, and all audio information consists of audio error codes.
+  - _full_conceal_vid_: Boolean that indicates that all video information in frame consists of error concealment.
+  - _full_conceal_aud_: Boolean that indicates that all audio information in frame consists of error codes.
+  - _conceal_aud_type_: See audType@t.
+  - _conceal_aud_value_: See audType@v.
+  - _captionType_: When frames/@captions is 'p' (partial), contains information about closed captioning packs presence.
+
+        'on' at the first (in this 'frames' element) frame starting a closed captioning packs stream.
+        'off' at the first frame without captioning packs when previous frames have it.
 
 
 ### dseq
