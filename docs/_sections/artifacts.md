@@ -11,6 +11,8 @@ __What does it look like?__
 
 Dropout appears as pixels of missing data in the image, which may be substituted with video information from nearby frames during playback.
 
+<img alt="dropout example" src="{{ site.baseurl }}/images/dropOut.png">
+
 __What is it?__
 
 As with analog dropout, DV dropout in source signals results from a loss of information recorded or read from the tape by the VTR playback heads. It might be due to tape wrinkling, creasing or other tape damage, manufacturing defects, environmental dirt, or transport shock during recording. Severe and consistent dropout may indicate clogged heads in a playback machine or significant damage/deterioration to the source media.
@@ -23,6 +25,9 @@ If it was an error on part of the deck, then you might be able to reduce the dro
 ### Scratch
 
 __What does it look like?__
+
+<img alt="scratch example" src="{{ site.baseurl }}/images/dv-scratch.png">
+
 
 A scratch can be identified by either opening the cassette door and checking for damage or by jagged vertical lines (similar to dropout) that travel fluidly along the playback image.
 
@@ -39,6 +44,8 @@ No, the damage cannot be reversed.
 
 __What does it look like?__
 
+<img alt="record head clog example" src="{{ site.baseurl }}/images/recordClog.png">
+
 Some blocks of a previous recording will show up with the old footage, while other parts of the playback image will present the most recently recorded material.
 
 __What is it?__
@@ -53,6 +60,9 @@ There is no remedy for this artifact, as it is recorded into the original tape m
 ### Playback Head Clog
 
 __What does it look like?__
+
+<img alt="playback head clog example" src="{{ site.baseurl }}/images/headClog.png">
+
 
 Typically, a head clog will appear as wide alternating lines of frozen video or an alternating pattern of color indicating a loss of read/write capability at the video head. Two head clogs cause loss of picture altogether or a freeze-frame of the last decodable frame.
 
