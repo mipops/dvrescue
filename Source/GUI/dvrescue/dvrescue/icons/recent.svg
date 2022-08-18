@@ -1,42 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 25.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1"
-	 id="svg1327" inkscape:version="0.92.3 (2405546, 2018-03-11)" sodipodi:docname="settings.svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 400 165"
-	 style="enable-background:new 0 0 400 165;" xml:space="preserve">
-<style type="text/css">
-	.st0{display:none;}
-	.st1{display:inline;fill:#F9F9F9;}
-	.st2{display:inline;fill:none;}
-	.st3{fill:none;stroke:#FFFFFF;stroke-width:2.5547;stroke-linecap:round;stroke-linejoin:round;}
-	.st4{fill:none;}
-	.st5{fill:#F9F9F9;}
-	.st6{font-family:'VCROSDMono';}
-	.st7{font-size:48px;}
-</style>
-<sodipodi:namedview  bordercolor="#666666" borderopacity="1.0" id="base" inkscape:current-layer="layer1" inkscape:cx="158.97737" inkscape:cy="137.67623" inkscape:document-units="mm" inkscape:guide-bbox="true" inkscape:pagecheckerboard="true" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:window-height="1052" inkscape:window-maximized="1" inkscape:window-width="1920" inkscape:window-x="0" inkscape:window-y="244" inkscape:zoom="8.5148954" pagecolor="#ffffff" showgrid="false" showguides="true" units="px">
-	<sodipodi:guide  id="guide1898" inkscape:locked="false" orientation="0,1" position="-2.7037149,20.87268"></sodipodi:guide>
-</sodipodi:namedview>
-<g id="layer1" transform="translate(0,-253.34373)" inkscape:groupmode="layer" inkscape:label="Layer 1">
-	<g id="text817-8-4-4-0" class="st0">
-		<path id="path5434" class="st1" d="M104.7,324.6h2.5v4.9h-4.9v-2.5h-2.5v-2.5H90v2.5h-2.5v4.9H90v2.5h12.3v2.5h2.5v2.5h2.5v9.8
-			h-2.5v2.5h-2.5v2.5H87.5v-2.5H85v-2.5h-2.5v-4.9h4.9v2.5H90v2.5h9.8v-2.5h2.5v-4.9h-2.5v-2.5H87.5v-2.5H85v-2.5h-2.5v-9.8H85v-2.5
-			h2.5v-2.5h14.7v2.5h2.5V324.6z"/>
-		<path id="path5436" class="st1" d="M136.5,319.7v4.9h-19.6v9.8h14.7v4.9h-14.7v9.8h19.6v4.9H112v-34.3L136.5,319.7z"/>
-		<path id="path5438" class="st1" d="M151.3,324.6h-9.8v-4.9H166v4.9h-9.8v29.4h-4.9V324.6z"/>
-		<path id="path5440" class="st2" d="M180.7,324.6h-9.8v-4.9h24.5v4.9h-9.8v29.4h-4.9V324.6z"/>
-		<path id="path5442" class="st1" d="M205.2,354.1v-4.9h4.9v-24.5h-4.9v-4.9h14.7v4.9H215v24.5h4.9v4.9H205.2z"/>
-		<path id="path5444" class="st1" d="M234.6,334.4v19.6h-4.9v-34.3h4.9v7.4h2.5v2.5h2.5v2.5h2.5v2.5h2.5v2.5h2.5v2.5h2.5v-19.6h4.9
-			v34.3h-4.9v-7.4h-2.5v-2.5h-2.5v-2.5H242v-2.5h-2.5v-2.5h-2.5v-2.5L234.6,334.4z"/>
-		<path id="path5446" class="st1" d="M281.2,324.6h2.5v4.9h-4.9v-2.5h-2.5v-2.5h-9.8v2.5H264v19.6h2.5v2.5h9.8v-2.5h2.5v-7.4h-7.4
-			v-4.9h12.3v14.7h-2.5v2.5h-2.5v2.5H264v-2.5h-2.5v-2.5h-2.5v-24.5h2.5v-2.5h2.5v-2.5h14.7v2.5h2.5V324.6z"/>
-		<path id="path5448" class="st1" d="M310.6,324.6h2.5v4.9h-4.9v-2.5h-2.5v-2.5h-9.8v2.5h-2.5v4.9h2.5v2.5h12.3v2.5h2.5v2.5h2.5v9.8
-			h-2.5v2.5h-2.5v2.5h-14.7v-2.5H291v-2.5h-2.5v-4.9h4.9v2.5h2.5v2.5h9.8v-2.5h2.5v-4.9h-2.5v-2.5h-12.3v-2.5H291v-2.5h-2.5v-9.8
-			h2.5v-2.5h2.5v-2.5h14.7v2.5h2.5V324.6z"/>
-	</g>
-	<path id="rect868-8-0-0" class="st3" d="M40.4,261h336.4l-33.6,125.5H6.8L40.4,261z"/>
-	<path id="rect868-7-5-8-3" class="st3" d="M59.2,284.8h336.4L362,410.4H25.5L59.2,284.8z"/>
-	<rect x="119.2" y="319.7" class="st4" width="169.3" height="36.8"/>
-	<text transform="matrix(1 0 0 1 119.2427 354.8682)" class="st5 st6 st7">RECENT</text>
-</g>
+<svg xmlns="http://www.w3.org/2000/svg" width="1041" height="747" viewBox="0 0 1041 747">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+        stroke: #fff;
+        stroke-width: 4.68px;
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        font-size: 625px;
+        fill: #2e3436;
+        font-family: "Wingdings 3";
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M0.344,88.175H1041.66V747.826H0.344V88.175Z"/>
+  <path class="cls-1" d="M1.591,0.055H363.409V86.32H1.591V0.055Z"/>
+  <text id="Q" class="cls-2" x="243.044" y="643.575">Q</text>
 </svg>
