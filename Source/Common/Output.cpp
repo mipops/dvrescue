@@ -278,6 +278,60 @@ bool computed_errors::Compute(const MediaInfo_Event_DvDif_Analysis_Frame_1& Fram
     return HasErrors;
 }
 
+int GetDvSpeed(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
+{
+    if (!Frame.MoreData)
+        return INT_MIN;
+
+    size_t MoreData_Size = *(size_t*)(Frame.MoreData) + sizeof(size_t);
+    size_t MoreData_Offset = sizeof(size_t);
+    while (MoreData_Offset < MoreData_Size)
+    {
+        size_t BlockSize = VariableSize(Frame.MoreData, MoreData_Offset, MoreData_Size);
+        if (BlockSize == -1)
+            break;
+        size_t BlockName = VariableSize(Frame.MoreData, MoreData_Offset, MoreData_Size);
+        if (BlockName == -1)
+            break;
+        if (BlockName == 2 && BlockSize >= 1)
+        {
+            auto RawSpeed = Frame.MoreData[MoreData_Offset++];
+            int Speed = RawSpeed & 0x7F;
+            if (!(RawSpeed & 0x80))
+                Speed = -Speed;
+            return Speed;
+        }
+        else
+            MoreData_Offset += BlockSize;
+    }
+    return INT_MIN;
+}
+
+int GetDvSpeedIfNotPlayback(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
+{
+    auto Speed = GetDvSpeed(Frame);
+    if (Speed == 31 || Speed == 32)
+        return INT_MIN;
+    return Speed;
+}
+
+bool DvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame)
+{
+    auto PreviousSpeed = GetDvSpeedIfNotPlayback(*PreviousFrame);
+    auto CurrentSpeed = GetDvSpeedIfNotPlayback(*CurrentFrame);
+    if (PreviousSpeed != CurrentSpeed)
+        return true;
+    return false;
+}
+
+bool DvSpeedHasChanged(std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame)
+{
+    if (PerFrame.size() <= 1)
+        return false;
+
+    return DvSpeedHasChanged(PerFrame[PerFrame.size() - 2], PerFrame[PerFrame.size() - 1]);
+}
+
 //***************************************************************************
 // Writing
 //***************************************************************************
