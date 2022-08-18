@@ -250,8 +250,17 @@ Item {
                     property string dvRescueXmlExtension: ".dvrescue.xml"
                     property int fileViewerHeight: 0
 
+                    Item {
+                        height: parent.height
+                        width: 1
+                    }
+
                     CustomButton {
+                        icon.color: "transparent"
                         icon.source: "/icons/add-files.svg"
+                        implicitHeight: 30
+                        implicitWidth: 47
+
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
@@ -264,7 +273,10 @@ Item {
                     }
 
                     CustomButton {
+                        icon.color: "transparent"
                         icon.source: "/icons/recent.svg"
+                        implicitHeight: 30
+                        implicitWidth: 47
 
                         onClicked: {
                             var mapped = mapToItem(root, 0, 0);
