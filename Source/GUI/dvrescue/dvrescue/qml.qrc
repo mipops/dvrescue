@@ -102,5 +102,6 @@
         <file>DvLoupeView.qml</file>
         <file>HyperlinkDelegate.qml</file>
         <file>icons/srew.svg</file>
+        <file>icons/logo-inverse.png</file>
     </qresource>
 </RCC>

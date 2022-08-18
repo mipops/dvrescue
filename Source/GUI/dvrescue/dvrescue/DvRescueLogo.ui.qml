@@ -5,7 +5,7 @@ import QtQuick.Controls 2.12
 Rectangle {
     width: 162
     height: 100
-    color: "#ffffff"
+    color: "transparent"
 
     BorderImage {
         id: borderImage
@@ -13,7 +13,7 @@ Rectangle {
 
         width: 132
         height: 92
-        source: "dvrescue.png"
+        source: "/icons/logo-inverse.png"
         verticalTileMode: BorderImage.Round
         horizontalTileMode: BorderImage.Round
         border.bottom: 3
