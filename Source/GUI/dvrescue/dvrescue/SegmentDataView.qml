@@ -101,7 +101,7 @@ Rectangle {
                     property color oddColor: '#f3f3f3'
                     textFont.pixelSize: 13
                     text: display
-                    hasJump: decoration.x
+                    jumpValue: decoration.x
                     hasRepeat: decoration.y
 
                     color: (row % 2) == 0 ? evenColor : oddColor
@@ -147,7 +147,7 @@ Rectangle {
                     property color oddColor: '#f3f3f3'
                     textFont.pixelSize: 13
                     text: display
-                    hasJump: decoration.x
+                    jumpValue: decoration.x
                     hasRepeat: decoration.y
                     property var editRole: edit
 

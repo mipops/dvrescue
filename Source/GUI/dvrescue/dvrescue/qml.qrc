@@ -30,6 +30,8 @@
         <file>DvRescueCLI.qml</file>
         <file>OddEvenTextDelegate.qml</file>
         <file>icons/alert-non-continuous-jump.svg</file>
+        <file>icons/alert-non-continuous-jump-ahead.svg</file>
+        <file>icons/alert-non-continuous-jump-back.svg</file>
         <file>icons/alert-repeat-frame.svg</file>
         <file>icons/alert-substantial-change.svg</file>
         <file>icons/button-custom-range.svg</file>
