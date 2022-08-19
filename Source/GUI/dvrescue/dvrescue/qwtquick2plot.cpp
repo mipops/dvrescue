@@ -417,8 +417,6 @@ QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
     m_qwtPlotCurve->setRenderHint(QwtPlotItem::RenderAntialiased);
-
-    m_qwtPlotCurve->setData(new PlotData(&m_curveData));
 }
 
 QwtQuick2PlotCurve::~QwtQuick2PlotCurve()

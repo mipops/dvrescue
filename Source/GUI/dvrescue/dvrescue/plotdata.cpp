@@ -1,26 +1,35 @@
 #include "plotdata.h"
 
-PlotData::PlotData(QVector<QPointF> *container) :
-    _container(container)
+SequentialPlotData::SequentialPlotData()
 {
 }
 
-QVector<QPointF> *PlotData::data()
+void SequentialPlotData::append(QPointF &&point)
 {
-    return _container;
+    _container.append(point);
 }
 
-size_t PlotData::size() const
+void SequentialPlotData::append(const QPointF &point)
 {
-    return static_cast<size_t>(_container->size());
+    _container.append(point);
 }
 
-QPointF PlotData::sample(size_t i) const
+void SequentialPlotData::clear()
 {
-    return _container->at(static_cast<int>(i));
+    _container.clear();
 }
 
-QRectF PlotData::boundingRect() const
+size_t SequentialPlotData::size() const
+{
+    return static_cast<size_t>(_container.size());
+}
+
+QPointF SequentialPlotData::sample(size_t i) const
+{
+    return _container.at(static_cast<int>(i));
+}
+
+QRectF SequentialPlotData::boundingRect() const
 {
     return qwtBoundingRect(*this);
 }

@@ -7,14 +7,16 @@
 #include <qwt_series_data.h>
 
 
-class PlotData : public QwtSeriesData<QPointF>
+class SequentialPlotData : public QwtSeriesData<QPointF>
 {
 public:
-    PlotData(QVector<QPointF> *container);
-    QVector<QPointF>* data();
+    SequentialPlotData();
 
+    void append(QPointF&& point);
+    void append(const QPointF& point);
+    void clear();
 private:
-      QVector<QPointF>* _container;
+      QVector<QPointF> _container;
 
       // QwtSeriesData interface
 public:

@@ -128,7 +128,6 @@ public:
     QwtQuick2PlotCurve(QObject* parent = nullptr);
     virtual ~QwtQuick2PlotCurve();
 
-    QVector<QPointF>& data() { return m_curveData; }
     QwtPlotCurve* curve() const;
     QwtQuick2Plot* plot() const;
 
@@ -157,7 +156,6 @@ Q_SIGNALS:
 private:
     QwtQuick2Plot* m_qwtQuickPlot { nullptr };
     QwtPlotCurve* m_qwtPlotCurve;
-    QVector<QPointF> m_curveData;
 };
 
 class QwtQuick2PlotGrid : public QObject

@@ -43,6 +43,10 @@ class DataModel : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int total READ total NOTIFY totalChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* evenVideoCurve READ evenVideoCurve WRITE setEvenVideoCurve NOTIFY evenVideoCurveChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* oddVideoCurve READ oddVideoCurve WRITE setOddVideoCurve NOTIFY oddVideoCurveChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* evenAudioCurve READ evenAudioCurve WRITE setEvenAudioCurve NOTIFY evenAudioCurveChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* oddAudioCurve READ oddAudioCurve WRITE setOddAudioCurve NOTIFY oddAudioCurveChanged)
 
 public:
     explicit DataModel(QObject *parent = nullptr);
@@ -84,9 +88,21 @@ public:
 
     static void setEngine(QJSEngine* jsEngine);
 
+    QwtQuick2PlotCurve *evenVideoCurve() const;
+    void setEvenVideoCurve(QwtQuick2PlotCurve *newEvenVideoCurve);
+
+    QwtQuick2PlotCurve *oddVideoCurve() const;
+    void setOddVideoCurve(QwtQuick2PlotCurve *newOddVideoCurve);
+
+    QwtQuick2PlotCurve *evenAudioCurve() const;
+    void setEvenAudioCurve(QwtQuick2PlotCurve *newEvenAudioCurve);
+
+    QwtQuick2PlotCurve *oddAudioCurve() const;
+    void setOddAudioCurve(QwtQuick2PlotCurve *newOddAudioCurve);
+
 public Q_SLOTS:
-    void update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve* videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve* audioCurve2);
-    void reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve* videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve* audioCurve2);
+    void update();
+    void reset();
     void bind(QAbstractTableModel* model);
 
     void populate(const QString& fileName);
@@ -106,6 +122,14 @@ Q_SIGNALS:
     void gotDataRow(const QVariant& row);
     void dataRowCreated(const QVariantMap& map);
 
+    void evenVideoCurveChanged();
+
+    void oddVideoCurveChanged();
+
+    void evenAudioCurveChanged();
+
+    void oddAudioCurveChanged();
+
 private:
     XmlParser* m_parser { nullptr };
     std::unique_ptr<QThread> m_thread;
@@ -123,6 +147,11 @@ private:
     QMap<quint64, qint64> m_frameOffsetByFrameIndex;
     QMap<qint64, quint64> m_frameIndexByFrameOffsetStart;
     QMap<qint64, quint64> m_frameIndexByFrameOffsetEnd;
+
+    QwtQuick2PlotCurve *m_evenVideoCurve = nullptr;
+    QwtQuick2PlotCurve *m_oddVideoCurve = nullptr;
+    QwtQuick2PlotCurve *m_evenAudioCurve = nullptr;
+    QwtQuick2PlotCurve *m_oddAudioCurve = nullptr;
 };
 
 #endif // DATAMODEL_H
