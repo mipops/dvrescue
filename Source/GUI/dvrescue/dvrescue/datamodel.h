@@ -7,10 +7,10 @@
 #include <QSet>
 #include <QMap>
 #include <QVariant>
+#include <qwtquick2plot.h>
 #include <xmlparser.h>
 #include <memory>
 
-class QwtQuick2PlotCurve;
 class QAbstractTableModel;
 class QJSEngine;
 class QXmlStreamAttributes;
