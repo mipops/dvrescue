@@ -9,6 +9,8 @@ import CsvParser 0.1
 import Thread 0.1
 import Multimedia 1.0
 import GraphicalEffects 1.0
+import QwtQuick2 1.0
+import CaptureErrorPlotDataModel 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -27,6 +29,7 @@ Column {
     property var fileWriter: fileWriter
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
+    property alias dataModel: dataModel
 
     property int frameSpeed: 0
 
@@ -339,6 +342,82 @@ Column {
             anchors.top: row.bottom
             anchors.left: parent.left
             anchors.right: parent.right
+        }
+
+        RowLayout {
+            anchors.top: captureFrameInfo.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 200
+
+            QwtQuick2Plot {
+                id: videoPlot
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                canvasItem.clip: true
+                xBottomAxisVisible: false
+                yLeftAxisVisible: false
+                backgroundColor: "Cornsilk"
+                yLeftAxisRange: Qt.vector2d(-750, 750)
+
+                Component.onCompleted: {
+                    yLeftAxisFont.bold = false
+                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                    xBottomAxisFont.bold = false
+                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+                }
+
+                QwtQuick2PlotCurve {
+                    id: evenCurve
+                    title: "even";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "darkgreen"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: oddCurve
+                    title: "odd";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "green"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotGrid {
+                    enableXMin: true
+                    enableYMin: true
+                    majorPenColor: 'darkGray'
+                    majorPenStyle: Qt.DotLine
+                    minorPenColor: 'transparent'
+                    minorPenStyle: Qt.DotLine
+                }
+            }
+        }
+
+        CaptureErrorPlotDataModel {
+            id: dataModel
+            evenCurve: evenCurve
+            oddCurve: oddCurve
+
+            onTotalChanged: {
+                console.debug('total changed: ', total)
+            }
+
+            Component.onCompleted: {
+                dataModel.update();
+            }
+        }
+
+        Timer {
+            id: refreshTimer
+            interval: 500
+            running: true
+            repeat: true
+            onTriggered: {
+                console.debug('updating plots...')
+                dataModel.update();
+            }
         }
     }
 }

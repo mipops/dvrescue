@@ -55,13 +55,15 @@ Rectangle {
                     statusText = "capturing..";
                     capturingMode = captureCmd;
 
-                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
+                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","BlockErrors_Even","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
                     var columnNames = [];
                     var indexOfFramePos = -1;
                     var indexOfTimecode = -1;
                     var indexOfRecDateTime = -1;
                     var indexOfSourceSpeed = -1;
                     var indexOfFrameSpeed = -1;
+                    var indexOfBlockErrors = -1;
+                    var indexOfBlockErrorsEven = -1;
 
                     dvrescue.capture(index, playbackBuffer, csvParser, captureCmd, (launcher) => {
                                           csvParser.columnsChanged.connect((columns) => {
@@ -72,18 +74,25 @@ Rectangle {
                                                                                indexOfTimecode = columnNames.indexOf('tc');
                                                                                indexOfRecDateTime = columnNames.indexOf('rdt');
                                                                                indexOfSourceSpeed = columnNames.indexOf('SourceSpeed');
-                                                                               indexOfFrameSpeed = columnNames.indexOf('FrameSpeed')
+                                                                               indexOfFrameSpeed = columnNames.indexOf('FrameSpeed');
+                                                                               indexOfBlockErrors = columnNames.indexOf('BlockErrors');
+                                                                               indexOfBlockErrorsEven = columnNames.indexOf('BlockErrors_Even');
 
                                                                                console.debug('indexOfFramePos: ', indexOfFramePos)
                                                                                console.debug('indexOfTimecode: ', indexOfTimecode)
                                                                                console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
+                                                                               console.debug('indexOfSourceSpeed: ', indexOfSourceSpeed)
+                                                                               console.debug('indexOfFrameSpeed: ', indexOfFrameSpeed)
+                                                                               console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
+                                                                               console.debug('indexOfBlockErrorsEven: ', indexOfBlockErrorsEven)
                                                                            });
 
                                           var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
 
                                           csvParserUI.entriesReceived.connect((entries) => {
+                                                                                var framePos = 0;
                                                                                 if(indexOfFramePos !== -1) {
-                                                                                    captureFrameInfo.frameNumber = entries[indexOfFramePos]
+                                                                                    framePos = captureFrameInfo.frameNumber = entries[indexOfFramePos]
                                                                                 }
 
                                                                                 if(indexOfTimecode !== -1) {
@@ -103,7 +112,17 @@ Rectangle {
                                                                                 */
 
                                                                                 if(indexOfFrameSpeed !== -1) {
-                                                                                    frameSpeed = entries[indexOfFrameSpeed]
+                                                                                    var frameSpeedValue = entries[indexOfFrameSpeed]
+                                                                                    if(frameSpeedValue)
+                                                                                        frameSpeed = frameSpeedValue
+                                                                                }
+
+                                                                                if(indexOfBlockErrors !== -1 && indexOfBlockErrorsEven !== -1) {
+                                                                                    var blockErrors = entries[indexOfBlockErrors]
+                                                                                    var blockErrorsEven = entries[indexOfBlockErrorsEven]
+
+                                                                                    if(blockErrors && blockErrorsEven)
+                                                                                        dataModel.append(framePos, blockErrorsEven, blockErrors)
                                                                                 }
                                                                             });
 

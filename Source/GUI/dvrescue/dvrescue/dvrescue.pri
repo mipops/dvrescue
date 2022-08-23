@@ -31,6 +31,7 @@ HEADERS += \
     $$PWD/clipboard.h \
     $$PWD/connectionutils.h \
     $$PWD/datamodel.h \
+    $$PWD/captureerrorplotdatamodel.h \
     $$PWD/filewriter.h \
     $$PWD/imageutils.h \
     $$PWD/launcher.h \
@@ -57,6 +58,7 @@ SOURCES += \
     $$PWD/clipboard.cpp \
     $$PWD/connectionutils.cpp \
     $$PWD/datamodel.cpp \
+    $$PWD/captureerrorplotdatamodel.cpp \
     $$PWD/filewriter.cpp \
     $$PWD/imageutils.cpp \
     $$PWD/launcher.cpp \
