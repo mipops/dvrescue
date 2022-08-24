@@ -12,7 +12,7 @@ Rectangle {
     property alias overlayVisible: overlay.visible
     property alias text: textLabel.text
     property alias textFont: textLabel.font
-    property alias hasJump: jumpImage.visible
+    property int jumpValue: 0
     property alias hasRepeat: repeatImage.visible
 
     TextInput {
@@ -26,11 +26,24 @@ Rectangle {
         anchors.left: textLabel.right
 
         Image {
-            id: jumpImage
+            source: "/icons/alert-non-continuous-jump-back.svg"
+            height: textDelegate.height
+            width: height
+            visible: jumpValue === 2
+        }
+
+        Image {
+            source: "/icons/alert-non-continuous-jump-ahead.svg"
+            height: textDelegate.height
+            width: height
+            visible: jumpValue === 1
+        }
+
+        Image {
             source: "/icons/alert-non-continuous-jump.svg"
             height: textDelegate.height
             width: height
-            visible: false
+            visible: jumpValue > 2 || jumpValue < 0
         }
 
         Image {
