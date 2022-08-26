@@ -395,10 +395,13 @@ Dialog {
                             anchors.fill: parent
                             onClicked: {
                                 var rowData = dataModel.getRow(row);
-                                rowData.selected = !rowData.selected;
-                                dataModel.setRow(row, rowData)
+                                console.debug('rowData: ', JSON.stringify(rowData, 0, 4))
+                                if(rowData.hasOwnProperty('vbl')) {
+                                    rowData.selected = !rowData.selected;
+                                    dataModel.setRow(row, rowData)
 
-                                selectionChanged();
+                                    selectionChanged();
+                                }
                             }
                         }
                     }
