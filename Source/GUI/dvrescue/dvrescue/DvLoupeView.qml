@@ -13,9 +13,12 @@ Dialog {
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     parent: Overlay.overlay
-    anchors.centerIn: parent
-    width: 1350
-    height: 800
+    width: 1280
+    height: 760
+    clip: true
+    padding: 5
+    topPadding: 5
+    spacing: 0
 
     property bool canPrev: true
     property bool canNext: true
@@ -56,11 +59,17 @@ Dialog {
                      });
     }
 
+    ButtonGroup {
+        buttons: [allCheckbox, errorOnlyCheckbox]
+    }
+
     ColumnLayout {
         id: layout
         anchors.fill: parent
+        spacing: 0
 
         RowLayout {
+            id: imageLayout
 
             Item {
                 Layout.minimumWidth: 720
@@ -83,6 +92,17 @@ Dialog {
                         anchors.centerIn: parent
                     }
                 }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onPressed: { pos = Qt.point(mouse.x, mouse.y) }
+                    onPositionChanged: {
+                        var diff = Qt.point(mouse.x - pos.x, mouse.y - pos.y)
+                        root.x += diff.x
+                        root.y += diff.y
+                    }
+                    property point pos
+                }
             }
 
             Label {
@@ -94,121 +114,120 @@ Dialog {
             Layout.maximumHeight: 480
         }
 
-        RowLayout {
-            id: buttonsLayout
-            anchors.right: parent.right
-            Layout.alignment: Qt.AlignRight
+        Item {
+            Layout.fillWidth: true
+            height: buttonsLayout.height
 
-            Button {
-                text: "<"
-                enabled: canPrev
-                onClicked: prev()
-            }
-            Button {
-                text: ">"
-                enabled: canNext
-                onClicked: next()
-            }
-            Button {
-                text: "Deselect all"
-                onClicked: {
+            RowLayout {
+                id: buttonsLayout
+                anchors.right: parent.right
+                Layout.alignment: Qt.AlignRight
 
-                    var hasSelectionChanges = false;
-                    for(var i = 0; i < dataModel.rowCount; ++i) {
-                        var rowData = dataModel.getRow(i);
-                        if(rowData.selected) {
-                            hasSelectionChanges = true;
-                            rowData.selected = false;
-                            dataModel.setRow(i, rowData)
+                Button {
+                    text: "<"
+                    enabled: canPrev
+                    onClicked: prev()
+                }
+                Button {
+                    text: ">"
+                    enabled: canNext
+                    onClicked: next()
+                }
+                Button {
+                    text: "Deselect all"
+                    onClicked: {
+
+                        var hasSelectionChanges = false;
+                        for(var i = 0; i < dataModel.rowCount; ++i) {
+                            var rowData = dataModel.getRow(i);
+                            if(rowData.selected) {
+                                hasSelectionChanges = true;
+                                rowData.selected = false;
+                                dataModel.setRow(i, rowData)
+                            }
                         }
+
+                        if(hasSelectionChanges)
+                            selectionChanged();
                     }
+                }
+            }
 
-                    if(hasSelectionChanges)
-                        selectionChanged();
+            RowLayout {
+                anchors.left: parent.left
+
+                Label {
+                    text: "Show DV DIF block types: "
+                }
+
+                Button {
+                    id: headerCheckbox
+                    checkable: true
+                    text: "Header"
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                Button {
+                    id: subcodeCheckbox
+                    checkable: true
+                    text: "Subcode"
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                Button {
+                    id: vauxCheckbox
+                    checkable: true
+                    text: "Vaux"
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                Button {
+                    id: audioCheckbox
+                    checkable: true
+                    text: "Audio"
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                Button {
+                    id: videoCheckbox
+                    checkable: true
+                    text: "Video"
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                Label {
+                    text: "Show Video DIF blocks: "
+                }
+
+                RadioButton {
+                    id: allCheckbox
+                    text: "All"
+                    checked: true
+                    onCheckedChanged: {
+                        refresh();
+                    }
+                }
+
+                RadioButton {
+                    id: errorOnlyCheckbox
+                    text: "Errors Only"
+                    onCheckedChanged: {
+                        refresh();
+                    }
                 }
             }
         }
 
-        RowLayout {
-            anchors.top: buttonsLayout.top
-            anchors.bottom: buttonsLayout.bottom
-            anchors.left: parent.left
-            anchors.right: buttonsLayout.left
-
-            Label {
-                text: "Show DV DIF block types: "
-            }
-
-            Button {
-                id: headerCheckbox
-                checkable: true
-                text: "Header"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            Button {
-                id: subcodeCheckbox
-                checkable: true
-                text: "Subcode"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            Button {
-                id: vauxCheckbox
-                checkable: true
-                text: "Vaux"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            Button {
-                id: audioCheckbox
-                checkable: true
-                text: "Audio"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            Button {
-                id: videoCheckbox
-                checkable: true
-                text: "Video"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            Label {
-                text: "Show Video DIF blocks: "
-            }
-
-            RadioButton {
-                id: allCheckbox
-                text: "All"
-                checked: true
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-
-            RadioButton {
-                id: errorOnlyCheckbox
-                text: "Errors Only"
-                onCheckedChanged: {
-                    refresh();
-                }
-            }
-        }
-
-        ButtonGroup {
-            buttons: [allCheckbox, errorOnlyCheckbox]
-        }
 
         TableView {
             id: tableView
@@ -303,6 +322,11 @@ Dialog {
             }
         }
 
+    }
+
+    ResizeRectangle {
+        target: root
+        anchors.fill: root.contentItem
     }
 }
 
