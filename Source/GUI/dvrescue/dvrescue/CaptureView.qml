@@ -77,6 +77,7 @@ Column {
     rewindButton.enabled: !grabbing && capturingModeInt !== rewing
     rplayButton.enabled: !grabbing && capturingModeInt !== srewing
     fastForwardButton.enabled: !grabbing && capturingModeInt !== ffing
+    captureButton.enabled: !grabbing
 
     Rectangle {
         width: 640
@@ -157,6 +158,23 @@ Column {
         }
     }
 
+    function configure(button, condition) {
+        var backgroundItem = button.background
+        var children = backgroundItem.children;
+        for(var i = 0; i < children.length; ++i) {
+            console.debug('child: ', children[i])
+            if(children[i].contains("PaddedRectangle")) {
+                var paddedRectangle = children[i];
+                button.checkable = true;
+                button.checked = true;
+                var color = paddedRectangle.color;
+                paddedRectangle.color = color;
+                button.checkable = Qt.binding(() => { return condition() })
+                break;
+            }
+        }
+    }
+
     Rectangle {
         width: 640
         height: childrenRect.height
@@ -169,18 +187,27 @@ Column {
                 id: rewindButton
                 icon.color: 'transparent'
                 icon.source: "/icons/rewind.svg"
+                Component.onCompleted: {
+                    configure(this, () => { return !enabled && !grabbing })
+                }
             }
 
             Button {
                 id: rplayButton
                 icon.color: 'transparent'
                 icon.source: "/icons/srew.svg"
+                Component.onCompleted: {
+                    configure(this, () => { return !enabled && !grabbing })
+                }
             }
 
             Button {
                 id: playButton
                 icon.color: 'transparent'
                 icon.source: "/icons/play.svg"
+                Component.onCompleted: {
+                    configure(this, () => { return !enabled && !grabbing })
+                }
             }
 
             Button {
@@ -193,11 +220,17 @@ Column {
                 id: fastForwardButton
                 icon.color: 'transparent'
                 icon.source: "/icons/fastforward.svg"
+                Component.onCompleted: {
+                    configure(this, () => { return !enabled && !grabbing })
+                }
             }
             Button {
                 id: captureButton
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
+                Component.onCompleted: {
+                    configure(this, () => { return !enabled })
+                }
             }
 
             Item {
