@@ -256,7 +256,8 @@ ApplicationWindow {
 
     SpecifyPathDialog {
         id: specifyPathDialog
-        nameFilters: ["Video files (*.dv)"]
+        filePath: StandardPaths.writableLocation(StandardPaths.MoviesLocation)
+        fileName: "out.dv"
     }
 
     DevicesModel {
