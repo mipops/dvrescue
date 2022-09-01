@@ -26,7 +26,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## DV
-<img alt="DV" src="{{ site.baseurl }}/images/MiniDV.jpg">
+<img alt="DV" src="{{ site.baseurl }}/images/DV+MiniDV_size-compare.png">
 
 * Release Date: 1995
 * AKA: MiniDV (for the small sized cassettes)
@@ -57,7 +57,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## DVCAM
-<img alt="DVCAM" src="{{ site.baseurl }}/images/DVCAM.png">
+<img alt="DVCAM" src="{{ site.baseurl }}/images/DVCAM_size-compare.png">
 
 * Release Date: 1996
 * Developing Manufacture: Sony
@@ -76,7 +76,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## DVCPRO
-<img alt="DVCPRO" src="{{ site.baseurl }}/images/DVCPro.png">
+<img alt="DVCPRO" src="{{ site.baseurl }}/images/DVCPro_size-compare.png">
 
 * Release Date: 1995
 * Developing Manufacture: Panasonic
@@ -96,7 +96,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## DVCPRO50
-
+<img alt="DVCPRO50" src="{{ site.baseurl }}/images/DVCPRO50.png">
 * Release Date: 1997
 * Developing Manufacture: Panasonic
 * Maximum Recording Capacity:
@@ -117,7 +117,7 @@ The DV tape family encompasses a variety of different subformats of various size
   - DVCPRO50 could not record in LP mode.
 
 ## DVCPROHD/DVCPRO100
-<img alt="DVCPROHD" src="{{ site.baseurl }}/images/DVCProHD.png">
+<img alt="DVCPROHD" src="{{ site.baseurl }}/images/DVCPROHD_size-compare_NEW.png">
 * Release Date: 2000
 * Developing Manufacture: Panasonic
 * Maximum Recording Capacity: 
@@ -135,7 +135,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## HDV
-<img alt="HDV" src="{{ site.baseurl }}/images/HDV.jpg">
+<img alt="HDV" src="{{ site.baseurl }}/images/HDV+MiniDV_size-compare_NEW.png">
 
 * Release Date: 2003
 * Developing Manufacture: developed by JVC and supported by Sony, Canon, and Sharp
@@ -155,6 +155,7 @@ The DV tape family encompasses a variety of different subformats of various size
 
 
 ## Digital8
+<img alt="Digital8" src="{{ site.baseurl }}/images/Digital8.png">
 
 * Release Date: 1999
 * Developing Manufacture: Sony, Hitachi
