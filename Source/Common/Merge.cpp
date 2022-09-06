@@ -1010,7 +1010,7 @@ bool dv_merge_private::Process(float Speed)
                     Out << 'P';
                 else if (Frame.Status[Status_TimeCodeIssue])
                     Out << 'T';
-                else if (!MergeInfo_Format)
+                else
                     Out << ' ';
             }
         }
