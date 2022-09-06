@@ -1028,8 +1028,6 @@ bool dv_merge_private::Process(float Speed)
             Count_Last_Missing_Frames++;
         else
         {
-            Log_Line << ',';
-            Log_Line << ::to_string(Speed);
             *Log << Log_Line.str() << endl;
         }
         return false;
