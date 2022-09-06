@@ -176,8 +176,9 @@ public:
 
 int GetDvSpeed(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame);
 int GetDvSpeedIfNotPlayback(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame);
-bool DvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame);
-bool DvSpeedHasChanged(std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame);
+bool GetDvSpeedIsNormalPlayback(int Speed);
+bool GetDvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame);
+bool GetDvSpeedHasChanged(const std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame);
 
 //***************************************************************************
 // Writing

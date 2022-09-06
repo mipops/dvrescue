@@ -35,6 +35,9 @@ string MergeInfo_OutputFileName;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint8_t UseAbst = 0;
+bool OutputFrames_Speed = true;
+bool OutputFrames_Concealed = true;
+bool ShowFrames_Missing = true;
 extern void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames);
 void date_to_string(string& Data, int Years, int Months, int Days);
 //---------------------------------------------------------------------------
@@ -122,6 +125,7 @@ namespace
         size_t              BlockStatus_Count = 0;
         uint8_t             RepeatCount = 0;
         int                 Speed = INT_MIN;
+        int                 FullConcealed = false;
 
         per_frame() = default;
         per_frame(status const& Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
@@ -187,6 +191,8 @@ namespace
         size_t              Count_Frames_NOK = 0;
         size_t              Count_Frames_Missing = 0;
         size_t              Count_Frames_Repeated = 0;
+        size_t              Count_Frames_Ignored_Speed = 0;
+        size_t              Count_Frames_Ignored_Concealed = 0;
         bool                DoNotUseFile = false;
         bool                FirstTimeCodeFound = false;
         vector<per_segment> Segments;
@@ -456,32 +462,8 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     CurrentFrame.RecDateTime = rec_date_time(FrameData);
     CurrentFrame.TC_SMPTE = timecode(FrameData);
     CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
-
-    if (FrameData->MoreData)
-    {
-        size_t MoreData_Size = *((size_t*)FrameData->MoreData) + sizeof(size_t);
-        size_t MoreData_Offset = sizeof(size_t);
-        while (MoreData_Offset < MoreData_Size)
-        {
-            size_t BlockSize = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
-            if (BlockSize == -1)
-                break;
-            size_t BlockName = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
-            if (BlockName == -1)
-                break;
-            if (BlockName == 2 && BlockSize >= 1)
-            {
-                auto RawSpeed = FrameData->MoreData[MoreData_Offset++];
-                int Speed = RawSpeed & 0x7F;
-                if (!(RawSpeed & 0x80))
-                    Speed = -Speed;
-                CurrentFrame.Speed = Speed;
-            }
-            else
-                MoreData_Offset += BlockSize;
-        }
-    }
-
+    CurrentFrame.Speed = GetDvSpeed(*FrameData);
+    CurrentFrame.FullConcealed = coherency_flags(FrameData->Coherency_Flags).full_conceal();
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
@@ -1008,7 +990,9 @@ bool dv_merge_private::Process(float Speed)
         Frame_Pos++;
         if (Verbosity <= 7)
             Count_Last_Missing_Frames++;
-        else
+        else if (true
+            && (ShowFrames_Missing || !IsMissing)
+            )
         {
             *Log << Log_Line.str() << endl;
         }
@@ -1263,40 +1247,49 @@ bool dv_merge_private::Process(float Speed)
         }
     }
 
-    uint64_t F_OldPos;
-    if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
+    auto& Input = Inputs[0];
+    auto& Frames = Input.Segments[Segment_Pos].Frames;
+    auto& Frame = Frames[Frame_Pos];
+    auto DvSpeed = Frame.Speed;
+    if (OutputFrames_Speed && !((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
+        Output.Count_Frames_Ignored_Speed++;
+    if (OutputFrames_Concealed && Frame.FullConcealed)
+        Output.Count_Frames_Ignored_Concealed++;
+    if (true
+        && (OutputFrames_Speed || (Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed))
+        && (OutputFrames_Concealed || !Frame.FullConcealed)
+        )
     {
-        auto Write_Size = BlockStatus_Count * 80;
-        fwrite(Output.Buffer, Write_Size, 1, Output.F);
-        F_OldPos = Output.F_Pos;
-        Output.F_Pos += Write_Size;
-    }
-    if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
-    {
-        if (MergeInfo_Format)
+        if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
         {
-            Log_Line << ',';
-            Log_Line << ::to_string(Speed);
-            Log_Line << ',';
-            auto& Input = Inputs[0];
-            auto& Frames = Input.Segments[Segment_Pos].Frames;
-            auto& Frame = Frames[Frame_Pos];
-            if (Frame.Speed != INT_MIN)
-                Log_Line << std::to_string(Frame.Speed);
-            Log_Line << ',';
-            if (Prefered_Frame != -1)
-                for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
-                {
-                    if (i)
-                        Log_Line << '|';
-                    if (Input_Previous_F_Pos[i] != (uint64_t)-1)
-                        Log_Line << Input_Previous_F_Pos[i];
-                }
-            Log_Line << ',';
-            if (Prefered_Frame != -1)
-                Log_Line << F_OldPos;
+            if (MergeInfo_Format)
+            {
+                Log_Line << ',';
+                Log_Line << ::to_string(Speed);
+                Log_Line << ',';
+                if (DvSpeed != INT_MIN)
+                    Log_Line << std::to_string(DvSpeed);
+                Log_Line << ',';
+                if (Prefered_Frame != -1)
+                    for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
+                    {
+                        if (i)
+                            Log_Line << '|';
+                        if (Input_Previous_F_Pos[i] != (uint64_t)-1)
+                            Log_Line << Input_Previous_F_Pos[i];
+                    }
+                Log_Line << ',';
+                if (Prefered_Frame != -1)
+                    Log_Line << Output.F_Pos;
+            }
+            *Log << Log_Line.str() << endl;
         }
-        *Log << Log_Line.str() << endl;
+        if (Prefered_Frame != -1) // Write only if there is some content from this specific frame
+        {
+            auto Write_Size = BlockStatus_Count * 80;
+            fwrite(Output.Buffer, Write_Size, 1, Output.F);
+            Output.F_Pos += Write_Size;
+        }
     }
 
     Frame_Pos++;
@@ -1476,6 +1469,17 @@ bool dv_merge_private::Stats()
                 << setfill(' ') << fixed << setw(Formating_Precision + 2) << setprecision(Formating_Precision - 2) << (Frames_Bad_MinRatio - Frames_Bad_FinalRatio) * 100
                 << ')';
         }
+        *Log << '\n';
+    }
+    if (Output.Count_Frames_Ignored_Speed || Output.Count_Frames_Ignored_Concealed)
+    {
+        *Log << '\n';
+        *Log << "Frames discarded in output:\n";
+        *Log << std::setw(Formating_BlockCount_Width + 2) << ' ';
+        ShowFrames(Output.Count_Frames_Ignored_Speed, Count_Frames_Total, " discarded for non-standard playback speed.");
+        *Log << '\n';
+        *Log << std::setw(Formating_BlockCount_Width + 2) << ' ';
+        ShowFrames(Output.Count_Frames_Ignored_Concealed, Count_Frames_Total, " discarded for full concealment.");
         *Log << '\n';
     }
     *Log << flush;

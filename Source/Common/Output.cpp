@@ -278,6 +278,19 @@ bool computed_errors::Compute(const MediaInfo_Event_DvDif_Analysis_Frame_1& Fram
     return HasErrors;
 }
 
+bool GetDvSpeedIsNormalPlayback(int Speed)
+{
+    switch (Speed)
+    {
+    case 31:
+    case 32:
+    case INT_MIN: // Considering unknown speed as normal speed
+        return true;
+    default:
+        return false;
+    }
+}
+
 int GetDvSpeed(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 {
     if (!Frame.MoreData)
@@ -310,26 +323,26 @@ int GetDvSpeed(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 int GetDvSpeedIfNotPlayback(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 {
     auto Speed = GetDvSpeed(Frame);
-    if (Speed == 31 || Speed == 32)
-        return INT_MIN;
-    return Speed;
+    return GetDvSpeedIsNormalPlayback(Speed) ? INT_MIN : Speed;
 }
 
-bool DvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame)
+bool GetDvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame)
 {
-    auto PreviousSpeed = GetDvSpeedIfNotPlayback(*PreviousFrame);
     auto CurrentSpeed = GetDvSpeedIfNotPlayback(*CurrentFrame);
+    //if (CurrentSpeed == INT_MIN) // Considering unknown speed as no change
+    //    return false;
+    auto PreviousSpeed = GetDvSpeedIfNotPlayback(*PreviousFrame);
     if (PreviousSpeed != CurrentSpeed)
         return true;
     return false;
 }
 
-bool DvSpeedHasChanged(std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame)
+bool GetDvSpeedHasChanged(const std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame)
 {
     if (PerFrame.size() <= 1)
         return false;
 
-    return DvSpeedHasChanged(PerFrame[PerFrame.size() - 2], PerFrame[PerFrame.size() - 1]);
+    return GetDvSpeedHasChanged(PerFrame[PerFrame.size() - 2], PerFrame[PerFrame.size() - 1]);
 }
 
 //***************************************************************************

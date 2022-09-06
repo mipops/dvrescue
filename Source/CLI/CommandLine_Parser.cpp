@@ -238,6 +238,30 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             else
                 MergeInfo_OutputFileName = argv_ansi[i];
         }
+        else if (!strcmp(argv_ansi[i], "--merge-output-speed"))
+        {
+            OutputFrames_Speed = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-ignore-speed"))
+        {
+            OutputFrames_Speed = false;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-output-concealed"))
+        {
+            OutputFrames_Concealed = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-ignore-concealed"))
+        {
+            OutputFrames_Concealed = false;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-log-missing"))
+        {
+            ShowFrames_Missing = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-hide-missing"))
+        {
+            ShowFrames_Missing = false;
+        }
         else if (!strcmp(argv_ansi[i], "--status") || !strcmp(argv_ansi[i], "-status"))
         {
             Device_Command = 2;

@@ -441,7 +441,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         if (!PerChange.empty() && ToPush->FrameNumber == PerChange.back()->FrameNumber)
             no_sourceorcontrol_aud_set_in_first_frame = true;
     }
-    if (no_sourceorcontrol_aud_set_in_first_frame && (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()) || DvSpeedHasChanged(PerFrame))
+    if (no_sourceorcontrol_aud_set_in_first_frame && (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()) || GetDvSpeedHasChanged(PerFrame))
     {
         if (PerChange.back()->FrameNumber != FrameNumber - 1)
         {
@@ -502,34 +502,15 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
             Text += '(';
             Text += ::to_string(Speed_After);
             Text += 'x';
-            if (FrameData->MoreData)
+            auto DvSpeed = GetDvSpeed(*FrameData);
+            if (DvSpeed != INT_MIN)
             {
-                size_t MoreData_Size = *((size_t*)FrameData->MoreData) + sizeof(size_t);
-                size_t MoreData_Offset = sizeof(size_t);
-                while (MoreData_Offset < MoreData_Size)
-                {
-                    size_t BlockSize = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
-                    if (BlockSize == -1)
-                        break;
-                    size_t BlockName = VariableSize(FrameData->MoreData, MoreData_Offset, MoreData_Size);
-                    if (BlockName == -1)
-                        break;
-                    if (BlockName == 2 && BlockSize >= 1)
-                    {
-                        auto RawSpeed = FrameData->MoreData[MoreData_Offset++];
-                        int Speed = RawSpeed & 0x7F;
-                        if (!(RawSpeed & 0x80))
-                            Speed = -Speed;
-                        Text += ',';
-                        Text += ' ';
-                        Text += 'D';
-                        Text += 'V';
-                        Text += ' ';
-                        Text += std::to_string(Speed);
-                    }
-                    else
-                        MoreData_Offset += BlockSize;
-                }
+                Text += ',';
+                Text += ' ';
+                Text += 'D';
+                Text += 'V';
+                Text += ' ';
+                Text += std::to_string(DvSpeed);
             }
             Text += ')';
         }
@@ -565,7 +546,7 @@ void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
         return;
     if (FrameData->Content_Size != 4)
         return;
-    
+
     // Store
     for (int i = 0; i < 2; i++)
     {
