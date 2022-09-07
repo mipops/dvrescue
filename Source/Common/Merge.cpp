@@ -899,35 +899,55 @@ bool dv_merge_private::Process(float Speed)
         }
         else
         {
-            auto& Input = Inputs[Prefered_TC != -1 ? Prefered_TC : 0];
+            size_t Prefered_Info;
+            if (Prefered_Frame == -1)
+            {
+                Prefered_Info = Input_Count;
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    auto& Input = Inputs[i];
+                    auto& Frames = Input.Segments[Segment_Pos].Frames;
+                    auto& Frame = Frames[Frame_Pos];
+                    if (!Frame.Status[Status_FrameMissing])
+                    {
+                        Prefered_Info = i;
+                        break;
+                    }
+                }
+                if (Prefered_Info == Input_Count)
+                    Prefered_Info = 0; // by default
+            }
+            else
+                Prefered_Info = Prefered_Frame;
+            auto& Input = Inputs[Prefered_Info];
             auto& Frames = Input.Segments[Segment_Pos].Frames;
             auto& Frame = Frames[Frame_Pos];
             string Temp;
             Out << Log_Separator;
-            if (!IsMissing && Frame.AbstBf.HasAbsoluteTrackNumberValue())
+            if (!Frame.Status[Status_FrameMissing] && Frame.AbstBf.HasAbsoluteTrackNumberValue())
             {
                 Out << to_string(Frame.AbstBf.AbsoluteTrackNumber());
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.AbstBf.Repeat())
+            if (!Frame.Status[Status_FrameMissing] && Frame.AbstBf.Repeat())
             {
                 Out << '1';
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.AbstBf.NonConsecutive())
+            if (!Frame.Status[Status_FrameMissing] && Frame.AbstBf.NonConsecutive())
             {
                 Out << '1';
             }
-            if (!IsMissing && Frame.TC_SMPTE.HasValue())
+            if (!Frame.Status[Status_FrameMissing] && Frame.TC_SMPTE.HasValue())
                 timecode_to_string(Temp, Frame.TC_SMPTE.TimeInSeconds(), Frame.TC_SMPTE.DropFrame(), Frame.TC_SMPTE.Frames());
             Out << Log_Separator << Temp;
             Out << Log_Separator;
-            if (!IsMissing && Frame.TC_SMPTE.Repeat())
+            if (!Frame.Status[Status_FrameMissing] && Frame.TC_SMPTE.Repeat())
             {
                 Out << '1';
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.TC_SMPTE.NonConsecutive())
+            if (!Frame.Status[Status_FrameMissing] && Frame.TC_SMPTE.NonConsecutive())
             {
                 if (Frame.TC_SMPTE.NonConsecutive_IsLess())
                     Out << '2';
@@ -935,11 +955,11 @@ bool dv_merge_private::Process(float Speed)
                     Out << '1';
             }
             Temp.clear();
-            if (!IsMissing && Frame.RecDateTime.HasDate())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.HasDate())
             {
                 date_to_string(Temp, Frame.RecDateTime.Years(), Frame.RecDateTime.Months(), Frame.RecDateTime.Days());
             }
-            if (!IsMissing && Frame.RecDateTime.HasTime())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.HasTime())
             {
                 if (!Temp.empty())
                     Temp += ' ';
@@ -947,12 +967,12 @@ bool dv_merge_private::Process(float Speed)
             }
             Out << Log_Separator << Temp;
             Out << Log_Separator;
-            if (!IsMissing && Frame.RecDateTime.Repeat())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.Repeat())
             {
                 Out << '1';
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.RecDateTime.NonConsecutive())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.NonConsecutive())
             {
                 if (Frame.RecDateTime.NonConsecutive_IsLess())
                     Out << '2';
@@ -960,12 +980,12 @@ bool dv_merge_private::Process(float Speed)
                     Out << '1';
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.RecDateTime.Start())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.Start())
             {
                 Out << '1';
             }
             Out << Log_Separator;
-            if (!IsMissing && Frame.RecDateTime.End())
+            if (!Frame.Status[Status_FrameMissing] && Frame.RecDateTime.End())
             {
                 Out << '1';
             }
@@ -976,24 +996,6 @@ bool dv_merge_private::Process(float Speed)
             Out << Log_Separator << 'M';
         else
             Out << Log_Separator << 'X';
-        Out << Log_Separator;
-        if (!IsMissing && !IsOK)
-        {
-            for (size_t i = 0; i < Input_Count; i++)
-            {
-                auto& Input = Inputs[i];
-                auto& Frames = Input.Segments[Segment_Pos].Frames;
-                auto& Frame = Frames[Frame_Pos];
-                if (Frame.Status[Status_FrameMissing])
-                    Out << 'M';
-                else if (Frame.Status[Status_BlockIssue])
-                    Out << 'P';
-                else if (Frame.Status[Status_TimeCodeIssue])
-                    Out << 'T';
-                else if (!MergeInfo_Format)
-                    Out << ' ';
-            }
-        }
     }
     
     if (IsMissing)
@@ -1008,8 +1010,6 @@ bool dv_merge_private::Process(float Speed)
             Count_Last_Missing_Frames++;
         else
         {
-            Log_Line << ',';
-            Log_Line << ::to_string(Speed);
             *Log << Log_Line.str() << endl;
         }
         return false;
@@ -1020,6 +1020,35 @@ bool dv_merge_private::Process(float Speed)
         if (Verbosity <= 7)
             Count_Last_OK_Frames++;
     }
+
+    // Status
+    size_t Text_Status_ToFill = 0;
+    if (MergeInfo_Format)
+        Log_Line << Log_Separator;
+    if (!IsMissing && !IsOK)
+    {
+        if (!MergeInfo_Format)
+        {
+            Text_Status_ToFill = 1;
+            Log_Line << Log_Separator;
+        }
+        for (size_t i = 0; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Status[Status_FrameMissing])
+                Log_Line << 'M';
+            else if (Frame.Status[Status_BlockIssue])
+                Log_Line << 'P';
+            else if (Frame.Status[Status_TimeCodeIssue])
+                Log_Line << 'T';
+            else
+                Log_Line << ' ';
+        }
+    }
+    else
+        Text_Status_ToFill = 1 + Input_Count + 1;
 
     // Find valid blocks
     size_t IssueCount = 0;
@@ -1124,7 +1153,17 @@ bool dv_merge_private::Process(float Speed)
                 }
             }
             if (Verbosity > 5 && !MergeInfo_Format)
-                Log_Line << ", ";
+            {
+                if (Text_Status_ToFill)
+                {
+                    Log_Line << setw(Text_Status_ToFill) << Log_Separator;
+                    Text_Status_ToFill = 0;
+                }
+                else
+                {
+                    Log_Line << ", ";
+                }
+            }
             for (int i = 0; i < Input_Count; i++)
             {
                 if (i != Prefered_Frame)
@@ -1170,9 +1209,16 @@ bool dv_merge_private::Process(float Speed)
 
     if (Verbosity > 5 && Prefered_Abst == -2 && !MergeInfo_Format)
     {
-        if (IsOK)
-            Log_Line << setw(Inputs.size() + 1) << Log_Separator;
-        Log_Line << ", abst";
+        if (Text_Status_ToFill)
+        {
+            Log_Line << setw(Text_Status_ToFill) << Log_Separator;
+            Text_Status_ToFill = 0;
+        }
+        else
+        {
+            Log_Line << ", ";
+        }
+        Log_Line << "abst";
         for (size_t i = 0; i < Input_Count; i++)
         {
             auto& Input = Inputs[i];
@@ -1227,26 +1273,29 @@ bool dv_merge_private::Process(float Speed)
     }
     if (Verbosity > 5 && !(Verbosity <= 7 && !(!IsMissing && !IsOK)))
     {
-        Log_Line << ',';
-        Log_Line << ::to_string(Speed);
-        Log_Line << ',';
-        auto& Input = Inputs[0];
-        auto& Frames = Input.Segments[Segment_Pos].Frames;
-        auto& Frame = Frames[Frame_Pos];
-        if (Frame.Speed != INT_MIN)
-            Log_Line << std::to_string(Frame.Speed);
-        Log_Line << ',';
-        if (Prefered_Frame != -1)
-            for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
-            {
-                if (i)
-                    Log_Line << '|';
-                if (Input_Previous_F_Pos[i] != (uint64_t)-1)
-                    Log_Line << Input_Previous_F_Pos[i];
-            }
-        Log_Line << ',';
-        if (Prefered_Frame != -1)
-            Log_Line << F_OldPos;
+        if (MergeInfo_Format)
+        {
+            Log_Line << ',';
+            Log_Line << ::to_string(Speed);
+            Log_Line << ',';
+            auto& Input = Inputs[0];
+            auto& Frames = Input.Segments[Segment_Pos].Frames;
+            auto& Frame = Frames[Frame_Pos];
+            if (Frame.Speed != INT_MIN)
+                Log_Line << std::to_string(Frame.Speed);
+            Log_Line << ',';
+            if (Prefered_Frame != -1)
+                for (size_t i = 0; i < Input_Previous_F_Pos.size(); i++)
+                {
+                    if (i)
+                        Log_Line << '|';
+                    if (Input_Previous_F_Pos[i] != (uint64_t)-1)
+                        Log_Line << Input_Previous_F_Pos[i];
+                }
+            Log_Line << ',';
+            if (Prefered_Frame != -1)
+                Log_Line << F_OldPos;
+        }
         *Log << Log_Line.str() << endl;
     }
 

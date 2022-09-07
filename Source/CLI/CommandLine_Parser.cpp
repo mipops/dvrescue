@@ -458,7 +458,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             String Result = MediaInfoLib::MediaInfo::Option_Static(Option, Value);
             if (C.Err && !Result.empty())
-                *C.Err << "Warning: issue with " << argv_ansi[i - EqualPos];
+                *C.Err << "Warning: issue with " << argv_ansi[i - EqualPos] << ".\n";
         }
         else
         {
