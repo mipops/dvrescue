@@ -162,8 +162,9 @@ Column {
         var backgroundItem = button.background
         var children = backgroundItem.children;
         for(var i = 0; i < children.length; ++i) {
-            console.debug('child: ', children[i])
-            if(children[i].contains("PaddedRectangle")) {
+            var child = '' + children[i]
+            console.debug('child: ', child, typeof(child))
+            if(child.includes("PaddedRectangle")) {
                 var paddedRectangle = children[i];
                 button.checkable = true;
                 button.checked = true;
