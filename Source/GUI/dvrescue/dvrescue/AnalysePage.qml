@@ -452,6 +452,9 @@ Item {
 
                 DvLoupeView {
                     id: dvloupeView
+                    x: (parent.width - width) / 2
+                    y: (parent.height - height) / 2
+
                     property int index: -1
 
                     canPrev: index > 0

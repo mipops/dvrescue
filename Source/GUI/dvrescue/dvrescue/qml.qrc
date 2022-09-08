@@ -105,5 +105,7 @@
         <file>HyperlinkDelegate.qml</file>
         <file>icons/srew.svg</file>
         <file>icons/logo-inverse.png</file>
+        <file>ResizeHandle.qml</file>
+        <file>ResizeRectangle.qml</file>
     </qresource>
 </RCC>
