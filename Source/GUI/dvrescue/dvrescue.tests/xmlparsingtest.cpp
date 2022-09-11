@@ -17,10 +17,10 @@ XmlParsingTest::XmlParsingTest(QObject *parent) : QObject(parent)
 
 void XmlParsingTest::f1()
 {
-    QFile file(":/sample.xml");
-    file.open(QIODevice::ReadOnly);
+    QFile file(":/testdata/sample.xml");
+    bool opened = file.open(QIODevice::ReadOnly);
 
-    qDebug() << "file: " << file.size();
+    qDebug() << "file: " << opened << file.size();
 
     XmlParser parser;
     connect(&parser, &XmlParser::bytesProcessed, [&](auto value) {
@@ -28,8 +28,8 @@ void XmlParsingTest::f1()
     });
 
     int totalFrames = 0;
-    connect(&parser, &XmlParser::gotFrame, [&](auto value) {
-        // qDebug() << "frame processed: " << value;
+    connect(&parser, &XmlParser::gotFrame, [&](auto value, auto offset, auto duration) {
+        qDebug() << "frame processed: " << value << offset << duration;
         ++totalFrames;
     });
     connect(&parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even) {
@@ -47,7 +47,7 @@ void XmlParsingTest::f1()
     auto expectedTotalFrames = 0;
 
     {
-        QFile file(":/sample.xml");
+        QFile file(":/testdata/sample.xml");
         file.open(QIODevice::ReadOnly);
         query.setFocus(&file);
         query.setQuery("declare namespace c = \"https://mediaarea.net/dvrescue\";count(//c:frame)");

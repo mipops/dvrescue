@@ -55,12 +55,9 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QAVPlaye
         Q_EMIT stopped(pos);
     });
 
-    t.setInterval(100);
+    t.setInterval(20);
     connect(&t, &QTimer::timeout, [this]() {
-        if(player->position() != prevPos) {
-            prevPos = player->position();
-            Q_EMIT positionChanged();
-        }
+        notifyPositionChanged();
     });
     t.start();
 }
@@ -166,6 +163,24 @@ void MediaPlayer::clear()
     qDebug() << "clear";
     if(!player->videoStreams().empty())
         Q_EMIT player->videoFrame(QAVVideoFrame());
+}
+
+void MediaPlayer::notifyPositionChanged()
+{
+    if(player->position() != prevPos) {
+        prevPos = player->position();
+        Q_EMIT positionChanged();
+    }
+}
+
+void MediaPlayer::startTrackPosition()
+{
+    t.start();
+}
+
+void MediaPlayer::stopTrackPosition()
+{
+    t.stop();
 }
 
 MediaPlayer::MediaStatus MediaPlayer::status() const

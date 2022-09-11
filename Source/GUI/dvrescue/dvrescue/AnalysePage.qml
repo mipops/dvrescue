@@ -170,6 +170,29 @@ Item {
                     }
                 }
 
+                function seekToFrame(frameIndex, bringToView) {
+                    var frameOffset = dataModel.frameOffset(frameIndex);
+                    if(frameOffset !== -1) {
+                        console.debug('seeking to: ', frameIndex, frameOffset);
+                        player.waitForSeekFinished().then(() => {
+                             console.debug('seekToFrame finished: ', player.position)
+                             if(!bringToView)
+                                dataView.skipBringToView = true
+                             positionChanged(frameIndex)
+                             if(!bringToView)
+                                dataView.skipBringToView = false
+
+                             player.notifyPositionChanged();
+                             player.startTrackPosition();
+                             notifyPositionUpdates = true
+                        });
+                        notifyPositionUpdates = false
+                        player.stopTrackPosition();
+                        player.seek(frameOffset);
+                    }
+                }
+
+                property bool notifyPositionUpdates: true
                 property var prevDisplayPosition: -1
                 player.onPositionChanged: {
                     var displayPosition = QtAVPlayerUtils.displayPosition(player)
@@ -179,23 +202,18 @@ Item {
                     console.debug('player.onPositionChanged: ', displayPosition)
                     prevDisplayPosition = displayPosition;
 
-                    var ms = displayPosition
-                    var frameIndex = ms * fps / 1000;
+                    var frameIndex = dataModel.frameIndex(displayPosition);
 
-                    console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
-                    playerView.positionChanged(Math.round(frameIndex));
-                }
-
-                function seekToFrame(frameIndex) {
-                    var position = frameIndex / playerView.fps * 1000
-                    playerView.player.seek(position);
+                    if(notifyPositionUpdates) {
+                        console.debug('player.displayPosition: ', displayPosition, 'frameIndex: ', frameIndex)
+                        playerView.positionChanged(frameIndex);
+                    }
                 }
 
                 Connections {
                     target: dataView
                     onTapped: {
-                        if(framePos !== -1)
-                            playerView.seekToFrame(framePos);
+                        playerView.seekToFrame(framePos, false)
                     }
                 }
             }
@@ -222,11 +240,11 @@ Item {
 
                 onPickerMoved: {
                     var frameIndex = plotX
-                    playerView.seekToFrame(frameIndex)
+                    playerView.seekToFrame(frameIndex, true);
                 }
 
                 onMarkerClicked: {
-                    playerView.seekToFrame(frameIndex)
+                    playerView.seekToFrame(frameIndex, true);
                 }
             }
         }
@@ -437,6 +455,8 @@ Item {
             AnalyseDataView {
                 id: dataView
                 cppDataModel: dataModel
+                property bool skipBringToView: false
+
                 ranges: segmentDataViewWithToolbar.hoveredItem && segmentDataViewWithToolbar.currentIndex === -1 ? segmentDataViewWithToolbar.hoveredItem.range : Qt.vector2d(-1, -1)
                 rowFilter: function(index) {
                     var data = dataView.model.getRow(index);
@@ -596,7 +616,8 @@ Item {
                     target: playerView
                     onPositionChanged: {
                         dataView.framePos = frameIndex
-                        dataView.bringToView(dataView.framePos)
+                        if(!dataView.skipBringToView)
+                            dataView.bringToView(dataView.framePos)
                     }
                 }
 

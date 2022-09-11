@@ -3,6 +3,7 @@
 #include <QXmlStreamReader>
 #include <QThread>
 #include <QDebug>
+#include <QTime>
 
 XmlParser::XmlParser(QObject *parent) : QObject(parent)
 {
@@ -98,6 +99,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
 {
     QString size;
     QString chroma_subsampling;
+    double frameDuration = 0;
     int count = 0;
 
     for(auto & attribute : framesAttributes) {
@@ -105,6 +107,15 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             size = attribute.value().toString();
         else if(attribute.name() == QString("chroma_subsampling"))
             chroma_subsampling = attribute.value().toString();
+        else if(attribute.name() == QString("video_rate")) {
+            auto value = attribute.value().toString();
+            if(value.contains("/")) {
+                auto splitted = value.split("/");
+                frameDuration = splitted[1].toDouble() / splitted[0].toDouble();
+            } else {
+                frameDuration = value.toULongLong() / 1000;
+            }
+        }
         else if(attribute.name() == QString("count"))
             count = attribute.value().toUInt();
     }
@@ -134,11 +145,26 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
             // qDebug() << "frame";
 
             auto frameNumber = 0;
+            auto frameOffset = 0.0;
             auto frameAttributes = xml.attributes();
             for(auto & attribute : frameAttributes) {
                 // qDebug() << "\t" << attribute.name() << "=" << attribute.value();
                 if(attribute.name() == QString("n"))
                     frameNumber = attribute.value().toUInt();
+                else if(attribute.name() == QString("pts")) {
+                    auto value = attribute.value().toString();
+                    auto splitted = value.split(":");
+
+                    auto s = splitted[2].toDouble();
+                    auto m = splitted[1].toLongLong();
+                    auto h = splitted[0].toLongLong();
+
+                    auto sms = s * 1000;
+                    auto mms = m * 60 * 1000;
+                    auto hms = h * 60 * 60 * 1000;
+
+                    frameOffset = hms + mms + sms;
+                }
             }
 
             if(framesAttributes.hasAttribute("captions") && framesAttributes.value("captions") == QString("p"))
@@ -154,7 +180,7 @@ void XmlParser::parseFrames(QXmlStreamReader &xml, QXmlStreamAttributes& framesA
                 }
             }
 
-            Q_EMIT gotFrame(frameNumber);
+            Q_EMIT gotFrame(frameNumber, frameOffset, frameDuration);
 
             int staCount = 0;
             int totalSta = 0;
