@@ -146,15 +146,14 @@ Item {
                 playerView.height = height / 2
             }
 
-            Component.onCompleted: {
-                SplitView.preferredWidth = Qt.binding(function() { return playerView.width  })
-            }
+            preferredWidth: playerView.width
 
             PlayerView {
                 id: playerView
 
                 Component.onCompleted: {
                     SplitView.preferredHeight = Qt.binding(function() { return height })
+                    height = Qt.binding(() => { return playerAndPlotsSplitView.height / 2 })
                 }
 
                 startOffset: fps == 0 ? 0 : (root.startFrame / fps * 1000)
