@@ -620,6 +620,22 @@ _report(){
     fi
 }
 
+_get_ffmpeg_path(){
+if [[ -x '/usr/lib/dvrescue/bin/ffmpeg' ]] ; then
+    FFMPEG_PATH='/usr/lib/dvrescue/bin/ffmpeg'
+else
+    FFMPEG_PATH="$(which ffmpeg)"
+fi
+}
+
+_get_media_info_path(){
+if [[ -x '/usr/lib/dvrescue/bin/mediainfo' ]] ; then
+    MEDIAINFO_PATH='/usr/lib/dvrescue/bin/mediainfo'
+else
+    MEDIAINFO_PATH="$(which mediainfo)"
+fi
+}
+
 MATCH_FRAMES="d:frame[1]|"
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
@@ -722,7 +738,7 @@ _report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
 
 MATCH_FRAMES="${MATCH_FRAMES%?}"
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
-    MEDIAINFO_PATH="$(which mediainfo)"
+    _get_media_info_path
 fi
 if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
@@ -763,7 +779,7 @@ if [[ -z "${FFMPEG_PATH}" ]] ; then
     if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
         FFMPEG_PATH="${FFMPEG_DL_GUESS}"
     else
-        FFMPEG_PATH="$(which ffmpeg)"
+        _get_ffmpeg_path
     fi
 fi
 # verify that ffmpeg is installed and qualifies
