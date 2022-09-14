@@ -243,9 +243,11 @@ Rectangle {
                            statusText = "stopping.";
                            commandsLogs.logResult(result.outputText);
 
+                           specifyPathDialog.reset();
                            specifyPathDialog.open();
                         });
                     } else {
+                        specifyPathDialog.reset();
                         specifyPathDialog.open();
                     }
                 }
