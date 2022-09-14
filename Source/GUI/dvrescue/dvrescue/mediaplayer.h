@@ -77,6 +77,9 @@ public:
     Q_INVOKABLE void stepForward();
     Q_INVOKABLE void stepBackward();
     Q_INVOKABLE void clear();
+    Q_INVOKABLE void notifyPositionChanged();
+    Q_INVOKABLE void startTrackPosition();
+    Q_INVOKABLE void stopTrackPosition();
 
     MediaStatus status() const;
     State state() const;

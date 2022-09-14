@@ -57,6 +57,8 @@ public:
     Q_INVOKABLE int getLastSubstantialFrame(int index);
     Q_INVOKABLE QString getLastSubstantialFrameTransition(int index);
     Q_INVOKABLE int rowByFrame(int frame);
+    Q_INVOKABLE qint64 frameOffset(int frame);
+    Q_INVOKABLE qint64 frameIndex(qint64 offset);
 
     struct GraphStats {
         int frameNumber;
@@ -116,6 +118,10 @@ private:
     int m_lastSubstantialFrame { -1 };
     int m_lastFrame { 0 };
     int m_total { 0 };
+
+    QMap<quint64, qint64> m_frameOffsetByFrameIndex;
+    QMap<qint64, quint64> m_frameIndexByFrameOffsetStart;
+    QMap<qint64, quint64> m_frameIndexByFrameOffsetEnd;
 };
 
 #endif // DATAMODEL_H

@@ -3,6 +3,12 @@ import QtQuick 2.12
 
 QQC2.SplitView {
     id: control
+
+    property int preferredWidth: 0
+    onPreferredWidthChanged: {
+        SplitView.preferredWidth = preferredWidth
+    }
+
     handle: Rectangle {
         implicitWidth: control.orientation === Qt.Horizontal ? 3 : control.width
         implicitHeight: control.orientation === Qt.Horizontal ? control.height : 3

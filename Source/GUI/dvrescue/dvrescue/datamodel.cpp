@@ -145,6 +145,30 @@ int DataModel::rowByFrame(int frame)
     return m_rowByFrame.contains(frame) ? m_rowByFrame[frame] : -1;
 }
 
+qint64 DataModel::frameOffset(int frame)
+{
+    auto entry = m_frameOffsetByFrameIndex.find(frame);
+    if(entry != m_frameOffsetByFrameIndex.end())
+        return entry.value();
+
+    return -1;
+}
+
+qint64 DataModel::frameIndex(qint64 offset)
+{
+    auto entry = m_frameIndexByFrameOffsetStart.lowerBound(offset);
+    if(entry != m_frameIndexByFrameOffsetStart.end()) {
+        auto key = entry.key();
+        auto value = entry.value();
+
+        entry = m_frameIndexByFrameOffsetEnd.lowerBound(offset);
+        if(entry.value() == value)
+            return value;
+    }
+
+    return -1;
+}
+
 void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
 {
     return getInfo(m_videoValues, x, y, frame, oddValue, evenValue);
@@ -338,8 +362,11 @@ void DataModel::populate(const QString &fileName)
         Q_EMIT error(errorString);
     });
 
-    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber) {
+    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber, auto offset, auto duration) {
         m_frames.append(std::make_tuple(frameNumber, FrameStats() ));
+        m_frameOffsetByFrameIndex[frameNumber] = offset;
+        m_frameIndexByFrameOffsetStart[offset] = frameNumber;
+        m_frameIndexByFrameOffsetEnd[offset + duration] = frameNumber;
     });
 
     connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,

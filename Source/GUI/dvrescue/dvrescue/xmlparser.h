@@ -28,7 +28,7 @@ Q_SIGNALS:
     void error(const QString& errorString);
 
     void gotMedia(QString ref, QString format, int size);
-    void gotFrame(uint frameNumber);
+    void gotFrame(uint frameNumber, qint64 offset, quint64 duration);
     void gotFrames(uint count, uint diff_per_seq_count);
     void gotFrameAttributes(uint frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes,
                             int diff_seq_count, int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial);
