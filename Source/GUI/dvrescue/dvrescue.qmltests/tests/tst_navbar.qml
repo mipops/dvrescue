@@ -33,15 +33,15 @@ Rectangle {
 
         ButtonGroup {
             id: navigationButtons
-            buttons: [transferButton, analysisButton]
+            buttons: [captureButton, analysisButton]
         }
 
         NavButton {
-            id: transferButton
-            // text: qsTr("Transfer")
+            id: captureButton
+            // text: qsTr("Capture")
             checkable: true;
             property int index: 0
-            icon.source: "qrc:/icons/menu-transfer.svg"
+            icon.source: "qrc:/icons/menu-capture.svg"
         }
         NavButton {
             id: analysisButton

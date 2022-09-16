@@ -35,15 +35,15 @@ ApplicationWindow {
 
         ButtonGroup {
             id: navigationButtons
-            buttons: [transferButton, analysisButton, packageButton]
+            buttons: [captureButton, analysisButton, packageButton]
         }
 
         NavButton {
-            id: transferButton
-            // text: qsTr("Transfer")
+            id: captureButton
+            // text: qsTr("Capture")
             checkable: true;
             property int index: 0
-            icon.source: "/icons/menu-transfer.svg"
+            icon.source: "/icons/menu-capture.svg"
         }
         NavButton {
             id: analysisButton
@@ -149,7 +149,7 @@ ApplicationWindow {
 
         currentIndex: navigationButtons.checkedButton.index
 
-        TransferPage {
+        CapturePage {
             id: mainUI
 
             property var urlToPath: function(url) {

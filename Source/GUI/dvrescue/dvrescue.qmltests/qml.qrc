@@ -2,6 +2,6 @@
 <RCC version="1.0">
     <qresource prefix="/">
         <file>Icons/menu-analysis.svg</file>
-        <file>Icons/menu-transfer.svg</file>
+        <file>Icons/menu-capture.svg</file>
     </qresource>
 </RCC>
