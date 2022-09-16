@@ -69,6 +69,9 @@ ApplicationWindow {
         }
         NavButton {
             // text: qsTr("Help")
+            onClicked: {
+                Qt.openUrlExternally("https://mipops.github.io/dvrescue/");
+            }
             icon.source: "/icons/menu-help.svg"
         }
         NavButton {
