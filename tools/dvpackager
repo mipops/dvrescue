@@ -628,7 +628,7 @@ else
 fi
 }
 
-_get_media_info_path(){
+_get_mediainfo_path(){
 if [[ -x '/usr/lib/dvrescue/bin/mediainfo' ]] ; then
     MEDIAINFO_PATH='/usr/lib/dvrescue/bin/mediainfo'
 else
@@ -738,7 +738,7 @@ _report -v "CONDENSE_OPTS is set to ${CONDENSE_OPTS[*]}"
 
 MATCH_FRAMES="${MATCH_FRAMES%?}"
 if [[ -z "${MEDIAINFO_PATH}" ]] ; then
-    _get_media_info_path
+    _get_mediainfo_path
 fi
 if [[ ! -f "${MEDIAINFO_PATH}" ]] ; then
     _report -d "The mediainfo command-line tool is not found, but is used to verify that the output is well synchronized."
