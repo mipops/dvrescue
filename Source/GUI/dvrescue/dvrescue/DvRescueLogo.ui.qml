@@ -12,7 +12,7 @@ Rectangle {
         anchors.centerIn: parent
 
         width: 132
-        height: 92
+        height: 132
         source: "/icons/logo-inverse.png"
         verticalTileMode: BorderImage.Round
         horizontalTileMode: BorderImage.Round
