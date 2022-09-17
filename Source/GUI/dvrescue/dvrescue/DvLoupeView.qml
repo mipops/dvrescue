@@ -41,8 +41,10 @@ Dialog {
 
     property string imageSource
     property var data
+    property var indexByVbl: ({})
     onDataChanged: {
 
+        indexByVbl = {};
         tableView.model.clear()
         var rows = data.rows
         rows.forEach((row) => {
@@ -72,7 +74,11 @@ Dialog {
 
                          if(cell1.hasOwnProperty('vbl'))
                          {
-                             rowEntry['vbl'] = cell1['vbl']
+                             var vbl = cell1['vbl']
+                             var nextIndex = tableView.model.rowCount
+
+                             rowEntry['vbl'] = vbl
+                             indexByVbl[vbl] = nextIndex
                          }
 
                          tableView.model.appendRow(rowEntry)
@@ -137,13 +143,13 @@ Dialog {
 
                                 if(rowData.hasOwnProperty('vbl')) {
 
-                                    rowIndex = rowData.vbl
+                                    rowIndex = indexByVbl[rowData.vbl]
                                     rowData = dataModel.getRow(rowIndex)
 
                                     rowData.selected = !rowData.selected;
                                     dataModel.setRow(rowIndex, rowData)
-                                    tableView.bringToView()
                                     root.selectionChanged()
+                                    tableView.bringToView(rowIndex)
 
                                     break;
                                 }
