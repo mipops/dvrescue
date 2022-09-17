@@ -39,6 +39,39 @@ Dialog {
         imageSource = null
     }
 
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToPreviousLine
+        onActivated: {
+            vscroll.decrease();
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToNextLine
+        onActivated: {
+            vscroll.increase();
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToPreviousPage
+        onActivated: {
+            vscroll.position -= tableView.height / tableView.contentHeight;
+            if(vscroll.position < 0)
+                vscroll.position = 0;
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToNextPage
+        onActivated: {
+            vscroll.position += tableView.height / tableView.contentHeight;
+            if(vscroll.position > 1)
+                vscroll.position = 1;
+        }
+    }
+
     property string imageSource
     property var data
     property var indexByVbl: ({})
@@ -299,6 +332,7 @@ Dialog {
             id: tableView
             Layout.fillHeight: true
             Layout.fillWidth: true
+            clip: true
 
             function bringToView(index) {
                 console.debug('bringingToView: ', index, 'topMargin: ', tableView.topMargin);
@@ -339,6 +373,7 @@ Dialog {
             ScrollBar.vertical: ScrollBar {
                 id: vscroll
                 policy: ScrollBar.AlwaysOn
+                stepSize: tableView.delegateHeight / tableView.contentHeight
             }
 
             ScrollBar.horizontal: ScrollBar {
