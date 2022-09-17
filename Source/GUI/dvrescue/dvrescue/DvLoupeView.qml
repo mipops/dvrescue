@@ -13,7 +13,7 @@ Dialog {
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     parent: Overlay.overlay
-    width: 1280
+    width: 1340
     height: 760
     clip: true
     padding: 5
@@ -81,6 +81,7 @@ Dialog {
                              indexByVbl[vbl] = nextIndex
                          }
 
+                         rowEntry['blockNumber'] = tableView.model.rowCount
                          tableView.model.appendRow(rowEntry)
                      });
     }
@@ -328,7 +329,9 @@ Dialog {
             columnWidthProvider: function(column) {
                 if(column === 0)
                     return 50
-                return width - 50
+                if(column === 1)
+                    return 50
+                return width - 100
             }
 
             property int delegateHeight: 25
@@ -348,6 +351,11 @@ Dialog {
 
             model: TableModelEx {
                 id: dataModel
+
+                TableModelColumn {
+                    display: "blockNumber"
+                    edit: "selected"
+                }
 
                 TableModelColumn {
                     display: "value1"
@@ -380,10 +388,10 @@ Dialog {
                             text: display
                             anchors.verticalCenter: parent.verticalCenter
                             readOnly: true
-                            font.bold: column === 0
+                            font.bold: column === 0 || column === 1
                             font.pixelSize: 13
                             font.family: "Courier New"
-                            color: column === 0 ? 'black' : decoration
+                            color: (column === 0 || column === 1) ? 'black' : decoration
                         }
 
                         Rectangle {
