@@ -108,6 +108,14 @@ Dialog {
                     width: image.paintedWidth
                     height: image.paintedHeight
 
+                    onPressed: { pos = Qt.point(mouse.x, mouse.y) }
+                    onPositionChanged: {
+                        var diff = Qt.point(mouse.x - pos.x, mouse.y - pos.y)
+                        root.x += diff.x
+                        root.y += diff.y
+                    }
+                    property point pos
+
                     onClicked: {
                         var cx = mouse.x
                         var cy = mouse.y
@@ -153,17 +161,6 @@ Dialog {
                     BusyIndicator {
                         anchors.centerIn: parent
                     }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onPressed: { pos = Qt.point(mouse.x, mouse.y) }
-                    onPositionChanged: {
-                        var diff = Qt.point(mouse.x - pos.x, mouse.y - pos.y)
-                        root.x += diff.x
-                        root.y += diff.y
-                    }
-                    property point pos
                 }
             }
 
@@ -414,6 +411,7 @@ Dialog {
     ResizeRectangle {
         target: root
         anchors.fill: root.contentItem
+        anchors.margins: -root.padding
     }
 }
 
