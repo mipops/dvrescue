@@ -1,10 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>CapturePage.qml</file>
         <file>DevicesModelUpdater.qml</file>
         <file>DvRescueParser.qml</file>
         <file>DevicesModel.qml</file>
-        <file>TransferPage.qml</file>
         <file>icons/icon.png</file>
         <file>icons/fastforward.svg</file>
         <file>icons/play.svg</file>
@@ -40,11 +40,11 @@
         <file>icons/button-zoom-out.svg</file>
         <file>icons/menu-about.svg</file>
         <file>icons/menu-analysis.svg</file>
+        <file>icons/menu-capture.svg</file>
         <file>icons/menu-debug.svg</file>
         <file>icons/menu-help.svg</file>
         <file>icons/menu-package.svg</file>
         <file>icons/menu-settings.svg</file>
-        <file>icons/menu-transfer.svg</file>
         <file>JumpRepeatTextDelegate.qml</file>
         <file>TextImageDelegate.qml</file>
         <file>SubstantialTextDelegate.qml</file>
