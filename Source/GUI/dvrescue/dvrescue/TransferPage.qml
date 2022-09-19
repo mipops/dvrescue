@@ -189,6 +189,7 @@ Rectangle {
 
                         grabbing = true;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
+                                          outputFilePath = filePath
                                           csvParser.columnsChanged.connect((columns) => {
                                                                                columnNames = columns
                                                                                console.debug('columnNames: ', JSON.stringify(columnNames))

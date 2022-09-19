@@ -3,6 +3,7 @@ import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.12
 import QtAVMediaPlayer 1.0
 import MediaPlayerBuffer 1.0
+import FileUtils 1.0
 import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
@@ -17,6 +18,7 @@ Column {
     property alias rewindButton: rewindButton
     property alias captureButton: captureButton
     property alias deviceNameTextField: deviceNameTextField
+    property string outputFilePath: ''
     property alias statusText: statusText.text
     property alias captureFrameInfo: captureFrameInfo
     property alias speedInterpretation: speedInterpretation.source
@@ -69,8 +71,10 @@ Column {
 
     property bool grabbing: false;
     onGrabbingChanged: {
-        if(!grabbing)
+        if(!grabbing) {
             frameSpeed = 0
+            outputFilePath = ''
+        }
     }
 
     playButton.enabled: !grabbing && capturingModeInt !== playing
@@ -86,12 +90,30 @@ Column {
 
         TextField {
             id: deviceNameTextField
-            width: 640
+            width: parent.width - outputFileNameTextField.width
             readOnly: true
             text: "[0] DV-VCR (Sony GV-D1000)"
             font.family: "Tahoma"
             placeholderText: qsTr("Searching device...")
             font.pointSize: 11
+        }
+
+        TextField {
+            id: outputFileNameTextField
+            horizontalAlignment: "AlignRight"
+            anchors.right: parent.right
+            readOnly: true
+            width: contentWidth
+            text: FileUtils.getFileName(outputFilePath)
+            font.pointSize: 11
+
+            MouseArea {
+                acceptedButtons: Qt.RightButton
+                anchors.fill: parent
+                onClicked: {
+                    Qt.openUrlExternally('file:///' + FileUtils.getFileDir(outputFilePath))
+                }
+            }
         }
     }
 
