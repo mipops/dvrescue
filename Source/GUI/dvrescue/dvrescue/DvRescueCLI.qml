@@ -165,7 +165,7 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
@@ -223,7 +223,7 @@ Item {
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             launcher.execute(cmd, arguments);
             if(callback)
@@ -266,7 +266,7 @@ Item {
                 launcher.destroy();
             });
 
-            var makeReportTemplate = "file.dv -x file.dv.dvrescue.xml -s file.dv.dvrescue.vtt -c file.dv.dvrescue.scc";
+            var makeReportTemplate = "-y file.dv -x file.dv.dvrescue.xml -s file.dv.dvrescue.vtt -c file.dv.dvrescue.scc";
             var arguments = makeReportTemplate.split(" ");
             for(var i = 0; i < arguments.length; ++i) {
                 arguments[i] = arguments[i].replace("file.dv", file);
