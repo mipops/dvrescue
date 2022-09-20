@@ -9,6 +9,16 @@
 #include "CLI/CLI_Help.h"
 #include "Common/Core.h"
 #include "TimeCode.h"
+#if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+#include <fcntl.h>
+#include <io.h>
+#endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+#ifdef _WIN32
+#include <io.h> 
+#define access    _access_s
+#else
+#include <unistd.h>
+#endif
 #if defined(UNICODE) && defined(_WIN32)
 struct IUnknown; // Workaround for "combaseapi.h(229): error C2187: syntax error: 'identifier' was unexpected" with old SDKs and /permisive-
 #include <windows.h>
@@ -17,12 +27,22 @@ struct IUnknown; // Workaround for "combaseapi.h(229): error C2187: syntax error
 #endif
 #include <cfloat>
 #include <fstream>
+#include <iostream>
+#include <string>
 using namespace std;
 //---------------------------------------------------------------------------
 
 //***************************************************************************
 // Helpers
 //***************************************************************************
+
+//---------------------------------------------------------------------------
+enum flags
+{
+    Flag_No,
+    Flag_Yes,
+    Flag_Max
+};
 
 //---------------------------------------------------------------------------
 static const char* ExtensionToCatpionKind_Array[]
@@ -52,6 +72,96 @@ static string CatpionKindsString()
     return Value;
 }
 
+//---------------------------------------------------------------------------
+static bool OpenTruncateFile(ostream*& F, const char* FileName, Core& C, bitset<Flag_Max> Flags)
+{
+    if (FileName[0] == '-' && FileName[1] == '\0')
+    {
+        F = new ostream(cout.rdbuf());
+        return false;
+    }
+
+    if (!Flags[Flag_Yes] && !access(FileName, 0))
+    {
+        bool HasError = Flags[Flag_No];
+        if (!HasError)
+        {
+            *C.Err << "File '" << FileName << "' already exists. Overwrite? [y/N] ";
+            string Result;
+            getline(cin, Result);
+            if (Result.empty() || (Result[0] != 'Y' && Result[0] != 'y'))
+                HasError = true;
+        }
+        if (HasError)
+        {
+            if (C.Err)
+                *C.Err << "Error: " << FileName << " is present.\n";
+            return true;
+        }
+    }
+    if (Verbosity == 10)
+        *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"..." << endl;
+    auto File = new ofstream(FileName, ios_base::trunc);
+    if (Verbosity == 10)
+        *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"... Done." << endl;
+    if (!File->is_open())
+    {
+        if (C.Err)
+            *C.Err << "Error: can not open " << FileName << " for writing.\n";
+        delete File;
+        F = nullptr;
+        return true;
+    }
+    F = File;
+    return false;
+}
+
+
+//---------------------------------------------------------------------------
+static bool OpenTruncateFile(FILE*& F, const char* FileName, Core& C, bitset<Flag_Max> Flags)
+{
+    if (FileName[0] == '-' && FileName[1] == '\0')
+    {
+        #if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+            if (_setmode(_fileno(stdout), _O_BINARY) != -1) //Force binary mode
+                {} // (seem to be binary if there is an error // cerr << "Warning: can not set stdout to binary mode." << endl;
+        #endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
+        F = stdout;
+        return false;
+    }
+
+    if (!Flags[Flag_Yes] && !access(FileName, 0))
+    {
+        bool HasError = Flags[Flag_No];
+        if (!HasError)
+        {
+            *C.Err << "File '" << FileName << "' already exists. Overwrite? [y/N] ";
+            string Result;
+            getline(cin, Result);
+            if (Result.empty() || (Result[0] != 'Y' && Result[0] != 'y'))
+                HasError = true;
+        }
+        if (HasError)
+        {
+            if (C.Err)
+                *C.Err << "Error: " << FileName << " is present.\n";
+            return true;
+        }
+    }
+    if (Verbosity == 10)
+        *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"..." << endl;
+    F = fopen(FileName, "wb");
+    if (Verbosity == 10)
+        *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"... Done." << endl;
+    if (!F)
+    {
+        if (C.Err)
+            *C.Err << "Error: can not open " << FileName << " for writing.\n";
+        return true;
+    }
+    return false;
+}
+
 //***************************************************************************
 // Command line parser
 //***************************************************************************
@@ -62,6 +172,11 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     return_value ReturnValue = ReturnValue_OK;
     bool ClearInput = false;
     caption_kind CaptionKind = Caption_Unknown;
+    const char* Xml_OutputFileName = nullptr;
+    const char* Webvtt_OutputFileName = nullptr;
+    const char* Merge_OutputFileName = nullptr;
+    const char* MergeInfo_OutputFileName = nullptr;
+    bitset<Flag_Max> Flags;
 
     // Commands in priority
     for (int i = 1; i < argc; i++)
@@ -213,7 +328,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
-            Merge_OutputFileName = move(argv_ansi[i]);
+            Merge_OutputFileName = argv_ansi[i];
         }
         else if (!strcmp(argv_ansi[i], "--merge-log"))
         {
@@ -223,20 +338,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     *C.Err << "Error: missing merge info output file name after " << argv_ansi[i-1] << ".\n";
                 return ReturnValue_ERROR;
             }
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
-            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
-            if (!File->is_open())
-            {
-                if (C.Err)
-                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
-                delete File;
-                return ReturnValue_ERROR;
-            }
-            else
-                MergeInfo_OutputFileName = argv_ansi[i];
+            MergeInfo_OutputFileName = argv_ansi[i];
         }
         else if (!strcmp(argv_ansi[i], "--status") || !strcmp(argv_ansi[i], "-status"))
         {
@@ -395,20 +497,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
-            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
-            if (!File->is_open())
-            {
-                if (C.Err)
-                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
-                delete File;
-                return ReturnValue_ERROR;
-            }
-            else
-                C.WebvttFile = File;
+            Webvtt_OutputFileName = argv_ansi[i];
         }
         else if (!strcmp(argv_ansi[i], "--xml-output") || !strcmp(argv_ansi[i], "-x"))
         {
@@ -418,20 +507,15 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     *C.Err << "Error: missing XML output file name after " << argv_ansi[i-1] << ".\n";
                 return ReturnValue_ERROR;
             }
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"..." << endl;
-            auto File = new ofstream(argv_ansi[i], ios_base::trunc);
-            if (Verbosity == 10)
-                *C.Err << "Debug: opening (out, trunc) \"" << argv_ansi[i] << "\"... Done." << endl;
-            if (!File->is_open())
-            {
-                if (C.Err)
-                    *C.Err << "Error: can not open " << argv_ansi[i] << " for writing.\n";
-                delete File;
-                return ReturnValue_ERROR;
-            }
-            else
-                C.XmlFile = File;
+            Xml_OutputFileName = argv_ansi[i];
+        }
+        else if (!strcmp(argv_ansi[i], "-n"))
+        {
+            Flags.set(Flag_No);
+        }
+        else if (!strcmp(argv_ansi[i], "-y"))
+        {
+            Flags.set(Flag_Yes);
         }
         else if (!strncmp(argv_ansi[i], "--", 2))
         {
@@ -462,7 +546,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         else
         {
-            if (C.WebvttFile || C.XmlFile || !Merge_OutputFileName.empty())
+            if (Webvtt_OutputFileName || Xml_OutputFileName || Merge_OutputFileName)
             {
                 if (C.Err)
                     *C.Err << "Error: in order to avoid mistakes, provide output file names after input file names.\n";
@@ -539,7 +623,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
 
     if (MergeInfo_Format)
     {
-        if (Merge_OutputFileName.empty())
+        if (!Merge_OutputFileName)
         {
             if (C.Err)
                 *C.Err << "Error: CSV format is available only for merge feature.\n";
@@ -550,6 +634,44 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
 
     if (ClearInput)
         C.Inputs.clear();
+
+    // Flags coherency
+    if (Flags[Flag_No] && Flags[Flag_Yes])
+    {
+        if (C.Err)
+            *C.Err << "Error: -n and -y are mutually exclusive.\n";
+        return ReturnValue_ERROR;
+    }
+
+    // Open files
+    if ((Xml_OutputFileName && OpenTruncateFile(C.XmlFile, Xml_OutputFileName, C, Flags))
+     || (Webvtt_OutputFileName && OpenTruncateFile(C.WebvttFile, Webvtt_OutputFileName, C, Flags))
+     || (MergeInfo_OutputFileName && OpenTruncateFile(MergeInfo_Out, MergeInfo_OutputFileName, C, Flags))
+     || (Merge_OutputFileName && OpenTruncateFile(Merge_Out, Merge_OutputFileName, C, Flags))
+        )
+    {
+        if (C.XmlFile)
+        {
+            delete C.XmlFile;
+            remove(Xml_OutputFileName);
+        }
+        if (C.WebvttFile)
+        {
+            delete C.WebvttFile;
+            remove(Webvtt_OutputFileName);
+        }
+        if (MergeInfo_Out)
+        {
+            delete MergeInfo_Out;
+            remove(MergeInfo_OutputFileName);
+        }
+        if (Merge_Out)
+        {
+            fclose(Merge_Out);
+            remove(Merge_OutputFileName);
+        }
+        return ReturnValue_ERROR;
+    }
 
     return ReturnValue;
 }

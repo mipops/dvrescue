@@ -16,10 +16,6 @@
 #include <map>
 #include <bitset>
 #include <set>
-#if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
-#include <fcntl.h>
-#include <io.h>
-#endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
 #include "TimeCode.h"
 #include "CLI/CLI_Help.h"
 using namespace ZenLib;
@@ -28,10 +24,10 @@ uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffe
 
 //---------------------------------------------------------------------------
 vector<string> Merge_InputFileNames;
-string Merge_OutputFileName;
+FILE* Merge_Out = nullptr;
+ostream* MergeInfo_Out = nullptr;
 ofstream Out;
 static ostream* Log;
-string MergeInfo_OutputFileName;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint8_t UseAbst = 0;
@@ -323,36 +319,9 @@ bool dv_merge_private::Init()
         return false;
     auto Input_Count = Merge_InputFileNames.size();
 
-    if (!MergeInfo_OutputFileName.empty())
-    {
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << MergeInfo_OutputFileName << "\"\"..." << endl;
-        Out.open(MergeInfo_OutputFileName);
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << MergeInfo_OutputFileName << "\"... Done." << endl;
-        cout.rdbuf(Out.rdbuf());
-    }
-    if (Merge_OutputFileName == "-")
-    {
-        #if defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
-            if (_setmode(_fileno(stdout), _O_BINARY) != -1) //Force binary mode
-                {} // (seem to be binary if there is an error // cerr << "Warning: can not set stdout to binary mode." << endl;
-        #endif //defined(WINDOWS) && !defined(WINDOWS_UWP) && !defined(__BORLANDC__)
-        Output.F = stdout;
-        if (MergeInfo_OutputFileName.empty())
-            Log = &cerr;
-        else
-            Log = &cout;
-    }
-    else
-    {
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"..." << endl;
-        Output.F = fopen(Merge_OutputFileName.c_str(), "wb");
-        if (Verbosity == 10)
-            cerr << "Debug: opening (out) \"" << Merge_OutputFileName << "\"... Done." << endl;
-        Log = &cout;
-    }
+    // Out config
+    Output.F = Merge_Out;
+    Log = MergeInfo_Out ? MergeInfo_Out : (Merge_Out == stdout ? &cerr : &cout);
 
     Merge_Help();
 
@@ -1330,7 +1299,7 @@ void dv_merge_private::Finish()
 {
     // Coherency check
     lock_guard<mutex> Lock(Mutex);
-    if (Merge_OutputFileName.empty() || Merge_InputFileNames.size() > Inputs.size())
+    if (!Merge_Out || Merge_InputFileNames.size() > Inputs.size())
         return;
 
     if (Verbosity > 0 && Verbosity <= 7)

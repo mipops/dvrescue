@@ -60,7 +60,7 @@ return_value Core::Process()
     }
     if (Device_Command)
         return ReturnValue_OK;
-    if (!Merge_OutputFileName.empty())
+    if (Merge_Out)
     {
         PerFile[0]->Merge_Finish();
         if (!XmlFile)
