@@ -279,14 +279,14 @@ _ranges_2_table(){
     echo "#         St='Flagged Start of a recording', ncTC='non-continuous timecode value', ncR='non-continuous recording timestamp value'"
     echo "  # | PTS Range                         | Duration | Frame Range         | Byte Range                | Timecode    | Recording Timestamp    | Size      | Frame Rate | DAR   | ChSub | Audio     | St | ncTC | ncR |"
     SEG_PART="1"
-    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    echo "${RANGES}" | while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
         DURATION="$(_duration_from_pts_range "${PTS}" "${END_PTS}")"
         SEG2EXPORT="$(_check_if_in_list "${SEG_PART}" "${SEGMENT_SKIPS}")"
         awk -v SEG_PART="${SEG_PART}" -v SEG2EXPORT="${SEG2EXPORT}" -v PTS="${PTS}" -v END_PTS="${END_PTS}" -v FRAME_START="${FRAME_START}" -v FRAME_END="${FRAME_END}" -v TC="${TC}" -v PKT_POS="${PKT_POS}" -v RDT="${RDT}" -v SIZE="${SIZE}" -v VIDEO_RATE="${VIDEO_RATE}" -v CH_SUB="${CH_SUB}" -v AR="${AR}" -v AUDIO_RATE="${AUDIO_RATE}" -v CH="${CH}" -v REC_ST="${REC_ST}" -v RDT_NC="${RDT_NC}" -v TC_NC="${TC_NC}" -v LAST_FRAME_NO_AUDIO="${LAST_FRAME_NO_AUDIO}" -v PKT_POS_END="${PKT_POS_END}" -v PKT_POS_LAST="${PKT_POS_LAST}" -v DURATION="${DURATION}" \
             'END {printf "%3s%1s| %15s - %15s | %8.3f | %8i - %8i | %11i - %11i | %11s | %-22s | %9s | %10s | %5s | %5s | %1sch %5i | %2s | %4s | %3s |\n", \
         SEG_PART, SEG2EXPORT, PTS, END_PTS, DURATION, FRAME_START, FRAME_END, PKT_POS, PKT_POS_END, TC, RDT, SIZE, VIDEO_RATE, AR, CH_SUB, CH, AUDIO_RATE, REC_ST, TC_NC, RDT_NC}' < /dev/null
         ((SEG_PART++))
-    done < <(echo "${RANGES}")
+    done
     echo
 }
 
@@ -295,14 +295,14 @@ _ranges_2_output_table(){
     RANGES="${1}"
     SEG_INPUT="1"
     SEG_OUTPUT="1"
-    while read -r RANGE_LINE ; do
+    echo "${RANGES}" | while read -r RANGE_LINE ; do
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
             echo "${RANGE_LINE//[$'\t\r\n ']}|${OUTPUT_FILE}"
             ((SEG_OUTPUT++))
         fi
         ((SEG_INPUT++))
-    done < <(echo "${RANGES}")
+    done
 }
 
 _condense_ranges(){
@@ -418,7 +418,10 @@ _condense_ranges(){
     unset ASPECT_FLIP
     COUNT_43="0"
     COUNT_169="0"
-    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    RANGE_COUNTER="0"
+    RANGE_TOTAL="$(echo "${RANGES}" | grep -c "^")"
+    echo "${RANGES}" | while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        ((RANGE_COUNTER++))
         if [[ -z "${PTS_FIRST}" ]] ; then
             _set_first
             _set_prev
@@ -436,7 +439,6 @@ _condense_ranges(){
                 "${TC_NC_OPT}"     != "${TC_NC}" \
                ]] ; then
                 _set_prev
-                continue
             elif [[ \
                 "${SAMPLING_FREQ_MERGE}" = "Y" && -n "${ASPECT_MERGE}" && \
                 "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
@@ -448,7 +450,6 @@ _condense_ranges(){
                     ASPECT_FLIP="Y"
                 fi
                 _set_prev
-                continue
             elif [[ \
                 -z "${SAMPLING_FREQ_MERGE}" && -n "${ASPECT_MERGE}" && \
                 "${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}" == "${SIZE}|${VIDEO_RATE}|${CH_SUB}" && \
@@ -461,7 +462,6 @@ _condense_ranges(){
                     ASPECT_FLIP="Y"
                 fi
                 _set_prev
-                continue
             else
                 _report_condensed_line
                 _set_first
@@ -471,13 +471,15 @@ _condense_ranges(){
                 COUNT_169="0"
             fi
         fi
-    done < <(echo "${RANGES}")
-    if [[ "${AR_PREV}" = "4/3" ]] ; then
-        COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
-    elif [[ "${AR_PREV}" = "16/9" ]] ; then
-        COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
-    fi
-    _report_condensed_line
+        if [[ "${RANGE_COUNTER}" == "${RANGE_TOTAL}" ]] ; then
+            if [[ "${AR_PREV}" = "4/3" ]] ; then
+                COUNT_43="$((COUNT_43 + FRAME_END_PREV - FRAME_START_PREV))"
+            elif [[ "${AR_PREV}" = "16/9" ]] ; then
+                COUNT_169="$((COUNT_169 + FRAME_END_PREV - FRAME_START_PREV))"
+            fi
+            _report_condensed_line
+        fi
+    done
 }
 
 _convert_hhmmssmmm2s(){
@@ -554,7 +556,7 @@ _make_chapter_metadata_file(){
     _report -v "Found ${CHAPTER_SET_COUNT} point(s) for chapter marks."
     if [[ "${CHAPTER_SET_COUNT}" -gt 1 ]] ; then
         echo ";FFMETADATA1"
-        while IFS="|" read -r PTSc END_PTSc FRAME_STARTc FRAME_ENDc TCc PKT_POSc RDTc SIZEc VIDEO_RATEc CH_SUBc ARc AUDIO_RATEc CHc REC_STc RDT_NCc TC_NCc ; do
+        echo "${CHAPTER_SETS}" | while IFS="|" read -r PTSc END_PTSc FRAME_STARTc FRAME_ENDc TCc PKT_POSc RDTc SIZEc VIDEO_RATEc CH_SUBc ARc AUDIO_RATEc CHc REC_STc RDT_NCc TC_NCc ; do
              START_CHAPTER="$(_convert_hhmmssmmm2s "${PTSc}" | awk '{printf "%i", $1 * 100000}')"
              END_CHAPTER="$(_convert_hhmmssmmm2s "${END_PTSc}" | awk '{printf "%i", $1 * 100000}')"
              START_CHAPTER_OFFSET="$((START_CHAPTER-CHAP_RANGE_START))"
@@ -575,7 +577,7 @@ _make_chapter_metadata_file(){
                  echo "END=${END_CHAPTER_OFFSET}"
                  echo "title=${CHAP_TITLE}"
              fi
-        done < <(echo "${CHAPTER_SETS}")
+        done
     else
         _report -v "Skipping the process to embed chapters since there would only be one."
     fi
@@ -792,16 +794,17 @@ else
     LAVF_MAJ_REQ=59
     LAVF_MIN_REQ=5
     LAVF_MIC_REQ=100
-    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
-    if ! { \
-          [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
-        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
-        { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -eq ${LAVF_MIN_REQ} ]] && [[ ${LAVFversion_mic} -ge ${LAVF_MIC_REQ} ]]; }; \
-       } ; then
-        _report -w "FFmpeg's libavformat version  ${LAVF_MAJ_REQ}.${LAVF_MIN_REQ}.${LAVF_MIC_REQ} or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion_maj}.${LAVFversion_min}.${LAVFversion_mic}."
-        _report -w "Please update ffmpeg."
-        _report -w "Using this current install of ffmpeg may result in out of sync audio."
-    fi
+    "${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1 | while IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic ; do
+        if ! { \
+              [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
+            { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
+            { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -eq ${LAVF_MIN_REQ} ]] && [[ ${LAVFversion_mic} -ge ${LAVF_MIC_REQ} ]]; }; \
+           } ; then
+            _report -w "FFmpeg's libavformat version  ${LAVF_MAJ_REQ}.${LAVF_MIN_REQ}.${LAVF_MIC_REQ} or greater is recommended and ${FFMPEG_PATH} is running ${LAVFversion_maj}.${LAVFversion_min}.${LAVFversion_mic}."
+            _report -w "Please update ffmpeg."
+            _report -w "Using this current install of ffmpeg may result in out of sync audio."
+        fi
+    done
 fi
 
 OPT_INPUT=(-y)
@@ -952,7 +955,15 @@ if [[ -f "${DVFILE}" ]] ; then
     _report -d "The results will be written to ${SIDECAR_DIR}"
     SEG_INPUT="1"
     SEG_OUTPUT="1"
-    while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+    if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
+        OUTPUT_RANGES="$(_get_ranges)"
+    else
+        OUTPUT_RANGES="$(_condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)")"
+    fi
+    OUTPUT_COUNTER="0"
+    OUTPUT_TOTAL="$(echo "${OUTPUT_RANGES}" | grep -c "^")"
+    echo "${OUTPUT_RANGES}" | while IFS="|" read -r PTS END_PTS FRAME_START FRAME_END TC PKT_POS RDT SIZE VIDEO_RATE CH_SUB AR AUDIO_RATE CH REC_ST RDT_NC TC_NC LAST_FRAME_NO_AUDIO PKT_POS_END PKT_POS_LAST ; do
+        ((OUTPUT_COUNTER++))
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" = "x" ]] ; then
             _report -d "Skipping part ${SEG_INPUT} as requested."
             SKIPPED_DVFRAMES=$((FRAME_END-FRAME_START+1))
@@ -1027,7 +1038,27 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
-                    while IFS="|" read -r PTSa END_PTSa FRAME_STARTa FRAME_ENDa TCa PKT_POSa RDTa SIZEa VIDEO_RATEa CH_SUBa ARa AUDIO_RATEa CHa REC_STa RDT_NCa TC_NCa LAST_FRAME_NO_AUDIOa PKT_POS_ENDa PKT_POS_LASTa ; do
+                    for AUDIO_SUBLIST_LINE in $(echo "${AUDIO_RANGE_SUBLIST}") ; do
+                        PTSa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f1)"
+                        END_PTSa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f2)"
+                        FRAME_STARTa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f3)"
+                        FRAME_ENDa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f4)"
+                        TCa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f5)"
+                        PKT_POSa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f6)"
+                        RDTa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f7)"
+                        SIZEa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f8)"
+                        VIDEO_RATEa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f9)"
+                        CH_SUBa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f10)"
+                        ARa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f11)"
+                        AUDIO_RATEa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f12)"
+                        CHa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f13)"
+                        REC_STa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f14)"
+                        RDT_NCa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f15)"
+                        TC_NCa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f16)"
+                        LAST_FRAME_NO_AUDIOa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f17)"
+                        PKT_POS_ENDa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f18)"
+                        PKT_POS_LASTa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f19)"
+
                         ((AUDIO_INPUT_COUNT++))
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
@@ -1085,7 +1116,7 @@ if [[ -f "${DVFILE}" ]] ; then
                             AUDIO_RESAMPLE_FILTER_T2+="aevalsrc=channel_layout=stereo:sample_rate=48000:exprs=0|0:duration=${DURATION_SECSa}${AUDIO_STREAM_OUT_T2};"
                         fi
                         AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
-                    done < <(echo "${AUDIO_RANGE_SUBLIST}")
+                    done
                     if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
                             AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1,channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
@@ -1200,14 +1231,12 @@ if [[ -f "${DVFILE}" ]] ; then
             ((SEG_OUTPUT++))
         fi
         ((SEG_INPUT++))
-    done < <(if [[ "${#CONDENSE_OPTS[@]}" = "0" ]] ; then
-                _get_ranges
-            else
-                _condense_ranges "${CONDENSE_OPTS[@]}" "$(_get_ranges)"
-            fi)
-    if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "$((TOTAL_DVFRAMES_PACKAGED+TOTAL_DVFRAMES_SKIPPED))" != "${DV_FRAME_COUNT}" ]] ; then
-        _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV and ${TOTAL_DVFRAMES_SKIPPED} were skipped"
-    fi
+        if [[ "${OUTPUT_COUNTER}" == "${OUTPUT_TOTAL}" ]] ; then
+            if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "$((TOTAL_DVFRAMES_PACKAGED+TOTAL_DVFRAMES_SKIPPED))" != "${DV_FRAME_COUNT}" ]] ; then
+                _report -w "ERROR: ${BASENAME} contained ${DV_FRAME_COUNT} DV frames, but the outputs contain ${TOTAL_DVFRAMES_PACKAGED} frames of DV and ${TOTAL_DVFRAMES_SKIPPED} were skipped"
+            fi
+        fi
+    done
 else
     echo "${BASENAME} is not a file, skipping."
 fi

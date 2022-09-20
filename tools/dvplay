@@ -119,7 +119,10 @@ else
     LAVF_MAJ_REQ=59
     LAVF_MIN_REQ=19
     LAVF_MIC_REQ=100
-    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
+    LAVF_VERSION="$("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+    LAVFversion_maj="$(echo "${LAVF_VERSION}" | cut -d "." -f1)"
+    LAVFversion_min="$(echo "${LAVF_VERSION}" | cut -d "." -f2)"
+    LAVFversion_mic="$(echo "${LAVF_VERSION}" | cut -d "." -f3)"
     if ! { \
           [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
         { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
@@ -547,7 +550,10 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     shift
-    IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
+    MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DV_FILE}")"
+    CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
+    HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
+    PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
     _get_filters
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
