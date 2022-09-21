@@ -73,6 +73,14 @@ _report(){
     fi
 }
 
+_maketemp(){
+    mktemp -q -t "$(basename "${0}").XXXXXX"
+    if [ "${?}" -ne 0 ]; then
+        echo "${0}: Can't create temp file, exiting..."
+        exit 1
+    fi
+}
+
 OPTIND=1
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
@@ -119,7 +127,10 @@ else
     LAVF_MAJ_REQ=59
     LAVF_MIN_REQ=19
     LAVF_MIC_REQ=100
-    IFS="." read LAVFversion_maj LAVFversion_min LAVFversion_mic < <("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)
+    LAVF_VERSION="$("${FFMPEG_PATH}" -version | grep "libavformat" | head -n 1 | sed 's/[^0-9./]//g' | cut -d "/" -f 1)"
+    LAVFversion_maj="$(echo "${LAVF_VERSION}" | cut -d "." -f1)"
+    LAVFversion_min="$(echo "${LAVF_VERSION}" | cut -d "." -f2)"
+    LAVFversion_mic="$(echo "${LAVF_VERSION}" | cut -d "." -f3)"
     if ! { \
           [[ ${LAVFversion_maj} -gt ${LAVF_MAJ_REQ} ]] || \
         { [[ ${LAVFversion_maj} -eq ${LAVF_MAJ_REQ} ]] && [[ ${LAVFversion_min} -gt ${LAVF_MIN_REQ} ]]; } || \
@@ -133,7 +144,10 @@ else
     fi
 fi
 
-cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
+DVPLAY_DISPLAY_TEMP="$(_maketemp)"
+
+_set_up_xsl(){
+cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
 <?xml version="1.0"?>
 <!-- WIP -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dv="https://mediaarea.net/dvrescue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:x="http://www.w3.org/1999/xhtml" version="1.0" extension-element-prefixes="xsi" exclude-result-prefixes="dv x" >
@@ -386,6 +400,7 @@ cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
   </xsl:template>
 </xsl:stylesheet>
 DISPLAY_XSL
+}
 
 # fill color handling
 _convert_array_to_macroblock(){
@@ -520,15 +535,6 @@ _make_dvrescue_xml(){
     fi
 }
 
-_maketemp(){
-    mktemp -q "/tmp/$(basename "${0}").XXXXXX"
-    if [ "${?}" -ne 0 ]; then
-        _report -d "${0}: Can't create temp file, exiting..."
-        _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
-        exit 1
-    fi
-}
-
 _mkdir2(){
     local DIR2MAKE=""
     while [ "${*}" != "" ] ; do
@@ -547,7 +553,10 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     shift
-    IFS="|" read HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Height%|%ChromaSubsampling%" "${DVFILE}")
+    MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DVFILE}")"
+    CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
+    HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
+    PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
     _get_filters
     if [[ -n "${OUTPUTFILE}" ]]  ; then
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
@@ -627,7 +636,8 @@ while [[ "${@}" != "" ]] ; do
             "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
             rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
         else
-            xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
+            _set_up_xsl
+            xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
         _play_dv "${DVFILE}"

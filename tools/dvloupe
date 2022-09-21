@@ -34,10 +34,9 @@ EOF
 }
 
 _maketemp(){
-    mktemp -q "/tmp/$(basename "${0}").XXXXXX"
+    mktemp -q -t "$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
-        _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
         exit 1
     fi
 }
@@ -208,7 +207,10 @@ else
     ROW_END="${RESET}\n"
 fi
 
-IFS="|" read CODEC_NAME HEIGHT PIX_FMT < <("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DV_FILE}")
+MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DV_FILE}")"
+CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
+HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
+PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
 
 if [[ "${CODEC_NAME}" != "DV" ]] ; then
   _report -w "$DV_FILE does not seem to be a dv file, but is ${CODEC_NAME}."
