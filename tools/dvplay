@@ -146,6 +146,7 @@ fi
 
 DVPLAY_DISPLAY_TEMP="$(_maketemp)"
 
+_set_up_xsl(){
 cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
 <?xml version="1.0"?>
 <!-- WIP -->
@@ -399,6 +400,7 @@ cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
   </xsl:template>
 </xsl:stylesheet>
 DISPLAY_XSL
+}
 
 # fill color handling
 _convert_array_to_macroblock(){
@@ -634,6 +636,7 @@ while [[ "${@}" != "" ]] ; do
             "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
             rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
         else
+            _set_up_xsl
             xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
