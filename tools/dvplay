@@ -553,7 +553,7 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     shift
-    MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DV_FILE}")"
+    MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DVFILE}")"
     CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
     HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
     PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
