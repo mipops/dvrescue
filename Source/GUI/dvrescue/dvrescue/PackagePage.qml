@@ -189,36 +189,50 @@ Item {
                     text: "Package"
                     height: parent.height
                     onClicked: {
-                        for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
-                            packageOutputFileView.updatePackagingStatus(i, "queued");
+                        var packageFunc = () => {
+                            for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
+                                packageOutputFileView.updatePackagingStatus(i, "queued");
+                            }
+
+                            var packagingPath = ''
+                            var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                            var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
+                                var splitted = String(o).split('\n');
+                                for(var i = 0; i < splitted.length; ++i) {
+                                    var value = splitted[i];
+                                    console.debug('value:', value);
+
+                                    if(value.startsWith('### Packaging started: ')) {
+                                        var path = root.toNativePath(value.replace('### Packaging started: ', ''));
+                                        packagingPath = path;
+                                        packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
+                                    } else if(value.startsWith('### Packaging finished: ')) {
+                                        var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
+                                        packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
+                                    } else if(value.startsWith('### Packaging error: ')) {
+                                        var error = value.replace('### Packaging error: ', '');
+                                        packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
+                                    }
+                                }
+                            });
+                            promise.then(() => {
+                                console.debug('packaging done');
+                            }).catch((err) => {
+                                console.error('packaging failed: ', err);
+                            })
                         }
 
-                        var packagingPath = ''
-                        var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
-                        var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
-                            var splitted = String(o).split('\n');
-                            for(var i = 0; i < splitted.length; ++i) {
-                                var value = splitted[i];
-                                console.debug('value:', value);
-
-                                if(value.startsWith('### Packaging started: ')) {
-                                    var path = root.toNativePath(value.replace('### Packaging started: ', ''));
-                                    packagingPath = path;
-                                    packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
-                                } else if(value.startsWith('### Packaging finished: ')) {
-                                    var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
-                                    packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
-                                } else if(value.startsWith('### Packaging error: ')) {
-                                    var error = value.replace('### Packaging error: ', '');
-                                    packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
-                                }
-                            }
-                        });
-                        promise.then(() => {
-                            console.debug('packaging done');
-                        }).catch((err) => {
-                            console.error('packaging failed: ', err);
-                        })
+                        if (!FileUtils.isWritable(outputPath))
+                        {
+                            selectFolderDialog.currentFolder = FileUtils.toLocalUrl(outputPath)
+                            selectFolderDialog.callback = (selectedUrl) => {
+                                outputPath = FileUtils.getFilePath(selectedUrl)
+                                packageFunc()
+                            };
+                            selectFolderDialog.open()
+                        }
+                        else
+                            packageFunc()
                     }
                 }
 

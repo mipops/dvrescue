@@ -100,6 +100,23 @@ QString FileUtils::toLocalUrl(const QString &filePath)
     return url.toString();
 }
 
+bool FileUtils::isWritable(const QString& dirPath)
+{
+    bool toReturn = false;
+    QDir dir(dirPath);
+    if (dir.exists())
+    {
+        QFile file(dir.absoluteFilePath(".dvrescue_write_test"));
+        if(file.open(QIODevice::WriteOnly))
+        {
+            file.remove();
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool FileUtils::exists(const QString &filePath)
 {
     QFileInfo info(filePath);
