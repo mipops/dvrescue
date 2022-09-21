@@ -73,6 +73,14 @@ _report(){
     fi
 }
 
+_maketemp(){
+    mktemp -q -t "$(basename "${0}").XXXXXX"
+    if [ "${?}" -ne 0 ]; then
+        echo "${0}: Can't create temp file, exiting..."
+        exit 1
+    fi
+}
+
 OPTIND=1
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
@@ -136,7 +144,9 @@ else
     fi
 fi
 
-cat > /tmp/dvplay_display.xsl << 'DISPLAY_XSL'
+DVPLAY_DISPLAY_TEMP="$(_maketemp)"
+
+cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
 <?xml version="1.0"?>
 <!-- WIP -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:dv="https://mediaarea.net/dvrescue" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:x="http://www.w3.org/1999/xhtml" version="1.0" extension-element-prefixes="xsi" exclude-result-prefixes="dv x" >
@@ -523,15 +533,6 @@ _make_dvrescue_xml(){
     fi
 }
 
-_maketemp(){
-    mktemp -q "/tmp/$(basename "${0}").XXXXXX"
-    if [ "${?}" -ne 0 ]; then
-        _report -d "${0}: Can't create temp file, exiting..."
-        _writeerrorlog "_maketemp" "was unable to create the temp file, so the script had to exit."
-        exit 1
-    fi
-}
-
 _mkdir2(){
     local DIR2MAKE=""
     while [ "${*}" != "" ] ; do
@@ -633,7 +634,7 @@ while [[ "${@}" != "" ]] ; do
             "${FFMPEG_PATH}" -nostdin -f image2 -i "${IMAGE_DIR}/dvrescue_tmp/${BASENAME}_%06d.jpg" -i "${GIF_PALETTE}.png" -filter_complex paletteuse "${IMAGE_DIR}/${BASENAME}_error.gif"
             rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
         else
-            xsltproc /tmp/dvplay_display.xsl "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
+            xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
         _play_dv "${DVFILE}"
