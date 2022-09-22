@@ -94,10 +94,10 @@ Dialog {
                          {
                              var loc = cell1['loc']
                              var splitted = loc.split(':');
-                             var w = splitted[0]
-                             var h = splitted[1]
-                             var x = splitted[2]
-                             var y = splitted[3]
+                             var w = Number(splitted[0])
+                             var h = Number(splitted[1])
+                             var x = Number(splitted[2])
+                             var y = Number(splitted[3])
 
                              rowEntry['x'] = x;
                              rowEntry['y'] = y;
@@ -185,7 +185,7 @@ Dialog {
                                     root.selectionChanged()
                                     tableView.bringToView(rowIndex)
 
-                                    break;
+                                    return;
                                 }
                             }
                         }
