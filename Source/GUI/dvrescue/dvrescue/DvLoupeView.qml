@@ -13,7 +13,7 @@ Dialog {
     modal: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     parent: Overlay.overlay
-    width: 1280
+    width: 1340
     height: 760
     clip: true
     padding: 5
@@ -30,6 +30,7 @@ Dialog {
     property alias videoCheckboxChecked: videoCheckbox.checked
     property alias allCheckboxChecked: allCheckbox.checked
     property alias errorOnlyCheckboxChecked: errorOnlyCheckbox.checked
+    property bool showDvLoupeBusyIndicator: false
 
     signal prev();
     signal next();
@@ -39,10 +40,45 @@ Dialog {
         imageSource = null
     }
 
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToPreviousLine
+        onActivated: {
+            vscroll.decrease();
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToNextLine
+        onActivated: {
+            vscroll.increase();
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToPreviousPage
+        onActivated: {
+            vscroll.position -= tableView.height / tableView.contentHeight;
+            if(vscroll.position < 0)
+                vscroll.position = 0;
+        }
+    }
+    Shortcut {
+        enabled: root.visible
+        sequence: StandardKey.MoveToNextPage
+        onActivated: {
+            vscroll.position += tableView.height / tableView.contentHeight;
+            if(vscroll.position > 1)
+                vscroll.position = 1;
+        }
+    }
+
     property string imageSource
     property var data
+    property var indexByVbl: ({})
     onDataChanged: {
 
+        indexByVbl = {};
         tableView.model.clear()
         var rows = data.rows
         rows.forEach((row) => {
@@ -55,6 +91,31 @@ Dialog {
                          rowEntry['value2Color'] = '#' + cell1.color
                          rowEntry['selected'] = false
 
+                         if(cell1.hasOwnProperty('loc'))
+                         {
+                             var loc = cell1['loc']
+                             var splitted = loc.split(':');
+                             var w = Number(splitted[0])
+                             var h = Number(splitted[1])
+                             var x = Number(splitted[2])
+                             var y = Number(splitted[3])
+
+                             rowEntry['x'] = x;
+                             rowEntry['y'] = y;
+                             rowEntry['xw'] = x + w;
+                             rowEntry['yh'] = y + h;
+                         }
+
+                         if(cell1.hasOwnProperty('vbl'))
+                         {
+                             var vbl = cell1['vbl']
+                             var nextIndex = tableView.model.rowCount
+
+                             rowEntry['vbl'] = vbl
+                             indexByVbl[vbl] = nextIndex
+                         }
+
+                         rowEntry['blockNumber'] = tableView.model.rowCount
                          tableView.model.appendRow(rowEntry)
                      });
     }
@@ -82,19 +143,12 @@ Dialog {
                     source: imageSource
                 }
 
-                Rectangle {
-                    anchors.fill: parent
-
-                    color: 'white'
-                    visible: image.status !== Image.Ready
-
-                    BusyIndicator {
-                        anchors.centerIn: parent
-                    }
-                }
-
                 MouseArea {
-                    anchors.fill: parent
+                    x: image.width / 2 - image.paintedWidth / 2
+                    y: image.height / 2 - image.paintedHeight / 2
+                    width: image.paintedWidth
+                    height: image.paintedHeight
+
                     onPressed: { pos = Qt.point(mouse.x, mouse.y) }
                     onPositionChanged: {
                         var diff = Qt.point(mouse.x - pos.x, mouse.y - pos.y)
@@ -102,6 +156,50 @@ Dialog {
                         root.y += diff.y
                     }
                     property point pos
+
+                    onClicked: {
+                        var cx = mouse.x
+                        var cy = mouse.y
+
+                        console.debug('cx: ', cx, 'cy:', cy)
+                        for(var i = 0; i < tableView.model.rowCount; ++i) {
+                            var rowData = dataModel.getRow(i);
+                            if(!rowData.x)
+                                continue;
+
+                            var x = rowData.x
+                            var xw = rowData.xw
+                            var y = rowData.y
+                            var yh = rowData.yh
+
+                            if(x <= cx && cx < xw && y <= cy && cy < yh) {
+                                var rowIndex = i
+                                console.debug('rowIndex: ', rowIndex);
+
+                                if(rowData.hasOwnProperty('vbl')) {
+
+                                    rowIndex = indexByVbl[rowData.vbl]
+                                    rowData = dataModel.getRow(rowIndex)
+
+                                    rowData.selected = !rowData.selected;
+                                    dataModel.setRow(rowIndex, rowData)
+                                    root.selectionChanged()
+                                    tableView.bringToView(rowIndex)
+
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    anchors.fill: parent
+                    visible: showDvLoupeBusyIndicator
+
+                    BusyIndicator {
+                        anchors.centerIn: parent
+                    }
                 }
             }
 
@@ -233,6 +331,29 @@ Dialog {
             id: tableView
             Layout.fillHeight: true
             Layout.fillWidth: true
+            clip: true
+
+            function bringToView(index) {
+                console.debug('bringingToView: ', index, 'topMargin: ', tableView.topMargin);
+
+                if(index === 0) {
+                    tableView.contentY = -tableView.topMargin
+                    return
+                }
+
+                var expectedContentY = (index) * (delegateHeight + tableView.rowSpacing) - tableView.topMargin
+                var maxContentY = model.rowCount === 0 ? 0 :
+                                                         (model.rowCount * (delegateHeight + tableView.rowSpacing) - tableView.rowSpacing - tableView.height - tableView.topMargin)
+
+                if(tableView.contentHeight < tableView.height)
+                    return;
+
+                if(maxContentY >= 0) {
+                    // console.debug('adjusting contentY...');
+                    tableView.contentY = Math.min(expectedContentY, maxContentY)
+                    // console.debug('adjusting contentY... done: ', tableView.contentY);
+                }
+            }
 
             onWidthChanged: {
                 forceLayout();
@@ -241,7 +362,9 @@ Dialog {
             columnWidthProvider: function(column) {
                 if(column === 0)
                     return 50
-                return width - 50
+                if(column === 1)
+                    return 50
+                return width - 100
             }
 
             property int delegateHeight: 25
@@ -249,6 +372,7 @@ Dialog {
             ScrollBar.vertical: ScrollBar {
                 id: vscroll
                 policy: ScrollBar.AlwaysOn
+                stepSize: tableView.delegateHeight / tableView.contentHeight
             }
 
             ScrollBar.horizontal: ScrollBar {
@@ -261,6 +385,11 @@ Dialog {
 
             model: TableModelEx {
                 id: dataModel
+
+                TableModelColumn {
+                    display: "blockNumber"
+                    edit: "selected"
+                }
 
                 TableModelColumn {
                     display: "value1"
@@ -293,10 +422,10 @@ Dialog {
                             text: display
                             anchors.verticalCenter: parent.verticalCenter
                             readOnly: true
-                            font.bold: column === 0
+                            font.bold: column === 0 || column === 1
                             font.pixelSize: 13
                             font.family: "Courier New"
-                            color: column === 0 ? 'black' : decoration
+                            color: (column === 0 || column === 1) ? 'black' : decoration
                         }
 
                         Rectangle {
@@ -311,10 +440,13 @@ Dialog {
                             anchors.fill: parent
                             onClicked: {
                                 var rowData = dataModel.getRow(row);
-                                rowData.selected = !rowData.selected;
-                                dataModel.setRow(row, rowData)
+                                console.debug('rowData: ', JSON.stringify(rowData, 0, 4))
+                                if(rowData.hasOwnProperty('vbl')) {
+                                    rowData.selected = !rowData.selected;
+                                    dataModel.setRow(row, rowData)
 
-                                selectionChanged();
+                                    selectionChanged();
+                                }
                             }
                         }
                     }
@@ -327,6 +459,7 @@ Dialog {
     ResizeRectangle {
         target: root
         anchors.fill: root.contentItem
+        anchors.margins: -root.padding
     }
 }
 

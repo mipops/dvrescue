@@ -1,7 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.8
 import Launcher 0.1
 import Qt.labs.platform 1.1
 import FileUtils 1.0
+import LoggingUtils 1.0
 
 Item {
     property string dvloupeName: "dvloupe"
@@ -88,6 +89,14 @@ Item {
         }
     }
 
+    LoggingCategory {
+        id: dvloupeCategory
+        name: "dvrescue.dvloupe"
+        Component.onCompleted: {
+            console.debug(dvloupeCategory, "dvrescue.dvloupe")
+        }
+    }
+
     function getCygwinPath(cygpath, path) {
 
         console.debug('getCygwinPath: ', path)
@@ -129,9 +138,17 @@ Item {
             var outputText = '';
             launcher.outputChanged.connect((outputStringt) => {
                 outputText += outputStringt;
+
+                if(LoggingUtils.isDebugEnabled(dvloupeCategory.name)) {
+                    console.debug(dvloupeCategory, "got from dvloupe's stdout: ", outputStringt)
+                }
             });
             launcher.errorChanged.connect((outputStringt) => {
               outputText += outputStringt;
+
+              if(LoggingUtils.isDebugEnabled(dvloupeCategory.name)) {
+                  console.debug(dvloupeCategory, "got from dvloupe's stderr: ", outputStringt)
+              }
             });
 
             launcher.errorOccurred.connect((error) => {

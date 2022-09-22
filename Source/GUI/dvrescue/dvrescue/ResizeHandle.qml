@@ -14,8 +14,8 @@ Item {
     property bool forceSquare: false
     property alias cursorShape: mouseArea.cursorShape
 
-    width: 8
-    height: 8
+    width: 5
+    height: 5
 
     MouseArea {
         id: mouseArea
