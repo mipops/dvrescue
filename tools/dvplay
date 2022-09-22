@@ -282,7 +282,7 @@ cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
                   </td>
                   <td>
                     <dl>
-                      <xsl:if test="@video_rate"><dt>Video rate</dt><dd><xsl:value-of select="@video_rate"/></dd></xsl:if>
+                      <xsl:if test="@video_rate"><dt>Frame rate</dt><dd><xsl:value-of select="@video_rate"/></dd></xsl:if>
                       <xsl:if test="@aspect_ratio"><dt>Aspect ratio</dt><dd><xsl:value-of select="@aspect_ratio"/></dd></xsl:if>
                       <xsl:if test="@chroma_subsampling"><dt>Chroma subsampling</dt><dd><xsl:value-of select="@chroma_subsampling"/></dd></xsl:if>
                     </dl>
