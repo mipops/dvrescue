@@ -27,17 +27,24 @@ Column {
     property var csvParserUI: csvParserUI
 
     property int frameSpeed: 0
+
+    readonly property int thresholdBetweenFastPlayAndPlay: 35
+    readonly property int thresholdBetweenPlayAndSlowPlay: 30
+
     onFrameSpeedChanged: {
-        if(frameSpeed <= -50)
-            capturingModeInt = rewing
-        if(frameSpeed < 0)
-            capturingModeInt = srewing
-        if(frameSpeed === 0)
+        if(frameSpeed < 0) {
+            if(frameSpeed <= -thresholdBetweenFastPlayAndPlay)
+                capturingModeInt = rewing
+            else
+                capturingModeInt = srewing
+        } else if(frameSpeed > 0) {
+            if(frameSpeed >= thresholdBetweenFastPlayAndPlay)
+                capturingModeInt = ffing
+            else
+                capturingModeInt = playing
+        } else {
             capturingModeInt = stopped
-        if(frameSpeed <= 49)
-            capturingModeInt = playing
-        else
-            capturingModeInt = ffing
+        }
     }
 
     property bool capturing: false;
@@ -248,16 +255,18 @@ Column {
                     id: speedInterpretation
                     anchors.fill: parent
                     source: {
-                        if(frameSpeed <= -50)
+                        switch(capturingModeInt) {
+                        case rewing:
                             return rewindButton.icon.source
-                        if(frameSpeed < 0)
+                        case srewing:
                             return rplayButton.icon.source
-                        if(frameSpeed === 0)
-                            return stopButton.icon.source
-                        if(frameSpeed <= 49)
+                        case playing:
                             return playButton.icon.source
-
-                        return fastForwardButton.icon.source
+                        case ffing:
+                            return fastForwardButton.icon.source
+                        default:
+                            return stopButton.icon.source
+                        }
                     }
                 }
 
@@ -265,14 +274,11 @@ Column {
                     anchors.fill: speedInterpretation
                     source: speedInterpretation
                     color: {
-                        if(frameSpeed <= -50 || frameSpeed >= 50)
+                        if(frameSpeed <= -thresholdBetweenFastPlayAndPlay || frameSpeed >= thresholdBetweenFastPlayAndPlay)
                             return "purple"
 
-                        if(frameSpeed <= -33 || frameSpeed >= 33)
+                        if(frameSpeed <= -thresholdBetweenPlayAndSlowPlay || frameSpeed >= thresholdBetweenPlayAndSlowPlay)
                             return "blue"
-
-                        if(frameSpeed <= -31 || frameSpeed >= 31)
-                            return "green"
 
                         if(frameSpeed < 0 || frameSpeed > 0)
                             return "red"
