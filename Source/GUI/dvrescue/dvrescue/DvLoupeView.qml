@@ -30,6 +30,7 @@ Dialog {
     property alias videoCheckboxChecked: videoCheckbox.checked
     property alias allCheckboxChecked: allCheckbox.checked
     property alias errorOnlyCheckboxChecked: errorOnlyCheckbox.checked
+    property bool showDvLoupeBusyIndicator: false
 
     signal prev();
     signal next();
@@ -192,11 +193,9 @@ Dialog {
                     }
                 }
 
-                Rectangle {
+                Item {
                     anchors.fill: parent
-
-                    color: 'white'
-                    visible: image.status !== Image.Ready
+                    visible: showDvLoupeBusyIndicator
 
                     BusyIndicator {
                         anchors.centerIn: parent

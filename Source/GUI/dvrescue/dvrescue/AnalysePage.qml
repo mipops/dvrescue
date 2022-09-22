@@ -480,12 +480,10 @@ Item {
                     canNext: index < (dataView.model.rowCount - 1)
                     onPrev: {
                         --index
-                        imageSource = null
                         fetch()
                     }
                     onNext: {
                         ++index
-                        imageSource = null
                         fetch()
                     }
                     onRefresh: {
@@ -503,13 +501,12 @@ Item {
                         var data = dataView.model.getRow(index);
                         var offset = data['Byte Offset']
 
-                        imageSource = null
-
                         doDvPlay(offset, selectedVblRows)
                     }
 
                     function doDvPlay(offset, selection) {
                         console.debug('executing dvplay... ');
+                        showDvLoupeBusyIndicator = true
 
                         var extra = ''
                         if(selection && selection.length !== 0) {
@@ -522,8 +519,10 @@ Item {
                                 console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
                             }
                             dvloupeView.imageSource = dataUri
+                            showDvLoupeBusyIndicator = false
                         }).catch((err) => {
                             console.error('dvplay.exec error: ', err)
+                            showDvLoupeBusyIndicator = false
                         })
                     }
 
