@@ -314,6 +314,18 @@ Column {
                     hoverEnabled: true
                 }
             }
+
+            Item {
+                width: 15
+                height: 50
+            }
+
+            Text {
+                id: statusText
+                anchors.verticalCenter: parent.verticalCenter
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+            }
         }
 
         CaptureFrameInfo {
@@ -321,15 +333,6 @@ Column {
             anchors.top: row.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-        }
-
-        Text {
-            id: statusText
-            anchors.right: captureFrameInfo.right
-            anchors.top: captureFrameInfo.top
-            anchors.bottom: captureFrameInfo.bottom
-            verticalAlignment: Text.AlignVCenter
-            horizontalAlignment: Text.AlignHCenter
         }
     }
 }
