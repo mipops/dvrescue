@@ -278,7 +278,7 @@ Column {
                             return "purple"
 
                         if(frameSpeed <= -thresholdBetweenPlayAndSlowPlay || frameSpeed >= thresholdBetweenPlayAndSlowPlay)
-                            return "blue"
+                            return "green"
 
                         if(frameSpeed < 0 || frameSpeed > 0)
                             return "red"
