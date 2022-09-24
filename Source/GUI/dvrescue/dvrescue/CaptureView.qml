@@ -392,6 +392,20 @@ Column {
                     minorPenColor: 'transparent'
                     minorPenStyle: Qt.DotLine
                 }
+
+                ToolTip {
+                    text: "Of the %total_frames received, %z contain errors. In the last %x frames, %y contain errors."
+                        .replace("%total_frames", dataModel.total).replace("%z", dataModel.totalWithErrors)
+                        .replace("%x", dataModel.last).replace("%y", dataModel.lastWithErrors)
+
+                    visible: tooltipMouseArea.containsMouse
+                }
+
+                MouseArea {
+                    id: tooltipMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
             }
         }
 
@@ -402,6 +416,18 @@ Column {
 
             onTotalChanged: {
                 console.debug('total changed: ', total)
+            }
+
+            onTotalWithErrorsChanged: {
+                console.debug('total with errors changed: ', totalWithErrors)
+            }
+
+            onLastChanged: {
+                console.debug('last changed: ', last)
+            }
+
+            onLastWithErrorsChanged: {
+                console.debug('last with errors changed: ', lastWithErrors)
             }
 
             Component.onCompleted: {

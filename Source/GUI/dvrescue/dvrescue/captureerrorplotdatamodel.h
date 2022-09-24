@@ -20,6 +20,9 @@ class CaptureErrorPlotDataModel : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int total READ total NOTIFY totalChanged)
+    Q_PROPERTY(int totalWithErrors READ totalWithErrors NOTIFY totalWithErrorsChanged)
+    Q_PROPERTY(int last READ last NOTIFY lastChanged)
+    Q_PROPERTY(int lastWithErrors READ lastWithErrors NOTIFY lastWithErrorsChanged)
     Q_PROPERTY(QwtQuick2PlotCurve* evenCurve READ evenCurve WRITE setEvenCurve NOTIFY evenCurveChanged)
     Q_PROPERTY(QwtQuick2PlotCurve* oddCurve READ oddCurve WRITE setOddCurve NOTIFY oddCurveChanged)
 
@@ -28,6 +31,9 @@ public:
     ~CaptureErrorPlotDataModel();
 
     int total() const;
+    int totalWithErrors() const;
+    int last() const;
+    int lastWithErrors() const;
 
     struct GraphStats {
         int frameNumber;
@@ -49,6 +55,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void totalChanged();
+    void totalWithErrorsChanged();
+    void lastChanged();
+    void lastWithErrorsChanged();
+
     void updated();
     void clearModel();
     void evenCurveChanged();
@@ -58,6 +68,10 @@ private:
 
     QList<std::tuple<int, GraphStats>> m_values;
     int m_total { 0 };
+    int m_totalWithErrors { 0 };
+    int m_last { 0 };
+    int m_lastWithErrors { 0 };
+
     QwtQuick2PlotCurve *m_evenCurve = nullptr;
     QwtQuick2PlotCurve *m_oddCurve = nullptr;
 };

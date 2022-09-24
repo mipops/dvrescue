@@ -19,6 +19,21 @@ int CaptureErrorPlotDataModel::total() const
     return m_total;
 }
 
+int CaptureErrorPlotDataModel::totalWithErrors() const
+{
+    return m_totalWithErrors;
+}
+
+int CaptureErrorPlotDataModel::last() const
+{
+    return m_last;
+}
+
+int CaptureErrorPlotDataModel::lastWithErrors() const
+{
+    return m_lastWithErrors;
+}
+
 void CaptureErrorPlotDataModel::update()
 {
     if(m_values.size() == 0)
@@ -32,6 +47,8 @@ void CaptureErrorPlotDataModel::update()
     int maxFrame = 0;
     int minFrame = 0;
     float absMaxValue = 0;
+    auto valuesCount = m_values.count();
+    auto valuesCountWithError = 0;
 
     for(auto i = 0; i < m_values.count(); ++i) {
         auto& valueTuple = m_values.at(i);
@@ -44,6 +61,10 @@ void CaptureErrorPlotDataModel::update()
 
         evenCurveData->append(QPointF(frameNumber, value.evenValue));
         oddCurveData->append(QPointF(frameNumber, value.oddValue));
+
+        if(!qFuzzyCompare(value.evenValue, 0.0f) || !qFuzzyCompare(value.oddValue, 0.0f)) {
+            ++valuesCountWithError;
+        }
     }
 
     minFrame = maxFrame - evenCurveData->maxSize();
@@ -55,12 +76,39 @@ void CaptureErrorPlotDataModel::update()
         m_evenCurve->plot()->setYLeftAxisRange(QVector2D(-900, 900));
     }
 
-    m_values.clear();
-
-    if(m_total != evenCurveData->size()) {
-        m_total = static_cast<int>(evenCurveData->size());
+    if(valuesCount != 0) {
+        m_total += valuesCount;
         Q_EMIT totalChanged();
     }
+
+    if(valuesCountWithError != 0) {
+        m_totalWithErrors += valuesCountWithError;
+        Q_EMIT totalWithErrorsChanged();
+    }
+
+    auto last = static_cast<int> (evenCurveData->size());
+    auto lastWithErrors = 0;
+
+    for(auto i = 0; i < evenCurveData->size(); ++i) {
+        bool hasError = !qFuzzyCompare(evenCurveData->sample(i).y(), 0.0);
+        if(!hasError)
+            hasError = !qFuzzyCompare(oddCurveData->sample(i).y(), 0.0);
+
+        if(hasError)
+            ++lastWithErrors;
+    }
+
+    if(last != m_last) {
+        m_last = last;
+        Q_EMIT lastChanged();
+    }
+
+    if(lastWithErrors != m_lastWithErrors) {
+        m_lastWithErrors = lastWithErrors;
+        Q_EMIT lastWithErrorsChanged();
+    }
+
+    m_values.clear();
 
     m_evenCurve->plot()->plot()->setUpdatesEnabled(true);
     m_evenCurve->plot()->replotAndUpdate();
