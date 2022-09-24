@@ -19,12 +19,15 @@ using namespace std;
 extern vector<string> Merge_InputFileNames;
 extern FILE* Merge_Out;
 extern ostream* MergeInfo_Out;
+extern const char* Merge_OutputFileName;
+extern size_t Merge_Rewind_Count;
 extern uint8_t MergeInfo_Format;
 extern uint8_t Verbosity;
 extern uint8_t UseAbst;
 extern bool OutputFrames_Speed;
 extern bool OutputFrames_Concealed;
 extern bool ShowFrames_Missing;
+extern int ShowFrames_Intermediate;
 extern bool InControl;
 extern uint64_t Device_Pos;
 extern char Device_Command;
@@ -42,6 +45,5 @@ public:
     void AddFrameData(size_t Merge_FilePos, const uint8_t* Buffer, size_t Buffer_Size);
     void Finish();
 
-    TimeCode TC;
-    bool SwitchToFile0 = false;
+    TimeCode RewindToTimeCode;
 };

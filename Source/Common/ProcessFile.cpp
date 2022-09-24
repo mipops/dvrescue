@@ -356,19 +356,99 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
 {
     #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
     abst_bf AbstBf_Temp(FrameData->AbstBf);
-    if (RewindMode==Rewind_Mode_TimeCode)
+    if (DelayedPlay)
     {
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
             TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
-            if (TC.ToFrames()<=RewindTo_TC.ToFrames())
+            if (Verbosity == 10)
             {
-                RewindMode=Rewind_Mode_None;
-                Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                cerr << "Rewind ";
+                string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
+                if (AbstString.size() < 6)
+                    AbstString.insert(0, 6 - AbstString.size(), ' ');
+                cerr << AbstString;
+                cerr << ' ';
+                cerr << TC.ToString();
+                cerr << setw(Merge_Rewind_Count + 5) << ' ';
+                cerr << to_string(GetDvSpeed(*FrameData));
+                cerr << '\n';
+            }
+        }
+        DelayedPlay--;
+        if (!DelayedPlay)
+        {
+            RewindMode = Rewind_Mode_TimeCode2;
+            Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+        }
+        return;
+    }
+    if (RewindMode==Rewind_Mode_TimeCode || RewindMode==Rewind_Mode_TimeCode2)
+    {
+        timecode TC_Temp(FrameData);
+        if (TC_Temp.HasValue())
+        {
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            if (RewindMode==Rewind_Mode_TimeCode && TC.ToFrames()<RewindTo_TC.ToFrames())
+            {
+                if (Verbosity == 10)
+                {
+                    cerr << "Rewind ";
+                    string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
+                    if (AbstString.size() < 6)
+                        AbstString.insert(0, 6 - AbstString.size(), ' ');
+                    cerr << AbstString;
+                    cerr << ' ';
+                    cerr << TC.ToString();
+                    cerr << setw(Merge_Rewind_Count + 5) << ' ';
+                    cerr << to_string(GetDvSpeed(*FrameData));
+                    cerr << '\n';
+                }
+                DelayedPlay = 4;
+                if (!DelayedPlay)
+                {
+                    RewindMode = Rewind_Mode_TimeCode2;
+                    Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                }
+                return; //Continue in forward mode
+            }
+            else if (RewindMode==Rewind_Mode_TimeCode2 && TC.ToFrames()>=RewindTo_TC.ToFrames()-1) // TEMP: do not do minus 1
+            {
+                if (Verbosity == 10)
+                {
+                    cerr << "Rewind ";
+                    string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
+                    if (AbstString.size() < 6)
+                        AbstString.insert(0, 6 - AbstString.size(), ' ');
+                    cerr << AbstString;
+                    cerr << ' ';
+                    cerr << TC.ToString();
+                    cerr << setw(Merge_Rewind_Count + 5) << ' ';
+                    cerr << to_string(GetDvSpeed(*FrameData));
+                    cerr << '\n';
+                }
+                RewindTo_TC = TimeCode();
+                RewindMode = Rewind_Mode_None;
+                return; //Last one
             }
             else
+            {
+                if (Verbosity == 10)
+                {
+                    cerr << "Rewind ";
+                    string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
+                    if (AbstString.size() < 6)
+                        AbstString.insert(0, 6 - AbstString.size(), ' ');
+                    cerr << AbstString;
+                    cerr << ' ';
+                    cerr << TC.ToString();
+                    cerr << setw(Merge_Rewind_Count + 5) << ' ';
+                    cerr << to_string(GetDvSpeed(*FrameData));
+                    cerr << '\n';
+                }
                 return; //Continue in rewind mode
+            }
         }
         else
             return; //Continue in rewind mode
@@ -467,6 +547,13 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
         Speed_Before = Speed_After;
         Merge.AddFrameAnalysis(Merge_FilePos, FrameData, Speed);
+        #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+        if (TransportControlsSupported() && Merge.RewindToTimeCode.HasValue())
+        {
+            RewindToTimeCode(Merge.RewindToTimeCode);
+            Merge.RewindToTimeCode = TimeCode();
+        }
+        #endif
     }
 
     // Information
@@ -522,6 +609,8 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
 void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
 {
     #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    if (DelayedPlay)
+        return;
     if (RewindMode!=Rewind_Mode_None)
         return;
     #endif

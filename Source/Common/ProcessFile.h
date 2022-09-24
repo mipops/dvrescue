@@ -46,6 +46,7 @@ string MediaInfo_Version();
 enum rewind_mode {
     Rewind_Mode_None,
     Rewind_Mode_TimeCode,
+    Rewind_Mode_TimeCode2,
     Rewind_Mode_Abst,
 };
 #endif
@@ -133,5 +134,6 @@ public:
     rewind_mode RewindMode = Rewind_Mode_None;
     TimeCode RewindTo_TC;
     int RewindTo_Abst = 0;
+    int DelayedPlay = 0;
     #endif
 };

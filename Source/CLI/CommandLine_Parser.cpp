@@ -174,8 +174,8 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     caption_kind CaptionKind = Caption_Unknown;
     const char* Xml_OutputFileName = nullptr;
     const char* Webvtt_OutputFileName = nullptr;
-    const char* Merge_OutputFileName = nullptr;
     const char* MergeInfo_OutputFileName = nullptr;
+    const char* Merge_Rewind_BaseName = nullptr;
     bitset<Flag_Max> Flags;
 
     // Commands in priority
@@ -364,6 +364,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             ShowFrames_Missing = false;
         }
+        else if (!strcmp(argv_ansi[i], "--merge-log-intermediate"))
+        {
+            ShowFrames_Intermediate = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-hide-intermediate"))
+        {
+            ShowFrames_Intermediate = false;
+        }
         else if (!strcmp(argv_ansi[i], "--status") || !strcmp(argv_ansi[i], "-status"))
         {
             Device_Command = 2;
@@ -436,6 +444,33 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
             Device_Command = 3;
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind"))
+        {
+            if (!Merge_Rewind_Count)
+                Merge_Rewind_Count = 1;
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-count"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_Count = atoi(argv_ansi[i]);
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-basename"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_BaseName = argv_ansi[i];
         }
         else if (!strcmp(argv_ansi[i], "--speed") || !strcmp(argv_ansi[i], "-speed"))
         {
@@ -566,7 +601,13 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             String Result = MediaInfoLib::MediaInfo::Option_Static(Option, Value);
             if (C.Err && !Result.empty())
-                *C.Err << "Warning: issue with " << argv_ansi[i - EqualPos] << ".\n";
+            {
+                *C.Err << "Error: unsupported " << argv_ansi[i - EqualPos];
+                if (EqualPos)
+                    *C.Err << " " << argv_ansi[i];
+                *C.Err << ".\n";
+                return ReturnValue_ERROR;
+            }
         }
         else
         {
@@ -579,6 +620,12 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             C.Inputs.push_back(argv[i]);
             Merge_InputFileNames.push_back(argv_ansi[i]);
         }
+    }
+
+    if (Merge_Rewind_Count)
+    {
+        if (C.Err)
+            *C.Err << "\nWarning: technology preview, unstable, for testing preview only.\n\n";
     }
 
     if (Device_Command && C.Inputs.empty())
@@ -656,6 +703,9 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         Verbosity = 9;
     }
 
+    if (ShowFrames_Intermediate == -1)
+        ShowFrames_Intermediate = MergeInfo_Format ? false : true;
+
     if (ClearInput)
         C.Inputs.clear();
 
@@ -696,6 +746,9 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         return ReturnValue_ERROR;
     }
+
+    if (Merge_Rewind_BaseName)
+        Merge_OutputFileName = Merge_Rewind_BaseName;
 
     return ReturnValue;
 }
