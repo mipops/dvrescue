@@ -88,7 +88,7 @@ void CaptureErrorPlotDataModel::append(int frameNumber, float even, float odd)
     GraphStats value = {
         int(frameNumber),
         even,
-        odd,
+        -odd,
     };
 
     m_values.push_back(std::make_tuple(frameNumber, value));
