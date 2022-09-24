@@ -8,6 +8,7 @@
 #include "ZenLib/File.h"
 #include "ZenLib/ZtringListList.h"
 #include <chrono>
+#include <cmath>
 #include <mutex>
 #include <cstdlib>
 #include <thread>
@@ -37,6 +38,7 @@ struct ctl
     mutex                       Mutex;
     steady_clock::time_point    Time_Previous_Frame;
     float                       Speed_Simulated = 0;
+    int                         Speed_Simulated_Repetitions = 0;
 
     // I/O
     size_t                      Io_Pos = (size_t)-1;
@@ -289,7 +291,7 @@ void SimulatorWrapper::WaitForSessionEnd()
         {
             break;
         }
-        auto LastFrameTheoriticalDuration = std::chrono::microseconds(abs(Speed_Simulated) < 0.3 ? 100000 : (int)(1000000.0 / (30.0 / 1.001) / abs(Speed_Simulated)));
+        auto LastFrameTheoriticalDuration = std::chrono::microseconds(abs(Speed_Simulated) < 0.3 ? 100000 : (int)(1000000.0 / (30.0 / 1.001)));
         auto Now = steady_clock::now();
         auto LastFrameDuration = duration_cast<std::chrono::microseconds>(Now - P->Time_Previous_Frame);
         if (LastFrameTheoriticalDuration > LastFrameDuration)
@@ -301,33 +303,85 @@ void SimulatorWrapper::WaitForSessionEnd()
         else
             P->Time_Previous_Frame = Now;
 
+        // In case of non playback speed
+        if (Speed_Simulated > 0.0 && Speed_Simulated < 1.0)
+        {
+            auto Speed_Simulated_Repetitions_Max = (int)ceil(1 / Speed_Simulated);
+            if (Speed_Simulated_Repetitions_Max > 4)
+                Speed_Simulated_Repetitions_Max = 4;
+            P->Mutex.lock();
+            if (P->Speed_Simulated_Repetitions <= Speed_Simulated_Repetitions_Max)
+            {
+                P->Speed_Simulated_Repetitions++;
+                auto& F = P->F[P->F_Pos];
+                auto Position = F->Position_Get();
+                if (Position < 120000)
+                    F->GoTo(0, File::FromBegin);
+                else
+                    F->GoTo(-120000, File::FromCurrent);
+            }
+            else
+            {
+                P->Speed_Simulated_Repetitions = 0;
+            }
+            P->Mutex.unlock();
+        }
+        if (Speed_Simulated < 0.0 && Speed_Simulated > -1.0)
+        {
+            auto Speed_Simulated_Repetitions_Max = (int)ceil(1 / -Speed_Simulated);
+            if (Speed_Simulated_Repetitions_Max > 4)
+                Speed_Simulated_Repetitions_Max = 4;
+            P->Mutex.lock();
+            if (P->Speed_Simulated_Repetitions <= Speed_Simulated_Repetitions_Max)
+            {
+                P->Speed_Simulated_Repetitions++;
+                auto& F = P->F[P->F_Pos];
+                auto Position = F->Position_Get();
+                if (Position >= F->Size_Get())
+                    F->GoTo(0, File::FromEnd);
+                else
+                    F->GoTo(120000, File::FromCurrent);
+            }
+            else
+            {
+                P->Speed_Simulated_Repetitions = 0;
+            }
+            P->Mutex.unlock();
+        }
+
         // Read next data
         P->Mutex.lock();
         auto& F = P->F[P->F_Pos];
         Mode = P->Mode;
+        size_t BytesToRead = 120000;
         if (Speed_Simulated < 0)
         {
             auto Position = F->Position_Get();
             if (Position < 120000 * 2)
             {
                 F->GoTo(0, File::FromBegin);
-                P->Mutex.unlock();
-                SetPlaybackMode(Playback_Mode_NotPlaying, 0);
-                break;
-                //continue;
+                if (Speed_Simulated <= -1.0)
+                {
+                    P->Mutex.unlock();
+                    SetPlaybackMode(Playback_Mode_NotPlaying, 0);
+                    break;
+                }
+                BytesToRead = 0;
             }
-            F->GoTo(-120000 * 2, File::FromCurrent);
+            else
+                F->GoTo(-120000 * 2, File::FromCurrent);
         }
-        auto BytesRead = F->Read(Buffer, 120000);
+        auto BytesRead = F->Read(Buffer, BytesToRead);
         P->Mutex.unlock();
 
-        if (BytesRead != 120000)
+        if (BytesRead != 120000 && (Speed_Simulated <= -1.0 || Speed_Simulated >= 1.0))
             break;
         if (Mode == Playback_Mode_Playing)
         {
             uint8_t* Buffer2;
             if (Speed != 1.0 || Speed_Simulated != 1.0)
             {
+                static const float ForwardRewRatio = 2;
                 Buffer2 = new uint8_t[120000];
                 memcpy(Buffer2, Buffer, 120000);
                 for (int Buffer_Offset = 0; Buffer_Offset < 120000; Buffer_Offset += 80)
@@ -338,15 +392,18 @@ void SimulatorWrapper::WaitForSessionEnd()
                     if (abs(P->Speed_Simulated - P->Speed) <= 0.1)
                         P->Speed_Simulated = Speed;
                     else if (P->Speed_Simulated < P->Speed)
-                        P->Speed_Simulated += (float)0.1;
+                        P->Speed_Simulated += (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
                     else if (P->Speed_Simulated > P->Speed)
-                        P->Speed_Simulated -= (float)0.1;
+                        P->Speed_Simulated -= (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
                     else
                         P->Speed_Simulated = Speed;
                 }
             }
             else
                 Buffer2 = Buffer;
+
+            if (BytesRead != 120000)
+                continue;
 
             P->Wrapper->Parse_Buffer(Buffer2, 120000);
 
@@ -382,7 +439,7 @@ void SimulatorWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
     P->Time_Previous_Frame = steady_clock::now();
 
     // Switch to next file
-    if (P->IsCapturing)
+    if (P->IsCapturing && P->Speed < 0)
     {
         auto SeekPos = P->F[P->F_Pos]->Position_Get();
         P->F_Pos++;
