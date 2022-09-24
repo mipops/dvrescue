@@ -348,7 +348,7 @@ Column {
             anchors.top: captureFrameInfo.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 200
+            height: 80
 
             QwtQuick2Plot {
                 id: videoPlot
