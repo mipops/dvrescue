@@ -394,9 +394,20 @@ Column {
                 }
 
                 ToolTip {
-                    text: "Of the %total_frames received, %z contain errors. In the last %x frames, %y contain errors."
-                        .replace("%total_frames", dataModel.total).replace("%z", dataModel.totalWithErrors)
-                        .replace("%x", dataModel.last).replace("%y", dataModel.lastWithErrors)
+                    text: {
+                        if(dataModel.total < 9000) {
+                            return "Of the X frames received, Y contain error concealment."
+                                .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors)
+                        } else {
+                            if(dataModel.totalWithErrors < 2) {
+                                return "Of the X frames received, Y contains error concealment (Z within the last 9000 frames)."
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                            } else {
+                                return "Of the X frames received, Y contain error concealment (Z within the last 9000 frames)."
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                            }
+                        }
+                    }
 
                     visible: tooltipMouseArea.containsMouse
                 }
