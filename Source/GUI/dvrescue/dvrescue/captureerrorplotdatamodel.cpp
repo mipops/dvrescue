@@ -121,8 +121,29 @@ void CaptureErrorPlotDataModel::reset()
     static_cast<CircularPlotData*>(m_evenCurve->curve()->data())->clear();
     static_cast<CircularPlotData*>(m_oddCurve->curve()->data())->clear();
 
-    m_evenCurve->plot()->replotAndUpdate();
+    m_values.clear();
 
+    if(m_total != 0) {
+        m_total = 0;
+        Q_EMIT totalChanged();
+    }
+
+    if(m_totalWithErrors != 0) {
+        m_totalWithErrors = 0;
+        Q_EMIT totalWithErrorsChanged();
+    }
+
+    if(m_last != 0) {
+        m_last = 0;
+        Q_EMIT lastChanged();
+    }
+
+    if(m_lastWithErrors != 0) {
+        m_lastWithErrors = 0;
+        Q_EMIT lastWithErrorsChanged();
+    }
+
+    m_evenCurve->plot()->replotAndUpdate();
     Q_EMIT clearModel();
 }
 

@@ -220,6 +220,10 @@ Column {
                 id: rewindButton
                 icon.color: 'transparent'
                 icon.source: "/icons/rewind.svg"
+                onClicked: {
+                    dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -229,6 +233,10 @@ Column {
                 id: rplayButton
                 icon.color: 'transparent'
                 icon.source: "/icons/srew.svg"
+                onClicked: {
+                    dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -238,6 +246,10 @@ Column {
                 id: playButton
                 icon.color: 'transparent'
                 icon.source: "/icons/play.svg"
+                onClicked: {
+                    dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -253,6 +265,10 @@ Column {
                 id: fastForwardButton
                 icon.color: 'transparent'
                 icon.source: "/icons/fastforward.svg"
+                onClicked: {
+                    dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -261,6 +277,10 @@ Column {
                 id: captureButton
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
+                onClicked: {
+                    dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled })
                 }
