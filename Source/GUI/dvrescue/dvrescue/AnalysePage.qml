@@ -3,6 +3,7 @@ import QtQuick.Window 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
+import Qt.labs.platform 1.1
 import Launcher 0.1
 import FileUtils 1.0
 import ImageUtils 1.0
@@ -100,8 +101,23 @@ Item {
             {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
-                                      var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                      filesModel.add(filePath)
+                                      var dirPath = FileUtils.getFileDir(filePath)
+
+                                      // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                      if (!FileUtils.isWritable(dirPath))
+                                      {
+                                          selectFolderDialog.currentFolder = FileUtils.toLocalUrl(dirPath)
+                                          selectFolderDialog.callback = (selectedUrl) => {
+                                              var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
+                                              filesModel.add(filePath)
+                                          };
+                                          selectFolderDialog.open()
+                                      }
+                                      else
+                                      {
+                                          var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
+                                          filesModel.add(filePath)
+                                      }
                                   })
             }
 
@@ -119,6 +135,18 @@ Item {
             "Report files (*.dvrescue.xml)",
             "Video files (*.mov *.mkv *.avi *.dv *.mxf)"
         ]
+    }
+
+    FolderDialog {
+        id: selectFolderDialog
+        property var callback;
+
+        onAccepted: {
+            var folderUrl = selectFolderDialog.currentFolder;
+            console.debug('selected folder: ', folderUrl);
+            if(callback)
+                callback(folderUrl);
+        }
     }
 
     RecentsPopup {
@@ -281,7 +309,23 @@ Item {
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
-                                                 filesModel.add(FileUtils.getFilePath(url));
+                                                 var filePath = FileUtils.getFilePath(url);
+                                                 var dirPath = FileUtils.getFileDir(filePath)
+
+                                                  // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                                  if (!FileUtils.isWritable(dirPath))
+                                                  {
+                                                      selectFolderDialog.currentFolder = FileUtils.toLocalUrl(dirPath)
+                                                      selectFolderDialog.callback = (selectedUrl) => {
+                                                          var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
+                                                          filesModel.add(filePath)
+                                                      };
+                                                      selectFolderDialog.open()
+                                                  }
+                                                  else
+                                                  {
+                                                      filesModel.add(filePath)
+                                                  }
                                              });
                             }
 
