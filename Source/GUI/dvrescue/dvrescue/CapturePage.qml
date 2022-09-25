@@ -47,7 +47,81 @@ Rectangle {
                     }
                 }
 
+                property int indexOfFramePos: -1;
+                property int indexOfTimecode: -1;
+                property int indexOfRecDateTime: -1;
+                property int indexOfSourceSpeed: -1;
+                property int indexOfFrameSpeed: -1;
+                property int indexOfBlockErrors: -1;
+                property int indexOfBlockErrorsEven: -1;
+
+                function onColumnsChanged(columns) {
+
+                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","BlockErrors_Even","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
+                    var columnNames = [];
+
+                    columnNames = columns
+                    console.debug('columnNames: ', JSON.stringify(columnNames))
+
+                    indexOfFramePos = columnNames.indexOf('FramePos');
+                    indexOfTimecode = columnNames.indexOf('tc');
+                    indexOfRecDateTime = columnNames.indexOf('rdt');
+                    indexOfSourceSpeed = columnNames.indexOf('SourceSpeed');
+                    indexOfFrameSpeed = columnNames.indexOf('FrameSpeed');
+                    indexOfBlockErrors = columnNames.indexOf('BlockErrors');
+                    indexOfBlockErrorsEven = columnNames.indexOf('BlockErrors_Even');
+
+                    console.debug('indexOfFramePos: ', indexOfFramePos)
+                    console.debug('indexOfTimecode: ', indexOfTimecode)
+                    console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
+                    console.debug('indexOfSourceSpeed: ', indexOfSourceSpeed)
+                    console.debug('indexOfFrameSpeed: ', indexOfFrameSpeed)
+                    console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
+                    console.debug('indexOfBlockErrorsEven: ', indexOfBlockErrorsEven)
+                }
+
+                function onEntriesReceived(entries) {
+                    var framePos = 0;
+                    if(indexOfFramePos !== -1) {
+                        framePos = captureFrameInfo.frameNumber = entries[indexOfFramePos]
+                    }
+
+                    if(indexOfTimecode !== -1) {
+                        captureFrameInfo.timeCode = entries[indexOfTimecode]
+                    }
+
+                    if(indexOfRecDateTime !== -1) {
+                        var rdt = entries[indexOfRecDateTime];
+                        captureFrameInfo.recTime = rdt;
+                    }
+
+                    /*
+                    if(indexOfSourceSpeed !== -1) {
+                        var sourceSpeed = entries[indexOfSourceSpeed]
+                        speedValueText = sourceSpeed
+                    }
+                    */
+
+                    if(indexOfFrameSpeed !== -1) {
+                        var frameSpeedValue = entries[indexOfFrameSpeed]
+                        if(frameSpeedValue)
+                            frameSpeed = frameSpeedValue
+                    }
+
+                    if(indexOfBlockErrors !== -1 && indexOfBlockErrorsEven !== -1) {
+                        var blockErrors = entries[indexOfBlockErrors]
+                        var blockErrorsEven = entries[indexOfBlockErrorsEven]
+
+                        if(blockErrors && blockErrorsEven)
+                            dataModel.append(framePos, blockErrorsEven, blockErrors)
+                    }
+                }
+
                 function doCapture(captureCmd) {
+                    csvParser.columnsChanged.disconnect(onColumnsChanged);
+                    csvParserUI.entriesReceived.disconnect(onEntriesReceived);
+                    ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
+
                     capturing = true;
                     pendingAction = true;
                     player.play()
@@ -55,76 +129,10 @@ Rectangle {
                     statusText = "capturing..";
                     capturingMode = captureCmd;
 
-                    // ["FramePos","abst","abst_r","abst_nc","tc","tc_r","tc_nc","rdt","rdt_r","rdt_nc","rec_start","rec_end","Used","Status","Comments","BlockErrors","BlockErrors_Even","IssueFixed","SourceSpeed","FrameSpeed","InputPos","OutputPos"]
-                    var columnNames = [];
-                    var indexOfFramePos = -1;
-                    var indexOfTimecode = -1;
-                    var indexOfRecDateTime = -1;
-                    var indexOfSourceSpeed = -1;
-                    var indexOfFrameSpeed = -1;
-                    var indexOfBlockErrors = -1;
-                    var indexOfBlockErrorsEven = -1;
-
                     dvrescue.capture(index, playbackBuffer, csvParser, captureCmd, (launcher) => {
-                                          csvParser.columnsChanged.connect((columns) => {
-                                                                               columnNames = columns
-                                                                               console.debug('columnNames: ', JSON.stringify(columnNames))
-
-                                                                               indexOfFramePos = columnNames.indexOf('FramePos');
-                                                                               indexOfTimecode = columnNames.indexOf('tc');
-                                                                               indexOfRecDateTime = columnNames.indexOf('rdt');
-                                                                               indexOfSourceSpeed = columnNames.indexOf('SourceSpeed');
-                                                                               indexOfFrameSpeed = columnNames.indexOf('FrameSpeed');
-                                                                               indexOfBlockErrors = columnNames.indexOf('BlockErrors');
-                                                                               indexOfBlockErrorsEven = columnNames.indexOf('BlockErrors_Even');
-
-                                                                               console.debug('indexOfFramePos: ', indexOfFramePos)
-                                                                               console.debug('indexOfTimecode: ', indexOfTimecode)
-                                                                               console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
-                                                                               console.debug('indexOfSourceSpeed: ', indexOfSourceSpeed)
-                                                                               console.debug('indexOfFrameSpeed: ', indexOfFrameSpeed)
-                                                                               console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
-                                                                               console.debug('indexOfBlockErrorsEven: ', indexOfBlockErrorsEven)
-                                                                           });
-
-                                          var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
-
-                                          csvParserUI.entriesReceived.connect((entries) => {
-                                                                                var framePos = 0;
-                                                                                if(indexOfFramePos !== -1) {
-                                                                                    framePos = captureFrameInfo.frameNumber = entries[indexOfFramePos]
-                                                                                }
-
-                                                                                if(indexOfTimecode !== -1) {
-                                                                                    captureFrameInfo.timeCode = entries[indexOfTimecode]
-                                                                                }
-
-                                                                                if(indexOfRecDateTime !== -1) {
-                                                                                    var rdt = entries[indexOfRecDateTime];
-                                                                                    captureFrameInfo.recTime = rdt;
-                                                                                }
-
-                                                                                /*
-                                                                                if(indexOfSourceSpeed !== -1) {
-                                                                                    var sourceSpeed = entries[indexOfSourceSpeed]
-                                                                                    speedValueText = sourceSpeed
-                                                                                }
-                                                                                */
-
-                                                                                if(indexOfFrameSpeed !== -1) {
-                                                                                    var frameSpeedValue = entries[indexOfFrameSpeed]
-                                                                                    if(frameSpeedValue)
-                                                                                        frameSpeed = frameSpeedValue
-                                                                                }
-
-                                                                                if(indexOfBlockErrors !== -1 && indexOfBlockErrorsEven !== -1) {
-                                                                                    var blockErrors = entries[indexOfBlockErrors]
-                                                                                    var blockErrorsEven = entries[indexOfBlockErrorsEven]
-
-                                                                                    if(blockErrors && blockErrorsEven)
-                                                                                        dataModel.append(framePos, blockErrorsEven, blockErrors)
-                                                                                }
-                                                                            });
+                       csvParser.columnsChanged.connect(onColumnsChanged);
+                       var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
+                       csvParserUI.entriesReceived.connect(onEntriesReceived);
 
                        console.debug('logging start capture command')
                        commandsLogs.logCommand(launcher);
@@ -193,6 +201,10 @@ Rectangle {
 
                 captureButton.onClicked: {
                     specifyPathDialog.callback = (fileUrl) => {
+                        csvParser.columnsChanged.disconnect(onColumnsChanged);
+                        csvParserUI.entriesReceived.disconnect(onEntriesReceived);
+                        ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
+
                         var filePath = urlToPath(fileUrl);
 
                         pendingAction = true;
@@ -208,36 +220,10 @@ Rectangle {
 
                         grabbing = true;
                         dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
-                                          outputFilePath = filePath
-                                          csvParser.columnsChanged.connect((columns) => {
-                                                                               columnNames = columns
-                                                                               console.debug('columnNames: ', JSON.stringify(columnNames))
-
-                                                                               indexOfFramePos = columnNames.indexOf('FramePos');
-                                                                               indexOfTimecode = columnNames.indexOf('tc');
-                                                                               indexOfRecDateTime = columnNames.indexOf('rdt');
-
-                                                                               console.debug('indexOfFramePos: ', indexOfFramePos)
-                                                                               console.debug('indexOfTimecode: ', indexOfTimecode)
-                                                                               console.debug('indexOfRecDateTime: ', indexOfRecDateTime)
-                                                                           });
-
-                                          var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
-
-                                          csvParserUI.entriesReceived.connect((entries) => {
-                                                                                if(indexOfFramePos !== -1) {
-                                                                                    captureFrameInfo.frameNumber = entries[indexOfFramePos]
-                                                                                }
-
-                                                                                if(indexOfTimecode !== -1) {
-                                                                                    captureFrameInfo.timeCode = entries[indexOfTimecode]
-                                                                                }
-
-                                                                                if(indexOfRecDateTime !== -1) {
-                                                                                    var rdt = entries[indexOfRecDateTime];
-                                                                                    captureFrameInfo.recTime = rdt;
-                                                                                }
-                                                                            });
+                           outputFilePath = filePath
+                           csvParser.columnsChanged.connect(onColumnsChanged);
+                           var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
+                           csvParserUI.entriesReceived.connect(onEntriesReceived);
 
                            console.debug('logging grab command')
                            commandsLogs.logCommand(launcher);
