@@ -1,4 +1,8 @@
 #include "fileutils.h"
+
+#if defined(Q_OS_MAC)
+#include "machelpers.h"
+#endif
 #include <QDir>
 #include <QStringList>
 #include <QTextStream>
@@ -6,6 +10,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QImage>
+#include <QFileDialog>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 using SplitBehaviour = QString::SplitBehavior;
@@ -102,7 +107,6 @@ QString FileUtils::toLocalUrl(const QString &filePath)
 
 bool FileUtils::isWritable(const QString& dirPath)
 {
-    bool toReturn = false;
     QDir dir(dirPath);
     if (dir.exists())
     {
@@ -216,4 +220,16 @@ QString FileUtils::find(const QString &what)
 
     qDebug() << "FileUtils::find finished: nothing found";
     return QString();
+}
+
+bool FileUtils::requestRWPermissionsForPath(const QString& dirPath, const QString& message)
+{
+    QString dir;
+    #if defined(Q_OS_MAC)
+    dir = sandboxQueryRWPermissionForPath(dirPath, message);
+    #else
+    dir = QFileDialog::getExistingDirectory(nullptr, message, dirPath, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    #endif
+    qInfo() << "requestRWPermissionsForPath request: " << dirPath << " response: " << dir;
+    return QFileInfo(dir)==QFileInfo(dirPath);
 }

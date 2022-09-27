@@ -43,7 +43,13 @@ Item {
             {
                 drop.urls.forEach((url) => {
                                       var filePath = FileUtils.getFilePath(url);
-                                      var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
+                                      var dirPath = FileUtils.getFileDir(filePath);
+
+                                      // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                      if (!FileUtils.isWritable(dirPath)) {
+                                          FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+                                      }
+
                                       filesModel.add(filePath)
                                   })
             }
@@ -143,6 +149,12 @@ Item {
                 selectPath.callback = (urls) => {
                     urls.forEach((url) => {
                                      var filePath = FileUtils.getFilePath(url);
+                                     var dirPath = FileUtils.getFileDir(filePath);
+
+                                     // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                     if (!FileUtils.isWritable(dirPath)) {
+                                         FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+                                     }
                                      filesModel.add(filePath);
                                      root.recentFilesModel.addRecent(filePath)
                                  });

@@ -28,6 +28,7 @@ public:
     Q_INVOKABLE bool remove(const QString& filePath);
     Q_INVOKABLE bool copy(const QString& target, const QString& destination);
     Q_INVOKABLE QString find(const QString& what);
+    Q_INVOKABLE bool requestRWPermissionsForPath(const QString& dirPath, const QString& message);
 public Q_SLOTS:
 };
 

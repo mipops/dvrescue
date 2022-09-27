@@ -104,20 +104,10 @@ Item {
                                       var dirPath = FileUtils.getFileDir(filePath)
 
                                       // Test if we can access content directory, or open a dialog to try to gains rights on it
-                                      if (!FileUtils.isWritable(dirPath))
-                                      {
-                                          selectFolderDialog.currentFolder = FileUtils.toLocalUrl(dirPath)
-                                          selectFolderDialog.callback = (selectedUrl) => {
-                                              var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                              filesModel.add(filePath)
-                                          };
-                                          selectFolderDialog.open()
+                                      if (!FileUtils.isWritable(dirPath)) {
+                                          FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
                                       }
-                                      else
-                                      {
-                                          var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                          filesModel.add(filePath)
-                                      }
+                                      filesModel.add(filePath)
                                   })
             }
 
@@ -309,23 +299,14 @@ Item {
                         onClicked: {
                             selectPath.callback = (urls) => {
                                 urls.forEach((url) => {
-                                                 var filePath = FileUtils.getFilePath(url);
-                                                 var dirPath = FileUtils.getFileDir(filePath)
+                                                var filePath = FileUtils.getFilePath(url);
+                                                var dirPath = FileUtils.getFileDir(filePath)
 
-                                                  // Test if we can access content directory, or open a dialog to try to gains rights on it
-                                                  if (!FileUtils.isWritable(dirPath))
-                                                  {
-                                                      selectFolderDialog.currentFolder = FileUtils.toLocalUrl(dirPath)
-                                                      selectFolderDialog.callback = (selectedUrl) => {
-                                                          var entries = FileUtils.ls(FileUtils.getFileDir(filePath));
-                                                          filesModel.add(filePath)
-                                                      };
-                                                      selectFolderDialog.open()
-                                                  }
-                                                  else
-                                                  {
-                                                      filesModel.add(filePath)
-                                                  }
+                                                // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                                if (!FileUtils.isWritable(dirPath)) {
+                                                    FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+                                                }
+                                                filesModel.add(filePath)
                                              });
                             }
 
