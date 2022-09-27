@@ -231,7 +231,7 @@ ColumnLayout {
                                                                     debugView.logResult(errorString);
                                                                })
                              }, extraParams).then(() => {
-                                                      console.debug('executed....')
+                                                      console.debug('executed packagerCtl....')
                                                       debugView.logResult(output);
                                                   });
         }
