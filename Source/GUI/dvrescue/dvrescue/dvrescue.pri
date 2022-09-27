@@ -51,6 +51,8 @@ HEADERS += \
     $$PWD/plotdata.h \
     $$PWD/sortfiltertablemodel.h
 
+macx:HEADERS += $$PWD/machelpers.h
+
 SOURCES += \
     $$PWD/clipboard.cpp \
     $$PWD/connectionutils.cpp \
@@ -74,6 +76,8 @@ SOURCES += \
     $$PWD/csvparser.cpp \
     $$PWD/plotdata.cpp \
     $$PWD/sortfiltertablemodel.cpp
+
+macx:SOURCES += $$PWD/machelpers.mm
 
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/3rdparty
