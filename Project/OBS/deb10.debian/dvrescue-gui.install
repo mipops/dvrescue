@@ -1,0 +1,6 @@
+usr/bin/dvrescue-gui
+usr/lib/dvrescue/bin/*
+usr/share/doc/dvrescue-gui/*
+usr/share/applications/*
+usr/share/metainfo/*
+usr/share/pixmaps/*

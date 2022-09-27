@@ -1,0 +1,47 @@
+Source: dvrescue
+Priority: optional
+Maintainer: Jerome Martinez <Info@MediaArea.net>
+Build-Depends: debhelper (>= 5), libmediainfo-dev, libzen-dev, zlib1g-dev, pkg-config, automake, autoconf, libtool, qtbase5-dev, qtdeclarative5-dev, libqt5svg5-dev, libqt5xmlpatterns5-dev, qtmultimedia5-dev, qtquickcontrols2-5-dev, libqt5opengl5-dev, libqwt-qt5-dev, qtchooser, yasm, libegl1-mesa-dev, libxv-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-xfixes0-dev, libxcb-shape0-dev, libasound2-dev, libxml2-dev, libxslt-dev
+Standards-Version: 3.7.3
+Section: libs
+Homepage: https://MediaArea.net/DVRescue
+
+Package: dvrescue
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, xmlstarlet
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+
+Package: dvrescue-dbg
+Section: debug
+Architecture: any
+Priority: extra
+Depends: dvrescue (= ${binary:Version})
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ This package contains the debugging symbols.
+
+Package: dvrescue-gui
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, qml-module-qtquick2, qml-module-qtquick-controls2, qml-module-qtquick-controls, qml-module-qtquick-dialogs, qml-module-qtquick-layouts, qml-module-qtquick-window2, qml-module-qt-labs-settings, qml-module-qt-labs-folderlistmodel, qml-module-qt-labs-qmlmodels, qml-module-qt-labs-platform, qml-module-qtmultimedia, libqt5multimedia5-plugins, xmlstarlet
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ This package contains the graphical user interface.
+
+Package: dvrescue-gui-dbg
+Section: debug
+Architecture: any
+Priority: extra
+Depends: dvrescue-gui (= ${binary:Version})
+Description: Data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation
+ .
+ This package contains the debugging symbols of the graphical user interface.

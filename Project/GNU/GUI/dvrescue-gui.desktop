@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Version=1.0
+Name=dvrescue
+Comment=Data migration from DV tapes
+Icon=dvrescue
+Exec=dvrescue-gui
+Terminal=false
+MimeType=
+Categories=AudioVideoEditing;

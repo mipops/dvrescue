@@ -8,9 +8,9 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	cd Project/GNU/CLI && chmod u+x autogen
-	cd Project/GNU/CLI && ./autogen
-	cd Project/GNU/CLI && ./configure --prefix=/usr
+	cd dvrescue/Project/GNU/CLI && chmod u+x autogen
+	cd dvrescue/Project/GNU/CLI && ./autogen
+	cd dvrescue/Project/GNU/CLI && ./configure --prefix=/usr
 
 	touch $@
 
@@ -20,7 +20,7 @@ build-stamp: configure-stamp
 	dh_testdir
 
 	# Add here commands to compile the package.
-	cd Project/GNU/CLI && $(MAKE)
+	cd dvrescue/Project/GNU/CLI && $(MAKE)
 
 	touch $@
 
@@ -40,10 +40,8 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/tmp
-	cd Project/GNU/CLI && $(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
-
-	install -dm 755 $(CURDIR)/debian/tmp/usr/share/doc/dvrescue
-	install -m 644 LICENSE.txt $(CURDIR)/debian/tmp/usr/share/doc/dvrescue
+	cd dvrescue/Project/GNU/CLI && $(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+	install -D -m 644 dvrescue/LICENSE.txt $(CURDIR)/debian/tmp/usr/share/doc/dvrescue/LICENSE.txt
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -54,7 +52,7 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_install --sourcedir=debian/tmp
-	dh_installchangelogs -p dvrescue History.txt
+	dh_installchangelogs -p dvrescue dvrescue/History.txt
 	dh_installdocs
 	dh_installexamples
 #	dh_install
