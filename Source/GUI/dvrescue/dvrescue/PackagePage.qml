@@ -209,10 +209,12 @@ Item {
                             var packagingPath = ''
                             var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
                             var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
+                                console.debug('packaging output changed: ', o)
+
                                 var splitted = String(o).split('\n');
                                 for(var i = 0; i < splitted.length; ++i) {
                                     var value = splitted[i];
-                                    console.debug('value:', value);
+                                    console.debug('packaging output splitted value:', value);
 
                                     if(value.startsWith('### Packaging started: ')) {
                                         var path = root.toNativePath(value.replace('### Packaging started: ', ''));
