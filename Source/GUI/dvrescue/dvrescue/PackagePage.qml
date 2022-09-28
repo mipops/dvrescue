@@ -392,18 +392,22 @@ Item {
             }
 
             function updatePackagingErrorByPath(path, error) {
+                console.debug('PackageOutputFileView: updatePackagingErrorByPath: ', path, error);
                 updatePropertyByPath(path, 'Error', error)
             }
 
             function updatePackagingStatusByPath(path, status) {
+                console.debug('PackageOutputFileView: updatePackagingStatusByPath: ', path, status);
                 updatePropertyByPath(path, 'Status', status)
             }
 
             function updatePackagingError(index, error) {
+                console.debug('PackageOutputFileView: updatePackagingError: ', index, error);
                 updateProperty(index, 'Error', error)
             }
 
             function updatePackagingStatus(index, status) {
+                console.debug('PackageOutputFileView: updatePackagingStatus: ', index, status);
                 updateProperty(index, 'Status', status)
             }
 
