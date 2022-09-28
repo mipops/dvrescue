@@ -213,7 +213,7 @@ Item {
 
                                 var splitted = String(o).split('\n');
                                 for(var i = 0; i < splitted.length; ++i) {
-                                    var value = splitted[i];
+                                    var value = splitted[i].trim();
                                     console.debug('packaging output splitted value:', value);
 
                                     if(value.startsWith('### Packaging started: ')) {
