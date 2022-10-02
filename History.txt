@@ -1,3 +1,29 @@
+Version 0.22.10, 2022-10-03
++ In Capture layout (formerly Transfer layout)
+++ Integrate QtAVPlayer to show incoming video
+++ Show frame metadata (timecode, recording time) during playback
+++ Show file name during recording
+++ Automatically identify attached dv devices.
+++ Show a status icon that shows the current speed and direction of the input deck.
++ In Analysis layout
+++ Add dvloupe interface (accessed by clicking on frame number in frame table).
+++ More accuracy in linking frame table, graph, and viewer.
+++ Logo to show jumps in timecode and recording time now show if the jump was to jump back or jump ahead (via arrow)
++ In Package layout
+++ Updates to segmentation of packaged outputs
+++ Show status of packaging outputs.
+++ Improvements to handling of aspect ratio changes.
+++ Can now standardize audio to 48kHz to avoid splitting output during sample rate changes.
+++ Updates to handling >2 audio channels.
++ In Help layout
+++ Now directs to https://mipops.github.io/dvrescue/
++ Other
+++ Remove avfctl for deck control and use dvrescue cli directly.
+++ Updates for macOS security.
+++ Updates to dvplay HTML output, adding ABST incrementation value.
+++ Management updates on speed and direction of DV device input.
+++ CLI-only: add -rewind features to support re-reads of frames with concealment during capture.
+
 Version 0.21.11, 2021-11-19
 + Add GUI interface for packaging DV into container
 + Add segment viewer in analysis and packaging view to interact with dv in subranges
