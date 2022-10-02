@@ -9,7 +9,7 @@ _report(){
     local BLUE="$(tput setaf 4)"   # Blue     - For Questions
     local NC="$(tput sgr0)"        # No Color
     local COLOR=""
-    local STARTMESSAGE=""
+    local STARTMESSAGE=()
     local ECHOOPT=""
     OPTIND=1
     while getopts "qdwstn" opt ; do
