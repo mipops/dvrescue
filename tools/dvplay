@@ -45,7 +45,7 @@ _report(){
     local MAGENTA="$(tput setaf 5)" # Magenta - For Verbose Statements
     local NC="$(tput sgr0)"        # No Color
     local COLOR=""
-    local STARTMESSAGE=""
+    local STARTMESSAGE=()
     local ECHOOPT=""
     local VERBOSE_CHECK=false
     OPTIND=1
