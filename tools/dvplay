@@ -499,7 +499,7 @@ if [[ -n "${BLOCKS}" ]] ; then
         fi
         X=$((SBx+(WL*MBx)))
         Y=$(((I*48)+(MBy*H)))
-        FILTER+="drawbox=w=${W}:h=${H}:x=${X}:y=${Y}:color=white@0.5:t=1,"
+        FILTER+="drawbox=w=${W}:h=${H}:x=${X}:y=${Y}:color=invert:t=1,drawbox=w=${W}:h=${H}:x=${X}:y=${Y}:color=purple@0.15:t=fill,"
     done
     # remove trailing comma
     FILTER="${FILTER%?}"
