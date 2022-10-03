@@ -1038,6 +1038,8 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     AUDIO_INPUT_COUNT="0"
                     TRACK_2_AUDIO="0"
+                    OLDIFS="$IFS"
+                    IFS=$'\n'
                     for AUDIO_SUBLIST_LINE in $(echo "${AUDIO_RANGE_SUBLIST}") ; do
                         PTSa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f1)"
                         END_PTSa="$(echo "${AUDIO_SUBLIST_LINE}" | cut -d "|" -f2)"
@@ -1117,6 +1119,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         fi
                         AUDIO_CONCAT_FILTER_T2+="${AUDIO_STREAM_OUT_T2}"
                     done
+                    IFS="${OLDIFS}"
                     if [[ "${TRACK_2_AUDIO}" = "0" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
                             AUDIO_FILTER=(-filter_complex "${AUDIO_RESAMPLE_FILTER}${AUDIO_CONCAT_FILTER}concat=n=${AUDIO_INPUT_COUNT}:v=0:a=1,channelsplit[l1][r1];[l1]aformat=channel_layouts=mono[c1];[r1]aformat=channel_layouts=mono[c2]")
