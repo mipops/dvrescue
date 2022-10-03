@@ -8,6 +8,7 @@
 #include <QMap>
 #include <QVariant>
 #include <xmlparser.h>
+#include <memory>
 
 class QwtQuick2PlotCurve;
 class QAbstractTableModel;
