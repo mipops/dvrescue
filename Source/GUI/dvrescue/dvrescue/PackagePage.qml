@@ -219,7 +219,7 @@ Item {
 
                                 var splitted = String(o).split('\n');
                                 for(var i = 0; i < splitted.length; ++i) {
-                                    var value = splitted[i];
+                                    var value = splitted[i].trim();
                                     console.debug('packaging output splitted value:', value);
 
                                     if(value.startsWith('### Packaging started: ')) {
@@ -398,18 +398,22 @@ Item {
             }
 
             function updatePackagingErrorByPath(path, error) {
+                console.debug('PackageOutputFileView: updatePackagingErrorByPath: ', path, error);
                 updatePropertyByPath(path, 'Error', error)
             }
 
             function updatePackagingStatusByPath(path, status) {
+                console.debug('PackageOutputFileView: updatePackagingStatusByPath: ', path, status);
                 updatePropertyByPath(path, 'Status', status)
             }
 
             function updatePackagingError(index, error) {
+                console.debug('PackageOutputFileView: updatePackagingError: ', index, error);
                 updateProperty(index, 'Error', error)
             }
 
             function updatePackagingStatus(index, status) {
+                console.debug('PackageOutputFileView: updatePackagingStatus: ', index, status);
                 updateProperty(index, 'Status', status)
             }
 
