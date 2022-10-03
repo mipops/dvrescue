@@ -95,6 +95,12 @@ Item {
     RecentsPopup {
         id: recentsPopup
         onSelected: {
+                // Test if we can access content directory, or open a dialog to try to gains rights on it
+                var dirPath = FileUtils.getFileDir(filePath)
+                if (!FileUtils.isWritable(dirPath)) {
+                    FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+                }
+
             root.filesModel.add(filePath)
         }
     }

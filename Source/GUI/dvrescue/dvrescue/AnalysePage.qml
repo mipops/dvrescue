@@ -142,6 +142,10 @@ Item {
     RecentsPopup {
         id: recentsPopup
         onSelected: {
+            var dirPath = FileUtils.getFileDir(filePath)
+            if (!FileUtils.isWritable(dirPath)) {
+                FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+            }
             root.filesModel.add(filePath)
         }
     }
