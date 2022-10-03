@@ -266,7 +266,7 @@ Item {
                 launcher.destroy();
             });
 
-            var makeReportTemplate = "-y file.dv -x file.dv.dvrescue.xml -s file.dv.dvrescue.vtt -c file.dv.dvrescue.scc";
+            var makeReportTemplate = "-y file.dv -x file.dv.dvrescue.xml -c file.dv.dvrescue.scc";
             var arguments = makeReportTemplate.split(" ");
             for(var i = 0; i < arguments.length; ++i) {
                 arguments[i] = arguments[i].replace("file.dv", file);
