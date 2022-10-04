@@ -49,27 +49,6 @@ namespace
             return;
         if (Verbosity)
             *Log << NameVersion_Text() << '\n';
-        if (Verbosity <= 5)
-            return;
-        *Log <<
-            "\n"
-            "# TC Used Status Comments\n"
-            "#:        the frame number (0-based)\n"
-            "SS;FF:      the time code, if unique accross all files, SS;FF format\n"
-            "S:        the file number (0-based) selected as the reference (non A/V blocks are taken from it), \"X\" if from several frames\n"
-            "\n"
-            "Status:   the status of the frame, 1 char per file\n"
-            "              = Fine\n"
-            "            T = Time code is missing\n"
-            "            P = Frame has problem\n"
-            "            M = Frame is missing\n"
-            "\n"
-            "Comments: comments about the issues found\n"
-            "              --> Nothing displayed\n"
-            "            T --> List of time codes, \"??:??\" if no time code found\n"
-            "            P --> List of count of blocks picked per file, 1 number per file + count of blocks remaining with errors\n"
-            "            M --> Nothing displayed\n"
-            << endl;
     }
 
     string TC_String(TimeCode const& TC)
@@ -383,6 +362,8 @@ bool dv_merge_private::Init()
     Merge_Help();
 
     Inputs.reserve(Input_Count);
+    if (Verbosity > 5 && !MergeInfo_Format)
+        *Log << '\n';
     for (auto const& Inputs_FileName : Merge_InputFileNames)
     {
         if (Verbosity > 5 && !MergeInfo_Format)
