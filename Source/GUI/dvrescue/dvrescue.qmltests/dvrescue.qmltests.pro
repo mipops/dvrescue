@@ -17,6 +17,7 @@ message('QML_ROOT_PATH: ' $$QML_ROOT_PATH)
 
 DISTFILES += \
     tests/tst_about.qml \
+    tests/tst_settings.qml \
     tests/tst_captureframeinfo.qml \
     tests/tst_captureview.qml \
     tests/tst_dvloupeview.qml \
