@@ -488,17 +488,58 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
     CurrentFrame.Speed = GetDvSpeed(*FrameData);
     CurrentFrame.FullConcealed = coherency_flags(FrameData->Coherency_Flags).full_conceal();
-
-    // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
     if (TC_Temp.HasValue())
         CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+
+    // abst and Time code are missing
+    if ((CurrentFrame.AbstBf.HasAbsoluteTrackNumberValue() || CurrentFrame.AbstBf.AbsoluteTrackNumber() == -1)
+     && (!CurrentFrame.TC.HasValue())
+    )
+    {
+        // Impossible to sync, put all frames without sync elements in one segment
+        if (!Frames.empty()
+         && ((Frames.back().AbstBf.HasAbsoluteTrackNumberValue() && Frames.back().AbstBf.AbsoluteTrackNumber() != -1)
+          || (Frames.back().TC.HasValue())
+         )
+        )
+        {
+            Input->Segments.resize(Input->Segments.size() + 1);
+            Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
+        }
+        else
+        {
+            Frames.emplace_back(move(CurrentFrame));
+        }
+        return false;
+    }
+
+    // abst jumps - after first frame
+    if (!Frames.empty()
+     && CurrentFrame.AbstBf.HasAbsoluteTrackNumberValue() && Frames.back().AbstBf.HasAbsoluteTrackNumberValue()
+     && CurrentFrame.AbstBf.AbsoluteTrackNumber() == -1   && Frames.back().AbstBf.AbsoluteTrackNumber() != -1
+     && (CurrentFrame.AbstBf.AbsoluteTrackNumber() < Frames.back().AbstBf.AbsoluteTrackNumber() // Back in the future of abst, very incoherent
+//      || CurrentFrame.AbstBf.AbsoluteTrackNumber() - Frames.back().AbstBf.AbsoluteTrackNumber() > 300 // Arbitrary choice: if too big difference, we consider that this is very incoherent
+     )
+    )
+    {
+        Input->Segments.resize(Input->Segments.size() + 1);
+        Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
+        return false;
+    }
+
+    // Time code jumps - after first frame
     if (!Frames.empty() && Frames.back().TC.HasValue())
     {
         TimeCode TC_Previous(Frames.back().TC);
         if (CurrentFrame.TC.HasValue())
         {
-            if (CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
+            if (CurrentFrame.TC.FramesPerSecond != TC_Previous.FramesPerSecond // Different config so it is another shot
+             || CurrentFrame.TC.FramesPerSecond_Is1001 != TC_Previous.FramesPerSecond_Is1001 // Different config so it is another shot
+             || CurrentFrame.TC.DropFrame != TC_Previous.DropFrame // Different config so it is another shot
+             || CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames() // Back in the future so it is another shot
+//             || CurrentFrame.TC.ToFrames() - TC_Previous.ToFrames() > 300 // Arbitrary choice: if too big difference, we consider that this is another shot
+            )
             {
                 Input->Segments.resize(Input->Segments.size() + 1);
                 Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
