@@ -537,12 +537,15 @@ Item {
                         console.debug('executing dvplay... ');
                         showDvLoupeBusyIndicator = true
 
-                        var extra = ''
+                        var extra = []
                         if(selection && selection.length !== 0) {
-                            extra = ' -B ' + selection.join(',') + ' '
+                            extra.push(...['-B', selection.join(',')])
                         }
 
-                        dvplay.exec('-O - -b' + ' ' + offset + ' ' + extra + playerView.player.source).then((result) => {
+                        var args = ['-O', '-', '-b', offset]
+                        args.push(...extra)
+                        args.push(playerView.player.source)
+                        dvplay.exec(args).then((result) => {
                             var dataUri = ImageUtils.toDataUri(result.output, "jpg");
                             if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
                                 console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
@@ -565,37 +568,38 @@ Item {
 
                         console.debug('executing dvloupe... ');
 
-                        var extraParams = " -M {mediainfo} -x {xml} -F {ffmpeg}"
-                        .replace("{mediainfo}", dvloupe.effectiveMediaInfoCmd)
-                        .replace("{xml}", dvloupe.effectiveXmlStarletCmd)
-                        .replace("{ffmpeg}", dvloupe.effectiveFfmpegCmd)
+                        var extraParams = ['-M', dvloupe.effectiveMediaInfoCmd]
+                        extraParams.push(...['-x', dvloupe.effectiveXmlStarletCmd])
+                        extraParams.push(...['-F', dvloupe.effectiveFfmpegCmd])
 
-                        var filterOptions = ''
+                        var filterOptions = []
                         if(headerCheckboxChecked) {
-                            filterOptions += ' -H'
+                            filterOptions.push('-H')
                         }
 
                         if(subcodeCheckboxChecked) {
-                            filterOptions += ' -S'
+                            filterOptions.push('-S')
                         }
 
                         if(vauxCheckboxChecked) {
-                            filterOptions += ' -X'
+                            filterOptions.push('-X')
                         }
 
                         if(audioCheckboxChecked) {
-                            filterOptions += ' -A'
+                            filterOptions.push('-A')
                         }
 
                         if(videoCheckboxChecked) {
-                            filterOptions += ' -V'
+                            filterOptions.push('-V')
                         }
 
                         if(errorOnlyCheckboxChecked) {
-                            filterOptions += ' -E'
+                            filterOptions.push('-E')
                         }
 
-                        dvloupe.exec('-i' + ' ' + playerView.player.source + ' ' + '-b' + ' ' + offset + ' -f json -T n' + filterOptions, (launcher) => {
+                        var args = ['-i', playerView.player.source, '-b', offset, '-f', 'json', '-T', 'n']
+                        args.append(...filterOptions)
+                        dvloupe.exec(args, (launcher) => {
                             debugView.logCommand(launcher)
                         }, extraParams).then((result) => {
                             dvloupeView.data = JSON.parse(result.outputText)

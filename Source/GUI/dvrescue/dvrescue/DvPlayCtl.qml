@@ -122,7 +122,7 @@ Item {
             });
 
             console.debug('cygpath: ', cygpath);
-            launcher.execute(cygpath + " " + path);
+            launcher.execute(cygpath, [path]);
             /*
             if(callback)
                 callback(launcher)
@@ -195,14 +195,15 @@ Item {
             });
 
             console.debug('dvplayCmd: ', dvPlayCmd);
-            var cmd = detectedBashCmd + ' ' + dvPlayCmd
+            var cmd = [dvPlayCmd]
             if(extraArgs)
-                cmd = cmd + ' ' + extraArgs
+                cmd.push(...extraArgs)
+            cmd.push(...args)
 
             if(paths.length !== 0)
                 launcher.setPaths(paths);
 
-            launcher.execute(cmd + " " + args);
+            launcher.execute(detectedBashCmd, cmd);
             if(callback)
                 callback(launcher)
         })
