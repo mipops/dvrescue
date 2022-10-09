@@ -107,5 +107,6 @@
         <file>icons/logo-inverse.png</file>
         <file>ResizeHandle.qml</file>
         <file>ResizeRectangle.qml</file>
+        <file>AboutDialog.qml</file>
     </qresource>
 </RCC>

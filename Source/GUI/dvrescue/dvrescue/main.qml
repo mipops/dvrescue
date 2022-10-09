@@ -25,6 +25,17 @@ ApplicationWindow {
         anchors.topMargin: 10
     }
 
+    AboutDialog {
+        id: about
+
+        version: buildVersionString
+        buildDate: buildDateString
+        buildQtVersion: buildQtVersionString
+        runtimeQtVersion: runtimeQtVersionString
+        buildFFMpegVersion: buildFFMpegVersionString
+        runtimeFFMpegVersion: runtimeFFMpegVersionString
+    }
+
     Column {
         id: navigationColumn
         anchors.left: parent.left
@@ -78,6 +89,14 @@ ApplicationWindow {
             // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
+            }
+            icon.source: "/icons/menu-debug.svg"
+        }
+
+        NavButton {
+            // text: qsTr("Debug")
+            onClicked: {
+                about.open()
             }
             icon.source: "/icons/menu-debug.svg"
         }
