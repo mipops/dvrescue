@@ -294,7 +294,7 @@ namespace
         bool AppendFrameToList(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
         bool ManagePartialFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData);
         bool TcSyncStart();
-        bool SyncEnd();
+        bool SyncEnd(bool Force = false);
         bool Process(float Speed);
         bool Stats();
 
@@ -626,36 +626,73 @@ bool dv_merge_private::TcSyncStart()
 }
 
 //---------------------------------------------------------------------------
-bool dv_merge_private::SyncEnd()
+bool dv_merge_private::SyncEnd(bool Force)
 {
-    // Check which frames are available at least once
     auto Input_Count = Inputs.size();
-    size_t LongestFile = 0;
-    size_t Frames_Status_Max = 0;
-    size_t BlockStatus_Count = 0;
-    for (size_t i = 0; i < Input_Count; i++)
+    size_t Segments_Max = Segment_Pos + 1;
+
+    if (Force)
     {
-        auto& Input = Inputs[i];
-        if (Input->DoNotUseFile)
-            continue;
-        auto& Frames = Input->Segments[Segment_Pos].Frames;
-        if (Frames_Status_Max < Frames.size())
+        // Segments
+        for (size_t i = 0; i < Input_Count; i++)
         {
-            Frames_Status_Max = Frames.size();
-            BlockStatus_Count = Frames.back().BlockStatus_Count;
+            auto& Input = Inputs[i];
+            if (Input->DoNotUseFile)
+                continue;
+            if (Segments_Max < Input->Segments.size())
+            {
+                Segments_Max = Input->Segments.size();
+                per_frame MissingFrame;
+                MissingFrame.Status.set(Status_FrameMissing);
+                MissingFrame.TC = Input->Segments.back().Frames[0].TC;
+                auto BlockStatus_Count = Input->Segments.back().Frames[0].BlockStatus_Count;
+                for (size_t j = 0; j < Input_Count; j++)
+                {
+                    auto& Input = Inputs[j];
+                    if (Input->DoNotUseFile)
+                        continue;
+                    if (Input->Segments.size() < Segments_Max)
+                    {
+                        Input->Segments.resize(Segments_Max);
+                        Input->Segments.back().Frames.push_back(MissingFrame);
+                        Input->Count_Blocks_Missing += BlockStatus_Count;
+                        Input->Count_Frames_Missing++;
+                    }
+                }
+            }
         }
     }
-    for (size_t i = 0; i < Input_Count; i++)
+
+    // Check which frames are available at least once
+    for (auto Segment_PosTemp = Segment_Pos; Segment_PosTemp < Segments_Max; Segment_PosTemp++)
     {
-        auto& Input = Inputs[i];
-        if (Input->DoNotUseFile)
-            continue;
-        auto& Frames = Input->Segments[Segment_Pos].Frames;
-        while (Frames.size() < Frames_Status_Max)
+        size_t LongestFile = 0;
+        size_t Frames_Status_Max = 0;
+        size_t BlockStatus_Count = 0;
+        for (size_t i = 0; i < Input_Count; i++)
         {
-            Frames.emplace_back(Status_FrameMissing, TimeCode(), nullptr, BlockStatus_Count);
-            Input->Count_Blocks_Missing += BlockStatus_Count;
-            Input->Count_Frames_Missing++;
+            auto& Input = Inputs[i];
+            if (Input->DoNotUseFile)
+                continue;
+            auto& Frames = Input->Segments[Segment_PosTemp].Frames;
+            if (Frames_Status_Max < Frames.size())
+            {
+                Frames_Status_Max = Frames.size();
+                BlockStatus_Count = Frames.back().BlockStatus_Count;
+            }
+        }
+        for (size_t i = 0; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            if (Input->DoNotUseFile)
+                continue;
+            auto& Frames = Input->Segments[Segment_PosTemp].Frames;
+            while (Frames.size() < Frames_Status_Max)
+            {
+                Frames.emplace_back(Status_FrameMissing, TimeCode(), nullptr, BlockStatus_Count);
+                Input->Count_Blocks_Missing += BlockStatus_Count;
+                Input->Count_Frames_Missing++;
+            }
         }
     }
 
@@ -1586,7 +1623,7 @@ void dv_merge_private::Finish()
         UpdateDynamicDisplay();
 
     // Pre-processing
-    if (SyncEnd())
+    if (SyncEnd(true))
         return;
 
     // Processing
