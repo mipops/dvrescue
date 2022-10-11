@@ -1203,7 +1203,7 @@ if [[ -f "${DVFILE}" ]] ; then
                     PACKAGED_DVFRAMES_temp="$(_count_dv_frames "${OUTPUT_FILE}")"
                     PACKAGED_DVFRAMES="${PACKAGED_DVFRAMES_temp//[$'\t\r\n ']}"
                     TOTAL_DVFRAMES_PACKAGED=$((TOTAL_DVFRAMES_PACKAGED+PACKAGED_DVFRAMES))
-                    AUD_STREAM_COUNT=($("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | awk '{printf "%s", $0}'))
+                    AUD_STREAM_COUNT=($("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
                     _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
                         VID_DUR=($("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
