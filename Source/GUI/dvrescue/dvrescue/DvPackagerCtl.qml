@@ -10,7 +10,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("dvrescue.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveDvrescueCmd = r.outputText
+                                                                                   effectiveDvrescueCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveDvrescueCmd = dvrescueCmd
@@ -23,7 +23,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("xml.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveXmlStarletCmd = r.outputText
+                                                                                   effectiveXmlStarletCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveXmlStarletCmd = xmlStarletCmd
@@ -36,7 +36,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("mediainfo.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveMediaInfoCmd = r.outputText
+                                                                                   effectiveMediaInfoCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveMediaInfoCmd = mediaInfoCmd
@@ -49,7 +49,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("ffmpeg.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveFfmpegCmd = r.outputText
+                                                                                   effectiveFfmpegCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveFfmpegCmd = ffmpegCmd
