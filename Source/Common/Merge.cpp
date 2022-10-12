@@ -856,8 +856,11 @@ bool dv_merge_private::Process(float Speed)
                 auto BytesRead = fread(Frame.Buffer.Data, 1, Frame_Size, Input->F);
                 Frame.Buffer.Size = BytesRead;
                 Input->F_Pos += BytesRead;
-                if (BytesRead != Frame.BlockStatus_Count * 80)
+                if (Frame.Buffer.Size != Frame.BlockStatus_Count * 80)
+                {
                     *Log << "File read issue." << endl;
+                    Frame.BlockStatus_Count = Frame.Buffer.Size / 80;
+                }
                 if (Frame.RepeatCount)
                 {
                     if (fseek(Input->F, (long)(Frame.BlockStatus_Count * 80 * Frame.RepeatCount), SEEK_CUR))
@@ -870,7 +873,10 @@ bool dv_merge_private::Process(float Speed)
                 Frame.Buffer = Input->DV_Data->move();
                 Input->F_Pos += Frame.Buffer.Size;
                 if (Frame.Buffer.Size != Frame.BlockStatus_Count * 80)
+                {
                     *Log << "File read issue." << endl;
+                    Frame.BlockStatus_Count = Frame.Buffer.Size / 80;
+                }
             }
         }
         else
