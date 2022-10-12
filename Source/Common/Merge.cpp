@@ -446,6 +446,9 @@ bool dv_merge_private::Init()
 //---------------------------------------------------------------------------
 bool dv_merge_private::ManageRepeatedFrame(size_t InputPos, const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
+    if (!Merge_InputFileNames.front().rfind("device://", 0))
+        return false; // No discard of repeated frames in case of capture
+
     auto& Input = Inputs[InputPos];
     auto& Frames = Input->Segments[Segment_Pos].Frames;
 
@@ -511,13 +514,14 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
         TimeCode TC_Previous(Frames.back().TC);
         if (CurrentFrame.TC.HasValue())
         {
-            if (CurrentFrame.TC.HasValue() && CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
+            if (CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
             {
                 Input->Segments.resize(Input->Segments.size() + 1);
                 Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
                 return false;
             }
-            TC_Previous++;
+            if (CurrentFrame.TC.ToFrames() != TC_Previous.ToFrames()) // Accept repeated frames
+                TC_Previous++;
             while (TC_Previous != CurrentFrame.TC)
             {
                 Frames.emplace_back(Status_FrameMissing, TC_Previous, nullptr, BlockStatus_Count);
