@@ -1494,13 +1494,13 @@ bool dv_merge_private::Process(float Speed)
         }
     }
 
-    if (OutputFrames_Speed && !((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
+    if (!OutputFrames_Speed && !((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
         Output.Count_Frames_Ignored_Speed++;
-    if (OutputFrames_Concealed && Frame.FullConcealed)
+    if (!OutputFrames_Concealed && !(Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
         Output.Count_Frames_Ignored_Concealed++;
     if (true
         && (OutputFrames_Speed || (Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed))
-        && (OutputFrames_Concealed || !Frame.FullConcealed)
+        && (OutputFrames_Concealed || (Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
         && (ShowFrames_Intermediate || (Prefered_Frame != -1 && FirstBadFrame == -1))
         )
     {
@@ -1773,7 +1773,7 @@ bool dv_merge_private::Stats()
     if (Output.Count_Frames_Ignored_Speed || Output.Count_Frames_Ignored_Concealed)
     {
         *Log << '\n';
-        *Log << "Frames discarded in output:\n";
+        *Log << "Frames discarded in output:";
         *Log << std::setw(Formating_BlockCount_Width + 2) << ' ';
         ShowFrames(Output.Count_Frames_Ignored_Speed, Count_Frames_Total, " discarded for non-standard playback speed.");
         *Log << '\n';
