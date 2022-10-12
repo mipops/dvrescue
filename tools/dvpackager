@@ -988,7 +988,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Reading from DV stream input at byte range ${PKT_POS}-${PKT_POS_END}"
-                DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END},,:${DVFILE}")
+                DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}")
             else
                 if [[ "${PTS}" = "00:00:00.000000" ]] ; then
                     :
@@ -1067,9 +1067,9 @@ if [[ -f "${DVFILE}" ]] ; then
                         unset SRa APADa
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
                         DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
-                        AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa},,:${DVFILE}"
+                        AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa:-0},,:${DVFILE}"
                         AUDIO_INPUTS+=(-i "${AUDIO_SUBFILE_INPUT}")
-                        LAST_FRAME_SUBFILE=(-i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa},,:${DVFILE}")
+                        LAST_FRAME_SUBFILE=(-i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa:-0},,:${DVFILE}")
                         FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT[@]}")"
                         if [[ "${CHa}" = "0" ]] ; then
                             DVRESCUE_AUDIO_QUERY="0"
