@@ -18,7 +18,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("xml.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveXmlStarletCmd = r.outputText
+                                                                                   effectiveXmlStarletCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveXmlStarletCmd = xmlStarletCmd
@@ -31,7 +31,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("mediainfo.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveMediaInfoCmd = r.outputText
+                                                                                   effectiveMediaInfoCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveMediaInfoCmd = mediaInfoCmd
@@ -44,7 +44,7 @@ Item {
             var cygpath = FileUtils.getFilePath(StandardPaths.findExecutable("cygpath.exe"));
             var filePath = FileUtils.getFilePath(FileUtils.find("ffmpeg.sh"));
             var getCygwinPathPromise = getCygwinPath(cygpath, filePath).then((r) => {
-                                                                                   effectiveFfmpegCmd = r.outputText
+                                                                                   effectiveFfmpegCmd = r.outputText.trim()
                                                                              });
         } else {
             effectiveFfmpegCmd = ffmpegCmd
@@ -121,7 +121,7 @@ Item {
             });
 
             console.debug('cygpath: ', cygpath);
-            launcher.execute(cygpath + " " + path);
+            launcher.execute(cygpath, [path]);
             /*
             if(callback)
                 callback(launcher)
@@ -175,14 +175,15 @@ Item {
             });
 
             console.debug('dvloupeCmd: ', dvLoupeCmd);
-            var cmd = detectedBashCmd + ' ' + dvLoupeCmd
+            var cmd = [dvLoupeCmd]
             if(extraArgs)
-                cmd = cmd + ' ' + extraArgs
+                cmd.push(...extraArgs)
+            cmd.push(...args)
 
             if(paths.length !== 0)
                 launcher.setPaths(paths);
 
-            launcher.execute(cmd + " " + args);
+            launcher.execute(detectedBashCmd, cmd);
             if(callback)
                 callback(launcher)
         })

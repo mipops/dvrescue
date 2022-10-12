@@ -186,38 +186,39 @@ ColumnLayout {
 
             console.debug('packaging: reportPath = ', reportPath, 'videoPath = ', videoPath, 'outputDir = ', outputDir)
 
-            var extraParams = " -v -X {xml} -F {ffmpeg} -D {dvrescue} -M {mediainfo}"
-            .replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-            .replace("{ffmpeg}", packagerCtl.effectiveFfmpegCmd)
-            .replace("{dvrescue}", packagerCtl.effectiveDvrescueCmd)
-            .replace("{mediainfo}", packagerCtl.effectiveMediaInfoCmd)
+            var extraParams = ['-v']
+            extraParams.push(...['-X', packagerCtl.effectiveXmlStarletCmd])
+            extraParams.push(...['-F',  packagerCtl.effectiveFfmpegCmd])
+            extraParams.push(...['-D', packagerCtl.effectiveDvrescueCmd])
+            extraParams.push(...['-M', packagerCtl.effectiveMediaInfoCmd])
 
-            var opts = '-z ';
+            var opts = ['-z'];
             if(recordingStartMarkers.checked)
-                opts += '-s '
+                opts.push('-s')
             if(breaksInRecordingTime.checked)
-                opts += '-d ';
+                opts.push('-d');
             if(breaksInTimecode.checked)
-                opts += '-t ';
+                opts.push('-t');
             if(segmentFilesToPreserveAudioSampleRate.checked)
-                opts += '-3 ';
+                opts.push('-3');
 
             if(aspectRatiosSelector.currentIndex === 0)
-                opts += '-a n ';
+                opts.push(...['-a', 'n']);
             if(aspectRatiosSelector.currentIndex === 2)
-                opts += '-a 4 ';
+                opts.push(...['-a', '4']);
             if(aspectRatiosSelector.currentIndex === 3)
-                opts += '-a 9 ';
+                opts.push(...['-a', '9']);
             if(aspectRatiosSelector.currentIndex === 1)
-                opts += '-a c ';
+                opts.push(...['-a', 'c']);
 
-            if(extraOpts.type === 'mkv')
-                opts += '-e mkv ';
+            if(extraOpts && extraOpts.type === 'mkv')
+                opts.push(...['-e', 'mkv']);
 
-            opts += '-o ' + outputDir + ' '
+            opts.push(...['-o', outputDir]);
+            opts.push(...['-x', reportPath, videoPath]);
 
             var output = '';
-            return packagerCtl.exec(opts + " -x " + reportPath + " " + videoPath, (launcher) => {
+            return packagerCtl.exec(opts, (launcher) => {
                                  debugView.logCommand(launcher)
                                  launcher.outputChanged.connect((outputString) => {
                                                                     if(onOutputChanged)
@@ -246,41 +247,40 @@ ColumnLayout {
                 videoPath = "/cygdrive/" + videoPath.replace(":", "");
             }
 
-            var extraParams = " -v -X {xml}".replace("{xml}", packagerCtl.effectiveXmlStarletCmd)
-
-            var opts = ' ';
+            var extraParams = ['-v', '-X', packagerCtl.effectiveXmlStarletCmd]
+            var opts = [];
             if(recordingStartMarkers.checked)
-                opts += '-s '
+                opts.push('-s')
             if(breaksInRecordingTime.checked)
-                opts += '-d ';
+                opts.push('-d');
             if(breaksInTimecode.checked)
-                opts += '-t ';
+                opts.push('-t');
             if(segmentFilesToPreserveAudioSampleRate.checked)
-                opts += '-3 ';
+                opts.push('-3');
 
             if(aspectRatiosSelector.currentIndex === 0)
-                opts += '-a n ';
+                opts.push(...['-a', 'n']);
             if(aspectRatiosSelector.currentIndex === 2)
-                opts += '-a 4 ';
+                opts.push(...['-a', '4']);
             if(aspectRatiosSelector.currentIndex === 3)
-                opts += '-a 9 ';
+                opts.push(...['-a', '9']);
             if(aspectRatiosSelector.currentIndex === 1)
-                opts += '-a c ';
+                opts.push(...['-a', 'c']);
 
-            if(extraOpts) {
-                if(extraOpts.type === 'mkv')
-                    opts += '-e mkv ';
-            }
+            if(extraOpts && extraOpts.type === 'mkv')
+                opts.push(...['-e', 'mkv']);
 
             if(outputPath) {
                 if(Qt.platform.os === "windows") {
                     outputPath = "/cygdrive/" + outputPath.replace(":", "");
                 }
-                opts += '-o ' + outputPath + ' '
+                opts.push(...['-o', outputPath]);
             }
 
+            opts.push(...['-T', reportPath, videoPath])
+
             var output = '';
-            packagerCtl.exec(opts + '-T' + ' ' + reportPath + ' ' + videoPath, (launcher) => {
+            packagerCtl.exec(opts, (launcher) => {
                                  debugView.logCommand(launcher)
                                  launcher.outputChanged.connect((outputString) => {
                                                                     output += outputString;

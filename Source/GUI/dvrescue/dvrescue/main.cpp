@@ -69,6 +69,11 @@ int main(int argc, char *argv[])
 
     paths.prepend(additionalPath);
     qputenv("PATH", paths.toUtf8());
+
+    // Set TMPDIR to a known writable place for cygwin's mktemp
+    auto tmpdir = QDir::tempPath();
+    qputenv("TMPDIR", tmpdir.toUtf8());
+
 #elif defined(Q_OS_MAC)
     auto appDirPath = QCoreApplication::applicationDirPath();
     qDebug() << "appDirPath: " << appDirPath;
