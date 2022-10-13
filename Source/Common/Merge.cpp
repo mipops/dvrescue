@@ -381,8 +381,9 @@ bool dv_merge_private::Init()
         Input->Segments.resize(1);
         Inputs.push_back(Input);
     }
-    for (size_t i = 0; i < Merge_Rewind_Count; i++)
-        *Log << "File " << Merge_InputFileNames.size() + i << ": auto-rewind\n";
+    if (!MergeInfo_Format)
+        for (size_t i = 0; i < Merge_Rewind_Count; i++)
+            *Log << "File " << Merge_InputFileNames.size() + i << ": auto-rewind\n";
 
     if (Verbosity > 5)
     {
