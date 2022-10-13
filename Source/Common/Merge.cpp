@@ -25,6 +25,7 @@ uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffe
 //---------------------------------------------------------------------------
 vector<string> Merge_InputFileNames;
 FILE* Merge_Out = nullptr;
+uint64_t Merge_Out_Size = -1;
 const char* Merge_OutputFileName = nullptr;
 ostream* MergeInfo_Out = nullptr;
 ofstream Out;
@@ -1767,6 +1768,9 @@ bool dv_merge_private::Stats()
         *Log << '\n';
     }
     *Log << flush;
+
+    if (Output.F_Pos)
+        Merge_Out_Size = Output.F_Pos;
 
     return false;
 }

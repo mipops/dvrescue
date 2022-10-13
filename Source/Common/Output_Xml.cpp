@@ -21,6 +21,10 @@ using namespace ZenLib;
 //***************************************************************************
 
 //---------------------------------------------------------------------------
+extern const char* Merge_OutputFileName; 
+extern uint64_t Merge_Out_Size;
+
+//---------------------------------------------------------------------------
 static const char* const Writer_Name = "XML";
 
 //***************************************************************************
@@ -146,6 +150,8 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             continue; // Show the file only if it exists
         Text += "\t<media";
         auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
+        if (FileName.empty() && Merge_OutputFileName)
+            FileName = Ztring().From_Local(Merge_OutputFileName);
         if (!FileName.empty())
         {
             Text += " ref=\"";
@@ -169,6 +175,8 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += '\"';
         }
         auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
+        if (FileSize.empty() && Merge_Out_Size != -1)
+            FileSize = Ztring::ToZtring(Merge_Out_Size);
         if (!FileSize.empty())
         {
             Text += " size=\"";
