@@ -21,6 +21,7 @@ using namespace ZenLib;
 //***************************************************************************
 
 //---------------------------------------------------------------------------
+extern vector<string> Merge_InputFileNames;
 extern const char* Merge_OutputFileName; 
 extern uint64_t Merge_Out_Size;
 
@@ -156,6 +157,12 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         {
             Text += " ref=\"";
             Text += Ztring(FileName).To_UTF8();
+            Text += '\"';
+        }
+        if (Merge_OutputFileName && Merge_InputFileNames.size() == 1)
+        {
+            Text += " fromCapture=\"";
+            Text += Merge_InputFileNames[0];
             Text += '\"';
         }
         if (File->PerFrame.empty() || File->PerChange.empty())
