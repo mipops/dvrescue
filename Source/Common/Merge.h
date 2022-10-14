@@ -26,7 +26,7 @@ extern uint8_t Verbosity;
 extern uint8_t UseAbst;
 extern bool OutputFrames_Speed;
 extern bool OutputFrames_Concealed;
-extern bool ShowFrames_Missing;
+extern int ShowFrames_Missing;
 extern int ShowFrames_Intermediate;
 extern bool InControl;
 extern uint64_t Device_Pos;

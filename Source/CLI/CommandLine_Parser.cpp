@@ -703,6 +703,8 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         Verbosity = 9;
     }
 
+    if (ShowFrames_Missing == -1)
+        ShowFrames_Missing = MergeInfo_Format ? false : true;
     if (ShowFrames_Intermediate == -1)
         ShowFrames_Intermediate = MergeInfo_Format ? false : true;
 
