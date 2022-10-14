@@ -37,6 +37,7 @@ uint64_t Timeout = 0;
 uint8_t UseAbst = 0;
 bool OutputFrames_Speed = false;
 bool OutputFrames_Concealed = false;
+bool OutputFrames_NoData = false;
 int ShowFrames_Missing = -1;
 int ShowFrames_Intermediate = -1;
 extern void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames);
@@ -113,6 +114,7 @@ namespace
         uint8_t             RepeatCount = 0;
         int                 Speed = INT_MIN;
         int                 FullConcealed = false;
+        bool                NoData = false;
 
         per_frame() = default;
         per_frame(status const& Status_, ::TimeCode const& TC_, uint8_t* const& BlockStatus_, size_t BlockStatus_Count_) :
@@ -488,6 +490,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
     CurrentFrame.Speed = GetDvSpeed(*FrameData);
     CurrentFrame.FullConcealed = coherency_flags(FrameData).full_conceal();
+    CurrentFrame.NoData = coherency_flags(FrameData).no_data();
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
@@ -1489,6 +1492,7 @@ bool dv_merge_private::Process(float Speed)
     if (true
         && (OutputFrames_Speed || (Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed))
         && (OutputFrames_Concealed || (Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
+        && (OutputFrames_NoData || (Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].NoData))
         && (ShowFrames_Intermediate || (Prefered_Frame != -1 && FirstBadFrame == -1))
         )
     {

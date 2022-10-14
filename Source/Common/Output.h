@@ -122,6 +122,7 @@ public:
     inline bool no_sourceorcontrol_aud() { return ((_Value >> 6) & 0x1); }          // 6
     inline bool no_pack() { return no_pack_sub() && no_pack_vid() && no_pack_aud() ; }
     inline bool full_conceal() { return full_conceal_vid() && full_conceal_aud(); }
+    inline bool no_data() { return (_Value2 >> 3) & 0x1; }                          //
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) _Value;

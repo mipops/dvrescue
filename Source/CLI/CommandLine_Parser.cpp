@@ -356,6 +356,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             OutputFrames_Concealed = false;
         }
+        else if (!strcmp(argv_ansi[i], "--merge-output-nodata"))
+        {
+            OutputFrames_NoData = true;
+        }
+        else if (!strcmp(argv_ansi[i], "--merge-ignore-nodata"))
+        {
+            OutputFrames_NoData = false;
+        }
         else if (!strcmp(argv_ansi[i], "--merge-log-missing"))
         {
             ShowFrames_Missing = true;
