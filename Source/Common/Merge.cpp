@@ -35,7 +35,7 @@ uint8_t Verbosity = 5;
 uint8_t UseAbst = 0;
 bool OutputFrames_Speed = false;
 bool OutputFrames_Concealed = false;
-bool ShowFrames_Missing = true;
+int ShowFrames_Missing = -1;
 int ShowFrames_Intermediate = -1;
 extern void timecode_to_string(string& Data, int Seconds, bool DropFrame, int Frames);
 void date_to_string(string& Data, int Years, int Months, int Days);
