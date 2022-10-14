@@ -54,6 +54,13 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="fromCapture" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Reference to the capture path when the original path is the one of the file being created during analysis.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="format" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
