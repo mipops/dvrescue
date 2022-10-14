@@ -487,7 +487,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     CurrentFrame.TC_SMPTE = timecode(FrameData);
     CurrentFrame.AbstBf = abst_bf(FrameData->AbstBf);
     CurrentFrame.Speed = GetDvSpeed(*FrameData);
-    CurrentFrame.FullConcealed = coherency_flags(FrameData->Coherency_Flags).full_conceal();
+    CurrentFrame.FullConcealed = coherency_flags(FrameData).full_conceal();
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);

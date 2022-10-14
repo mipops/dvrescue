@@ -738,7 +738,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
     }
     PerFrame.push_back(ToPush);
 
-    coherency_flags Coherency(FrameData->Coherency_Flags);
+    coherency_flags Coherency(FrameData);
     if (!no_sourceorcontrol_aud_set_in_first_frame && !(Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()))
     {
         if (!PerChange.empty() && ToPush->FrameNumber == PerChange.back()->FrameNumber)

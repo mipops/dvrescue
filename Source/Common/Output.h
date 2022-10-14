@@ -111,7 +111,8 @@ private:
 struct coherency_flags
 {
 public:
-    coherency_flags(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) Value) : _Value(Value) {}
+    coherency_flags(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value(Frame.Coherency_Flags), _Value2(Frame.MoreFlags) {}
+    coherency_flags(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value(Frame->Coherency_Flags), _Value2(Frame->MoreFlags) {}
     inline bool no_pack_sub() { return ((_Value >> 0) & 0x1); }                     // 0
     inline bool no_pack_vid() { return ((_Value >> 1) & 0x1); }                     // 1
     inline bool no_pack_aud() { return ((_Value >> 2) & 0x1); }                     // 2
@@ -124,6 +125,7 @@ public:
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) _Value;
+    decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::MoreFlags) _Value2;
 };
 
 //***************************************************************************
