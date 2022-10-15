@@ -354,7 +354,7 @@ QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
             painter->save();
             painter->setRenderHint( QPainter::Antialiasing, false );
 
-            const bool doAlign = QwtPainter::roundingAlignment( painter );
+            const bool doAlign = false; // QwtPainter::roundingAlignment( painter );
 
             auto xBottomAxisScalDiv = plot()->axisScaleDiv(QwtPlot::xBottom);
             auto first = xMap.transform(0);
