@@ -7,7 +7,7 @@ import Launcher 0.1
 import FileUtils 1.0
 import SettingsUtils 1.0
 import QwtQuick2 1.0
-import Qt.labs.platform 1.1
+import Qt.labs.platform 1.1 as Platform
 
 ApplicationWindow {
     id: root
@@ -16,6 +16,19 @@ ApplicationWindow {
     visible: true
     title: qsTr("DVRescue")
     color: "#2e3436"
+
+    menuBar: MenuBar {
+        Menu {
+            title: "dvrescue"
+
+            MenuItem {
+                text: "About dvrescue"
+                onTriggered: {
+                    about.open()
+                }
+            }
+        }
+    }
 
     DvRescueLogo {
         id: dvRescueLogo
@@ -89,14 +102,6 @@ ApplicationWindow {
             // text: qsTr("Debug")
             onClicked: {
                 debugView.visible = !debugView.visible
-            }
-            icon.source: "/icons/menu-debug.svg"
-        }
-
-        NavButton {
-            // text: qsTr("Debug")
-            onClicked: {
-                about.open()
             }
             icon.source: "/icons/menu-debug.svg"
         }
@@ -278,7 +283,7 @@ ApplicationWindow {
 
     SpecifyPathDialog {
         id: specifyPathDialog
-        filePath: StandardPaths.writableLocation(StandardPaths.MoviesLocation)
+        filePath: Platform.StandardPaths.writableLocation(Platform.StandardPaths.MoviesLocation)
         fileName: "out.dv"
     }
 
