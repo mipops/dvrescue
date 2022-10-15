@@ -40,11 +40,15 @@ Dialog {
                 text: version
                 font.pixelSize: 20
             }
-        }
 
-        Text {
-            text: buildDate
-            Layout.alignment: Qt.AlignHCenter
+            Text {
+                text: ' - '
+            }
+
+            Text {
+                text: buildDate
+                font.pixelSize: 20
+            }
         }
 
         Text {
