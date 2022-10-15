@@ -218,8 +218,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("buildQtVersionString", QString("Qt %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
     engine.rootContext()->setContextProperty("runtimeQtVersionString", qVersion());
 
-    engine.rootContext()->setContextProperty("buildFFMpegVersionString", FFMPEG_VERSION);
-    engine.rootContext()->setContextProperty("runtimeFFMpegVersionString", av_version_info());
+    engine.rootContext()->setContextProperty("buildFFmpegVersionString", FFMPEG_VERSION);
+    engine.rootContext()->setContextProperty("runtimeFFmpegVersionString", av_version_info());
     DataModel::setEngine(&engine);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));

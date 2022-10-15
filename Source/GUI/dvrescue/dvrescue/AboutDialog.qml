@@ -14,8 +14,8 @@ Popup {
     property string buildDate: ""
     property string buildQtVersion: ""
     property string runtimeQtVersion: ""
-    property string buildFFMpegVersion: ""
-    property string runtimeFFMpegVersion: ""
+    property string buildFFmpegVersion: ""
+    property string runtimeFFmpegVersion: ""
 
     anchors.centerIn: parent
     contentWidth: layout.childrenRect.width
@@ -68,7 +68,7 @@ Popup {
         }
 
         Text {
-            text: "Build FFMpeg version: " + buildFFMpegVersion + ", runtime FFMpeg version: " + runtimeFFMpegVersion
+            text: "Build FFmpeg version: " + buildFFmpegVersion + ", runtime FFmpeg version: " + runtimeFFmpegVersion
             Layout.alignment: Qt.AlignHCenter
         }
     }

@@ -16,8 +16,8 @@ Rectangle {
         buildDate: buildDateString
         buildQtVersion: buildQtVersionString
         runtimeQtVersion: runtimeQtVersionString
-        buildFFMpegVersion: buildFFMpegVersionString
-        runtimeFFMpegVersion: runtimeFFMpegVersionString
+        buildFFmpegVersion: buildFFmpegVersionString
+        runtimeFFmpegVersion: runtimeFFmpegVersionString
     }
 
     TestCase {

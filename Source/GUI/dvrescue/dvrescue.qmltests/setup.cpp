@@ -96,8 +96,8 @@ void Setup::qmlEngineAvailable(QQmlEngine *engine)
     engine->rootContext()->setContextProperty("buildQtVersionString", QString("Qt %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
     engine->rootContext()->setContextProperty("runtimeQtVersionString", qVersion());
 
-    engine->rootContext()->setContextProperty("buildFFMpegVersionString", FFMPEG_VERSION);
-    engine->rootContext()->setContextProperty("runtimeFFMpegVersionString", av_version_info());
+    engine->rootContext()->setContextProperty("buildFFmpegVersionString", FFMPEG_VERSION);
+    engine->rootContext()->setContextProperty("runtimeFFmpegVersionString", av_version_info());
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     engine->addImportPath("qrc:/qt5");
