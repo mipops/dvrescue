@@ -29,12 +29,6 @@ Dialog {
             Layout.alignment: Qt.AlignHCenter
         }
 
-        Text {
-            text: "DVRescue"
-            font.pixelSize: 25
-            Layout.alignment: Qt.AlignHCenter
-        }
-
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
             Text {
