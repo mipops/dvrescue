@@ -8,7 +8,7 @@ import FileUtils 1.0
 import SettingsUtils 1.0
 import QwtQuick2 1.0
 
-Popup {
+Dialog {
     id: aboutDialog
     property string version: ""
     property string buildDate: ""
@@ -20,6 +20,7 @@ Popup {
     anchors.centerIn: parent
     contentWidth: layout.childrenRect.width
     contentHeight: layout.childrenRect.height
+    standardButtons: Dialog.Close
 
     ColumnLayout {
         id: layout
