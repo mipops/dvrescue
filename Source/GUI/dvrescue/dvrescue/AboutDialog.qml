@@ -52,13 +52,31 @@ Dialog {
         }
 
         Text {
-            text: "Copyright (c) 2019-2022, Moving Image Preservation of Puget Sound."
+            text: "<a href='https://www.mipops.org/'>Copyright © 2019-2022, Moving Image Preservation of Puget Sound.</a>"
             Layout.alignment: Qt.AlignHCenter
+            onLinkActivated: {
+                console.debug('link: ', link)
+                Qt.openUrlExternally(link)
+            }
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+                cursorShape: Qt.PointingHandCursor
+            }
         }
 
         Text {
-            text: "Third party libraries Copyright (c) 2012-2020 MediaArea.net SARL"
+            text: "<a href='https://mediaarea.net/'>Third party libraries Copyright © 2012-2020 MediaArea.net SARL</a>"
             Layout.alignment: Qt.AlignHCenter
+            onLinkActivated: {
+                console.debug('link: ', link)
+                Qt.openUrlExternally(link)
+            }
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+                cursorShape: Qt.PointingHandCursor
+            }
         }
 
         Text {
