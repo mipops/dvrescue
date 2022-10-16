@@ -112,8 +112,7 @@ Rectangle {
                         var blockErrors = entries[indexOfBlockErrors]
                         var blockErrorsEven = entries[indexOfBlockErrorsEven]
 
-                        if(blockErrors && blockErrorsEven)
-                            dataModel.append(framePos, blockErrorsEven, blockErrors)
+                        dataModel.append(framePos, blockErrorsEven, blockErrors, captureView.capturingModeInt == captureView.playing)
                     }
                 }
 

@@ -25,6 +25,8 @@ class CaptureErrorPlotDataModel : public QObject
     Q_PROPERTY(int lastWithErrors READ lastWithErrors NOTIFY lastWithErrorsChanged)
     Q_PROPERTY(QwtQuick2PlotCurve* evenCurve READ evenCurve WRITE setEvenCurve NOTIFY evenCurveChanged)
     Q_PROPERTY(QwtQuick2PlotCurve* oddCurve READ oddCurve WRITE setOddCurve NOTIFY oddCurveChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* notInPlayOrRecordCurveEven READ notInPlayOrRecordCurveEven WRITE setNotInPlayOrRecordCurveEven NOTIFY notInPlayOrRecordCurveEvenChanged)
+    Q_PROPERTY(QwtQuick2PlotCurve* notInPlayOrRecordCurveOdd READ notInPlayOrRecordCurveOdd WRITE setNotInPlayOrRecordCurveOdd NOTIFY notInPlayOrRecordCurveOddChanged)
 
 public:
     explicit CaptureErrorPlotDataModel(QObject *parent = nullptr);
@@ -39,6 +41,7 @@ public:
         int frameNumber;
         float evenValue;
         float oddValue;
+        bool playing;
     };
 
     QwtQuick2PlotCurve *evenCurve() const;
@@ -47,11 +50,17 @@ public:
     QwtQuick2PlotCurve *oddCurve() const;
     void setOddCurve(QwtQuick2PlotCurve *newOddCurve);
 
+    QwtQuick2PlotCurve *notInPlayOrRecordCurveEven() const;
+    void setNotInPlayOrRecordCurveEven(QwtQuick2PlotCurve *newNotInPlayOrRecordCurveEven);
+
+    QwtQuick2PlotCurve *notInPlayOrRecordCurveOdd() const;
+    void setNotInPlayOrRecordCurveOdd(QwtQuick2PlotCurve *newNotInPlayOrRecordCurveOdd);
+
 public Q_SLOTS:
     void update();
     void reset();
 
-    void append(int frameNumber, float even, float odd);
+    void append(int frameNumber, float even, float odd, bool playing);
 
 Q_SIGNALS:
     void totalChanged();
@@ -64,6 +73,9 @@ Q_SIGNALS:
     void evenCurveChanged();
     void oddCurveChanged();
 
+    void notInPlayOrRecordCurveEvenChanged();
+    void notInPlayOrRecordCurveOddChanged();
+
 private:
 
     QList<std::tuple<int, GraphStats>> m_values;
@@ -74,5 +86,7 @@ private:
 
     QwtQuick2PlotCurve *m_evenCurve = nullptr;
     QwtQuick2PlotCurve *m_oddCurve = nullptr;
+    QwtQuick2PlotCurve *m_notInPlayOrRecordCurveEven = nullptr;
+    QwtQuick2PlotCurve *m_notInPlayOrRecordCurveOdd = nullptr;
 };
 #endif // CAPTUREERRORPLOTDATAMODEL_H

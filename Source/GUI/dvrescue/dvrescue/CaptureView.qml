@@ -70,6 +70,8 @@ Column {
             capturingModeInt = ffing
         else
             capturingModeInt = stopped
+
+        console.debug('capturingModeInt => ', capturingModeInt)
     }
     property int capturingModeInt: stopped // stop
 
@@ -221,7 +223,8 @@ Column {
                 icon.color: 'transparent'
                 icon.source: "/icons/rewind.svg"
                 onClicked: {
-                    dataModel.reset()
+                    if(grabbing)
+                        dataModel.reset()
                 }
 
                 Component.onCompleted: {
@@ -234,7 +237,8 @@ Column {
                 icon.color: 'transparent'
                 icon.source: "/icons/srew.svg"
                 onClicked: {
-                    dataModel.reset()
+                    if(grabbing)
+                        dataModel.reset()
                 }
 
                 Component.onCompleted: {
@@ -247,7 +251,8 @@ Column {
                 icon.color: 'transparent'
                 icon.source: "/icons/play.svg"
                 onClicked: {
-                    dataModel.reset()
+                    if(grabbing)
+                        dataModel.reset()
                 }
 
                 Component.onCompleted: {
@@ -266,7 +271,8 @@ Column {
                 icon.color: 'transparent'
                 icon.source: "/icons/fastforward.svg"
                 onClicked: {
-                    dataModel.reset()
+                    if(grabbing)
+                        dataModel.reset()
                 }
 
                 Component.onCompleted: {
@@ -278,7 +284,8 @@ Column {
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
                 onClicked: {
-                    dataModel.reset()
+                    if(grabbing)
+                        dataModel.reset()
                 }
 
                 Component.onCompleted: {
@@ -379,7 +386,7 @@ Column {
                 xBottomAxisVisible: false
                 yLeftAxisVisible: false
                 backgroundColor: "Cornsilk"
-                yLeftAxisRange: Qt.vector2d(-750, 750)
+                yLeftAxisRange: Qt.vector2d(-900, 900)
 
                 Component.onCompleted: {
                     yLeftAxisFont.bold = false
@@ -401,6 +408,20 @@ Column {
                     title: "odd";
                     curveStyle: QwtQuick2PlotCurve.Sticks
                     color: "green"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordCurveEven
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordCurveOdd
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
                     titleColor: "darkgray"
                 }
 
@@ -444,6 +465,8 @@ Column {
             id: dataModel
             evenCurve: evenCurve
             oddCurve: oddCurve
+            notInPlayOrRecordCurveEven: notInPlayOrRecordCurveEven
+            notInPlayOrRecordCurveOdd: notInPlayOrRecordCurveOdd
 
             onTotalChanged: {
                 console.debug('total changed: ', total)

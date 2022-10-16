@@ -43,10 +43,11 @@ void CaptureErrorPlotDataModel::update()
 
     auto evenCurveData = static_cast<CircularPlotData*>(m_evenCurve->curve()->data());
     auto oddCurveData = static_cast<CircularPlotData*>(m_oddCurve->curve()->data());
+    auto notInPlayOrRecordCurveEvenData = static_cast<CircularPlotData*>(m_notInPlayOrRecordCurveEven->curve()->data());
+    auto notInPlayOrRecordCurveOddData = static_cast<CircularPlotData*>(m_notInPlayOrRecordCurveOdd->curve()->data());
 
     int maxFrame = 0;
     int minFrame = 0;
-    float absMaxValue = 0;
     auto valuesCount = m_values.count();
     auto valuesCountWithError = 0;
 
@@ -55,15 +56,23 @@ void CaptureErrorPlotDataModel::update()
 
         auto frameNumber = std::get<0>(valueTuple);
         maxFrame = qMax(maxFrame, frameNumber);
-
         auto value = std::get<1>(valueTuple);
-        absMaxValue = std::max(std::abs(value.evenValue), std::abs(value.oddValue));
 
-        evenCurveData->append(QPointF(frameNumber, value.evenValue));
-        oddCurveData->append(QPointF(frameNumber, value.oddValue));
+        auto playing = value.playing;
+        if(playing) {
+            evenCurveData->append(QPointF(frameNumber, value.evenValue));
+            oddCurveData->append(QPointF(frameNumber, value.oddValue));
+            notInPlayOrRecordCurveEvenData->append(QPointF(frameNumber, 0));
+            notInPlayOrRecordCurveOddData->append(QPointF(frameNumber, 0));
 
-        if(!qFuzzyCompare(value.evenValue, 0.0f) || !qFuzzyCompare(value.oddValue, 0.0f)) {
-            ++valuesCountWithError;
+            if(!qFuzzyCompare(value.evenValue, 0.0f) || !qFuzzyCompare(value.oddValue, 0.0f)) {
+                ++valuesCountWithError;
+            }
+        } else {
+            evenCurveData->append(QPointF(frameNumber, value.evenValue));
+            oddCurveData->append(QPointF(frameNumber, value.oddValue));
+            notInPlayOrRecordCurveEvenData->append(QPointF(frameNumber, 900));
+            notInPlayOrRecordCurveOddData->append(QPointF(frameNumber, -900));
         }
     }
 
@@ -71,10 +80,6 @@ void CaptureErrorPlotDataModel::update()
     minFrame = qMax(0, minFrame);
 
     m_evenCurve->plot()->setXBottomAxisRange(QVector2D(minFrame, maxFrame));
-
-    if(absMaxValue > 750 && m_evenCurve->plot()->yLeftAxisRange().y() < 900) {
-        m_evenCurve->plot()->setYLeftAxisRange(QVector2D(-900, 900));
-    }
 
     if(valuesCount != 0) {
         m_total += valuesCount;
@@ -120,6 +125,8 @@ void CaptureErrorPlotDataModel::reset()
 {
     static_cast<CircularPlotData*>(m_evenCurve->curve()->data())->clear();
     static_cast<CircularPlotData*>(m_oddCurve->curve()->data())->clear();
+    static_cast<CircularPlotData*>(m_notInPlayOrRecordCurveEven->curve()->data())->clear();
+    static_cast<CircularPlotData*>(m_notInPlayOrRecordCurveOdd->curve()->data())->clear();
 
     m_values.clear();
 
@@ -147,9 +154,9 @@ void CaptureErrorPlotDataModel::reset()
     Q_EMIT clearModel();
 }
 
-void CaptureErrorPlotDataModel::append(int frameNumber, float even, float odd)
+void CaptureErrorPlotDataModel::append(int frameNumber, float even, float odd, bool playing)
 {
-    qDebug() << "CaptureErrorPlotDataModel::append: " << frameNumber << even << odd;
+    // qDebug() << "CaptureErrorPlotDataModel::append: " << frameNumber << even << odd << playing;
 
     even = std::isnan(even) ? 0 : even;
     odd = std::isnan(odd) ? 0 : odd;
@@ -158,6 +165,7 @@ void CaptureErrorPlotDataModel::append(int frameNumber, float even, float odd)
         int(frameNumber),
         even,
         -odd,
+        playing
     };
 
     m_values.push_back(std::make_tuple(frameNumber, value));
@@ -189,4 +197,32 @@ void CaptureErrorPlotDataModel::setOddCurve(QwtQuick2PlotCurve *newOddCurve)
     m_oddCurve = newOddCurve;
     m_oddCurve->curve()->setData(new CircularPlotData());
     Q_EMIT oddCurveChanged();
+}
+
+QwtQuick2PlotCurve *CaptureErrorPlotDataModel::notInPlayOrRecordCurveEven() const
+{
+    return m_notInPlayOrRecordCurveEven;
+}
+
+void CaptureErrorPlotDataModel::setNotInPlayOrRecordCurveEven(QwtQuick2PlotCurve *newNotInPlayOrRecordCurve)
+{
+    if (m_notInPlayOrRecordCurveEven == newNotInPlayOrRecordCurve)
+        return;
+    m_notInPlayOrRecordCurveEven = newNotInPlayOrRecordCurve;
+    m_notInPlayOrRecordCurveEven->curve()->setData(new CircularPlotData());
+    Q_EMIT notInPlayOrRecordCurveEvenChanged();
+}
+
+QwtQuick2PlotCurve *CaptureErrorPlotDataModel::notInPlayOrRecordCurveOdd() const
+{
+    return m_notInPlayOrRecordCurveOdd;
+}
+
+void CaptureErrorPlotDataModel::setNotInPlayOrRecordCurveOdd(QwtQuick2PlotCurve *newNotInPlayOrRecordCurve)
+{
+    if (m_notInPlayOrRecordCurveOdd == newNotInPlayOrRecordCurve)
+        return;
+    m_notInPlayOrRecordCurveOdd  = newNotInPlayOrRecordCurve;
+    m_notInPlayOrRecordCurveOdd ->curve()->setData(new CircularPlotData());
+    Q_EMIT notInPlayOrRecordCurveOddChanged();
 }
