@@ -24,6 +24,7 @@ Menu {
             }
 
             text: filePath
+            enabled: FileUtils.exists(filePath)
 
             onClicked: {
                 recentsPopup.close();
