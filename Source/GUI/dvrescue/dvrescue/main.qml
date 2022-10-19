@@ -36,6 +36,12 @@ ApplicationWindow {
         anchors.leftMargin: 10
         anchors.top: parent.top
         anchors.topMargin: 10
+
+        TapHandler {
+            onTapped: {
+                about.open()
+            }
+        }
     }
 
     AboutDialog {
