@@ -85,6 +85,11 @@ Dialog {
         }
 
         Text {
+            text: "This software uses libraries from the FFmpeg project under the LGPLv2.1"
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        Text {
             text: "Build FFmpeg version: " + buildFFmpegVersion + ", runtime FFmpeg version: " + runtimeFFmpegVersion
             Layout.alignment: Qt.AlignHCenter
         }
