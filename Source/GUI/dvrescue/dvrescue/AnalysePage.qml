@@ -598,7 +598,7 @@ Item {
                         }
 
                         var args = ['-i', playerView.player.source, '-b', offset, '-f', 'json', '-T', 'n']
-                        args.append(...filterOptions)
+                        filterOptions.forEach((opt) => args.push(opt))
                         dvloupe.exec(args, (launcher) => {
                             debugView.logCommand(launcher)
                         }, extraParams).then((result) => {
