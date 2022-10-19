@@ -16,6 +16,11 @@
 #include <csvparser.h>
 #include <imageutils.h>
 
+extern "C" {
+#include "libavutil/avutil.h"
+#include "libavutil/ffversion.h"
+}
+
 void Setup::applicationAvailable()
 {
     qDebug() << "applicationAvailable";
@@ -81,6 +86,19 @@ void Setup::applicationAvailable()
 
 void Setup::qmlEngineAvailable(QQmlEngine *engine)
 {
+#ifndef BUILD_VERSION
+#define BUILD_VERSION "devel"
+#endif //
+
+    engine->rootContext()->setContextProperty("buildVersionString", BUILD_VERSION);
+    engine->rootContext()->setContextProperty("buildDateString", QString("%1 %2").arg(__DATE__).arg(__TIME__));
+
+    engine->rootContext()->setContextProperty("buildQtVersionString", QString("Qt %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
+    engine->rootContext()->setContextProperty("runtimeQtVersionString", qVersion());
+
+    engine->rootContext()->setContextProperty("buildFFmpegVersionString", FFMPEG_VERSION);
+    engine->rootContext()->setContextProperty("runtimeFFmpegVersionString", av_version_info());
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     engine->addImportPath("qrc:/qt5");
     #if QT_VERSION < QT_VERSION_CHECK(5, 13, 0)

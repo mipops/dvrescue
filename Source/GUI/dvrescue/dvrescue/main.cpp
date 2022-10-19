@@ -24,6 +24,10 @@
 #include <imageutils.h>
 #include <loggingutils.h>
 
+extern "C" {
+#include "libavutil/avutil.h"
+#include "libavutil/ffversion.h"
+}
 int main(int argc, char *argv[])
 {
     LoggingUtils::installFilter();
@@ -204,6 +208,18 @@ int main(int argc, char *argv[])
     engine.addImportPath("qrc:/qt513+");
 #endif //
 
+#ifndef BUILD_VERSION
+#define BUILD_VERSION "devel"
+#endif //
+
+    engine.rootContext()->setContextProperty("buildVersionString", BUILD_VERSION);
+    engine.rootContext()->setContextProperty("buildDateString", QString("%1 %2").arg(__DATE__).arg(__TIME__));
+
+    engine.rootContext()->setContextProperty("buildQtVersionString", QString("Qt %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH));
+    engine.rootContext()->setContextProperty("runtimeQtVersionString", qVersion());
+
+    engine.rootContext()->setContextProperty("buildFFmpegVersionString", FFMPEG_VERSION);
+    engine.rootContext()->setContextProperty("runtimeFFmpegVersionString", av_version_info());
     DataModel::setEngine(&engine);
 
     const QUrl url(QStringLiteral("qrc:/main.qml"));
