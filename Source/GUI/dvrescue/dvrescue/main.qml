@@ -17,11 +17,11 @@ ApplicationWindow {
     title: qsTr("DVRescue")
     color: "#2e3436"
 
-    menuBar: MenuBar {
-        Menu {
+    Platform.MenuBar {
+        Platform.Menu {
             title: "dvrescue"
 
-            MenuItem {
+            Platform.MenuItem {
                 text: "About dvrescue"
                 onTriggered: {
                     about.open()
