@@ -27,6 +27,13 @@ ApplicationWindow {
                     about.open()
                 }
             }
+
+            Platform.MenuItem {
+                text: "Preferences"
+                onTriggered: {
+                    toolsDialog.show()
+                }
+            }
         }
     }
 
