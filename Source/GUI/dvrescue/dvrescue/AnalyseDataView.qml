@@ -633,15 +633,7 @@ Rectangle {
 
     property int columnSpacing: 10
 
-    property var visibleColumns: settings.advancedFrameTable ? dataModel.columnsNames : [
-        dataModel.columnsNames[dataModel.frameColumn],
-        dataModel.columnsNames[dataModel.timestampColumn],
-        dataModel.columnsNames[dataModel.timecodeColumn],
-        dataModel.columnsNames[dataModel.recordingTimeColumn],
-        dataModel.columnsNames[dataModel.videoErrorColumn],
-        dataModel.columnsNames[dataModel.audioErrorColumn],
-        dataModel.columnsNames[dataModel.videoAudioColumn],
-    ]
+    property var visibleColumns: settings.advancedFrameTable ? settings.frameTableColumns : dataModel.simpleColumnsNames
 
     onVisibleColumnsChanged: {
         console.debug('visibleColumns: ', JSON.stringify(visibleColumns, 0, 4))
@@ -653,6 +645,16 @@ Rectangle {
 
     TableModelEx {
         id: dataModel
+
+        property var simpleColumnsNames: [
+            columnsNames[frameColumn],
+            columnsNames[timestampColumn],
+            columnsNames[timecodeColumn],
+            columnsNames[recordingTimeColumn],
+            columnsNames[videoErrorColumn],
+            columnsNames[audioErrorColumn],
+            columnsNames[videoAudioColumn],
+        ]
 
         property int frameColumn: columnsNames.indexOf("Frame #");
         property int timestampColumn: columnsNames.indexOf("Timestamp");

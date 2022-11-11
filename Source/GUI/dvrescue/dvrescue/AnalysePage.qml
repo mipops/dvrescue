@@ -26,6 +26,7 @@ Item {
         console.debug('analyse page: endFrame = ', endFrame)
     }
 
+    property alias dataView: dataView
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
     property int framesCount: dataModel.total

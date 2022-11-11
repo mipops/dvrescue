@@ -28,6 +28,9 @@ Dialog {
     property alias simpleFrameTable: simpleFrameTable.checked
     property alias advancedFrameTable: advancedFrameTable.checked
 
+    property var simpleFrameTableColumns: []
+    property var selectedFrameTableColumns: []
+
     function isToolSpecified(tool) {
         if(tool.length === 0)
             return false;
@@ -165,6 +168,38 @@ Dialog {
                             id: advancedFrameTable
                             text: "Advanced"
                             checked: true
+                        }
+                    }
+
+                    Column {
+                        spacing: 0
+                        padding: 0
+                        Repeater {
+                            id: frameTableColumnsSelector
+                            model: selectedFrameTableColumns
+                            delegate: CheckBox {
+                                height: 20
+                                visible: advancedFrameTable.checked
+                                text: selectedFrameTableColumns[index].name
+                                checked: selectedFrameTableColumns[index].selected
+                                onCheckedChanged: {
+                                    selectedFrameTableColumns[index].selected = checked
+                                    checked = Qt.binding(() => {
+                                                             return selectedFrameTableColumns[index].selected
+                                                         })
+                                }
+                            }
+                        }
+
+                        Repeater {
+                            model: simpleFrameTableColumns
+                            delegate: CheckBox {
+                                height: 20
+                                visible: simpleFrameTable.checked
+                                text: modelData
+                                checked: true
+                                enabled: false
+                            }
                         }
                     }
                 }

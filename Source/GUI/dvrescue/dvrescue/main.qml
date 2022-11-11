@@ -254,6 +254,7 @@ ApplicationWindow {
         property bool saveALogOfTheCaptureProcess
 
         property bool advancedFrameTable
+        property var frameTableColumns: []
 
         property string dvrescueCmd
         property string xmlStarletCmd
@@ -269,6 +270,7 @@ ApplicationWindow {
 
     ToolsDialog {
         id: toolsDialog
+        simpleFrameTableColumns: analysePage.dataView.model.simpleColumnsNames
 
         onReset: {
             console.debug('onReset: currentIndex = ', currentIndex)
@@ -277,7 +279,11 @@ ApplicationWindow {
                 endTheCaptureIftheTapeContainsNoDataFor = ''
                 notSaveALogOfTheCaptureProcess = true
             } else if(currentIndex === 1) {
-                advancedFrameTable = true
+                simpleFrameTable = true
+                selectedFrameTableColumns.forEach((c) => {
+                                                    c.selected = true;
+                                                  })
+                selectedFrameTableColumns = JSON.parse(JSON.stringify(selectedFrameTableColumns))
             } else {
                 dvrescueCmd = pathResolver.resolve("dvrescue")
                 ffmpegCmd = pathResolver.resolve("ffmpeg")
@@ -299,6 +305,15 @@ ApplicationWindow {
             settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
             settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
             settings.advancedFrameTable = advancedFrameTable
+
+            var filteredSelectedFrameTableColumns = selectedFrameTableColumns.filter((column) => { return column.selected })
+            var mappedSelectedFrameTableColumns = filteredSelectedFrameTableColumns.map((column) => { return column.name });
+
+            console.debug('selectedFrameTableColumns: ', JSON.stringify(selectedFrameTableColumns, 0, 4))
+            console.debug('filtered selectedFrameTableColumns: ', JSON.stringify(filteredSelectedFrameTableColumns, 0, 4))
+            console.debug('mapped selectedFrameTableColumns: ', JSON.stringify(mappedSelectedFrameTableColumns, 0, 4))
+
+            settings.frameTableColumns = mappedSelectedFrameTableColumns
 
             settings.dvrescueCmd = dvrescueCmd
             settings.ffmpegCmd = ffmpegCmd
@@ -339,6 +354,15 @@ ApplicationWindow {
             } else {
                 simpleFrameTable = true
             }
+
+            var initialSelectedFrameTableColumns = []
+            console.debug('settings.frameTableColumns: ', JSON.stringify(settings.frameTableColumns, 0, 4))
+
+            analysePage.dataView.model.columnsNames.forEach((c) => {
+                                        var selected = settings.frameTableColumns.indexOf(c) !== -1;
+                                        initialSelectedFrameTableColumns.push({'name' : c, 'selected' : selected})
+                                })
+            selectedFrameTableColumns = initialSelectedFrameTableColumns
 
             open();
         }
