@@ -253,6 +253,8 @@ ApplicationWindow {
         property string endTheCaptureIftheTapeContainsNoDataFor
         property bool saveALogOfTheCaptureProcess
 
+        property bool advancedFrameTable
+
         property string dvrescueCmd
         property string xmlStarletCmd
         property string mediaInfoCmd
@@ -274,6 +276,8 @@ ApplicationWindow {
             if(currentIndex === 0) {
                 endTheCaptureIftheTapeContainsNoDataFor = ''
                 notSaveALogOfTheCaptureProcess = true
+            } else if(currentIndex === 1) {
+                advancedFrameTable = true
             } else {
                 dvrescueCmd = pathResolver.resolve("dvrescue")
                 ffmpegCmd = pathResolver.resolve("ffmpeg")
@@ -294,6 +298,7 @@ ApplicationWindow {
 
             settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
             settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
+            settings.advancedFrameTable = advancedFrameTable
 
             settings.dvrescueCmd = dvrescueCmd
             settings.ffmpegCmd = ffmpegCmd
@@ -328,6 +333,12 @@ ApplicationWindow {
             mediaInfoCmd = settings.mediaInfoCmd
             ffmpegCmd = settings.ffmpegCmd
             enableDebugView = settings.debugVisible
+
+            if(settings.advancedFrameTable) {
+                advancedFrameTable = true
+            } else {
+                simpleFrameTable = true
+            }
 
             open();
         }

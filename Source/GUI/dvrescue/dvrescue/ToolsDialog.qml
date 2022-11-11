@@ -25,6 +25,9 @@ Dialog {
     property alias saveALogOfTheCaptureProcess: saveALogOfTheCaptureProcess.checked
     property alias notSaveALogOfTheCaptureProcess: notSaveALogOfTheCaptureProcess.checked
 
+    property alias simpleFrameTable: simpleFrameTable.checked
+    property alias advancedFrameTable: advancedFrameTable.checked
+
     function isToolSpecified(tool) {
         if(tool.length === 0)
             return false;
@@ -61,6 +64,9 @@ Dialog {
 
         TabButton {
             text: "Capture"
+        }
+        TabButton {
+            text: "Analysis"
         }
         TabButton {
             text: "Advanced"
@@ -128,6 +134,36 @@ Dialog {
                         RadioButton {
                             id: notSaveALogOfTheCaptureProcess
                             text: "No"
+                            checked: true
+                        }
+                    }
+                }
+            }
+        }
+
+        Item {
+            id: analysysPage
+
+            ColumnLayout {
+                width: parent.width
+                anchors.top: parent.top
+                anchors.topMargin: 20
+                spacing: 20
+
+                ColumnLayout {
+                    Text {
+                        text: "Frame Table display"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        RadioButton {
+                            id: simpleFrameTable
+                            text: "Simple"
+                        }
+                        RadioButton {
+                            id: advancedFrameTable
+                            text: "Advanced"
                             checked: true
                         }
                     }

@@ -62,6 +62,12 @@ Item {
                 continue;
             }
 
+            if(dataModel.columns[i].hasOwnProperty('visible')) {
+                var visible = dataModel.columns[i].visible
+                if(visible === false)
+                    continue;
+            }
+
             var minWidth = dataModel.columns[i].minWidth
             value += Math.max(headerItem.desiredWidth, minWidth)
         }
@@ -73,6 +79,12 @@ Item {
         var headerItem = getHeaderItem(column);
         if(headerItem === null)
             return 0;
+
+        if(dataModel.columns[column].hasOwnProperty('visible')) {
+            var visible = dataModel.columns[column].visible
+            if(visible === false)
+                return 0;
+        }
 
         var minWidth = dataModel.columns[column].minWidth
         var desiredWidth = Math.max(headerItem.desiredWidth, minWidth)
@@ -123,6 +135,7 @@ Item {
     clip: true
 
     function forceLayout() {
+        console.debug('forcing layout...')
         tableView.forceLayout();
     }
 
