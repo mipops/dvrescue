@@ -15,6 +15,7 @@ Item {
     property color colorizeColor: 'transparent'
     property bool enableColorize: false;
     property var tooltipFormatter;
+    property bool overflow: false
 
     Repeater {
         anchors.left: parent.left

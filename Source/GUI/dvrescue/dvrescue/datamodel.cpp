@@ -69,34 +69,18 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-QVariantList DataModel::getMarkers()
+QVariantList DataModel::getRecMarkers()
 {
-    QVariantList markers;
+    return getMarkers([](QString type) -> bool {
+        return type == "rec";
+    });
+}
 
-    for(auto & frameTuple : m_frames) {
-        auto frameIndex = std::get<0>(frameTuple);
-        auto& frameInfo = std::get<1>(frameTuple);
-
-        if(frameInfo.markers.empty())
-            continue;
-
-        for(auto& key : frameInfo.markers.keys()) {
-            auto type = key;
-            auto nameAndIcon = frameInfo.markers.value(key);
-
-            auto markerInfo = MarkerInfo();
-            markerInfo.frameNumber = frameIndex;
-            markerInfo.name = nameAndIcon.first;
-            markerInfo.type = type;
-            markerInfo.icon = nameAndIcon.second;
-            markerInfo.recordingTime = frameInfo.recordingTime;
-            markerInfo.timecode = frameInfo.timecode;
-
-            markers.append(QVariant::fromValue(markerInfo));
-        }
-    }
-
-    return markers;
+QVariantList DataModel::getTcnMarkers()
+{
+    return getMarkers([](QString type) -> bool {
+        return type == "tc_n";
+    });
 }
 
 int DataModel::frameByIndex(int index)
@@ -170,6 +154,40 @@ qint64 DataModel::frameIndex(qint64 offset)
     }
 
     return -1;
+}
+
+QVariantList DataModel::getMarkers(const std::function<bool (QString)> &typeFilter)
+{
+    QVariantList markers;
+
+    for(auto & frameTuple : m_frames) {
+        auto frameIndex = std::get<0>(frameTuple);
+        auto& frameInfo = std::get<1>(frameTuple);
+
+        if(frameInfo.markers.empty())
+            continue;
+
+        for(auto& key : frameInfo.markers.keys()) {
+            auto type = key;
+
+            if(!typeFilter(type))
+                continue;
+
+            auto nameAndIcon = frameInfo.markers.value(key);
+
+            auto markerInfo = MarkerInfo();
+            markerInfo.frameNumber = frameIndex;
+            markerInfo.name = nameAndIcon.first;
+            markerInfo.type = type;
+            markerInfo.icon = nameAndIcon.second;
+            markerInfo.recordingTime = frameInfo.recordingTime;
+            markerInfo.timecode = frameInfo.timecode;
+
+            markers.append(QVariant::fromValue(markerInfo));
+        }
+    }
+
+    return markers;
 }
 
 void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
