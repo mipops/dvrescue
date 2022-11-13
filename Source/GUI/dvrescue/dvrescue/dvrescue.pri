@@ -1,7 +1,5 @@
 include(./qwt.pri)
 
-lessThan(QT_MAJOR_VERSION, 6):lessThan(QT_MINOR_VERSION, 13) RESOURCES += $$PWD/splitview_qt5.12.qrc
-
 lessThan(QT_MAJOR_VERSION, 6): {
     RESOURCES += $$PWD/graphicaleffects_qt5.qrc
     RESOURCES += $$PWD/multimedia_qt5.qrc
@@ -86,3 +84,4 @@ DISTFILES += \
     $$PWD/fonts/DS-DIGI.TTF
 
 message("QML_IMPORT_PATH: " $$QML_IMPORT_PATH)
+message("RESOURCES: " $$RESOURCES)
