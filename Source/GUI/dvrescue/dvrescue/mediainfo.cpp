@@ -191,36 +191,37 @@ void MediaInfo::resolve()
         qDebug() << "finished";
         m_parser->deleteLater();
     });
-    connect(m_thread.get(), &QThread::started, [this]() {
+    connect(m_thread.get(), &QThread::started, m_thread.get(), [this]() {
         setParsing(true);
 
         m_parser->exec(reportPath());
         qDebug() << "exiting loop";
-    });
-    connect(m_parser, &XmlParser::finished, [this]() {
+    }, Qt::DirectConnection);
+    connect(m_parser, &XmlParser::finished, m_parser, [this]() {
         setParsing(false);
         qDebug() << "parser finished: " << reportPath();
-    });
-    connect(m_parser, &XmlParser::gotMedia, [this](auto ref, auto format, auto fileSize) {
+    }, Qt::DirectConnection);
+
+    connect(m_parser, &XmlParser::gotMedia, m_parser, [this](auto ref, auto format, auto fileSize) {
         Q_UNUSED(ref);
 
         setFormat(format);
         setFileSize(fileSize);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrames, [this](auto count, auto diff_seq_count) {
+    connect(m_parser, &XmlParser::gotFrames, m_parser, [this](auto count, auto diff_seq_count) {
         setFrameCount(frameCount() + count);
         setCountOfFrameSequences(countOfFrameSequences() + 1);
 
         setTotalVideoBlocks(totalVideoBlocks() + diff_seq_count * video_blocks_per_diff_seq * count);
         setTotalAudioBlocks(totalAudioBlocks() + diff_seq_count * audio_blocks_per_diff_seq * count);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::bytesProcessed, [this](auto bytesProcessed) {
+    connect(m_parser, &XmlParser::bytesProcessed, m_parser, [this](auto bytesProcessed) {
        setBytesProcessed(bytesProcessed);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+    connect(m_parser, &XmlParser::gotFrameAttributes, m_parser, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
             int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         Q_UNUSED(frameNumber);
         Q_UNUSED(isSubstantial);
@@ -267,7 +268,7 @@ void MediaInfo::resolve()
         }
 
         setLastRecordingTime(rdt);
-    });
+    }, Qt::DirectConnection);
 
     m_thread->start();
 }
