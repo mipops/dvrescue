@@ -6,9 +6,12 @@
 #include <QGraphicsView>
 #include <QtAlgorithms>
 #include <QJSEngine>
+#include "qqmltablemodel_p.h"
 
 DataModel::DataModel(QObject *parent) : QObject(parent)
 {
+    qDebug() << "DataModel::DataModel: " << QThread::currentThread();
+
     connect(this, &DataModel::dataRowCreated, this, &DataModel::onDataRowCreated);
 }
 
@@ -312,12 +315,10 @@ void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoC
 void DataModel::bind(QAbstractTableModel *model)
 {
     if(m_model) {
-        disconnect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
         disconnect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
     }
-    m_model = model;
+    m_model = static_cast<QQmlTableModel*>(model);
     if(m_model) {
-        connect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
         connect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
     }
 }
@@ -346,30 +347,34 @@ void DataModel::populate(const QString &fileName)
     m_thread.reset(new QThread());
 
     m_parser->moveToThread(m_thread.get());
-    connect(m_thread.get(), &QThread::finished, [this]() {
+    connect(m_thread.get(), &QThread::finished, m_thread.get(), [this]() {
         qDebug() << "finished";
         m_parser->deleteLater();
-    });
-    connect(m_thread.get(), &QThread::started, [this, fileName]() {
+    }, Qt::DirectConnection);
+    connect(m_thread.get(), &QThread::started, m_thread.get(), [this, fileName]() {
         m_parser->exec(fileName);
         qDebug() << "exiting loop";
-    });
-    connect(m_parser, &XmlParser::finished, [this]() {
+    }, Qt::DirectConnection);
+    connect(m_parser, &XmlParser::finished, this, [this]() {
         qDebug() << "parser finished";
+
+        if(!rows.empty())
+            m_model->appendRows(rows);
+
         Q_EMIT populated();
     });
-    connect(m_parser, &XmlParser::error, [this](const QString& errorString) {
+    connect(m_parser, &XmlParser::error, m_parser, [this](const QString& errorString) {
         Q_EMIT error(errorString);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber, auto offset, auto duration) {
+    connect(m_parser, &XmlParser::gotFrame, m_parser, [this](auto frameNumber, auto offset, auto duration) {
         m_frames.append(std::make_tuple(frameNumber, FrameStats() ));
         m_frameOffsetByFrameIndex[frameNumber] = offset;
         m_frameIndexByFrameOffsetStart[offset] = frameNumber;
         m_frameIndexByFrameOffsetEnd[offset + duration] = frameNumber;
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+    connect(m_parser, &XmlParser::gotFrameAttributes, m_parser, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
             int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         Q_UNUSED(staCount);
         Q_UNUSED(isSubstantial);
@@ -400,9 +405,9 @@ void DataModel::populate(const QString &fileName)
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn, isSubstantial);
         Q_EMIT totalChanged(m_total);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
+    connect(m_parser, &XmlParser::gotSta, m_parser, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         GraphStats value = {
             int(frameNumber),
             float(n_even) / den * 100,
@@ -411,8 +416,8 @@ void DataModel::populate(const QString &fileName)
         };
 
         m_videoValues.append(std::make_tuple(frameNumber, value));
-    });
-    connect(m_parser, &XmlParser::gotAud, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
+    }, Qt::DirectConnection);
+    connect(m_parser, &XmlParser::gotAud, m_parser, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         Q_UNUSED(t);
         GraphStats value = {
             int(frameNumber),
@@ -422,7 +427,7 @@ void DataModel::populate(const QString &fileName)
         };
 
         m_audioValues.append(std::make_tuple(frameNumber, value));
-    });
+    }, Qt::DirectConnection);
 
     m_thread->start();
 }
@@ -685,5 +690,10 @@ void DataModel::onDataRowCreated(const QVariantMap &map)
     assert(engine);
     auto variant = QVariant::fromValue(engine->toScriptValue(map));
 
-    Q_EMIT gotDataRow(variant);
+    rows.append(variant);
+
+    if(rows.length() > 1000) {
+        m_model->appendRows(rows);
+        rows.clear();
+    }
 }

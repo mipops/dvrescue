@@ -212,6 +212,31 @@ void QQmlTableModel::setRows(const QVariant &rows)
     doSetRows(rowsAsVariantList);
 }
 
+void QQmlTableModel::appendRows(const QVariantList &rows)
+{
+    beginInsertRows(QModelIndex(), mRowCount, mRowCount + rows.size() - 1);
+
+    for(auto & row : rows) {
+        auto rowIndex = mRowCount;
+
+        // Adding rowAsVariant.toList() will add each invidual variant in the list,
+        // which is definitely not what we want.
+        const QVariant rowAsVariant = row.value<QJSValue>().toVariant();
+        mRows.insert(rowIndex, rowAsVariant);
+        ++mRowCount;
+
+        qCDebug(lcTableModel).nospace() << "inserted the following row to the model at index "
+            << rowIndex << ":\n" << rowAsVariant.toMap();
+
+        // Gather metadata the first time a row is added.
+        if (mColumnMetadata.isEmpty())
+            fetchColumnMetadata();
+    }
+
+    endInsertRows();
+    Q_EMIT rowCountChanged();
+}
+
 void QQmlTableModel::doSetRows(const QVariantList &rowsAsVariantList)
 {
     Q_ASSERT(componentCompleted);

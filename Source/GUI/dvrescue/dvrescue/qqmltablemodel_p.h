@@ -76,6 +76,7 @@ public:
     QVariant rows() const;
     void setRows(const QVariant &rows);
 
+    Q_INVOKABLE void appendRows(const QVariantList& rows);
     Q_INVOKABLE void appendRow(const QVariant &row);
     Q_INVOKABLE void clear();
     Q_INVOKABLE QVariant getRow(int rowIndex);
