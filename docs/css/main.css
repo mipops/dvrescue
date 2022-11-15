@@ -126,6 +126,18 @@ a:hover {
 /*
 /*****************************************************************************/
 
+.embed-sheet {
+  width: 100%;
+  height: 500px;
+  border: 5px solid black;
+}
+
+.embed-doc {
+  width: 80%;
+  height: 500px;
+  border: 2px solid black;
+}
+
 .site {
   height: 100%;
   width: 100%;
