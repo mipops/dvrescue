@@ -333,10 +333,12 @@ void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoC
 void DataModel::bind(QAbstractTableModel *model)
 {
     if(m_model) {
+        disconnect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
         disconnect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
     }
-    m_model = static_cast<QQmlTableModel*>(model);
+    m_model = model;
     if(m_model) {
+        connect(this, SIGNAL(gotDataRow(const QVariant&)), m_model, SLOT(appendRow(const QVariant&)));
         connect(this, SIGNAL(clearModel()), m_model, SLOT(clear()));
     }
 }
@@ -375,10 +377,6 @@ void DataModel::populate(const QString &fileName)
     }, Qt::DirectConnection);
     connect(m_parser, &XmlParser::finished, this, [this]() {
         qDebug() << "parser finished";
-
-        if(!rows.empty())
-            m_model->appendRows(rows);
-
         Q_EMIT populated();
     });
     connect(m_parser, &XmlParser::error, m_parser, [this](const QString& errorString) {
@@ -708,10 +706,5 @@ void DataModel::onDataRowCreated(const QVariantMap &map)
     assert(engine);
     auto variant = QVariant::fromValue(engine->toScriptValue(map));
 
-    rows.append(variant);
-
-    if(rows.length() > 1000) {
-        m_model->appendRows(rows);
-        rows.clear();
-    }
+    Q_EMIT gotDataRow(variant);
 }

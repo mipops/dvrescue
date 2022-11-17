@@ -40,7 +40,6 @@ public:
 
 Q_DECLARE_METATYPE(MarkerInfo);
 
-class QQmlTableModel;
 class DataModel : public QObject
 {
     Q_OBJECT
@@ -107,12 +106,13 @@ Q_SIGNALS:
     void updated();
 
     void clearModel();
+    void gotDataRow(const QVariant& row);
     void dataRowCreated(const QVariantMap& map);
 
 private:
     XmlParser* m_parser { nullptr };
     std::unique_ptr<QThread> m_thread;
-    QQmlTableModel* m_model { nullptr };
+    QAbstractTableModel* m_model { nullptr };
 
     QList<std::tuple<int, GraphStats>> m_videoValues;
     QList<std::tuple<int, GraphStats>> m_audioValues;
@@ -126,8 +126,6 @@ private:
     QMap<quint64, qint64> m_frameOffsetByFrameIndex;
     QMap<qint64, quint64> m_frameIndexByFrameOffsetStart;
     QMap<qint64, quint64> m_frameIndexByFrameOffsetEnd;
-
-    QVariantList rows;
 };
 
 #endif // DATAMODEL_H
