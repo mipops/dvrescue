@@ -1,4 +1,5 @@
 #include "datamodel.h"
+#include "plotdata.h"
 #include "qwtquick2plot.h"
 #include <QThread>
 #include <QDebug>
@@ -255,56 +256,62 @@ void DataModel::getInfo(QList<std::tuple<int, DataModel::GraphStats> > &stats, f
     }
 }
 
-void DataModel::update(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::update()
 {
-    videoCurve->plot()->plot()->setUpdatesEnabled(false);
-    videoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
-    videoCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
+    m_evenVideoCurve->plot()->plot()->setUpdatesEnabled(false);
+    m_evenVideoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
+    m_evenVideoCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
-    auto videoCount = videoCurve->data().count();
+    auto evenVideoCurveData = static_cast<SequentialPlotData*>(m_evenVideoCurve->curve()->data());
+    auto oddVideoCurveData = static_cast<SequentialPlotData*>(m_oddVideoCurve->curve()->data());
+
+    auto videoCount = evenVideoCurveData->size();
     for(auto i = videoCount; i < m_videoValues.count(); ++i) {
         auto& valueTuple = m_videoValues.at(i);
 
         auto frameNumber = std::get<0>(valueTuple);
         auto value = std::get<1>(valueTuple);
 
-        videoCurve->data().append(QPointF(frameNumber, value.evenValue));
-        videoCurve2->data().append(QPointF(frameNumber, value.oddValue));
+        evenVideoCurveData->append(QPointF(frameNumber, value.evenValue));
+        oddVideoCurveData->append(QPointF(frameNumber, value.oddValue));
     }
 
-    videoCurve->plot()->plot()->setUpdatesEnabled(true);
-    videoCurve->plot()->replotAndUpdate();
+    m_evenVideoCurve->plot()->plot()->setUpdatesEnabled(true);
+    m_evenVideoCurve->plot()->replotAndUpdate();
 
-    audioCurve->plot()->plot()->setUpdatesEnabled(false);
-    audioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
-    audioCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
+    m_evenAudioCurve->plot()->plot()->setUpdatesEnabled(false);
+    m_evenAudioCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
+    m_evenAudioCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
 
-    auto audioCount = audioCurve->data().count();
+    auto evenAudioCurveData = static_cast<SequentialPlotData*>(m_evenAudioCurve->curve()->data());
+    auto oddAudioCurveData = static_cast<SequentialPlotData*>(m_oddAudioCurve->curve()->data());
+
+    auto audioCount = evenAudioCurveData->size();
     for(auto i = audioCount; i < m_audioValues.count(); ++i) {
         auto& valueTuple = m_audioValues.at(i);
 
         auto frameNumber = std::get<0>(valueTuple);
         auto value = std::get<1>(valueTuple);
 
-        audioCurve->data().append(QPointF(frameNumber, value.evenValue));
-        audioCurve2->data().append(QPointF(frameNumber, value.oddValue));
+        evenAudioCurveData->append(QPointF(frameNumber, value.evenValue));
+        oddAudioCurveData->append(QPointF(frameNumber, value.oddValue));
     }
 
-    audioCurve->plot()->plot()->setUpdatesEnabled(true);
-    audioCurve->plot()->replotAndUpdate();
+    m_evenAudioCurve->plot()->plot()->setUpdatesEnabled(true);
+    m_evenAudioCurve->plot()->replotAndUpdate();
 
     Q_EMIT updated();
 }
 
-void DataModel::reset(QwtQuick2PlotCurve *videoCurve, QwtQuick2PlotCurve *videoCurve2, QwtQuick2PlotCurve *audioCurve, QwtQuick2PlotCurve *audioCurve2)
+void DataModel::reset()
 {
-    videoCurve->data().clear();
-    videoCurve2->data().clear();
-    audioCurve->data().clear();
-    audioCurve2->data().clear();
+    static_cast<SequentialPlotData*>(m_evenVideoCurve->curve()->data())->clear();
+    static_cast<SequentialPlotData*>(m_oddVideoCurve->curve()->data())->clear();
+    static_cast<SequentialPlotData*>(m_evenAudioCurve->curve()->data())->clear();
+    static_cast<SequentialPlotData*>(m_oddAudioCurve->curve()->data())->clear();
 
-    videoCurve->plot()->replotAndUpdate();
-    audioCurve->plot()->replotAndUpdate();
+    m_evenVideoCurve->plot()->replotAndUpdate();
+    m_evenAudioCurve->plot()->replotAndUpdate();
 
     Q_EMIT clearModel();
 }
@@ -686,4 +693,64 @@ void DataModel::onDataRowCreated(const QVariantMap &map)
     auto variant = QVariant::fromValue(engine->toScriptValue(map));
 
     Q_EMIT gotDataRow(variant);
+}
+
+QwtQuick2PlotCurve *DataModel::evenVideoCurve() const
+{
+    return m_evenVideoCurve;
+}
+
+void DataModel::setEvenVideoCurve(QwtQuick2PlotCurve *newEvenVideoCurve)
+{
+    if (m_evenVideoCurve == newEvenVideoCurve)
+        return;
+    m_evenVideoCurve = newEvenVideoCurve;
+    m_evenVideoCurve->curve()->setData(new SequentialPlotData());
+
+    Q_EMIT evenVideoCurveChanged();
+}
+
+QwtQuick2PlotCurve *DataModel::oddVideoCurve() const
+{
+    return m_oddVideoCurve;
+}
+
+void DataModel::setOddVideoCurve(QwtQuick2PlotCurve *newOddVideoCurve)
+{
+    if (m_oddVideoCurve == newOddVideoCurve)
+        return;
+    m_oddVideoCurve = newOddVideoCurve;
+    m_oddVideoCurve->curve()->setData(new SequentialPlotData());
+
+    Q_EMIT oddVideoCurveChanged();
+}
+
+QwtQuick2PlotCurve *DataModel::evenAudioCurve() const
+{
+    return m_evenAudioCurve;
+}
+
+void DataModel::setEvenAudioCurve(QwtQuick2PlotCurve *newEvenAudioCurve)
+{
+    if (m_evenAudioCurve == newEvenAudioCurve)
+        return;
+    m_evenAudioCurve = newEvenAudioCurve;
+    m_evenAudioCurve->curve()->setData(new SequentialPlotData());
+
+    Q_EMIT evenAudioCurveChanged();
+}
+
+QwtQuick2PlotCurve *DataModel::oddAudioCurve() const
+{
+    return m_oddAudioCurve;
+}
+
+void DataModel::setOddAudioCurve(QwtQuick2PlotCurve *newOddAudioCurve)
+{
+    if (m_oddAudioCurve == newOddAudioCurve)
+        return;
+    m_oddAudioCurve = newOddAudioCurve;
+    m_oddAudioCurve->curve()->setData(new SequentialPlotData());
+
+    Q_EMIT oddAudioCurveChanged();
 }

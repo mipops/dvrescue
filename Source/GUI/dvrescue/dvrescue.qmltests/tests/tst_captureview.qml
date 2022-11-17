@@ -47,6 +47,22 @@ Rectangle {
             }
         }
 
+        Timer {
+            property int frameNumber: 0
+
+            running: true
+            interval: 100
+            repeat: true
+            onTriggered: {
+                captureView.dataModel.append(frameNumber, frameNumber, - frameNumber / 2)
+                ++frameNumber;
+                if(frameNumber == 900)
+                    frameNumber = 0;
+
+                console.debug('frameNumber: ', frameNumber)
+            }
+        }
+
         function test_captureView() {
             wait(100000)
         }

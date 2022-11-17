@@ -27,3 +27,15 @@ bool ConnectionUtils::connectToSignalQueued(QObject *source, const QString &sign
 
     return connect(source, signal.toUtf8().constData(), target, signal2.toUtf8().constData(), Qt::QueuedConnection);
 }
+
+bool ConnectionUtils::disconnectAll(QObject *source)
+{
+    return source->disconnect();
+}
+
+bool ConnectionUtils::disconnect(QObject *source, const QString &signalName)
+{
+    QString signal = QString("2") + signalName;
+
+    return source->disconnect(signal.toUtf8().constData());
+}

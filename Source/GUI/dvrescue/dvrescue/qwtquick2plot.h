@@ -32,9 +32,11 @@ class QwtQuick2Plot : public QQuickPaintedItem
     Q_PROPERTY(QColor yLeftAxisColor READ yLeftAxisColor WRITE setYLeftAxisColor NOTIFY yLeftAxisColorChanged);
     Q_PROPERTY(QString yLeftAxisTitle READ yLeftAxisTitle WRITE setYLeftAxisTitle NOTIFY leftYAxisTitleChanged);
     Q_PROPERTY(QFont yLeftAxisFont READ yLeftAxisFont WRITE setYLeftAxisFont NOTIFY yLeftAxisFontChanged);
+    Q_PROPERTY(bool yLeftAxisVisible READ yLeftAxisVisible WRITE setYLeftAxisVisible NOTIFY yLeftAxisVisibleChanged);
     Q_PROPERTY(QColor xBottomAxisColor READ xBottomAxisColor WRITE setXBottomAxisColor NOTIFY xBottomAxisColorChanged);
     Q_PROPERTY(QString xBottomAxisTitle READ xBottomAxisTitle WRITE setXBottomAxisTitle NOTIFY xBottomAxisTitleChanged)
     Q_PROPERTY(QFont xBottomAxisFont READ xBottomAxisFont WRITE setXBottomAxisFont NOTIFY xBottomAxisFontChanged);
+    Q_PROPERTY(bool xBottomAxisVisible READ xBottomAxisVisible WRITE setXBottomAxisVisible NOTIFY xBottomAxisVisibleChanged);
     Q_PROPERTY(QVector2D yLeftAxisRange READ yLeftAxisRange WRITE setYLeftAxisRange NOTIFY yLeftAxisRangeChanged);
     Q_PROPERTY(QVector2D xBottomAxisRange READ xBottomAxisRange WRITE setXBottomAxisRange NOTIFY xBottomAxisRangeChanged);
     Q_PROPERTY(bool xBottomAxisEnabled READ xBottomAxisEnabled WRITE setXBottomAxisEnabled NOTIFY xBottomAxisEnabledChanged);
@@ -58,6 +60,11 @@ public:
     QColor yLeftAxisColor() const;
     QColor xBottomAxisColor() const;
     const QColor &backgroundColor() const;
+
+    bool yLeftAxisVisible() const;
+    void setYLeftAxisVisible(bool newYLeftAxisVisible);
+    bool xBottomAxisVisible() const;
+    void setXBottomAxisVisible(bool newXBottomAxisVisible);
 
 public Q_SLOTS:
     void setYLeftAxisTitle(QString yLeftAxisTitle);
@@ -83,6 +90,8 @@ Q_SIGNALS:
     void yLeftAxisColorChanged(QColor yLeftAxisColor);
     void xBottomAxisColorChanged(QColor xBottomAxisColor);
     void backgroundColorChanged();
+    void yLeftAxisVisibleChanged();
+    void xBottomAxisVisibleChanged();
 
 protected:
     void routeMouseEvents(QMouseEvent* event);
@@ -128,7 +137,6 @@ public:
     QwtQuick2PlotCurve(QObject* parent = nullptr);
     virtual ~QwtQuick2PlotCurve();
 
-    QVector<QPointF>& data() { return m_curveData; }
     QwtPlotCurve* curve() const;
     QwtQuick2Plot* plot() const;
 
@@ -157,7 +165,6 @@ Q_SIGNALS:
 private:
     QwtQuick2Plot* m_qwtQuickPlot { nullptr };
     QwtPlotCurve* m_qwtPlotCurve;
-    QVector<QPointF> m_curveData;
 };
 
 class QwtQuick2PlotGrid : public QObject

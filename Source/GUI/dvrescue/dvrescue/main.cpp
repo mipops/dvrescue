@@ -11,6 +11,7 @@
 #include "mediaplayer.h"
 #include "connectionutils.h"
 #include "playbackbuffer.h"
+#include "captureerrorplotdatamodel.h"
 #include <datamodel.h>
 #include <mediainfo.h>
 #include <logging.h>
@@ -38,6 +39,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
     qmlRegisterType<CsvParser>("CsvParser", 0, 1, "CsvParser");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
+    qmlRegisterType<CaptureErrorPlotDataModel>("CaptureErrorPlotDataModel", 1, 0, "CaptureErrorPlotDataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
     qmlRegisterType<MediaPlayer>("QtAVMediaPlayer", 1, 0, "QtAVMediaPlayer");
     qmlRegisterType<BufferSequential>("MediaPlayerBuffer", 1, 0, "MediaPlayerBuffer");

@@ -9,6 +9,8 @@ import CsvParser 0.1
 import Thread 0.1
 import Multimedia 1.0
 import GraphicalEffects 1.0
+import QwtQuick2 1.0
+import CaptureErrorPlotDataModel 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -27,6 +29,7 @@ Column {
     property var fileWriter: fileWriter
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
+    property alias dataModel: dataModel
 
     property int frameSpeed: 0
 
@@ -67,6 +70,8 @@ Column {
             capturingModeInt = ffing
         else
             capturingModeInt = stopped
+
+        console.debug('capturingModeInt => ', capturingModeInt)
     }
     property int capturingModeInt: stopped // stop
 
@@ -217,6 +222,11 @@ Column {
                 id: rewindButton
                 icon.color: 'transparent'
                 icon.source: "/icons/rewind.svg"
+                onClicked: {
+                    if(grabbing)
+                        dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -226,6 +236,11 @@ Column {
                 id: rplayButton
                 icon.color: 'transparent'
                 icon.source: "/icons/srew.svg"
+                onClicked: {
+                    if(grabbing)
+                        dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -235,6 +250,11 @@ Column {
                 id: playButton
                 icon.color: 'transparent'
                 icon.source: "/icons/play.svg"
+                onClicked: {
+                    if(grabbing)
+                        dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -250,6 +270,11 @@ Column {
                 id: fastForwardButton
                 icon.color: 'transparent'
                 icon.source: "/icons/fastforward.svg"
+                onClicked: {
+                    if(grabbing)
+                        dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled && !grabbing })
                 }
@@ -258,6 +283,11 @@ Column {
                 id: captureButton
                 icon.color: "transparent"
                 icon.source: "/icons/capture.svg"
+                onClicked: {
+                    if(grabbing)
+                        dataModel.reset()
+                }
+
                 Component.onCompleted: {
                     configure(this, () => { return !enabled })
                 }
@@ -339,6 +369,135 @@ Column {
             anchors.top: row.bottom
             anchors.left: parent.left
             anchors.right: parent.right
+        }
+
+        RowLayout {
+            anchors.top: captureFrameInfo.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 80
+
+            QwtQuick2Plot {
+                id: videoPlot
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                canvasItem.clip: true
+                xBottomAxisVisible: false
+                yLeftAxisVisible: false
+                backgroundColor: "Cornsilk"
+                yLeftAxisRange: Qt.vector2d(-900, 900)
+
+                Component.onCompleted: {
+                    yLeftAxisFont.bold = false
+                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                    xBottomAxisFont.bold = false
+                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+                }
+
+                QwtQuick2PlotCurve {
+                    id: evenCurve
+                    title: "even";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "darkgreen"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: oddCurve
+                    title: "odd";
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: "green"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordCurveEven
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordCurveOdd
+                    curveStyle: QwtQuick2PlotCurve.Sticks
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotGrid {
+                    enableXMin: true
+                    enableYMin: true
+                    majorPenColor: 'darkGray'
+                    majorPenStyle: Qt.DotLine
+                    minorPenColor: 'transparent'
+                    minorPenStyle: Qt.DotLine
+                }
+
+                ToolTip {
+                    text: {
+                        if(dataModel.total < 9000) {
+                            return "Of the X frames received, Y contain error concealment."
+                                .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors)
+                        } else {
+                            if(dataModel.totalWithErrors < 2) {
+                                return "Of the X frames received, Y contains error concealment (Z within the last 9000 frames)."
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                            } else {
+                                return "Of the X frames received, Y contain error concealment (Z within the last 9000 frames)."
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                            }
+                        }
+                    }
+
+                    visible: tooltipMouseArea.containsMouse
+                }
+
+                MouseArea {
+                    id: tooltipMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
+            }
+        }
+
+        CaptureErrorPlotDataModel {
+            id: dataModel
+            evenCurve: evenCurve
+            oddCurve: oddCurve
+            notInPlayOrRecordCurveEven: notInPlayOrRecordCurveEven
+            notInPlayOrRecordCurveOdd: notInPlayOrRecordCurveOdd
+
+            onTotalChanged: {
+                console.debug('total changed: ', total)
+            }
+
+            onTotalWithErrorsChanged: {
+                console.debug('total with errors changed: ', totalWithErrors)
+            }
+
+            onLastChanged: {
+                console.debug('last changed: ', last)
+            }
+
+            onLastWithErrorsChanged: {
+                console.debug('last with errors changed: ', lastWithErrors)
+            }
+
+            Component.onCompleted: {
+                dataModel.update();
+            }
+        }
+
+        Timer {
+            id: refreshTimer
+            interval: 500
+            running: true
+            repeat: true
+            onTriggered: {
+                console.debug('updating plots...')
+                dataModel.update();
+            }
         }
     }
 }

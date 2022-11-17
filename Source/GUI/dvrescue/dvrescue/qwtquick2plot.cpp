@@ -329,6 +329,8 @@ void QwtQuick2Plot::setYLeftAxisRange(QVector2D yLeftAxisRange)
 
     m_qwtPlot->setAxisScaleDiv(QwtPlot::yLeft, scale);
     Q_EMIT yLeftAxisRangeChanged(this->yLeftAxisRange());
+
+    replotAndUpdate();
 }
 
 void QwtQuick2Plot::updatePlotSize()
@@ -352,7 +354,7 @@ QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
             painter->save();
             painter->setRenderHint( QPainter::Antialiasing, false );
 
-            const bool doAlign = QwtPainter::roundingAlignment( painter );
+            const bool doAlign = false; // QwtPainter::roundingAlignment( painter );
 
             auto xBottomAxisScalDiv = plot()->axisScaleDiv(QwtPlot::xBottom);
             auto first = xMap.transform(0);
@@ -417,8 +419,6 @@ QwtQuick2PlotCurve::QwtQuick2PlotCurve(QObject *parent) : QObject(parent)
     m_qwtPlotCurve->setPen(QPen(Qt::red));
     m_qwtPlotCurve->setStyle(QwtPlotCurve::Lines);
     m_qwtPlotCurve->setRenderHint(QwtPlotItem::RenderAntialiased);
-
-    m_qwtPlotCurve->setData(new PlotData(&m_curveData));
 }
 
 QwtQuick2PlotCurve::~QwtQuick2PlotCurve()
@@ -922,5 +922,31 @@ void QwtQuick2Plot::setBackgroundColor(const QColor &newBackgroundColor)
     if(backgroundColor() != newBackgroundColor) {
         m_qwtPlot->setCanvasBackground(QBrush(newBackgroundColor));
         Q_EMIT backgroundColorChanged();
+    }
+}
+
+bool QwtQuick2Plot::yLeftAxisVisible() const
+{
+    return m_qwtPlot->axisEnabled(QwtPlot::yLeft);
+}
+
+void QwtQuick2Plot::setYLeftAxisVisible(bool newYLeftAxisVisible)
+{
+    if(newYLeftAxisVisible != yLeftAxisVisible()) {
+        m_qwtPlot->enableAxis(QwtPlot::yLeft, newYLeftAxisVisible);
+        Q_EMIT yLeftAxisVisibleChanged();
+    }
+}
+
+bool QwtQuick2Plot::xBottomAxisVisible() const
+{
+    return m_qwtPlot->axisEnabled(QwtPlot::xBottom);
+}
+
+void QwtQuick2Plot::setXBottomAxisVisible(bool newXBottomAxisVisible)
+{
+    if(newXBottomAxisVisible != xBottomAxisVisible()) {
+        m_qwtPlot->enableAxis(QwtPlot::xBottom, newXBottomAxisVisible);
+        Q_EMIT yLeftAxisVisibleChanged();
     }
 }

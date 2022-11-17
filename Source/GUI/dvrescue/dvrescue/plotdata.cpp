@@ -1,26 +1,89 @@
 #include "plotdata.h"
 
-PlotData::PlotData(QVector<QPointF> *container) :
-    _container(container)
+SequentialPlotData::SequentialPlotData()
 {
 }
 
-QVector<QPointF> *PlotData::data()
+void SequentialPlotData::append(QPointF &&point)
 {
-    return _container;
+    _container.append(point);
 }
 
-size_t PlotData::size() const
+void SequentialPlotData::append(const QPointF &point)
 {
-    return static_cast<size_t>(_container->size());
+    _container.append(point);
 }
 
-QPointF PlotData::sample(size_t i) const
+void SequentialPlotData::clear()
 {
-    return _container->at(static_cast<int>(i));
+    _container.clear();
 }
 
-QRectF PlotData::boundingRect() const
+size_t SequentialPlotData::size() const
+{
+    return static_cast<size_t>(_container.size());
+}
+
+QPointF SequentialPlotData::sample(size_t i) const
+{
+    return _container.at(static_cast<int>(i));
+}
+
+QRectF SequentialPlotData::boundingRect() const
+{
+    return qwtBoundingRect(*this);
+}
+
+CircularPlotData::CircularPlotData()
+{
+
+}
+
+void CircularPlotData::append(QPointF &&point)
+{
+    if(_container.size() < _maxSize) {
+        _container.append(point);
+    } else {
+        _container[_offset] = point;
+        _offset = (_offset + 1) % _maxSize;
+    }
+}
+
+void CircularPlotData::append(const QPointF &point)
+{
+    if(_container.size() < _maxSize) {
+        _container.append(point);
+    } else {
+        _container[_offset] = point;
+        _offset = (_offset + 1) % _maxSize;
+    }
+}
+
+void CircularPlotData::clear()
+{
+    _offset = 0;
+    _container.clear();
+}
+
+int CircularPlotData::maxSize() const
+{
+    return _maxSize;
+}
+
+size_t CircularPlotData::size() const
+{
+    return static_cast<size_t>(_container.size());
+}
+
+QPointF CircularPlotData::sample(size_t i) const
+{
+    if(i < 0)
+        return QPointF(i, 0);
+
+    return _container.at(static_cast<int>((i + _offset) % _maxSize));
+}
+
+QRectF CircularPlotData::boundingRect() const
 {
     return qwtBoundingRect(*this);
 }

@@ -63,6 +63,10 @@ Item {
 
     DataModel {
         id: dataModel
+        evenVideoCurve: plotsView.evenVideoCurve
+        oddVideoCurve: plotsView.oddVideoCurve
+        evenAudioCurve: plotsView.evenAudioCurve
+        oddAudioCurve: plotsView.oddAudioCurve
 
         onTotalChanged: {
             console.debug('total changed: ', total)
@@ -76,8 +80,7 @@ Item {
             root.endFrame = dataModel.total - 1;
             dataView.invalidateFilter();
 
-            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                              plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+            dataModel.update();
         }
         onError: {
             errorDialog.text = "error message: " + errorString
@@ -85,8 +88,7 @@ Item {
         }
 
         Component.onCompleted: {
-            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                              plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+            dataModel.update();
         }
     }
 
