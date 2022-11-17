@@ -129,7 +129,7 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "    --list_devices\n"
         "        List detected devices and their indices.\n"
         "\n"
-        "    --statusl\n"
+        "    --status\n"
         "        Provide the status (playing, stop...) of the input.\n"
         "        By default device://0 is used.\n"
         "        Usable only if input is a device.\n"
