@@ -110,6 +110,7 @@ ApplicationWindow {
                 debugView.visible = !debugView.visible
             }
             icon.source: "/icons/menu-debug.svg"
+            visible: settings.debugVisible
         }
     }
 
@@ -241,15 +242,16 @@ ApplicationWindow {
 
     Settings {
         id: settings;
-        property string dvrescueCmd
-        onDvrescueCmdChanged: {
-            console.debug('dvrescueCmd = ', dvrescueCmd)
-        }
 
+        property string endTheCaptureIftheTapeContainsNoDataFor
+        property bool saveALogOfTheCaptureProcess
+
+        property string dvrescueCmd
         property string xmlStarletCmd
         property string mediaInfoCmd
         property string ffmpegCmd
         property alias recentFilesJSON: recentFilesModel.recentFilesJSON
+        property bool debugVisible
 
         Component.onCompleted: {
             console.debug('settings initialized')
@@ -260,24 +262,65 @@ ApplicationWindow {
         id: toolsDialog
 
         onReset: {
-            dvrescueCmd = pathResolver.resolve("dvrescue")
-            ffmpegCmd = pathResolver.resolve("ffmpeg")
-            mediaInfoCmd = pathResolver.resolve("mediainfo")
-            xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+            console.debug('onReset: currentIndex = ', currentIndex)
+
+            if(currentIndex === 0) {
+                endTheCaptureIftheTapeContainsNoDataFor = ''
+                notSaveALogOfTheCaptureProcess = true
+            } else {
+                dvrescueCmd = pathResolver.resolve("dvrescue")
+                ffmpegCmd = pathResolver.resolve("ffmpeg")
+                mediaInfoCmd = pathResolver.resolve("mediainfo")
+                xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+                enableDebugView = false
+            }
+
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
         }
 
         onAccepted: {
+            console.debug('onAccepted')
+
+            settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
+            settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
+
             settings.dvrescueCmd = dvrescueCmd
             settings.ffmpegCmd = ffmpegCmd
             settings.mediaInfoCmd = mediaInfoCmd
             settings.xmlStarletCmd = xmlStarletCmd
+            settings.debugVisible = enableDebugView
+
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
         }
 
         function show() {
+            console.debug('show')
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
+
+            endTheCaptureIftheTapeContainsNoDataFor = settings.endTheCaptureIftheTapeContainsNoDataFor
+
+            if(settings.saveALogOfTheCaptureProcess)
+                saveALogOfTheCaptureProcess = true
+            else
+                notSaveALogOfTheCaptureProcess = true
+
             dvrescueCmd = settings.dvrescueCmd
             xmlStarletCmd = settings.xmlStarletCmd
             mediaInfoCmd = settings.mediaInfoCmd
             ffmpegCmd = settings.ffmpegCmd
+            enableDebugView = settings.debugVisible
 
             open();
         }

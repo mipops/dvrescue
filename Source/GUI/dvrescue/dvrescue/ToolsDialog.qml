@@ -10,13 +10,20 @@ import QwtQuick2 1.0
 
 Dialog {
     id: toolsDialog
-    title: "Please specify tool locations."
-    contentWidth: 480
+    title: "Settings"
+    contentWidth: 550
+    contentHeight: 420
+
+    property alias currentIndex: tabBar.currentIndex
 
     property alias dvrescueCmd: dvrescueField.text
     property alias ffmpegCmd: ffmpegField.text
     property alias mediaInfoCmd: mediaInfoField.text
     property alias xmlStarletCmd: xmlStarletField.text
+    property alias enableDebugView: enableDebugViewCheckBox.checked
+    property alias endTheCaptureIftheTapeContainsNoDataFor: endTheCaptureIftheTapeContainsNoDataForTextField.text
+    property alias saveALogOfTheCaptureProcess: saveALogOfTheCaptureProcess.checked
+    property alias notSaveALogOfTheCaptureProcess: notSaveALogOfTheCaptureProcess.checked
 
     function isToolSpecified(tool) {
         if(tool.length === 0)
@@ -47,41 +54,146 @@ Dialog {
         return true;
     }
 
-    Column {
-        ValidatedTextField {
-            id: dvrescueField
-            width: 480
+    TabBar {
+        id: tabBar
+        width: parent.width
+        currentIndex: 0
 
-            placeholderText: "dvrescue path..."
-            selectByMouse: true
-            validate: validateTool
+        TabButton {
+            text: "Capture"
+        }
+        TabButton {
+            text: "Advanced"
+        }
+    }
+
+    StackLayout {
+        id: stack
+        anchors.top: tabBar.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        currentIndex: tabBar.currentIndex
+
+        Item {
+            id: capturePage
+
+            ColumnLayout {
+                width: parent.width
+                anchors.top: parent.top
+                anchors.topMargin: 20
+                spacing: 20
+
+                ColumnLayout {
+                    Text {
+                        text: "Timeout"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        Text {
+                            text: "End the capture if the tape contains no data for "
+                        }
+
+                        TextField {
+                            id: endTheCaptureIftheTapeContainsNoDataForTextField
+                            text: ""
+                            validator: IntValidator {
+                                bottom: 1
+                                top: 12000
+                            }
+                        }
+
+                        Text {
+                            text: " seconds"
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    Text {
+                        text: "Log"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        Text {
+                            text: "Save a Log of the Capture Process:"
+                        }
+
+                        RadioButton {
+                            id: saveALogOfTheCaptureProcess
+                            text: "Yes"
+                        }
+                        RadioButton {
+                            id: notSaveALogOfTheCaptureProcess
+                            text: "No"
+                            checked: true
+                        }
+                    }
+                }
+            }
         }
 
-        ValidatedTextField {
-            id: ffmpegField
-            width: 480
+        Item {
+            id: toolsPage
 
-            placeholderText: "ffmpeg path..."
-            selectByMouse: true
-            validate: validateTool
-        }
+            Text {
+                id: label
+                text: "Please specify tool locations."
+                font.bold: true
+                horizontalAlignment: Text.AlignHCenter
+                anchors.horizontalCenter: parent.horizontalCenter
 
-        ValidatedTextField {
-            id: mediaInfoField
-            width: 480
+                anchors.top: parent.top
+                anchors.topMargin: 20
+            }
 
-            placeholderText: "mediainfo path..."
-            selectByMouse: true
-            validate: validateTool
-        }
+            Column {
+                anchors.top: label.bottom
+                anchors.topMargin: 20
 
-        ValidatedTextField {
-            id: xmlStarletField
-            width: 480
+                ValidatedTextField {
+                    id: dvrescueField
+                    width: 480
 
-            placeholderText: "xmlstarlet path..."
-            selectByMouse: true
-            validate: validateTool
+                    placeholderText: "dvrescue path..."
+                    selectByMouse: true
+                    validate: validateTool
+                }
+
+                ValidatedTextField {
+                    id: ffmpegField
+                    width: 480
+
+                    placeholderText: "ffmpeg path..."
+                    selectByMouse: true
+                    validate: validateTool
+                }
+
+                ValidatedTextField {
+                    id: mediaInfoField
+                    width: 480
+
+                    placeholderText: "mediainfo path..."
+                    selectByMouse: true
+                    validate: validateTool
+                }
+
+                ValidatedTextField {
+                    id: xmlStarletField
+                    width: 480
+
+                    placeholderText: "xmlstarlet path..."
+                    selectByMouse: true
+                    validate: validateTool
+                }
+
+                CheckBox {
+                    text: "Enable Debug View"
+                    id: enableDebugViewCheckBox
+                }
+            }
         }
     }
 
