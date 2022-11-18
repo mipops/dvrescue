@@ -167,6 +167,11 @@ Item {
 
             var arguments = ['-y', 'device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
 
+            if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
+                arguments.push('--timeout')
+                arguments.push(settings.endTheCaptureIftheTapeContainsNoDataFor)
+            }
+
             launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
@@ -224,6 +229,16 @@ Item {
             var scc = file + ".scc"
 
             var arguments = ['-y', 'device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
+
+            if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
+                arguments.push('--timeout')
+                arguments.push(settings.endTheCaptureIftheTapeContainsNoDataFor)
+            }
+
+            if(settings.saveALogOfTheCaptureProcess) {
+                arguments.push('--merge-log')
+                arguments.push(file + ".capture.log")
+            }
 
             launcher.execute(cmd, arguments);
             if(callback)
