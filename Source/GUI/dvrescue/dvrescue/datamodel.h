@@ -10,6 +10,7 @@
 #include <qwtquick2plot.h>
 #include <xmlparser.h>
 #include <memory>
+#include <QMutex>
 
 class QAbstractTableModel;
 class QJSEngine;
@@ -56,7 +57,8 @@ public:
 
     Q_INVOKABLE QString videoInfo(float x, float y);
     Q_INVOKABLE QString audioInfo(float x, float y);
-    Q_INVOKABLE QVariantList getMarkers();
+    Q_INVOKABLE QVariantList getRecMarkers();
+    Q_INVOKABLE QVariantList getTcnMarkers();
     Q_INVOKABLE int frameByIndex(int index);
     Q_INVOKABLE bool isSubstantialFrame(int index);
     Q_INVOKABLE int getLastSubstantialFrame(int index);
@@ -82,6 +84,7 @@ public:
         QString audioInfo;
     };
 
+    QVariantList getMarkers(const std::function<bool(QString)>& typeFilter);
     void getInfo(QList<std::tuple<int, GraphStats>>& stats, float x, float y, int& frame, float& oddValue, float& evenValue);
     void getVideoInfo(float x, float y, int& frame, float& oddValue, float& evenValue);
     void getAudioInfo(float x, float y, int& frame, float& oddValue, float& evenValue);

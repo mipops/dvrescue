@@ -66,15 +66,15 @@ Instantiator {
             editRow(index, firstTimecodeColumn, firstTimeCode)
         }
         onLastTimeCodeChanged: {
-            editRow(index, lastTimecodeColumn, lastTimeCode)
         }
         onFirstRecordingTimeChanged: {
             editRow(index, firstRecordingTimeColumn, firstRecordingTime)
         }
         onLastRecordingTimeChanged: {
-            editRow(index, lastRecordingTimeColumn, lastRecordingTime)
         }
         onParsingChanged: {
+            editRow(index, lastTimecodeColumn, lastTimeCode)
+            editRow(index, lastRecordingTimeColumn, lastRecordingTime)
             editRow(index, progressRole, parsing === false ? 1 : 0)
         }
         onBytesProcessedChanged: {

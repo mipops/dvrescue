@@ -53,22 +53,55 @@ Rectangle {
         z: 10
     }
 
+    Text {
+        color: "red"
+        font.bold: true
+        font.pixelSize: tc_nMarkers.height
+        text: "!"
+        verticalAlignment: Text.AlignVCenter
+        anchors.left: parent.left
+        anchors.leftMargin: videoPlot.canvasItem.x - 20
+        anchors.top: recMarkers.top
+        anchors.bottom: recMarkers.bottom
+        visible: recMarkers.overflow
+
+        ToolTip {
+            text: "only first 200 rec markers are shown"
+            visible: recMouseArea.containsMouse
+        }
+
+        MouseArea {
+            id: recMouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+        }
+    }
+
     Connections {
         target: dataModel
         onUpdated: {
-            var markers = dataModel.getMarkers();
-            console.debug('markers: ', JSON.stringify(markers, 0, 4))
+            {
+                var markers = dataModel.getRecMarkers();
+                console.debug('rec markers: ', markers.length);
 
-            recMarkers.markersModel.clear();
-            tc_nMarkers.markersModel.clear();
-            for(var i = 0; i < markers.length; ++i) {
-                var marker = markers[i];
-                if(marker.type === 'rec') {
+                recMarkers.markersModel.clear();
+                for(var i = 0; i < Math.min(markers.length, 200); ++i) {
+                    var marker = markers[i]
                     recMarkers.markersModel.append(marker);
                 }
-                else if(marker.type === 'tc_n') {
+                recMarkers.overflow = markers.length > 200;
+            }
+
+            {
+                var markers = dataModel.getTcnMarkers();
+                console.debug('tcn markers: ', markers.length);
+
+                tc_nMarkers.markersModel.clear();
+                for(var i = 0; i < Math.min(markers.length, 200); ++i) {
+                    var marker = markers[i]
                     tc_nMarkers.markersModel.append(marker);
                 }
+                tc_nMarkers.overflow = markers.length > 200;
             }
         }
     }
@@ -184,10 +217,10 @@ Rectangle {
             }
 
             MarkersView {
+                id: tc_nMarkers
                 anchors.top: videoRow.bottom
                 anchors.left: parent.left
                 anchors.leftMargin: videoPlot.canvasItem.x
-                id: tc_nMarkers
                 imageRotation: 180
                 enableColorize: true
                 colorizeColor: 'orange'
@@ -201,6 +234,30 @@ Rectangle {
                 clip: true
                 width: videoPlot.canvasItem.width
                 z: 10
+            }
+
+            Text {
+                color: "red"
+                font.bold: true
+                font.pixelSize: tc_nMarkers.height
+                text: "!"
+                verticalAlignment: Text.AlignVCenter
+                anchors.left: parent.left
+                anchors.leftMargin: videoPlot.canvasItem.x - 20
+                anchors.top: tc_nMarkers.top
+                anchors.bottom: tc_nMarkers.bottom
+                visible: tc_nMarkers.overflow
+
+                ToolTip {
+                    text: "only first 200 tcn markers are shown"
+                    visible: tc_nMouseArea.containsMouse
+                }
+
+                MouseArea {
+                    id: tc_nMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
             }
         }
 

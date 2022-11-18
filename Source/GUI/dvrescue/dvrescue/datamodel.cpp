@@ -7,9 +7,12 @@
 #include <QGraphicsView>
 #include <QtAlgorithms>
 #include <QJSEngine>
+#include "qqmltablemodel_p.h"
 
 DataModel::DataModel(QObject *parent) : QObject(parent)
 {
+    qDebug() << "DataModel::DataModel: " << QThread::currentThread();
+
     connect(this, &DataModel::dataRowCreated, this, &DataModel::onDataRowCreated);
 }
 
@@ -67,34 +70,18 @@ QString DataModel::audioInfo(float x, float y)
     return QString("frame: %1, closest frame: %2\n").arg(frameOffset).arg(closestFrame) + QString("%1% (even DIF sequences %2%, odd %3%)").arg(evenValue + abs(oddValue)).arg(evenValue).arg(oddValue);
 }
 
-QVariantList DataModel::getMarkers()
+QVariantList DataModel::getRecMarkers()
 {
-    QVariantList markers;
+    return getMarkers([](QString type) -> bool {
+        return type == "rec";
+    });
+}
 
-    for(auto & frameTuple : m_frames) {
-        auto frameIndex = std::get<0>(frameTuple);
-        auto& frameInfo = std::get<1>(frameTuple);
-
-        if(frameInfo.markers.empty())
-            continue;
-
-        for(auto& key : frameInfo.markers.keys()) {
-            auto type = key;
-            auto nameAndIcon = frameInfo.markers.value(key);
-
-            auto markerInfo = MarkerInfo();
-            markerInfo.frameNumber = frameIndex;
-            markerInfo.name = nameAndIcon.first;
-            markerInfo.type = type;
-            markerInfo.icon = nameAndIcon.second;
-            markerInfo.recordingTime = frameInfo.recordingTime;
-            markerInfo.timecode = frameInfo.timecode;
-
-            markers.append(QVariant::fromValue(markerInfo));
-        }
-    }
-
-    return markers;
+QVariantList DataModel::getTcnMarkers()
+{
+    return getMarkers([](QString type) -> bool {
+        return type == "tc_n";
+    });
 }
 
 int DataModel::frameByIndex(int index)
@@ -168,6 +155,40 @@ qint64 DataModel::frameIndex(qint64 offset)
     }
 
     return -1;
+}
+
+QVariantList DataModel::getMarkers(const std::function<bool (QString)> &typeFilter)
+{
+    QVariantList markers;
+
+    for(auto & frameTuple : m_frames) {
+        auto frameIndex = std::get<0>(frameTuple);
+        auto& frameInfo = std::get<1>(frameTuple);
+
+        if(frameInfo.markers.empty())
+            continue;
+
+        for(auto& key : frameInfo.markers.keys()) {
+            auto type = key;
+
+            if(!typeFilter(type))
+                continue;
+
+            auto nameAndIcon = frameInfo.markers.value(key);
+
+            auto markerInfo = MarkerInfo();
+            markerInfo.frameNumber = frameIndex;
+            markerInfo.name = nameAndIcon.first;
+            markerInfo.type = type;
+            markerInfo.icon = nameAndIcon.second;
+            markerInfo.recordingTime = frameInfo.recordingTime;
+            markerInfo.timecode = frameInfo.timecode;
+
+            markers.append(QVariant::fromValue(markerInfo));
+        }
+    }
+
+    return markers;
 }
 
 void DataModel::getVideoInfo(float x, float y, int &frame, float &oddValue, float &evenValue)
@@ -353,30 +374,30 @@ void DataModel::populate(const QString &fileName)
     m_thread.reset(new QThread());
 
     m_parser->moveToThread(m_thread.get());
-    connect(m_thread.get(), &QThread::finished, [this]() {
+    connect(m_thread.get(), &QThread::finished, m_thread.get(), [this]() {
         qDebug() << "finished";
         m_parser->deleteLater();
-    });
-    connect(m_thread.get(), &QThread::started, [this, fileName]() {
+    }, Qt::DirectConnection);
+    connect(m_thread.get(), &QThread::started, m_thread.get(), [this, fileName]() {
         m_parser->exec(fileName);
         qDebug() << "exiting loop";
-    });
-    connect(m_parser, &XmlParser::finished, [this]() {
+    }, Qt::DirectConnection);
+    connect(m_parser, &XmlParser::finished, this, [this]() {
         qDebug() << "parser finished";
         Q_EMIT populated();
     });
-    connect(m_parser, &XmlParser::error, [this](const QString& errorString) {
+    connect(m_parser, &XmlParser::error, m_parser, [this](const QString& errorString) {
         Q_EMIT error(errorString);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrame, [this](auto frameNumber, auto offset, auto duration) {
+    connect(m_parser, &XmlParser::gotFrame, m_parser, [this](auto frameNumber, auto offset, auto duration) {
         m_frames.append(std::make_tuple(frameNumber, FrameStats() ));
         m_frameOffsetByFrameIndex[frameNumber] = offset;
         m_frameIndexByFrameOffsetStart[offset] = frameNumber;
         m_frameIndexByFrameOffsetEnd[offset + duration] = frameNumber;
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotFrameAttributes, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
+    connect(m_parser, &XmlParser::gotFrameAttributes, m_parser, [this](auto frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
             int staCount, int totalSta, int totalEvenSta, int totalAud, int totalEvenAud, bool captionOn, bool isSubstantial) {
         Q_UNUSED(staCount);
         Q_UNUSED(isSubstantial);
@@ -407,9 +428,9 @@ void DataModel::populate(const QString &fileName)
 
         onGotFrame(frameNumber, framesAttributes, frameAttributes, diff_seq_count, totalSta, totalEvenSta, totalAud, totalEvenAud, captionOn, isSubstantial);
         Q_EMIT totalChanged(m_total);
-    });
+    }, Qt::DirectConnection);
 
-    connect(m_parser, &XmlParser::gotSta, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
+    connect(m_parser, &XmlParser::gotSta, m_parser, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         GraphStats value = {
             int(frameNumber),
             float(n_even) / den * 100,
@@ -418,8 +439,8 @@ void DataModel::populate(const QString &fileName)
         };
 
         m_videoValues.append(std::make_tuple(frameNumber, value));
-    });
-    connect(m_parser, &XmlParser::gotAud, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
+    }, Qt::DirectConnection);
+    connect(m_parser, &XmlParser::gotAud, m_parser, [&](auto frameNumber, auto t, auto n, auto n_even, auto den) {
         Q_UNUSED(t);
         GraphStats value = {
             int(frameNumber),
@@ -429,7 +450,7 @@ void DataModel::populate(const QString &fileName)
         };
 
         m_audioValues.append(std::make_tuple(frameNumber, value));
-    });
+    }, Qt::DirectConnection);
 
     m_thread->start();
 }

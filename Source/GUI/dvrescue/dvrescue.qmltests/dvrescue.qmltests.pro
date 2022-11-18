@@ -31,8 +31,6 @@ HEADERS += \
 RESOURCES += \
     testdata.qrc
 
-RESOURCES += $$PWD/../dvrescue/qml.qrc
-
 QTAVPLAYER_SRC=$$absolute_path(../dvrescue-QtAVPlayer)
 QTAVPLAYER_LIB=$$absolute_path($$OUT_PWD/../dvrescue-QtAVPlayer)
 include(../dvrescue-QtAVPlayer/UseQtAVPlayerLib.pri)
