@@ -442,10 +442,10 @@ Column {
                         } else {
                             if(dataModel.totalWithErrors < 2) {
                                 return "Of the X frames received, Y contains error concealment (Z within the last 9000 frames)."
-                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("Z", dataModel.lastWithErrors)
                             } else {
                                 return "Of the X frames received, Y contain error concealment (Z within the last 9000 frames)."
-                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("X", dataModel.lastWithErrors)
+                                    .replace("X", dataModel.total).replace("Y", dataModel.totalWithErrors).replace("Z", dataModel.lastWithErrors)
                             }
                         }
                     }
