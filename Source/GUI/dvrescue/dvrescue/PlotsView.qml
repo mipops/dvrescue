@@ -66,7 +66,7 @@ Rectangle {
         visible: recMarkers.overflow
 
         ToolTip {
-            text: "only first 200 rec markers are shown"
+            text: "Only the first 100 Recording Start/Stop Markers are shown"
             visible: recMouseArea.containsMouse
         }
 
@@ -85,11 +85,11 @@ Rectangle {
                 console.debug('rec markers: ', markers.length);
 
                 recMarkers.markersModel.clear();
-                for(var i = 0; i < Math.min(markers.length, 200); ++i) {
+                for(var i = 0; i < Math.min(markers.length, 100); ++i) {
                     var marker = markers[i]
                     recMarkers.markersModel.append(marker);
                 }
-                recMarkers.overflow = markers.length > 200;
+                recMarkers.overflow = markers.length > 100;
             }
 
             {
@@ -97,11 +97,11 @@ Rectangle {
                 console.debug('tcn markers: ', markers.length);
 
                 tc_nMarkers.markersModel.clear();
-                for(var i = 0; i < Math.min(markers.length, 200); ++i) {
+                for(var i = 0; i < Math.min(markers.length, 100); ++i) {
                     var marker = markers[i]
                     tc_nMarkers.markersModel.append(marker);
                 }
-                tc_nMarkers.overflow = markers.length > 200;
+                tc_nMarkers.overflow = markers.length > 100;
             }
         }
     }
@@ -249,7 +249,7 @@ Rectangle {
                 visible: tc_nMarkers.overflow
 
                 ToolTip {
-                    text: "only first 200 tcn markers are shown"
+                    text: "Only the first 100 Non-continuous Timecode Markers are shown"
                     visible: tc_nMouseArea.containsMouse
                 }
 
