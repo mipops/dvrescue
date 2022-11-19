@@ -1,9 +1,13 @@
 ---
 layout: post
-title: DVRescue Schema Documentation
+title: DVRescue Documents
 ---
 
-# DVRescue XML Schema Documentation
+# DVRescue Documents
+
+In order to facilitate capturing, analyzing, and merging of DV, DVRescue utiltize a few internally-defined documents to describe data and events.
+
+## DVRescue XML Schema Documentation
 
 The schema used in DVRescue can be found [here](https://github.com/mipops/dvrescue/blob/main/tools/dvrescue.xsd)
 
@@ -122,4 +126,35 @@ A frame element holds notable information about frames that have been identified
  - _n_even_: A count of this particular type of audio error within the even-numbered DIF sequences of the frame. @n minus @n_even would provide the count of this particular type of audio error within the odd-numbered DIF sequences of the frame. A discrepancy between the counts within even and odd DIF sequences can indicate that the associated error is from the playback device of the source tape rather than damage to the source tape. The range is 0-45 for NTSC DV25 and 0-54 for PAL DV25.
 
 
+## DVRescue CSV
 
+The DVRescue CSV describes frames and events occurring as one or many DV inputs are processed through the DVRescue utility. The CSV is primarily designed as a document to communicate information between the DVRescue CLI and the DVRescue GUI but can also be useful for debugging.
+
+Each row in the DVRescue document refers to one DV frame read as an input. Note that the Frame Filter feature may filter out some frames before being represented in the CSV. Also note that if some instances, such as between the processes involving merging multiple input files, the number of output frames  may differ from the number of input frames.
+
+The CSV is comprised for the following columns:
+
+| Name                | Definition |
+| --------------------|----------- |
+| FramePos            | An incremental frame counter, starting from 0. |
+| abst                | The Absolute Track Number of the frame. |
+| abst_r              | A flag to say if the abst value is repeated. |
+| abst_nc             | A flag to say if the abst value is not-consecutive. |
+| tc                  | The timecode value. |
+| tc_r                | A flag to say if the tc value is repeated. |
+| tc_nc               | A flag to say if the tc value is non-consecutive. |
+| rdt                 | The recording date-time value. |
+| rdt_r               | A flag to say if the recording date-time value is repeated. |
+| rdt_nc              | A flag to say if the recording date-time value is non-consecutive. |
+| rec_start           | A flag set by the recording device to indicate that the frame is the start of a recording. |
+| rec_end             | A flag set by the recording device to indicate that the frame is the end of a recording. |
+| Used                | The index of the input used to select the output frame (for example, this shall be '0' if the frame of the first input is transmitted to the output, or '2' if the third input) |
+| Status              | The status value will be equal in length to the number of inputs. For each position in the status value, a letter will represent the status of that corresponding input. 'T' indicates that the timecode is missing, 'P' indicates the frame has an error (such as video error concealment or audio dropouts), 'M' indicates that the frame is missing from that input. |
+| Comments            | If the output frame has a problem, this Comments value will summarize that status of the output frame. |
+| BlockErrors         | The number of DIF Blocks with an error transmitted to the output. |
+| BlockErrors_Even    | The number of BlockErrors from even-numbered DIF Sequences. |
+| IssueFixed          | The number of DIF block errors corrected in the merging process. |
+| SourceSpeed         | The speed of the deck noted via deck control. 1 indicates standard playback, >1 is fast-forward, 0 is stopped, <0 indicates rewinding. |
+| FrameSpeed          | The speed of the playback as noted within the DV frames. Standard playback is usually 31 or 32. |
+| InputPos            | A pipe-delimited list of the byte offsets of the synchronized input frames within their corresponding files. |
+| OutputPos           | The byte offset of the corresponding output frame in the output file. |
