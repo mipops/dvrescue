@@ -47,7 +47,7 @@ Rectangle {
 
         headerDelegate: SortableFiltrableColumnHeading {
             id: header
-            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
+            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : (tableView.columnWidths[modelData] === 0 ? 0 : 50)
             text: dataModel.columns[modelData].display
             canFilter: true
             canSort: false
@@ -633,10 +633,31 @@ Rectangle {
 
     property int columnSpacing: 10
 
+    property var visibleColumns: settings.advancedFrameTable ? settings.frameTableColumns : dataModel.simpleColumnsNames
+
+    onVisibleColumnsChanged: {
+        console.debug('visibleColumns: ', JSON.stringify(visibleColumns, 0, 4))
+        Qt.callLater(() => {
+                         tableView.adjustColumnWidths();
+                         tableView.forceLayout();
+                     })
+    }
+
     TableModelEx {
         id: dataModel
 
+        property var simpleColumnsNames: [
+            columnsNames[frameColumn],
+            columnsNames[timestampColumn],
+            columnsNames[timecodeColumn],
+            columnsNames[recordingTimeColumn],
+            columnsNames[videoErrorColumn],
+            columnsNames[audioErrorColumn],
+            columnsNames[videoAudioColumn],
+        ]
+
         property int frameColumn: columnsNames.indexOf("Frame #");
+        property int timestampColumn: columnsNames.indexOf("Timestamp");
         property int timecodeColumn: columnsNames.indexOf("Timecode");
         property int recordingTimeColumn: columnsNames.indexOf("Recording Time");
         property int sequenceNumberColumn: columnsNames.indexOf("Sequence Number");
@@ -651,17 +672,20 @@ Rectangle {
         TableModelColumn {
             display: "Frame #";
             property int minWidth: 20
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Timestamp";
             property int minWidth: timestampMetrics.width + columnSpacing
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Timecode";
             decoration: "Timecode: Jump/Repeat";
             property int minWidth: timecodeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
@@ -669,6 +693,7 @@ Rectangle {
             decoration: "Recording Time: Jump/Repeat";
             edit: "Recording Marks"
             property int minWidth: recordingTimeMetrics.width + columnSpacing + timecodeMetrics.height * 2.5
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
@@ -676,6 +701,7 @@ Rectangle {
             decoration: "Video Error";
             edit: "Video Error/Full Concealment";
             property int minWidth: errorConcealmentMetrics.width
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
@@ -683,44 +709,52 @@ Rectangle {
             decoration: "Audio Error";
             edit: "Audio Error/Full Concealment";
             property int minWidth: errorConcealmentMetrics.width
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Full Concealment";
             property int minWidth: 20
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Missing Packs";
             property int minWidth: missingPacksMetrics.width + columnSpacing
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Sequence Number";
             decoration: "Sequence Number: Jump/Repeat"
             property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "CC";
             decoration: "CC/Mismatch"
             property int minWidth: 40
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Byte Offset";
             property int minWidth: 20
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Video/Audio";
             property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
 
         TableModelColumn {
             display: "Absolute Track Number";
             decoration: "Absolute Track Number: Jump/Repeat"
             property int minWidth: 20 + columnSpacing + timecodeMetrics.height * 2
+            property bool visible: visibleColumns.indexOf(display) !== -1
         }
     }
 }

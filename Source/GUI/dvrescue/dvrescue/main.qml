@@ -27,6 +27,13 @@ ApplicationWindow {
                     about.open()
                 }
             }
+
+            Platform.MenuItem {
+                text: "Preferences"
+                onTriggered: {
+                    toolsDialog.show()
+                }
+            }
         }
     }
 
@@ -110,6 +117,7 @@ ApplicationWindow {
                 debugView.visible = !debugView.visible
             }
             icon.source: "/icons/menu-debug.svg"
+            visible: settings.debugVisible
         }
     }
 
@@ -241,15 +249,19 @@ ApplicationWindow {
 
     Settings {
         id: settings;
-        property string dvrescueCmd
-        onDvrescueCmdChanged: {
-            console.debug('dvrescueCmd = ', dvrescueCmd)
-        }
 
+        property string endTheCaptureIftheTapeContainsNoDataFor
+        property bool saveALogOfTheCaptureProcess
+
+        property bool advancedFrameTable
+        property var frameTableColumns: []
+
+        property string dvrescueCmd
         property string xmlStarletCmd
         property string mediaInfoCmd
         property string ffmpegCmd
         property alias recentFilesJSON: recentFilesModel.recentFilesJSON
+        property bool debugVisible
 
         Component.onCompleted: {
             console.debug('settings initialized')
@@ -258,26 +270,99 @@ ApplicationWindow {
 
     ToolsDialog {
         id: toolsDialog
+        simpleFrameTableColumns: analysePage.dataView.model.simpleColumnsNames
 
         onReset: {
-            dvrescueCmd = pathResolver.resolve("dvrescue")
-            ffmpegCmd = pathResolver.resolve("ffmpeg")
-            mediaInfoCmd = pathResolver.resolve("mediainfo")
-            xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+            console.debug('onReset: currentIndex = ', currentIndex)
+
+            if(currentIndex === 0) {
+                endTheCaptureIftheTapeContainsNoDataFor = ''
+                notSaveALogOfTheCaptureProcess = true
+            } else if(currentIndex === 1) {
+                simpleFrameTable = true
+                selectedFrameTableColumns.forEach((c) => {
+                                                    c.selected = true;
+                                                  })
+                selectedFrameTableColumns = JSON.parse(JSON.stringify(selectedFrameTableColumns))
+            } else {
+                dvrescueCmd = pathResolver.resolve("dvrescue")
+                ffmpegCmd = pathResolver.resolve("ffmpeg")
+                mediaInfoCmd = pathResolver.resolve("mediainfo")
+                xmlStarletCmd = pathResolver.resolve(Qt.platform.os === "windows" ? "xml" : "xmlstarlet")
+                enableDebugView = false
+            }
+
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
         }
 
         onAccepted: {
+            console.debug('onAccepted')
+
+            settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
+            settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
+            settings.advancedFrameTable = advancedFrameTable
+
+            var filteredSelectedFrameTableColumns = selectedFrameTableColumns.filter((column) => { return column.selected })
+            var mappedSelectedFrameTableColumns = filteredSelectedFrameTableColumns.map((column) => { return column.name });
+
+            console.debug('selectedFrameTableColumns: ', JSON.stringify(selectedFrameTableColumns, 0, 4))
+            console.debug('filtered selectedFrameTableColumns: ', JSON.stringify(filteredSelectedFrameTableColumns, 0, 4))
+            console.debug('mapped selectedFrameTableColumns: ', JSON.stringify(mappedSelectedFrameTableColumns, 0, 4))
+
+            settings.frameTableColumns = mappedSelectedFrameTableColumns
+
             settings.dvrescueCmd = dvrescueCmd
             settings.ffmpegCmd = ffmpegCmd
             settings.mediaInfoCmd = mediaInfoCmd
             settings.xmlStarletCmd = xmlStarletCmd
+            settings.debugVisible = enableDebugView
+
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
         }
 
         function show() {
+            console.debug('show')
+            var keys = SettingsUtils.keys();
+            for(var i = 0; i < keys.length; ++i) {
+                var key = keys[i]
+                console.debug('setting key: ', key, 'value: ', settings.value(key))
+            }
+
+            endTheCaptureIftheTapeContainsNoDataFor = settings.endTheCaptureIftheTapeContainsNoDataFor
+
+            if(settings.saveALogOfTheCaptureProcess)
+                saveALogOfTheCaptureProcess = true
+            else
+                notSaveALogOfTheCaptureProcess = true
+
             dvrescueCmd = settings.dvrescueCmd
             xmlStarletCmd = settings.xmlStarletCmd
             mediaInfoCmd = settings.mediaInfoCmd
             ffmpegCmd = settings.ffmpegCmd
+            enableDebugView = settings.debugVisible
+
+            if(settings.advancedFrameTable) {
+                advancedFrameTable = true
+            } else {
+                simpleFrameTable = true
+            }
+
+            var initialSelectedFrameTableColumns = []
+            console.debug('settings.frameTableColumns: ', JSON.stringify(settings.frameTableColumns, 0, 4))
+
+            analysePage.dataView.model.columnsNames.forEach((c) => {
+                                        var selected = settings.frameTableColumns.indexOf(c) !== -1;
+                                        initialSelectedFrameTableColumns.push({'name' : c, 'selected' : selected})
+                                })
+            selectedFrameTableColumns = initialSelectedFrameTableColumns
 
             open();
         }
