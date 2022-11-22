@@ -85,12 +85,12 @@ void InputControl_Char(file* F, char C)
 {
     switch (C)
     {
-    case 'R': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   , -2.0); break;
+    case 'R': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying, -2.0); break;
     case 'r': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   , -1.0); break;
     case 'q': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
     case 's': F->PauseRequested = true ; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
     case 'f': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   ,  1.0); break;
-    case 'F': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   ,  2.0); break;
+    case 'F': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  2.0); break;
     default: return;
     }
 }
