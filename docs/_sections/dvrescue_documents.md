@@ -5,7 +5,7 @@ title: DVRescue Documents
 
 # DVRescue Documents
 
-In order to facilitate capturing, analyzing, and merging of DV, DVRescue utiltize a few internally-defined documents to describe data and events.
+In order to facilitate capturing, analyzing, and merging of DV, DVRescue utilize a few internally-defined documents to describe data and events.
 
 ## DVRescue XML Schema Documentation
 
