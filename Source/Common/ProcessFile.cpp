@@ -254,6 +254,22 @@ void file::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 }
 
 //---------------------------------------------------------------------------
+void file::Terminate()
+{
+#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    if (Controller)
+    {
+        PauseRequested=false;
+        Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0);
+    }
+    else
+#endif
+    {
+        MI.Option(__T("File_RequestTerminate"), __T("1"));
+    }
+}
+
+//---------------------------------------------------------------------------
 file::~file()
 {
     #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
