@@ -40,8 +40,11 @@
 
 + (NSUInteger) getDeviceCount;
 + (NSString*) getDeviceName:(NSUInteger) index;
++ (NSString*) getDeviceID:(NSUInteger) index;
++ (NSInteger) getDeviceIndex:(NSString*) uniqueID;
 + (BOOL) isTransportControlsSupported:(NSUInteger) index;
 - (id) initWithDeviceIndex:(NSUInteger) index;
+- (id) initWithDeviceID:(NSString*) uniqueID;
 - (void) dealloc;
 - (NSString*) getStatus;
 - (void) createCaptureSession:(id) receiver;

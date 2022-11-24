@@ -113,6 +113,26 @@
     return toReturn;
 }
 
++ (NSString*) getDeviceID:(NSUInteger) index
+{
+    if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
+        return @"";
+
+    return [[[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:index] uniqueID];
+}
+
++ (NSInteger) getDeviceIndex:(NSString*) uniqueID
+{
+    for (NSUInteger i = 0; i < [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count]; i++)
+    {
+        AVCaptureDevice *dev = [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:i];
+        if ([[dev uniqueID] isEqualToString:uniqueID])
+            return i;
+    }
+
+    return -1;
+}
+
 + (BOOL) isTransportControlsSupported:(NSUInteger) index
 {
     if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
@@ -123,9 +143,45 @@
 
 - (id) initWithDeviceIndex:(NSUInteger) index
 {
+    if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
+        return nil;
+
     self = [super init];
     if (self) {
         _device = [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:index];
+        _old_mode  = [_device transportControlsPlaybackMode];
+        _old_speed = [_device transportControlsSpeed];
+        _log_changes = NO;
+
+        NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew;
+        NSString *keyPath = nil;
+
+        keyPath = NSStringFromSelector(@selector(transportControlsPlaybackMode));
+        [_device addObserver:self forKeyPath:keyPath options:options context:nil];
+
+        keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
+        [_device addObserver:self forKeyPath:keyPath options:options context:nil];
+    }
+    return self;
+}
+
+- (id) initWithDeviceID:(NSString*) uniqueID
+{
+    self = [super init];
+    if (self) {
+        for (NSUInteger i = 0; i < [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count]; i++)
+        {
+            AVCaptureDevice *dev = [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:i];
+            if ([[dev uniqueID] isEqualToString:uniqueID])
+            {
+                _device = dev;
+                break;
+            }
+        }
+
+        if (!_device)
+            return nil;
+
         _old_mode  = [_device transportControlsPlaybackMode];
         _old_speed = [_device transportControlsSpeed];
         _log_changes = NO;

@@ -389,7 +389,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
-            Device_Pos = atoi(argv_ansi[i]);
+            Device = argv_ansi[i];
             C.Inputs.push_back(String(__T("device://")) + argv[i]);
         }
         else if (!strcmp(argv_ansi[i], "--cmd") || !strcmp(argv_ansi[i], "-cmd"))

@@ -20,11 +20,15 @@ class AVFCtlWrapper : public BaseWrapper {
 public:
     // Constructor/Destructor
     AVFCtlWrapper(std::size_t DeviceIndex);
+    AVFCtlWrapper(std::string DeviceID);
     ~AVFCtlWrapper();
 
     // Functions
     static std::size_t GetDeviceCount();
     static std::string GetDeviceName(std::size_t DeviceIndex);
+    static std::string GetDeviceName(const std::string& DeviceID);
+    static std::string GetDeviceID(std::size_t DeviceIndex);
+    static std::size_t GetDeviceIndex(const std::string& DeviceID);
     std::string GetStatus();
     float GetSpeed();
     playback_mode GetMode();

@@ -29,7 +29,7 @@ extern bool OutputFrames_Concealed;
 extern int ShowFrames_Missing;
 extern int ShowFrames_Intermediate;
 extern bool InControl;
-extern uint64_t Device_Pos;
+extern string Device;
 extern char Device_Command;
 extern bool Device_ForceCapture;
 extern unsigned int Device_Mode;

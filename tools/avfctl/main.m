@@ -22,7 +22,7 @@ void help(BOOL full)
         [output appendString:@"-list_devices\n"];
         [output appendString:@"List detected devices and their indices.\n\n"];
         [output appendString:@"-device <arg>\n"];
-        [output appendString:@"Specify the device to send commands to. <arg> is required and is the index of the device as shown in -list_devices.\n"];
+        [output appendString:@"Specify the device to send commands to. <arg> is required and is the index or the id of the device as shown in -list_devices.\n"];
         [output appendString:@"If not specified, device with the index \"0\" is used by default.\n\n"];
         [output appendString:@"-status\n"];
         [output appendString:@"Show the current status of the device.\n\n"];
@@ -57,7 +57,8 @@ int get_device_idx(NSString *str)
 
 int main(int argc, char *argv[])
 {
-    int device_idx = 0;
+    NSString *deviceID;
+
     bool foreground = false;
     NSString *output_filename = @"out.dv";
 
@@ -73,7 +74,30 @@ int main(int argc, char *argv[])
             [args setObject: @YES forKey: @"print_status"];
         } else if ([[arguments objectAtIndex:pos] isEqualTo: @"-device"]) {
             if (++pos < [arguments count]) {
-                device_idx = get_device_idx([arguments objectAtIndex:pos]);
+            {
+                int device_idx = get_device_idx([arguments objectAtIndex:pos]);
+                if (device_idx >= 0)
+                {
+                    deviceID = [AVFCtl getDeviceID:device_idx];
+                    if ([deviceID isEqualToString:@""])
+                    {
+                        // error out if no valid device number could be identified from cmd line
+                        NSLog(@"Invalid device index given.");
+                        return 1;
+                    }
+                }
+                else
+                {
+                    NSInteger index = [AVFCtl getDeviceIndex:[arguments objectAtIndex:pos]];
+                    if (index < 0)
+                    {
+                        // error out if no valid device could be identified from cmd line
+                        NSLog(@"Invalid device id given.");
+                        return 1;
+                    }
+                    deviceID = [arguments objectAtIndex:pos];
+                }
+            }
             } else {
                 NSLog(@"No device given.");
                 return 1;
@@ -108,29 +132,26 @@ int main(int argc, char *argv[])
     if ([[args objectForKey:@"list_devices"] isEqualTo: @YES]) {
         NSLog(@"Devices:");
         for (NSUInteger idx = 0; idx < [AVFCtl getDeviceCount]; idx++) {
-            NSLog(@"[%ld] %@", idx, [AVFCtl getDeviceName:idx]);
+            NSLog(@"[%ld - %@] %@", idx, [AVFCtl getDeviceID:idx], [AVFCtl getDeviceName:idx]);
         }
     }
 
-    // check device index
-    if (device_idx < 0 || device_idx >= [AVFCtl getDeviceCount]) {
-        // error out if no valid device number could be identified from cmd line
-        NSLog(@"Invalid device index given.");
-        return 1;
-    }
+    // Use first device by default
+    if (!deviceID)
+        deviceID = [AVFCtl getDeviceID:0];
 
-    NSString *deviceName = [AVFCtl getDeviceName:device_idx];
+    NSString *deviceName = [AVFCtl getDeviceName:[AVFCtl getDeviceIndex:deviceID]];
 
     // check if device supports transport control
-    if (![AVFCtl isTransportControlsSupported:device_idx]) {
-        NSLog(@"Transport Controls not supported for device [%d] %@.", device_idx, deviceName);
+    if (![AVFCtl isTransportControlsSupported:[AVFCtl getDeviceIndex:deviceID]]) {
+        NSLog(@"Transport Controls not supported for device [%@] %@.", deviceID, deviceName);
         return 1;
     }
 
     AVFCtl *avfctl = nil;
     @try {
         // create AVFCTL with device
-        avfctl = [[AVFCtl alloc] initWithDeviceIndex:device_idx];
+        avfctl = [[AVFCtl alloc] initWithDeviceID:deviceID];
     }
     @catch (NSException *e) {
         NSLog(@"Error: %@", e);
@@ -142,7 +163,7 @@ int main(int argc, char *argv[])
         [avfctl createCaptureSession:[[AVFCtlFileReceiver alloc] initWithOutputFileName:@"/dev/null"]];
         // give time for the driver to retrieves status from the device
         [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.5]];
-        NSLog(@"Device [%d] %@ status: %@", device_idx, deviceName, [avfctl getStatus]);
+        NSLog(@"Device [%@] %@ status: %@", deviceID, deviceName, [avfctl getStatus]);
     }
 
     // Show device status changes

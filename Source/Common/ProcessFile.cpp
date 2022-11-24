@@ -27,7 +27,7 @@ using namespace std::chrono;
 FileWrapper* Wrapper = nullptr;
 #endif
 bool InControl = false;
-uint64_t Device_Pos = (uint64_t)-1;
+string Device = "";
 char Device_Command = 0;
 bool Device_ForceCapture = false;
 unsigned int Device_Mode = (unsigned int)-1;
@@ -149,21 +149,29 @@ void file::Parse(const String& FileName)
             for (;;)
             {
                 auto Name = AVFCtlWrapper::GetDeviceName(i);
+                auto DeviceID = AVFCtlWrapper::GetDeviceID(i);
                 if (Name.empty())
                     break;
-                cout << Name << '\n';
+                cout << DeviceID << ": " << Name << '\n';
                 i++;
             }
         #endif
         return;
     }
     Controller = nullptr;
-    if (Device_Pos == (size_t)-1 && FileName.rfind(__T("device://"), 0) == 0)
-        Device_Pos = (size_t)Ztring(FileName.substr(9)).To_int64u();
-    if (Device_Pos == (size_t)-1 && Device_Command)
-        Device_Pos = 0;
-    if (Device_Pos != (size_t)-1)
+    if (Device.empty() && FileName.rfind(__T("device://"), 0) == 0)
+        Device = Ztring(FileName.substr(9)).To_Local();
+    if (Device.empty() && Device_Command)
+        Device = "0";
+    if (!Device.empty())
     {
+        uint64_t Device_Pos;
+        istringstream iss(Device);
+
+        iss >> Device_Pos;
+        if (iss.fail() || !iss.eof())
+            Device_Pos = (uint64_t)-1;
+
         if (false)
             ;
         #ifdef ENABLE_SIMULATOR
@@ -173,6 +181,8 @@ void file::Parse(const String& FileName)
         #ifdef ENABLE_AVFCTL
             else if (Device_Pos < AVFCtlWrapper::GetDeviceCount())
                 Controller = new AVFCtlWrapper(Device_Pos);
+            else if (AVFCtlWrapper::GetDeviceIndex(Device) >= 0)
+                Controller = new AVFCtlWrapper(Device);
         #endif
     }
     if (Controller)
