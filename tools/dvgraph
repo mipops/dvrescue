@@ -25,8 +25,8 @@ while getopts ":v:a:d:" OPT ; do
         v) VIDEO_GRAPH="${OPTARG}";;
         a) AUDIO_GRAPH="${OPTARG}" ;;
         d) DIFSEQ_GRAPH="${OPTARG}" ;;
-        *) echo "bad option -${OPTARG}" ; _usage ;;
         :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+        *) echo "bad option -${OPTARG}" ; _usage ;;
     esac
 done
 shift $(( ${OPTIND} - 1 ))

@@ -100,8 +100,8 @@ while getopts ":t:b:HSXAVEOf:T:i:hF:M:x:" opt ; do
     M) MEDIAINFO_PATH="${OPTARG}" ;;
     x) XMLSTARLET_PATH="${OPTARG}" ;;
     h) _usage ;;
-    *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
     :) echo "Option -${OPTARG} requires an argument" ; exit 1 ;;
+    *) echo "bad option -${OPTARG}" ; _usage ; exit 1 ;;
   esac
 done
 shift "$((OPTIND-1))"
