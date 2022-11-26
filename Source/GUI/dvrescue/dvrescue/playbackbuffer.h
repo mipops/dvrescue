@@ -9,6 +9,7 @@
 
 class Buffer: public QIODevice
 {
+    Q_OBJECT
 public:
     qint64 readData(char *data, qint64 maxSize) override
     {
@@ -77,6 +78,16 @@ public:
         return m_size;
     }
 
+public Q_SLOTS:
+    void clear() {
+        m_size = 0;
+        m_pos = 0;
+        m_buffer.clear();
+        m_bytesRead = 0;
+        m_bytesWritten = 0;
+    }
+
+protected:
     qint64 m_size = 0;
     qint64 m_pos = 0;
     QByteArray m_buffer;
