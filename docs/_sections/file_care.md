@@ -34,7 +34,7 @@ MIPoPS uses and recommends the following settings:
 
 [Handbrake](https://handbrake.fr/) is an open source video transcoding tool available for all major operating systems. This is a convenient way to create copies of any files, and it works with DV, too.
 
-From DV, you can use Handbrake to create an MP4 video file with h264 video encoding and AAC audio encoding. This will create an access file that is suitable for web access, sharing on social media, adding to a content managmeent system, or for file-sharing. This file will be smaller, no longer contain some properties of DV for future analysis, and the quality will not be as high as the original.
+From DV, you can use Handbrake to create an MP4 video file with h264 video encoding and AAC audio encoding. This will create an access file that is suitable for web access, sharing on social media, adding to a content management system, or for file-sharing. This file will be smaller, no longer contain some properties of DV for future analysis, and the quality will not be as high as the original.
 
 You can download the <a href="{{ site.baseurl }}/_data/MIPoPS_Handbrake_Access.json">MIPoPS Handbrake Access JSON data</a> and add it to your Handbrake, to use the same recommended settings without having to configure them yourself.
 
