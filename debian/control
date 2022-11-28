@@ -1,7 +1,7 @@
 Source: dvrescue
 Priority: optional
 Maintainer: Jerome Martinez <Info@MediaArea.net>
-Build-Depends: debhelper (>= 5), libmediainfo-dev, libzen-dev, zlib1g-dev, pkg-config, automake, autoconf, libtool
+Build-Depends: debhelper (>= 5), libmediainfo-dev, libzen-dev, libraw1394-dev, libavc1394-dev, libiec61883-dev, zlib1g-dev, pkg-config, automake, autoconf, libtool
 Standards-Version: 3.7.3
 Section: libs
 Homepage: https://MediaArea.net/DVRescue

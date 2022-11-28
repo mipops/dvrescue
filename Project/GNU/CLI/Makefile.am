@@ -50,6 +50,10 @@ if BUILD_AVFCTL
     bin_SCRIPTS += ../../../tools/avfctl/avfctl
 endif
 
+if BUILD_LNX1394
+    dvrescue_SOURCES += ../../../Source/Common/LinuxWrapper.cpp
+endif
+
 # man1_MANS = ../../../Source/CLI/dvrescue.1
 
 AM_TESTS_FD_REDIRECT = 9>&2
