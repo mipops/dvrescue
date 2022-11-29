@@ -23,6 +23,7 @@ extern const char* Merge_OutputFileName;
 extern size_t Merge_Rewind_Count;
 extern uint8_t MergeInfo_Format;
 extern uint8_t Verbosity;
+extern uint64_t Timeout;
 extern uint8_t UseAbst;
 extern bool OutputFrames_Speed;
 extern bool OutputFrames_Concealed;

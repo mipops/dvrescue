@@ -216,7 +216,7 @@ void file::Parse(const String& FileName)
                     InputControl_Char(this, Device_Command);
                 Device_Command = -1;
             }
-            Controller->WaitForSessionEnd();
+            Controller->WaitForSessionEnd(Timeout);
             Controller->StopCaptureSession();
             if (!InputHelper)
                 break;

@@ -258,7 +258,7 @@ void SimulatorWrapper::StopCaptureSession()
 }
 
 //---------------------------------------------------------------------------
-void SimulatorWrapper::WaitForSessionEnd()
+void SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
     if (!Ctl)
         return;

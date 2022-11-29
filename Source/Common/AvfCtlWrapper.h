@@ -32,7 +32,7 @@ public:
     void StartCaptureSession();
     void StopCaptureSession();
     void SetPlaybackMode(playback_mode Mode, float Speed);
-    void WaitForSessionEnd();
+    void WaitForSessionEnd(uint64_t Timeout);
 
 private:
     void* Ctl;

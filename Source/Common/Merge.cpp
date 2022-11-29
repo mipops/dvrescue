@@ -33,6 +33,7 @@ static ostream* Log;
 size_t Merge_Rewind_Count = 0;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
+uint64_t Timeout = 0;
 uint8_t UseAbst = 0;
 bool OutputFrames_Speed = false;
 bool OutputFrames_Concealed = false;

@@ -115,7 +115,7 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "        9: information per frame + summary.\n"
         "\n"
         "    --timeout value\n"
-        "        Time out limit for the pipe input (\"-\" file name) set to value (in seconds)\n"
+        "        Time out limit for the device or pipe input (\"-\" file name) set to value (in seconds)\n"
         "\n"
         "    --capture\n"
         "        Launch capture.\n"
