@@ -576,6 +576,21 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             Flags.set(Flag_Yes);
         }
+        else if (!strcmp(argv_ansi[i], "--timeout") || !strcmp(argv_ansi[i], "-timeout"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i-1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+
+            String Value;
+            Value.assign(argv[i]);
+            MediaInfoLib::MediaInfo::Option_Static(__T("timeout"), Value);
+            Timeout = (int)atoi(argv_ansi[i]);
+        }
         else if (!strncmp(argv_ansi[i], "--", 2))
         {
             //Library options, we may accept either --option value or --option=value

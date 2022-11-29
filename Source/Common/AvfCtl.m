@@ -8,6 +8,16 @@
 #import <AVFoundation/AVFoundation.h>
 
 @implementation AVFCtlFileReceiver
+- (void) setLastInput: (NSDate*) toDate
+{
+    _last_input = toDate;
+}
+
+- (NSDate*) lastInput
+{
+    return _last_input;
+}
+
 - (id) initWithOutputFileName:(NSString *)theFileName {
     self = [super init];
     if (self) {
@@ -26,6 +36,7 @@
   didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection
 {
+    _last_input = [NSDate date];
     if (_output_file != nil) {
         CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sampleBuffer); // raw, DV data only
         size_t bb_len = CMBlockBufferGetDataLength(block_buffer);
@@ -259,6 +270,8 @@
         NSLog(@"Error creating capture session: %@", e);
         return;
     }
+
+    receiverInstance = receiver;
 }
 
 - (void) startCaptureSession
@@ -298,11 +311,23 @@
     return [_device transportControlsPlaybackMode];
 }
 
-- (void) waitForSessionEnd
+- (void) waitForSessionEnd:(NSUInteger) timeout
 {
+    // Initialize reveiver's last input timestamp to current time
+    if (receiverInstance)
+        [receiverInstance setLastInput: [NSDate date]];
+
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"YYYY-MM-dd-HH-mm-ss"];
     // block as long as the capture session is running
     // terminates if playback mode changes to NotPlaying
     while ([_device transportControlsSpeed] != 0.0f) {
+        if (timeout && receiverInstance && [[NSDate dateWithTimeInterval:timeout sinceDate:[receiverInstance lastInput]] compare:[NSDate date]] == NSOrderedAscending)
+        {
+            [self setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed: 0.0f];
+            break;
+        }
+
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5f]];
     }
 }

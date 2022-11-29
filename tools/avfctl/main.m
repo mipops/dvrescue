@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:1.0f];
             if (foreground) {
-                [avfctl waitForSessionEnd];
+                [avfctl waitForSessionEnd:0];
                 [avfctl stopCaptureSession];
             }
         } else if ([cmd isEqualToString:@"STOP"] ||
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed:-2.0f];
             if (foreground) {
-                [avfctl waitForSessionEnd];
+                [avfctl waitForSessionEnd:0];
                 [avfctl stopCaptureSession];
             }
         } else if ([cmd isEqualToString:@"SREW"] ||
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:-1.0f];
             if (foreground) {
-                [avfctl waitForSessionEnd];
+                [avfctl waitForSessionEnd:0];
                 [avfctl stopCaptureSession];
             }
         } else if ([cmd isEqualToString:@"FF"] ||
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
             }
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed:2.0f];
             if (foreground) {
-                [avfctl waitForSessionEnd];
+                [avfctl waitForSessionEnd:0];
                 [avfctl stopCaptureSession];
             }
         } else if ([cmd isEqualToString:@"CAPTURE"] ||
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
             [avfctl createCaptureSession:receiver];
             [avfctl startCaptureSession];
             [avfctl setPlaybackMode:AVCaptureDeviceTransportControlsPlayingMode speed:1.0f];
-            [avfctl waitForSessionEnd];
+            [avfctl waitForSessionEnd:0];
             [avfctl stopCaptureSession]; // redundant for internal errors in the session
         } else {
             NSLog(@"Invalid command given.");

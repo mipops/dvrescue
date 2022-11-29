@@ -9,10 +9,13 @@
 
 using namespace std;
 
-@interface AVFCtlBufferReceiver : NSObject
+@interface AVFCtlBufferReceiver : NSObject <ReceiverTimer>
 @property (retain,nonatomic) NSMutableData *output_data;
 @property (assign,nonatomic) FileWrapper *output_wrapper;
+@property (atomic, strong) NSDate *last_input;
 
+- (NSDate*) lastInput;
+- (void) setLastInput: (NSDate*) toDate;
 - (id) initWithFileWrapper:(FileWrapper*)wrapper;
 - (void) captureOutput:(AVCaptureOutput*)captureOutput
   didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -23,6 +26,16 @@ using namespace std;
 @end
 
 @implementation AVFCtlBufferReceiver
+- (void) setLastInput: (NSDate*) toDate
+{
+    _last_input = toDate;
+}
+
+- (NSDate*) lastInput
+{
+    return _last_input;
+}
+
 - (id) initWithFileWrapper:(FileWrapper*)wrapper
 {
     self = [super init];
@@ -39,6 +52,7 @@ using namespace std;
   didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection
 {
+    _last_input = [NSDate date];
     if (_output_wrapper != nil) {
         CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sampleBuffer); // raw, DV data only
         size_t bb_len = CMBlockBufferGetDataLength(block_buffer);
@@ -115,7 +129,7 @@ playback_mode AVFCtlWrapper::GetMode()
     return (playback_mode)[(id)Ctl getMode];
 }
 
-void AVFCtlWrapper::WaitForSessionEnd()
+void AVFCtlWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
-    [(id)Ctl waitForSessionEnd];
+    [(id)Ctl waitForSessionEnd: Timeout];
 }
