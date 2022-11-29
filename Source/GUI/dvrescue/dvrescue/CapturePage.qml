@@ -120,6 +120,7 @@ Rectangle {
                     csvParser.columnsChanged.disconnect(onColumnsChanged);
                     csvParserUI.entriesReceived.disconnect(onEntriesReceived);
                     ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
+                    playbackBuffer.clear();
 
                     capturing = true;
                     pendingAction = true;
@@ -203,6 +204,7 @@ Rectangle {
                         csvParser.columnsChanged.disconnect(onColumnsChanged);
                         csvParserUI.entriesReceived.disconnect(onEntriesReceived);
                         ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
+                        playbackBuffer.clear();
 
                         var filePath = urlToPath(fileUrl);
 
