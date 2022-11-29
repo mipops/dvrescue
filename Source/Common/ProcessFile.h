@@ -107,6 +107,7 @@ public:
 
     void Parse(const String& FileName);
     void Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size);
+    void Terminate();
 
     bool TransportControlsSupported();
     #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)

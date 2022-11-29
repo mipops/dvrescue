@@ -15,8 +15,13 @@
 #include <future>
 #include <mutex>
 #include <thread>
+#include <csignal>
 using namespace ZenLib;
 using namespace std;
+
+//---------------------------------------------------------------------------
+void Handle_Signal(int);
+
 //---------------------------------------------------------------------------
 
 //***************************************************************************
@@ -28,10 +33,14 @@ Core::Core()
 {
     MediaInfo::Option_Static(__T("ParseSpeed"), __T("1.000"));
     MediaInfo::Option_Static(__T("Demux"), __T("container"));
+    MediaInfo::Option_Static(__T("AcceptSignals"), __T("0"));
+
+    std::signal(SIGINT, Handle_Signal);
 }
 
 Core::~Core()
 {
+    std::signal(SIGINT, SIG_DFL);
     PerFile_Clear();
 }
 
@@ -129,4 +138,22 @@ void Core::PerFile_Clear()
     for (const auto& File : PerFile)
         delete File;
     PerFile.clear();
+}
+
+//***************************************************************************
+// Signals handler
+//***************************************************************************
+
+//---------------------------------------------------------------------------
+void Handle_Signal(int Signal)
+{
+    switch (Signal)
+    {
+    case SIGINT:
+        for (auto& File : PerFile)
+            File->Terminate();
+        break;
+    default:
+        ;
+    }
 }
