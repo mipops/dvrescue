@@ -45,6 +45,7 @@
       </xsd:documentation>
     </xsd:annotation>
     <xsd:sequence>
+      <xsd:element name="stop" type="stopType" minOccurs="0" maxOccurs="1"/>
       <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="ref" type="xsd:string">
@@ -79,6 +80,28 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Provides an error message is there is an issue parsing the file.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="stopType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Indicates that the processing of the dv stream has been stopped before it's end.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="method" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The method used to stop the proccesing.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="extra" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Additional information specific to the stop method.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
