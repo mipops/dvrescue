@@ -311,7 +311,7 @@
     return [_device transportControlsPlaybackMode];
 }
 
-- (void) waitForSessionEnd:(NSUInteger) timeout
+- (BOOL) waitForSessionEnd:(NSUInteger) timeout
 {
     // Initialize reveiver's last input timestamp to current time
     if (receiverInstance)
@@ -325,11 +325,13 @@
         if (timeout && receiverInstance && [[NSDate dateWithTimeInterval:timeout sinceDate:[receiverInstance lastInput]] compare:[NSDate date]] == NSOrderedAscending)
         {
             [self setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed: 0.0f];
-            break;
+            return TRUE;
         }
 
         [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5f]];
     }
+
+    return FALSE;
 }
 
 @end

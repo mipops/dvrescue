@@ -129,7 +129,7 @@ playback_mode AVFCtlWrapper::GetMode()
     return (playback_mode)[(id)Ctl getMode];
 }
 
-void AVFCtlWrapper::WaitForSessionEnd(uint64_t Timeout)
+bool AVFCtlWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
-    [(id)Ctl waitForSessionEnd: Timeout];
+    return (bool)[(id)Ctl waitForSessionEnd: Timeout];
 }

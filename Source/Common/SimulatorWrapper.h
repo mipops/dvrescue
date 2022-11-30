@@ -32,7 +32,7 @@ class SimulatorWrapper : public BaseWrapper {
     void StartCaptureSession();
     void StopCaptureSession();
     void SetPlaybackMode(playback_mode Mode, float Speed);
-    void WaitForSessionEnd(uint64_t Timeout);
+    bool WaitForSessionEnd(uint64_t Timeout);
 
 private:
     void* Ctl;

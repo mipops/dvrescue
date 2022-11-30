@@ -64,5 +64,5 @@
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
 - (AVCaptureDeviceTransportControlsPlaybackMode) getMode;
 - (AVCaptureDeviceTransportControlsSpeed) getSpeed;
-- (void) waitForSessionEnd:(NSUInteger) timeout;
+- (BOOL) waitForSessionEnd:(NSUInteger) timeout;
 @end

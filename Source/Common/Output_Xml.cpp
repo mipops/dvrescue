@@ -24,6 +24,7 @@ using namespace ZenLib;
 extern vector<string> Merge_InputFileNames;
 extern const char* Merge_OutputFileName; 
 extern uint64_t Merge_Out_Size;
+extern uint64_t Timeout;
 
 //---------------------------------------------------------------------------
 static const char* const Writer_Name = "XML";
@@ -191,6 +192,15 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += '\"';
         }
         Text += ">\n";
+
+        if (File->TimeOutReached)
+        {
+            Text += "\t\t<stop method='timeout' extra='";
+            Text += Ztring().From_Number(Timeout).To_UTF8();
+            Text += "'/>\n";
+        }
+        else if (File->TerminateRequested)
+            Text += "\t\t<stop method='user' extra='SIGINT'/>\n";
 
         // By Frame - For each line
         auto FrameNumber_Max = File->PerFrame.size() - 1;
