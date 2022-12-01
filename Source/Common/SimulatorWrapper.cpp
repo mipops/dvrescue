@@ -258,15 +258,15 @@ void SimulatorWrapper::StopCaptureSession()
 }
 
 //---------------------------------------------------------------------------
-void SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
+bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
     if (!Ctl)
-        return;
+        return false;
     auto P = (ctl*)Ctl;
 
     // Check if should quit
     if (P->F.empty() || !P->IsCapturing)
-        return;
+        return false;
 
     int8u* Buffer = new int8u[120000];
     for (;;)
@@ -414,6 +414,8 @@ void SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
 
     SetPlaybackMode(Playback_Mode_NotPlaying, 0);
     delete[] Buffer;
+
+    return false;
 }
 
 //---------------------------------------------------------------------------

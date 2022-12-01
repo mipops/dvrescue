@@ -136,5 +136,7 @@ public:
     TimeCode RewindTo_TC;
     int RewindTo_Abst = 0;
     int DelayedPlay = 0;
+    bool TerminateRequested = false;
+    bool TimeOutReached = false;
     #endif
 };

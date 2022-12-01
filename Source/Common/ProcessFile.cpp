@@ -216,7 +216,7 @@ void file::Parse(const String& FileName)
                     InputControl_Char(this, Device_Command);
                 Device_Command = -1;
             }
-            Controller->WaitForSessionEnd(Timeout);
+            TimeOutReached = Controller->WaitForSessionEnd(Timeout);
             Controller->StopCaptureSession();
             if (!InputHelper)
                 break;
@@ -267,6 +267,8 @@ void file::Terminate()
     {
         MI.Option(__T("File_RequestTerminate"), __T("1"));
     }
+
+    TerminateRequested = true;
 }
 
 //---------------------------------------------------------------------------

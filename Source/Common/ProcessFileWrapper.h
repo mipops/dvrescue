@@ -51,7 +51,7 @@ public:
     virtual void StartCaptureSession() = 0;
     virtual void StopCaptureSession() = 0;
     virtual void SetPlaybackMode(playback_mode Mode, float Speed) = 0;
-    virtual void WaitForSessionEnd(uint64_t Timeout) = 0;
+    virtual bool WaitForSessionEnd(uint64_t Timeout) = 0;
 };
 inline BaseWrapper::~BaseWrapper() {}
 
