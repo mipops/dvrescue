@@ -78,6 +78,11 @@ AVFCtlWrapper::AVFCtlWrapper(size_t DeviceIndex)
     Ctl = (void*)[[AVFCtl alloc] initWithDeviceIndex:DeviceIndex];
 }
 
+AVFCtlWrapper::AVFCtlWrapper(string DeviceID)
+{
+    Ctl = (void*)[[AVFCtl alloc] initWithDeviceID:[NSString stringWithUTF8String:DeviceID.c_str()]];
+}
+
 AVFCtlWrapper::~AVFCtlWrapper()
 {
     [(id)Ctl release];
@@ -91,6 +96,29 @@ size_t AVFCtlWrapper::GetDeviceCount()
 string AVFCtlWrapper::GetDeviceName(size_t DeviceIndex)
 {
     return string([[AVFCtl getDeviceName:DeviceIndex] UTF8String]);
+}
+
+string AVFCtlWrapper::GetDeviceName(const std::string& DeviceID)
+{
+    NSInteger DeviceIndex = GetDeviceIndex(DeviceID);
+    if (DeviceIndex < 0)
+        return string();
+
+    return string([[AVFCtl getDeviceName:DeviceIndex] UTF8String]);
+}
+
+string AVFCtlWrapper::GetDeviceID(size_t DeviceIndex)
+{
+    return string([[AVFCtl getDeviceID:DeviceIndex] UTF8String]);
+}
+
+size_t AVFCtlWrapper::GetDeviceIndex(const string& DeviceID)
+{
+    NSInteger index = [AVFCtl getDeviceIndex:[NSString stringWithUTF8String:DeviceID.c_str()]];
+    if (index < 0)
+        return (size_t)-1;
+
+    return (size_t)index;
 }
 
 string AVFCtlWrapper::GetStatus()
