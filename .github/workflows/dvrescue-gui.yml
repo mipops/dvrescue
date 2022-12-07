@@ -283,14 +283,14 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-9', 'clang-9']
+        compiler: ['gcc-11', 'clang-16']
         include:
-          - compiler: gcc-9
-            packages: gcc-9 g++-9
-            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
-          - compiler: clang-9
-            packages: 'clang-9'
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+          - compiler: gcc-11
+            packages: gcc-11 g++-11
+            env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
+          - compiler: clang-16
+            packages: 'clang-16'
+            env: { 'CC': 'clang-16', 'CXX': 'clang++-16' }
 
     runs-on: ubuntu-latest
 
@@ -317,9 +317,9 @@ jobs:
         architecture: 'x64'
 
     - name: Add Clang apt repository
-      if: matrix.compiler == 'clang-9'
+      if: matrix.compiler == 'clang-16'
       run: |
-        echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" \
+        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy main" \
         | sudo tee -a /etc/apt/sources.list.d/llvm.list
         curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get update
@@ -328,12 +328,16 @@ jobs:
       run: |
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
+                                libunwind-dev \
                                 libavcodec-dev \
                                 libavformat-dev \
                                 libavdevice-dev \
                                 libegl1-mesa-dev \
                                 libglew-dev \
-                                libxv-dev
+                                libxv-dev \
+                                libraw1394-dev \
+                                libavc1394-dev \
+                                libiec61883-dev
 
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v2
@@ -371,14 +375,14 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-9', 'clang-9']
+        compiler: ['gcc-11', 'clang-16']
         include:
-          - compiler: gcc-9
-            packages: gcc-9 g++-9
-            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
-          - compiler: clang-9
-            packages: 'clang-9'
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+          - compiler: gcc-11
+            packages: gcc-11 g++-11
+            env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
+          - compiler: clang-16
+            packages: 'clang-16'
+            env: { 'CC': 'clang-16', 'CXX': 'clang++-16' }
 
     runs-on: ubuntu-latest
 
@@ -405,9 +409,9 @@ jobs:
         architecture: 'x64'
 
     - name: Add Clang apt repository
-      if: matrix.compiler == 'clang-9'
+      if: matrix.compiler == 'clang-16'
       run: |
-        echo "deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main" \
+        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy main" \
         | sudo tee -a /etc/apt/sources.list.d/llvm.list
         curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo apt-get update
@@ -416,6 +420,7 @@ jobs:
       run: |
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
+                                libunwind-dev \
                                 libgstreamer-plugins-base1.0-dev \
                                 libavcodec-dev \
                                 libavformat-dev \
