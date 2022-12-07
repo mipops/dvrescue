@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------
 #include "Common/LinuxWrapper.h"
 
+#include <ctime>
 #include <vector>
 #include <sys/poll.h>
 #include <libavc1394/rom1394.h>
@@ -21,10 +22,13 @@ using namespace std;
 vector<LinuxWrapper::device> Devices;
 mutex ProcessFrameLock;
 
+atomic<time_t> LastInput;
+
 //---------------------------------------------------------------------------
 static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
 {
     const lock_guard<mutex> Lock(ProcessFrameLock);
+    LastInput = time(NULL);
 
     FileWrapper* Wrapper = static_cast<FileWrapper*>(UserData);
     Wrapper->Parse_Buffer(Data, Lenght);
@@ -317,12 +321,19 @@ void LinuxWrapper::StopCaptureSession()
 //---------------------------------------------------------------------------
 bool LinuxWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
-    //TODO: implement timeout
+    LastInput = time(NULL);
     do
     {
+        if (Timeout)
+        {
+            if (difftime(time(NULL), LastInput) > Timeout)
+                return true;
+        }
         this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     while (GetSpeed() != 0.0f);
+
+    return false;
 }
 
 //---------------------------------------------------------------------------
