@@ -1,4 +1,4 @@
-Version 0.22.12, 2022-12-07
+Version 22.12, 2022-12-08
 + Visualize tape playback errors in a graph during capture.
 + Refactor XML parsing for optimization.
 + Truncate list of event flags in the frame graph in cases where there's >100 of them.
@@ -11,6 +11,7 @@ Version 0.22.12, 2022-12-07
 + Fixes to clear capture buffer between captures (fixes issue of showing misaligned DV in player).
 + Support timeout option on device inputs.
 + Document partial/interrupted captures in XML.
++ (Preview) Linux capture
 
 Version 0.22.10, 2022-10-03
 + In Capture layout (formerly Transfer layout)
