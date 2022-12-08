@@ -1,3 +1,17 @@
+Version 0.22.12, 2022-12-07
++ Visualize tape playback errors in a graph during capture.
++ Refactor XML parsing for optimization.
++ Truncate list of event flags in the frame graph in cases where there's >100 of them.
++ Expand SETTINGS panel to offer logging and capture preferences.
++ Options to select what columns are shown in the frame table.
++ Documentation updates.
++ Fix fast rewind deck control mode.
++ Fix for user interrupted capture (to maintain frame aligned output and valid xml).
++ Support deck references via GUID in addition to index number.
++ Fixes to clear capture buffer between captures (fixes issue of showing misaligned DV in player).
++ Support timeout option on device inputs.
++ Document partial/interrupted captures in XML.
+
 Version 0.22.10, 2022-10-03
 + In Capture layout (formerly Transfer layout)
 ++ Integrate QtAVPlayer to show incoming video
