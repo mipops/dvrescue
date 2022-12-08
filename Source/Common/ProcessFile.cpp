@@ -20,10 +20,13 @@ using namespace std::chrono;
 #ifdef ENABLE_AVFCTL
 #include "Common/AvfCtlWrapper.h"
 #endif
+#ifdef ENABLE_LNX1394
+#include "Common/LinuxWrapper.h"
+#endif
 #ifdef ENABLE_SIMULATOR
 #include "Common/SimulatorWrapper.h"
 #endif
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 FileWrapper* Wrapper = nullptr;
 #endif
 bool InControl = false;
@@ -80,7 +83,7 @@ void __stdcall Event_CallBackFunction(unsigned char* Data_Content, size_t Data_S
 // Control
 //***************************************************************************
 
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 void InputControl_Char(file* F, char C)
 {
     switch (C)
@@ -131,7 +134,7 @@ void file::Parse(const String& FileName)
 
     if (Verbosity == 10)
         cerr << "Debug: opening (in) \"" << Ztring(FileName).To_Local() << "\"..." << endl;
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (Device_Command == 1)
     {
         size_t i = 0;
@@ -153,6 +156,16 @@ void file::Parse(const String& FileName)
                 if (Name.empty())
                     break;
                 cout << DeviceID << ": " << Name << '\n';
+                i++;
+            }
+        #endif
+        #ifdef ENABLE_LNX1394
+            for (;;)
+            {
+                auto Name = LinuxWrapper::GetDeviceName(i);
+                if (Name.empty())
+                    break;
+                cout << Name << '\n';
                 i++;
             }
         #endif
@@ -183,6 +196,10 @@ void file::Parse(const String& FileName)
                 Controller = new AVFCtlWrapper(Device_Pos);
             else if (AVFCtlWrapper::GetDeviceIndex(Device) >= 0)
                 Controller = new AVFCtlWrapper(Device);
+        #endif
+        #ifdef ENABLE_LNX1394
+            else if (Device_Pos < LinuxWrapper::GetDeviceCount())
+                Controller = new LinuxWrapper(Device_Pos);
         #endif
     }
     if (Controller)
@@ -284,7 +301,7 @@ void file::Terminate()
 //---------------------------------------------------------------------------
 file::~file()
 {
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (Controller)
         delete Controller;
     #endif
@@ -310,7 +327,7 @@ file::~file()
 //---------------------------------------------------------------------------
 bool file::TransportControlsSupported()
 {
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (!Merge_InputFileNames[0].find("device://"))
         return true;
 #endif
@@ -322,7 +339,7 @@ bool file::TransportControlsSupported()
 }
 
 //---------------------------------------------------------------------------
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 void file::RewindToTimeCode(TimeCode TC)
 {
     RewindMode=Rewind_Mode_TimeCode;
@@ -332,7 +349,7 @@ void file::RewindToTimeCode(TimeCode TC)
 #endif
 
 //---------------------------------------------------------------------------
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 void file::RewindToAbst(int Abst)
 {
     RewindMode=Rewind_Mode_Abst;
@@ -344,7 +361,7 @@ void file::RewindToAbst(int Abst)
 //---------------------------------------------------------------------------
 void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
 {
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (RewindMode!=Rewind_Mode_None)
         return;
     #endif
@@ -382,7 +399,7 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
 //---------------------------------------------------------------------------
 void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameData)
 {
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     abst_bf AbstBf_Temp(FrameData->AbstBf);
     if (DelayedPlay)
     {
@@ -575,7 +592,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
         Speed_Before = Speed_After;
         Merge.AddFrameAnalysis(Merge_FilePos, FrameData, Speed);
-        #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+        #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
         if (TransportControlsSupported() && Merge.RewindToTimeCode.HasValue())
         {
             RewindToTimeCode(Merge.RewindToTimeCode);
@@ -636,7 +653,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
 //---------------------------------------------------------------------------
 void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
 {
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (DelayedPlay)
         return;
     if (RewindMode!=Rewind_Mode_None)

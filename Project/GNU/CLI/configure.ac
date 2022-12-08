@@ -37,21 +37,26 @@ dnl #########################################################################
 dnl -------------------------------------------------------------------------
 dnl Arguments - Enable
 dnl
-AC_ARG_ENABLE(debug,        AC_HELP_STRING([--enable-debug],        [Enable full debug]),                       , enable_debug=no)
-AC_ARG_ENABLE(gprof,        AC_HELP_STRING([--enable-gprof],        [Enable gprof log]),                        , enable_gprof=no)
-AC_ARG_ENABLE(universal_binary, AC_HELP_STRING([--enable-universal_binary], [Create Mac PPC/i386 Universal binary]),      , enable_universal_binary=no)
-AC_ARG_ENABLE(arch-ppc,         AC_HELP_STRING([--with-arch-ppc],           [Create Mac PPC Universal binary]),           , enable_arch_ppc=no)
-AC_ARG_ENABLE(arch-i386,        AC_HELP_STRING([--with-arch-i386],          [Create Mac i386 Universal binary]),          , enable_arch_i386=no)
-AC_ARG_ENABLE(arch-x86_64,      AC_HELP_STRING([--enable-arch-x86_64],      [Create Mac x86_64 architecture]),            , enable_arch_x86_64=no)
-AC_ARG_ENABLE(staticlibs,   AC_HELP_STRING([--enable-staticlibs],   [Use static libmediainfo and libzen]),      , enable_staticlibs=no)
-AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Build avfctl tool (macOS only)]),            , enable_avfctl=yes)
+
+dnl TODO: USE --enable-capture on all platforms (use --enable-avfctl only for building the tool binary)
+dnl Also provide an option to enable simulator (will disable capture)
+
+AC_ARG_ENABLE(debug,            AC_HELP_STRING([--enable-debug],            [Enable full debug]),                                         , enable_debug=no)
+AC_ARG_ENABLE(gprof,            AC_HELP_STRING([--enable-gprof],            [Enable gprof log]),                                          , enable_gprof=no)
+AC_ARG_ENABLE(universal_binary, AC_HELP_STRING([--enable-universal_binary], [Create Mac PPC/i386 Universal binary]),                      , enable_universal_binary=no)
+AC_ARG_ENABLE(arch-ppc,         AC_HELP_STRING([--with-arch-ppc],           [Create Mac PPC Universal binary]),                           , enable_arch_ppc=no)
+AC_ARG_ENABLE(arch-i386,        AC_HELP_STRING([--with-arch-i386],          [Create Mac i386 Universal binary]),                          , enable_arch_i386=no)
+AC_ARG_ENABLE(arch-x86_64,      AC_HELP_STRING([--enable-arch-x86_64],      [Create Mac x86_64 architecture]),                            , enable_arch_x86_64=no)
+AC_ARG_ENABLE(staticlibs,       AC_HELP_STRING([--enable-staticlibs],       [Use static libmediainfo and libzen]),                        , enable_staticlibs=no)
+AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Build avfctl tool (macOS only)]),                            , enable_avfctl=yes)
+AC_ARG_ENABLE(capture,          AC_HELP_STRING([--enable-capture],          [Use libavc1394 and libdc1394 for capture support on linux]), , enable_capture=yes)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
 dnl
-AC_ARG_WITH(macosx-sdk,         AC_HELP_STRING([--with-macosx-sdk],         [Force the Mac SDK]),                         , with_macosx_sdk=no)
-AC_ARG_WITH(macosx-version-min, AC_HELP_STRING([--with-macosx-version-min], [Force the Mac Version]),                     , with_macosx_version_min=no)
-AC_ARG_WITH(dll,            AC_HELP_STRING([--with-dll],            [Do not link to libmediainfo, dynamic loading]), , with_dll=no)
+AC_ARG_WITH(macosx-sdk,         AC_HELP_STRING([--with-macosx-sdk],         [Force the Mac SDK]),                                         , with_macosx_sdk=no)
+AC_ARG_WITH(macosx-version-min, AC_HELP_STRING([--with-macosx-version-min], [Force the Mac Version]),                                     , with_macosx_version_min=no)
+AC_ARG_WITH(dll,                AC_HELP_STRING([--with-dll],                [Do not link to libmediainfo, dynamic loading]),              , with_dll=no)
 
 dnl #########################################################################
 dnl ### Options from elsewhere
@@ -77,17 +82,21 @@ dnl #########################################################################
 dnl -------------------------------------------------------------------------
 dnl avfctl
 dnl
-host_mac=no
+host_macos=no
+host_linux=no
 case "${host_os}" in
     darwin*)
-        host_mac=yes
+        host_macos=yes
+        ;;
+    linux*)
+        host_linux=yes
         ;;
 esac
 
-AM_CONDITIONAL([BUILD_AVFCTL], [test "$host_mac" = "yes" -a "$enable_avfctl" = "yes"])
-if test "$host_mac" = "yes" -a "$enable_avfctl" = "yes" ; then
+AM_CONDITIONAL([BUILD_AVFCTL], [test "$host_macos" = "yes" -a "$enable_avfctl" = "yes"])
+if test "$host_macos" = "yes" -a "$enable_avfctl" = "yes" ; then
+    AC_DEFINE(ENABLE_CAPTURE)
     AC_DEFINE(ENABLE_AVFCTL)
-
 fi
 
 dnl #########################################################################
@@ -204,6 +213,38 @@ else
 		fi
 	else
 		AC_MSG_ERROR([libzen configuration is not found])
+	fi
+fi
+
+dnl -------------------------------------------------------------------------
+dnl avc1394 and iec61883
+dnl
+
+AM_CONDITIONAL([BUILD_LNX1394], [test "$host_linux" = "yes" -a "$enable_capture" = "yes"])
+if test "$host_linux" = "yes"; then
+	if test "$enable_capture" = "yes"; then
+		AC_DEFINE(ENABLE_CAPTURE)
+		AC_DEFINE(ENABLE_LNX1394)
+		if pkg-config --exists libavc1394; then
+			CXXFLAGS="$CXXFLAGS $(pkg-config --cflags libavc1394)"
+			if test "$enable_staticlibs" = "yes"; then
+				LIBS="$LIBS $(pkg-config --static --libs libavc1394)"
+			else
+				LIBS="$LIBS $(pkg-config --libs libavc1394)"
+			fi
+		else
+			AC_MSG_ERROR([libavc1394 configuration is not found])
+		fi
+		if pkg-config --exists libiec61883; then
+			CXXFLAGS="$CXXFLAGS $(pkg-config --cflags libiec61883)"
+			if test "$enable_staticlibs" = "yes"; then
+				LIBS="$LIBS $(pkg-config --static --libs libiec61883)"
+			else
+				LIBS="$LIBS $(pkg-config --libs libiec61883)"
+			fi
+		else
+			AC_MSG_ERROR([libiec61883 configuration is not found])
+		fi
 	fi
 fi
 

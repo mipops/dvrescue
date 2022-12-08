@@ -26,6 +26,9 @@ BuildRequires:  autoconf
 BuildRequires:  libtool
 BuildRequires:	libmediainfo-devel >= %libmediainfo_version
 BuildRequires:	libzen-devel >= %libzen_version
+BuildRequires:	libraw1394-devel
+BuildRequires:	libavc1394-devel
+BuildRequires:	libiec61883-devel
 BuildRequires:	zlib-devel
 Requires:		xmlstarlet
 

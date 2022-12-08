@@ -19,7 +19,7 @@ jobs:
         run: | 
           if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
-            sudo apt-get install -y pkg-config libxml2-utils libfreetype6-dev
+            sudo apt-get install -y pkg-config libxml2-utils libfreetype6-dev libraw1394-dev libavc1394-dev libiec61883-dev
           fi
           if [ "$RUNNER_OS" == "macOS" ]; then
             brew install automake freetype 

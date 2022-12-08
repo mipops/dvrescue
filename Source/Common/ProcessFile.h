@@ -28,7 +28,7 @@
 using namespace MediaInfoNameSpace;
 using namespace std;
 
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 #include "Common/ProcessFileWrapper.h"
 #endif
 //---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ string MediaInfo_Version();
 // Enums
 //***************************************************************************
 
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 enum rewind_mode {
     Rewind_Mode_None,
     Rewind_Mode_TimeCode,
@@ -110,7 +110,7 @@ public:
     void Terminate();
 
     bool TransportControlsSupported();
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     void RewindToTimeCode(TimeCode TC);
     void RewindToAbst(int Abst);
     #endif
@@ -126,7 +126,7 @@ private:
     dv_merge Merge;
     bool no_sourceorcontrol_aud_set_in_first_frame = false;
 
-    #if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+    #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 public:
     BaseWrapper* Controller = nullptr;
     float Speed_Before = 0;

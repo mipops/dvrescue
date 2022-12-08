@@ -3,7 +3,7 @@
 #############################################################################
 # Configure
 Home=`pwd`
-DVRescue_Options="--enable-staticlibs"
+DVRescue_Options="--enable-staticlibs --disable-capture" # TODO: enable linux capture
 MediaInfoLib_Options="--enable-static --disable-shared"
 ZenLib_Options="--enable-static --disable-shared"
 
