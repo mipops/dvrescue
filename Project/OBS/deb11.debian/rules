@@ -14,7 +14,7 @@ configure-stamp:
 	cd dvrescue/Project/GNU/CLI && ./autogen
 	cd dvrescue/Project/GNU/CLI && ./configure --prefix=/usr
 
-	cd ffmpeg && ./configure --enable-gpl --disable-autodetect --enable-alsa --disable-doc --disable-debug --enable-pic --enable-static --disable-shared --prefix=`pwd`
+	cd ffmpeg && ./configure --enable-gpl --disable-autodetect --enable-libfreetype --enable-alsa --disable-doc --disable-debug --enable-pic --enable-static --disable-shared --prefix=`pwd`
 	cd ffmpeg && $(MAKE) install
 	cd ZenLib/Project/GNU/Library && ./configure --enable-static --disable-shared
 	cd ZenLib/Project/GNU/Library && $(MAKE)

@@ -67,6 +67,7 @@ BuildRequires:  pkgconfig(Qt5Qwt6)
 BuildRequires:  pkgconfig(alsa)
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(libxslt)
+BuildRequires:  pkgconfig(freetype2)
 Requires:       xmlstarlet
 
 BuildRequires:  libusbx
@@ -86,6 +87,7 @@ BuildRequires:  lib64qt5xmlpatterns-devel
 BuildRequires:  lib64qt5xmlpatterns5
 BuildRequires:  lib64qwt-qt5-devel
 BuildRequires:  lib64qwt-qt5_6
+BuildRequires:  lib64freetype2-devel
 %else
 BuildRequires:  libqt5base5-devel
 BuildRequires:  libqt5quicktemplates2-devel
@@ -99,6 +101,7 @@ BuildRequires:  libqt5xmlpatterns-devel
 BuildRequires:  libqt5xmlpatterns5
 BuildRequires:  libqwt-qt5-devel
 BuildRequires:  libqwt-qt5_6
+BuildRequires:  libfreetype2-devel
 %endif
 %endif
 
@@ -108,6 +111,7 @@ BuildRequires:  libqt5-qtsvg-devel
 BuildRequires:  libqt5-qtxmlpatterns-devel
 BuildRequires:  libqt5-qtmultimedia-devel
 BuildRequires:  libQt5QuickControls2-devel
+BuildRequires:  freetype2-devel
 BuildRequires:  qwt6-devel
 %endif
 %endif
@@ -144,7 +148,7 @@ popd
 # now build GUI
 %if 0%{?build_gui}
 pushd ffmpeg
-	./configure --enable-gpl --disable-autodetect --enable-alsa --disable-doc --disable-debug --enable-pic --enable-static --enable-lto --disable-shared --prefix=`pwd`
+	./configure --enable-gpl --disable-autodetect --enable-alsa --enable-libfreetype --disable-doc --disable-debug --enable-pic --enable-static --enable-lto --disable-shared --prefix=`pwd`
 	%__make %{?jobs:-j%{jobs}} install
 popd
 pushd ZenLib/Project/GNU/Library

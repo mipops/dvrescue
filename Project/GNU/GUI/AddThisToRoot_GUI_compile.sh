@@ -186,13 +186,45 @@ fi
 cd $Home
 
 #############################################################################
+# freetype
+if test -e freetype/configure; then
+ cd freetype
+ if [ "$OS" = "mac" ]; then
+  ./configure --prefix="$PWD/output" --without-zlib --without-bzip2 --without-png --without-harfbuzz --enable-static --disable-shared CFLAGS=-mmacosx-version-min=10.12 LDFLAGS=-mmacosx-version-min=10.12
+ else
+  ./configure --prefix="$PWD/output" --without-zlib --without-bzip2 --without-png --without-harfbuzz --enable-static --disable-shared CFLAGS=-fPIC
+ fi
+ if test -e Makefile; then
+  Zen_Make
+  make install
+  if test -e output/lib/libfreetype.a; then
+   echo freetype compiled
+  else
+   echo Problem while compiling freetype
+   exit
+  fi
+ else
+  echo Problem while configuring freetype
+  exit
+ fi
+else
+ echo freetype directory is not found
+ exit
+fi
+cd $Home
+
+#############################################################################
 # ffmpeg
 if test -e ffmpeg/configure; then
  cd ffmpeg
  if [ "$OS" = "mac" ]; then
-  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --extra-cflags="-mmacosx-version-min=10.10" --extra-ldflags="-mmacosx-version-min=10.10" --disable-securetransport --disable-videotoolbox --disable-autodetect --disable-doc --disable-debug --enable-pic --enable-shared --disable-static --prefix="$PWD"
+  # fix ffmpeg configure for static freetype2
+  sed -i '' 's/^enabled libfreetype.*//g' configure
+  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --extra-cflags="-mmacosx-version-min=10.10" --extra-ldflags="-mmacosx-version-min=10.10" --disable-securetransport --disable-videotoolbox --disable-autodetect --disable-doc --disable-debug --enable-pic --enable-shared --disable-static --prefix="$PWD" --enable-libfreetype --extra-cflags=-I../freetype/include --extra-libs=../freetype/output/lib/libfreetype.a
  else
-  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --disable-autodetect --disable-doc --disable-programs --disable-debug --enable-pic --enable-static --disable-shared --prefix="$PWD"
+  # fix ffmpeg configure for static freetype2
+  sed -i 's/^enabled libfreetype.*//g' configure
+  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --disable-autodetect --disable-doc --disable-programs --disable-debug --enable-pic --enable-static --disable-shared --prefix="$PWD" --enable-libfreetype --extra-cflags=-I../freetype/include --extra-libs=../freetype/output/lib/libfreetype.a
  fi
  if test -e Makefile; then
   Zen_Make
