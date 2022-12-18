@@ -9,6 +9,7 @@
 
 #include <ctime>
 #include <vector>
+#include <sstream>
 #include <sys/poll.h>
 #include <libavc1394/rom1394.h>
 #include <libavc1394/avc1394.h>
@@ -113,6 +114,53 @@ LinuxWrapper::LinuxWrapper(size_t DeviceIndex)
 }
 
 //---------------------------------------------------------------------------
+LinuxWrapper::LinuxWrapper(string DeviceID)
+{
+    Init();
+
+    uint64_t ID = stoull(DeviceID, NULL, 16);
+    if(!ID)
+        throw error("Invalid device ID.");
+
+    size_t DeviceIndex = (size_t)-1;
+    for (size_t Pos = 0; Pos < Devices.size(); Pos++)
+    {
+        if (Devices[Pos].UUID == ID)
+        {
+            DeviceIndex = Pos;
+            break;
+        }
+    }
+
+    if (DeviceIndex == (size_t)-1)
+        throw error("Device not found.");
+
+    Port = Devices[DeviceIndex].Port;
+    Node = Devices[DeviceIndex].Node;
+    UUID = Devices[DeviceIndex].UUID;
+
+    //TODO: make code handle bus-reset
+    (CtlHandle = raw1394_new_handle());
+    if (!CtlHandle)
+        throw error("Unable to create raw1394 handle.");
+
+    int Ports = raw1394_get_port_info(CtlHandle, nullptr, 0);
+    if (Port >= Ports)
+    {
+        raw1394_destroy_handle(CtlHandle);
+        throw error("Device not found.");
+    }
+
+    if (raw1394_set_port(CtlHandle, Port) < 0)
+    {
+        raw1394_destroy_handle(CtlHandle);
+        throw error("Unable to connect to device.");
+    }
+
+    iec61883_cmp_normalize_output(CtlHandle, 0xffc0 | Node);
+}
+
+//---------------------------------------------------------------------------
 LinuxWrapper::~LinuxWrapper()
 {
     StopCaptureSession();
@@ -138,6 +186,56 @@ string LinuxWrapper::GetDeviceName(size_t DeviceIndex)
         return "";
 
     return Devices[DeviceIndex].Vendor + " " + Devices[DeviceIndex].Model;
+}
+
+//---------------------------------------------------------------------------
+string LinuxWrapper::GetDeviceName(const string& DeviceID)
+{
+    Init();
+
+    uint64_t ID = stoull(DeviceID, NULL, 16);
+    if(!ID)
+        return "";
+
+    for (size_t Pos = 0; Pos < Devices.size(); Pos++)
+    {
+        if (Devices[Pos].UUID == ID)
+            return Devices[Pos].Vendor + " " + Devices[Pos].Model;
+    }
+
+    return "";
+}
+
+//---------------------------------------------------------------------------
+string LinuxWrapper::GetDeviceID(size_t DeviceIndex)
+{
+    Init();
+
+    if (DeviceIndex >= Devices.size())
+        return "";
+
+    stringstream Stream;
+    Stream << "0x" << hex << (uint64_t)Devices[DeviceIndex].UUID;
+
+    return Stream.str();
+}
+
+//---------------------------------------------------------------------------
+size_t LinuxWrapper::GetDeviceIndex(const string& DeviceID)
+{
+    Init();
+
+    uint64_t ID = stoull(DeviceID, NULL, 16);
+    if(!ID)
+        return (size_t)-1;
+
+    for (size_t Pos = 0; Pos < Devices.size(); Pos++)
+    {
+        if (Devices[Pos].UUID == ID)
+            return Pos;
+    }
+
+    return (size_t)-1;
 }
 
 //---------------------------------------------------------------------------
