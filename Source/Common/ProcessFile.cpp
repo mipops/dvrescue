@@ -163,9 +163,10 @@ void file::Parse(const String& FileName)
             for (;;)
             {
                 auto Name = LinuxWrapper::GetDeviceName(i);
+                auto DeviceID = LinuxWrapper::GetDeviceID(i);
                 if (Name.empty())
                     break;
-                cout << Name << '\n';
+                cout << DeviceID << ": " << Name << '\n';
                 i++;
             }
         #endif
@@ -199,7 +200,9 @@ void file::Parse(const String& FileName)
         #endif
         #ifdef ENABLE_LNX1394
             else if (Device_Pos < LinuxWrapper::GetDeviceCount())
-                Controller = new LinuxWrapper(Device_Pos);
+                try { Controller = new LinuxWrapper(Device_Pos); } catch(...) {}
+            else if (LinuxWrapper::GetDeviceIndex(Device) >= 0)
+                try { Controller = new LinuxWrapper(Device); } catch(...) {}
         #endif
     }
     if (Controller)
