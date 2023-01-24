@@ -77,6 +77,9 @@ private:
     // avc1394
     raw1394handle_t CtlHandle = nullptr;
 
+    // mi
+    FileWrapper* Wrapper = nullptr;
+
     // iec61883
     int InPlug = -1;
     int OutPlug = -1;
@@ -86,4 +89,6 @@ private:
     raw1394handle_t CaptureHandle = nullptr;
     std::thread* Raw1394PoolingThread = nullptr;
     std::atomic_bool Raw1394PoolingThread_Terminate { false };
+    std::thread* ProcessFrameThread = nullptr;
+    std::atomic_bool ProcessFrameThread_Terminate { false };
 };
