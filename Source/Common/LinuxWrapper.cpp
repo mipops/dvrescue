@@ -8,22 +8,36 @@
 #include "Common/LinuxWrapper.h"
 
 #include <ctime>
+#include <queue>
 #include <vector>
+#include <cstring>
 #include <sstream>
 #include <sys/poll.h>
 #include <libavc1394/rom1394.h>
 #include <libavc1394/avc1394.h>
 #include <libavc1394/avc1394_vcr.h>
 
+#include <iostream>
+
 using namespace std;
 
 #define CTLVCR0 AVC1394_CTYPE_CONTROL | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0
 
 //---------------------------------------------------------------------------
+struct frame
+{
+    size_t Size;
+    uint8_t* Data;
+};
+
 vector<LinuxWrapper::device> Devices;
 mutex ProcessFrameLock;
 
 atomic<time_t> LastInput;
+
+queue<frame> FrameBuffer;
+mutex FrameBufferLock;
+
 
 //---------------------------------------------------------------------------
 static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
@@ -31,8 +45,14 @@ static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
     const lock_guard<mutex> Lock(ProcessFrameLock);
     LastInput = time(NULL);
 
-    FileWrapper* Wrapper = static_cast<FileWrapper*>(UserData);
-    Wrapper->Parse_Buffer(Data, Lenght);
+    frame Cur;
+    Cur.Size = Lenght;
+    Cur.Data = new uint8_t[Lenght];
+
+    memcpy((void*)Cur.Data, (const void*) Data, Lenght);
+    FrameBufferLock.lock();
+    FrameBuffer.push(Cur);
+    FrameBufferLock.unlock();
 
     return 0;
 }
@@ -343,15 +363,17 @@ float LinuxWrapper::GetSpeed()
 }
 
 //---------------------------------------------------------------------------
-void LinuxWrapper::CreateCaptureSession(FileWrapper* Wrapper)
+void LinuxWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
 {
+    Wrapper = Wrapper_;
+
     CaptureHandle = raw1394_new_handle_on_port(Port);
     if (CaptureHandle)
     {
         Channel = iec61883_cmp_connect(CaptureHandle, Node, &OutPlug, raw1394_get_local_id(CaptureHandle), &InPlug, &Bandwidth);
         if (Channel < 0) // try broadcast channel if connect failed
             Channel = 63;
-        Frame = iec61883_dv_fb_init(CaptureHandle, ReceiveFrame, (void *)Wrapper);
+        Frame = iec61883_dv_fb_init(CaptureHandle, ReceiveFrame, nullptr);
     }
 }
 
@@ -367,13 +389,34 @@ void LinuxWrapper::StartCaptureSession()
                 revents: 0
             };
             int Result = 0;
-
             do
             {
+                {
+                    const lock_guard<mutex> Lock(ProcessFrameLock);
+                }
                 if (poll(&Desc, 1, 100) > 0 && (Desc.revents & POLLIN))
                     Result = raw1394_loop_iterate(CaptureHandle);
             }
             while (Result == 0 && !Raw1394PoolingThread_Terminate);
+        });
+
+        ProcessFrameThread = new thread([this]() {
+            do
+            {
+                FrameBufferLock.lock();
+                if (Wrapper && !FrameBuffer.empty())
+                {
+                    frame Cur = FrameBuffer.back();
+                    FrameBuffer.pop();
+
+                    Wrapper->Parse_Buffer(Cur.Data, Cur.Size);
+                    delete[] Cur.Data;
+                }
+                FrameBufferLock.unlock();
+
+                this_thread::yield();
+            }
+            while (!Raw1394PoolingThread_Terminate);
         });
     }
 }
@@ -392,6 +435,30 @@ void LinuxWrapper::StopCaptureSession()
         Raw1394PoolingThread=nullptr;
         Raw1394PoolingThread_Terminate = false;
     }
+
+    if (ProcessFrameThread)
+    {
+        ProcessFrameThread_Terminate = true;
+        if (ProcessFrameThread->joinable())
+            ProcessFrameThread->join();
+
+        delete ProcessFrameThread;
+        ProcessFrameThread=nullptr;
+        ProcessFrameThread_Terminate = false;
+    }
+
+    FrameBufferLock.lock();
+    while (!FrameBuffer.empty())
+    {
+        delete[] FrameBuffer.back().Data;
+        FrameBuffer.pop();
+    }
+    FrameBufferLock.unlock();
+
+     if (Wrapper)
+     {
+         Wrapper = nullptr;
+     }
 
      if (Frame)
      {
