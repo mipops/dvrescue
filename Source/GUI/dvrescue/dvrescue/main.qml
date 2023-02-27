@@ -13,7 +13,6 @@ ApplicationWindow {
     id: root
     width: 1600
     height: 1280
-    visible: true
     title: qsTr("DVRescue")
     color: "#2e3436"
 
