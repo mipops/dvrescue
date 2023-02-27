@@ -10,6 +10,7 @@ import MediaInfo 1.0
 import FileUtils 1.0
 
 Rectangle {
+    color: 'transparent'
     property var filesModel: null
     signal fileAdded(string filePath);
 
@@ -121,323 +122,338 @@ Rectangle {
         tableView.view.contentY = -16
     }
 
-    TableViewEx {
-        id: tableView
-        anchors.fill: parent
-        anchors.margins: 1
-        model: sortFilterTableModel
-        dataModel: dataModel
-        delegateHeight: 25
-        property int currentIndex: -1
+    Text {
+        id: label
+        text: 'INPUT FILES'
+        color: 'white'
+        font.pixelSize: 20
+    }
 
-        Menu {
-            id: contextMenu
-            MenuItem {
-                text: "Delete"
-                onClicked: filesModel.del(currentIndex)
-            }
+    Rectangle {
+        color: 'white'
+        anchors.top: label.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
-            function showBelowControl(control) {
-                var mapped = control.mapToItem(tableView, 0, 0);
-                contextMenu.x = mapped.x
-                contextMenu.y = mapped.y + control.height
+        TableViewEx {
+            id: tableView
+            anchors.fill: parent
+            anchors.margins: 1
+            model: sortFilterTableModel
+            dataModel: dataModel
+            delegateHeight: 25
+            property int currentIndex: -1
 
-                contextMenu.open()
-            }
+            Menu {
+                id: contextMenu
+                MenuItem {
+                    text: "Delete"
+                    onClicked: filesModel.del(currentIndex)
+                }
 
-            function show(pos) {
-                contextMenu.x = pos.x
-                contextMenu.y = pos.y
+                function showBelowControl(control) {
+                    var mapped = control.mapToItem(tableView, 0, 0);
+                    contextMenu.x = mapped.x
+                    contextMenu.y = mapped.y + control.height
 
-                contextMenu.open()
-            }
-        }
+                    contextMenu.open()
+                }
 
-        headerDelegate: SortableFiltrableColumnHeading {
-            id: header
-            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
-            text: dataModel.columns[modelData].display
-            canFilter: false
-            canSort: false
-            canShowIndicator: false
-            filterFont.pixelSize: 11
-            textFont.pixelSize: 13
-            height: tableView.columnWidths, tableView.getMaxDesiredHeight()
+                function show(pos) {
+                    contextMenu.x = pos.x
+                    contextMenu.y = pos.y
 
-            onFilterTextChanged: {
-                sortFilterTableModel.setFilterText(modelData, filterText);
-            }
-
-            Rectangle {
-                id: handle
-                color: "transparent"
-                height: parent.height
-                width: 10
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                MouseArea {
-                    id: mouseHandle
-                    anchors.fill: parent
-                    drag{ target: parent; axis: Drag.XAxis }
-                    hoverEnabled: true
-                    cursorShape: Qt.SizeHorCursor
-                    onMouseXChanged: {
-                        if (drag.active) {
-                            var newWidth = header.width + mouseX
-                            if (newWidth >= minimumWidth) {
-                                // header.width = newWidth
-
-                                var newWidths = tableView.columnWidths
-                                var oldWidth = newWidths[modelData]
-                                newWidths[modelData] = newWidth;
-
-                                tableView.columnWidths = newWidths
-                                tableView.view.contentWidth += newWidth - oldWidth
-                                tableView.forceLayout();
-                            }
-                        }
-                    }
+                    contextMenu.open()
                 }
             }
-        }
 
-        delegate: DelegateChooser {
-            DelegateChoice  {
-                column: 0
+            headerDelegate: SortableFiltrableColumnHeading {
+                id: header
+                width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
+                text: dataModel.columns[modelData].display
+                canFilter: false
+                canSort: false
+                canShowIndicator: false
+                filterFont.pixelSize: 11
+                textFont.pixelSize: 13
+                height: tableView.columnWidths, tableView.getMaxDesiredHeight()
 
-                ProgressTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
-                    leftOffset: deleteButton.width + 4
+                onFilterTextChanged: {
+                    sortFilterTableModel.setFilterText(modelData, filterText);
+                }
 
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    progress.visible: decoration !== 1
-                    progress.value: decoration
-                    progressColor: 'gray'
-                    color: (row % 2) == 0 ? evenColor : oddColor
+                Rectangle {
+                    id: handle
+                    color: "transparent"
+                    height: parent.height
+                    width: 10
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
                     MouseArea {
-                        id: filePathMouseArea
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        id: mouseHandle
+                        anchors.fill: parent
+                        drag{ target: parent; axis: Drag.XAxis }
                         hoverEnabled: true
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
-                            }
-                        }
-                    }
+                        cursorShape: Qt.SizeHorCursor
+                        onMouseXChanged: {
+                            if (drag.active) {
+                                var newWidth = header.width + mouseX
+                                if (newWidth >= minimumWidth) {
+                                    // header.width = newWidth
 
-                    DefaultToolTip {
-                        visible: filePathMouseArea.containsMouse
-                        text: toolTip
-                        delay: 1500
-                        anchors.centerIn: parent
-                    }
+                                    var newWidths = tableView.columnWidths
+                                    var oldWidth = newWidths[modelData]
+                                    newWidths[modelData] = newWidth;
 
-                    CustomButton {
-                        id: deleteButton
-                        anchors.left: parent.left
-                        anchors.leftMargin: 2
-
-                        icon.color: "black"
-                        icon.source: "/icons/exit.svg"
-                        implicitHeight: parent.height
-                        implicitWidth: implicitHeight
-
-                        onClicked: {
-                            filesModel.del(row);
-                        }
-                    }
-
-                }
-            }
-
-            DelegateChoice  {
-                column: 8
-
-                TextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
-
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    color: (row % 2) == 0 ? evenColor : oddColor
-
-                    MouseArea {
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                    tableView.columnWidths = newWidths
+                                    tableView.view.contentWidth += newWidth - oldWidth
+                                    tableView.forceLayout();
+                                }
                             }
                         }
                     }
                 }
             }
 
-            DelegateChoice  {
-                column: 9
+            delegate: DelegateChooser {
+                DelegateChoice  {
+                    column: 0
 
-                TextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
+                    ProgressTextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+                        leftOffset: deleteButton.width + 4
 
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        id: frameErrorMouseArea
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        hoverEnabled: true
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        progress.visible: decoration !== 1
+                        progress.value: decoration
+                        progressColor: 'gray'
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        MouseArea {
+                            id: filePathMouseArea
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
+                            }
                         }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+
+                        DefaultToolTip {
+                            visible: filePathMouseArea.containsMouse
+                            text: toolTip
+                            delay: 1500
+                            anchors.centerIn: parent
+                        }
+
+                        CustomButton {
+                            id: deleteButton
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
+
+                            icon.color: "black"
+                            icon.source: "/icons/exit.svg"
+                            implicitHeight: parent.height
+                            implicitWidth: implicitHeight
+
+                            onClicked: {
+                                filesModel.del(row);
+                            }
+                        }
+
+                    }
+                }
+
+                DelegateChoice  {
+                    column: 8
+
+                    TextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        color: (row % 2) == 0 ? evenColor : oddColor
+
+                        MouseArea {
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
                             }
                         }
                     }
-
-                    DefaultToolTip {
-                        visible: frameErrorMouseArea.containsMouse
-                        text: toolTip
-                        anchors.centerIn: parent
-                    }
                 }
-            }
 
-            DelegateChoice  {
-                column: 10
+                DelegateChoice  {
+                    column: 9
 
-                OddEvenTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
+                    TextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
 
-                    evenProgressColor: 'darkgreen'
-                    oddProgressColor: 'green'
-                    evenProgress.value: edit.x
-                    oddProgress.value: edit.y
-
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        id: videoBlockErrorMouseArea
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        hoverEnabled: true
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        MouseArea {
+                            id: frameErrorMouseArea
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
                             }
                         }
-                    }
 
-                    DefaultToolTip {
-                        visible: videoBlockErrorMouseArea.containsMouse
-                        text: toolTip
-                        anchors.centerIn: parent
+                        DefaultToolTip {
+                            visible: frameErrorMouseArea.containsMouse
+                            text: toolTip
+                            anchors.centerIn: parent
+                        }
                     }
                 }
-            }
 
-            DelegateChoice  {
-                column: 11
+                DelegateChoice  {
+                    column: 10
 
-                OddEvenTextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
+                    OddEvenTextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
 
-                    evenProgressColor: 'darkblue'
-                    oddProgressColor: 'blue'
-                    evenProgress.value: edit.x
-                    oddProgress.value: edit.y
+                        evenProgressColor: 'darkgreen'
+                        oddProgressColor: 'green'
+                        evenProgress.value: edit.x
+                        oddProgress.value: edit.y
 
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        id: audioBlockErrorMouseArea
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        hoverEnabled: true
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        MouseArea {
+                            id: videoBlockErrorMouseArea
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
                             }
                         }
-                    }
 
-                    DefaultToolTip {
-                        visible: audioBlockErrorMouseArea.containsMouse
-                        text: toolTip
-                        anchors.centerIn: parent
+                        DefaultToolTip {
+                            visible: videoBlockErrorMouseArea.containsMouse
+                            text: toolTip
+                            anchors.centerIn: parent
+                        }
                     }
                 }
-            }
 
-            DelegateChoice  {
-                TextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
+                DelegateChoice  {
+                    column: 11
 
-                    overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
-                    overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
+                    OddEvenTextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+
+                        evenProgressColor: 'darkblue'
+                        oddProgressColor: 'blue'
+                        evenProgress.value: edit.x
+                        oddProgress.value: edit.y
+
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        MouseArea {
+                            id: audioBlockErrorMouseArea
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
+                            }
                         }
-                        onClicked: {
-                            if(mouse.button == Qt.RightButton) {
-                                contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+
+                        DefaultToolTip {
+                            visible: audioBlockErrorMouseArea.containsMouse
+                            text: toolTip
+                            anchors.centerIn: parent
+                        }
+                    }
+                }
+
+                DelegateChoice  {
+                    TextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+
+                        overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
+                        overlayVisible: decoration !== 1 || row == tableView.currentIndex
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        MouseArea {
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            anchors.fill: parent
+                            onDoubleClicked: {
+                                tableView.currentIndex = row
+                            }
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    contextMenu.show(mapToItem(tableView, mouseX, mouseY));
+                                }
                             }
                         }
                     }

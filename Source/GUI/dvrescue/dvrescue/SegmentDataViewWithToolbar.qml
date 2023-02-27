@@ -139,6 +139,13 @@ ColumnLayout {
         }
     }
 
+    Text {
+        id: label
+        text: 'SEGMENTATION RULES'
+        color: 'white'
+        font.pixelSize: 20
+    }
+
     SegmentDataView {
         id: segmentDataView
         Layout.fillWidth: true
