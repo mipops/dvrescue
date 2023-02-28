@@ -224,6 +224,7 @@ Item {
 
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
+            property int updatesCounter: 0
 
             Component.onCompleted: {
                 SplitView.preferredHeight = Qt.binding(function() { return height })
@@ -250,11 +251,7 @@ Item {
             }
 
             onPopulated: {
-                packageOutputFileView.dataModel.clear();
-                for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
-                    var row = segmentDataView.model.getRow(i)
-                    packageOutputFileView.newRow(row['FileName'])
-                }
+                ++updatesCounter
             }
         }
 
@@ -332,17 +329,74 @@ Item {
                     }
 
                     Button {
-                        text: "Package"
+                        id: addToQueue
+                        text: "ADD TO QUEUE"
                         height: parent.height
+                        property alias segmentDataView: segmentDataViewWithToolbar.segmentDataView
+                        property bool isPackaging: false
+                        property var segments: ({})
+                        property int clickCounter: 0
+
+                        function segmentsAlreadyAdded() {
+                            for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                                var row = segmentDataView.model.getRow(i)
+                                var fileName = row['FileName'];
+                                if(segments.hasOwnProperty(fileName))
+                                    return false
+                            }
+
+                            return true;
+                        }
+
+                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, segmentsAlreadyAdded()
+
                         onClicked: {
+                            var timestamp = new Date();
+                            for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                                var row = segmentDataView.model.getRow(i)
+                                var fileName = row['FileName'];
+                                var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                                segments[fileName] = {
+                                    'reportPath' : reportPath,
+                                    'videoPath' : videoPath,
+                                    'outputPath' : outputPath,
+                                    'opts' : opts,
+                                    'timestamp' : timestamp
+                                }
+                                packageOutputFileView.newRow(fileName)
+                            }
+
                             var packageFunc = () => {
+                                var indexes = []
+                                var segment = null
+
                                 for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
-                                    packageOutputFileView.updatePackagingStatus(i, "queued");
+                                    var row = packageOutputFileView.dataModel.getRow(i)
+                                    if(row[packageOutputFileView.statusColumn] === 'not exported') {
+                                        var fileName = row[packageOutputFileView.filePathColumn]
+                                        var currentSegment = segments[fileName];
+                                        var newTimestamp = currentSegment['timestamp'];
+                                        if(segment === null) {
+                                            segment = currentSegment
+                                        }
+                                        else if(segment['timestamp'] === newTimestamp) {
+                                            packageOutputFileView.updatePackagingStatus(i, "queued");
+                                            indexes.push(i);
+                                        }
+                                        else {
+                                            break;
+                                        }
+                                    }
                                 }
 
+                                if(segment === null)
+                                    return;
+
+                                isPackaging = true;
                                 var packagingPath = ''
                                 var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
-                                var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
+                                var promise = segmentDataViewWithToolbar.segmentDataView.packaging(segment.reportPath, segment.videoPath,
+                                                                                                   segment.outputPath, segment.opts, (o) => {
                                     console.debug('packaging output changed: ', o)
 
                                     var splitted = String(o).split('\n');
@@ -365,8 +419,24 @@ Item {
                                 });
                                 promise.then(() => {
                                     console.debug('packaging done');
+                                    indexes.forEach((index) => {
+                                                        console.debug('indexes: ', index)
+                                                        var row = packageOutputFileView.dataModel.getRow(index)
+                                                        var filePath = row[packageOutputFileView.filePathColumn]
+                                                        delete segments.filePath
+
+                                                        var status = row[packageOutputFileView.statusColumn]
+                                                        if(status === 'packaging') {
+                                                            packageOutputFileView.updatePackagingError(index, 'unexpected')
+                                                            packageOutputFileView.updatePackagingStatus(index, 'finished')
+                                                        }
+                                                    })
+                                    isPackaging = false;
+                                    packageFunc()
                                 }).catch((err) => {
                                     console.error('packaging failed: ', err);
+                                    isPackaging = false;
+                                    packageFunc()
                                 })
                             }
 
@@ -375,12 +445,28 @@ Item {
                                 selectFolderDialog.currentFolder = FileUtils.toLocalUrl(outputPath)
                                 selectFolderDialog.callback = (selectedUrl) => {
                                     outputPath = FileUtils.getFilePath(selectedUrl)
-                                    packageFunc()
+                                    if(!isPackaging)
+                                        packageFunc()
                                 };
                                 selectFolderDialog.open()
                             }
                             else
-                                packageFunc()
+                            {
+                                if(!isPackaging)
+                                    packageFunc()
+                            }
+
+                            ++clickCounter
+                        }
+                    }
+
+                    Button {
+                        text: "CLEAR QUEUE"
+                        height: parent.height
+                        onClicked: {
+                            packageOutputFileView.dataModel.clear()
+                            addToQueue.segments = {}
+                            ++addToQueue.clickCounter
                         }
                     }
                 }
