@@ -62,7 +62,7 @@ Item {
         console.debug('querying status: ', index);
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.outputChanged.connect((outputString) => {
                 outputText += outputString;
@@ -101,7 +101,7 @@ Item {
         console.debug('stopping: ', index);
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
