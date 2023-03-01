@@ -272,7 +272,7 @@ Item {
             launcher.processFinished.connect(() => {
                 console.debug('got from dvrescue: \n' + outputText);
                 try {
-                    accept();
+                    accept(file + ".dvrescue.xml");
                 }
                 catch(err) {
                     reject(err);
@@ -290,9 +290,10 @@ Item {
             launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
-        }).then(() => {
+        }).then((reportPath) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]
+            return reportPath
         }).catch((err) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]

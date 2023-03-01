@@ -127,6 +127,30 @@ ApplicationWindow {
     FilesModel {
         id: filesModel
         mediaInfoModel: instantiator
+
+        function parseReport(reportPath, index) {
+            var mediaInfo = instantiator.objectAt(index)
+            mediaInfo.reportPath = reportPath;
+            mediaInfo.resolve();
+        }
+
+        function makeReport(fileInfo, index) {
+            dvrescue.makeReport(fileInfo.originalPath).then((reportPath) => {
+                console.debug('resolved report path: ', reportPath)
+                filesModel.setProperty(index, 'reportPath', reportPath)
+
+                parseReport(reportPath, index)
+            })
+        }
+
+        onAppended: {
+            var index = filesModel.count - 1
+            if(fileInfo.reportPath === '') {
+                makeReport(fileInfo, index);
+            } else {
+                parseReport(fileInfo.reportPath, index)
+            }
+        }
     }
 
     MediaInfoModel {

@@ -34,4 +34,13 @@ ListModel {
         console.debug('emitting removed: ', index)
         removed(index, fileInfo)
     }
+
+    function infoByPath(filePath) {
+        for(var i = 0; i < count; ++i) {
+            var info = get(i);
+            if(info.originalPath === filePath)
+                return info;
+        }
+        return null
+    }
 }

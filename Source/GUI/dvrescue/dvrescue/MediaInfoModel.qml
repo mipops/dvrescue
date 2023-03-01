@@ -94,9 +94,5 @@ Instantiator {
             editRow(index, audioBlockErrorTooltipRole, "Aud sum: " + audSum + ", Sum of audio blocks: " + totalAudioBlocks)
             editRow(index, audioBlockErrorValueRole, { x : audioBlockErrorValue.x, y : audioBlockErrorValue.y })
         }
-
-        Component.onCompleted: {
-            resolve();
-        }
     }
 }

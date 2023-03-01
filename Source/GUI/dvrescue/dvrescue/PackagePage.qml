@@ -205,19 +205,6 @@ Item {
             }
 
             onSelectedPathChanged: {
-                console.debug('PackageFileView.selectedPath: ', selectedPath);
-
-                Qt.callLater(() => {
-                                 if(dvrescue.pendingReports.hasOwnProperty(selectedPath)) {
-                                    var promise = dvrescue.pendingReports[selectedPath]
-                                    busy.running = true
-                                    promise.then(() => {
-                                         busy.running = false
-                                    }).catch((err) => {
-                                         busy.running = false
-                                    })
-                                 }
-                             });
 
             }
         }

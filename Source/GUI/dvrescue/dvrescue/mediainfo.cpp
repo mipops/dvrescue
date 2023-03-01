@@ -188,7 +188,7 @@ void MediaInfo::resolve()
 
     m_parser->moveToThread(m_thread.get());
     connect(m_thread.get(), &QThread::finished, [this]() {
-        qDebug() << "finished";
+        qDebug() << "MediaInfo::resolve thread finished";
         m_parser->deleteLater();
     });
     connect(m_thread.get(), &QThread::started, m_thread.get(), [this]() {
@@ -199,7 +199,7 @@ void MediaInfo::resolve()
     }, Qt::DirectConnection);
     connect(m_parser, &XmlParser::finished, m_parser, [this]() {
         setParsing(false);
-        qDebug() << "parser finished: " << reportPath();
+        qDebug() << "MediaInfo::resolve parser finished: " << reportPath();
     }, Qt::DirectConnection);
 
     connect(m_parser, &XmlParser::gotMedia, m_parser, [this](auto ref, auto format, auto fileSize) {
