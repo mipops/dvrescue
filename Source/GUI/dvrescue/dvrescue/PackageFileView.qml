@@ -229,10 +229,10 @@ Rectangle {
                         textFont.pixelSize: 13
                         text: display
                         leftOffset: deleteButton.width + 4
-
+                        busy: decoration < 0
                         overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
                         overlayVisible: decoration !== 1 || row == tableView.currentIndex
-                        progress.visible: decoration !== 1
+                        progress.visible: decoration >= 0 && decoration !== 1
                         progress.value: decoration
                         progressColor: 'gray'
                         color: (row % 2) == 0 ? evenColor : oddColor

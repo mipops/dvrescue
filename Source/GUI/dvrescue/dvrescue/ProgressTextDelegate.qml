@@ -13,7 +13,15 @@ Rectangle {
     property alias textFont: textLabel.font
     property alias progress: progress
     property color progressColor: 'transparent'
+    property alias busy: busyIndicator.running
     property int leftOffset: 0
+
+    Rectangle {
+        anchors.fill: textLabel
+        anchors.leftMargin: leftOffset
+        color: textDelegate.color
+        opacity: 0.5
+    }
 
     ProgressBar {
         id: progress
@@ -37,13 +45,6 @@ Rectangle {
         }
     }
 
-    Rectangle {
-        anchors.fill: textLabel
-        anchors.leftMargin: leftOffset
-        color: textDelegate.color
-        opacity: 0.5
-    }
-
     TextInput {
         id: textLabel
         text: display
@@ -59,5 +60,12 @@ Rectangle {
         anchors.leftMargin: leftOffset
         opacity: 0.5
         visible: false
+    }
+
+    BusyIndicator {
+        id: busyIndicator
+        anchors.centerIn: parent
+        width: parent.height
+        height: parent.height
     }
 }

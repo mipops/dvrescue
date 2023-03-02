@@ -135,9 +135,18 @@ ApplicationWindow {
         }
 
         function makeReport(fileInfo, index) {
+
+            Qt.callLater(() => {
+                             var mediaInfo = instantiator.objectAt(index)
+                             mediaInfo.editRow(index, 'Progress', -1)
+                         })
+
             dvrescue.makeReport(fileInfo.originalPath).then((reportPath) => {
                 console.debug('resolved report path: ', reportPath)
                 filesModel.setProperty(index, 'reportPath', reportPath)
+
+                var mediaInfo = instantiator.objectAt(index)
+                mediaInfo.editRow(index, 'Progress', 0)
 
                 parseReport(reportPath, index)
             })
@@ -145,6 +154,8 @@ ApplicationWindow {
 
         onAppended: {
             var index = filesModel.count - 1
+            console.debug('FilesModel: onAppended', index, JSON.stringify(fileInfo))
+
             if(fileInfo.reportPath === '') {
                 makeReport(fileInfo, index);
             } else {
@@ -156,6 +167,12 @@ ApplicationWindow {
     MediaInfoModel {
         id: instantiator
         model: filesModel
+        onObjectAdded: {
+            console.debug('MediaInfoModel: added', index, JSON.stringify(object))
+        }
+        onObjectRemoved: {
+            console.debug('MediaInfoModel: removed', index, JSON.stringify(object))
+        }
     }
 
     ListModel {

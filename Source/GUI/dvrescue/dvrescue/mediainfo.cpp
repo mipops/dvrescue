@@ -38,17 +38,17 @@ QString MediaInfo::format() const
     return m_format;
 }
 
-int MediaInfo::fileSize() const
+qint64 MediaInfo::fileSize() const
 {
     return m_fileSize;
 }
 
-int MediaInfo::frameCount() const
+qint64 MediaInfo::frameCount() const
 {
     return m_frameCount;
 }
 
-int MediaInfo::countOfFrameSequences() const
+qint64 MediaInfo::countOfFrameSequences() const
 {
     return m_countOfFrameSequences;
 }
@@ -73,12 +73,12 @@ QString MediaInfo::lastRecordingTime() const
     return m_lastRecordingTime;
 }
 
-int MediaInfo::reportFileSize() const
+qint64 MediaInfo::reportFileSize() const
 {
     return m_reportFileSize;
 }
 
-int MediaInfo::bytesProcessed() const
+qint64 MediaInfo::bytesProcessed() const
 {
     return m_bytesProcessed;
 }
