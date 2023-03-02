@@ -643,8 +643,7 @@ Item {
         running: false
         onTriggered: {
             console.debug('updating plots...')
-            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                              plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+            dataModel.update();
         }
     }
 }
