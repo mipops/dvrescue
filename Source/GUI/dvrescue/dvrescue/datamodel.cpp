@@ -279,6 +279,8 @@ void DataModel::getInfo(QList<std::tuple<int, DataModel::GraphStats> > &stats, f
 
 void DataModel::update()
 {
+    qDebug() << "DataModel::update";
+
     m_evenVideoCurve->plot()->plot()->setUpdatesEnabled(false);
     m_evenVideoCurve->plot()->plot()->setAxisScale(QwtPlot::yLeft, -50, 50);
     m_evenVideoCurve->plot()->setXBottomAxisRange(QVector2D(0, m_lastFrame));
@@ -453,6 +455,8 @@ void DataModel::populate(const QString &fileName)
     }, Qt::DirectConnection);
 
     m_thread->start();
+
+    qDebug() << "DataModel::populate exited: " << QThread::currentThread();
 }
 
 void DataModel::onGotFrame(int frameNumber, const QXmlStreamAttributes& framesAttributes, const QXmlStreamAttributes& frameAttributes, int diff_seq_count,
