@@ -366,14 +366,14 @@ Item {
                         console.debug('load: ', JSON.stringify(fileInfo, 0, 4), 'currentIndex: ', currentIndex)
                         dataModel.reset();
 
-                        if(fileInfo.videoPath) {
+                        if(fileInfo && fileInfo.videoPath) {
                             playerView.player.source = fileInfo.videoPath;
                             playerView.player.playPaused(0);
                         } else {
                             playerView.player.source = '';
                         }
 
-                        if(fileInfo.reportPath) {
+                        if(fileInfo && fileInfo.reportPath) {
                             refreshTimer.start();
 
                             dataModel.populate(fileInfo.reportPath);
