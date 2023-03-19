@@ -227,10 +227,11 @@ Rectangle {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         hoverEnabled: true
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
@@ -281,10 +282,11 @@ Rectangle {
                     MouseArea {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
@@ -313,10 +315,11 @@ Rectangle {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         hoverEnabled: true
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
@@ -356,10 +359,11 @@ Rectangle {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         hoverEnabled: true
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
@@ -399,10 +403,11 @@ Rectangle {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         hoverEnabled: true
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
@@ -433,10 +438,11 @@ Rectangle {
                     MouseArea {
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         anchors.fill: parent
-                        onDoubleClicked: {
-                            tableView.currentIndex = row
-                        }
                         onClicked: {
+                            if(mouse.button == Qt.LeftButton) {
+                                tableView.currentIndex = row
+                            }
+
                             if(mouse.button == Qt.RightButton) {
                                 contextMenu.show(mapToItem(tableView, mouseX, mouseY));
                             }
