@@ -324,6 +324,20 @@ Item {
                         property var segments: ({})
                         property int clickCounter: 0
 
+                        Connections {
+                            target: packageOutputFileView
+                            onDeleteClicked: {
+                                var outputRow = packageOutputFileView.dataModel.getRow(row)
+                                var path = outputRow[packageOutputFileView.filePathColumn];
+                                delete addToQueue.segments[path];
+
+                                var rowCount = packageOutputFileView.dataModel.rowCount;
+                                packageOutputFileView.dataModel.removeRow(row, 1);
+                                var newRowCount = packageOutputFileView.dataModel.rowCount;
+                                console.debug('packageOutputFileView..dataModel.rowCount: ', rowCount, newRowCount);
+                            }
+                        }
+
                         function segmentsAlreadyAdded() {
                             for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
                                 var row = segmentDataView.model.getRow(i)
@@ -335,7 +349,7 @@ Item {
                             return true;
                         }
 
-                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, segmentsAlreadyAdded()
+                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, packageOutputFileView.dataModel.rowCount, segmentsAlreadyAdded()
 
                         onClicked: {
                             var timestamp = new Date();
