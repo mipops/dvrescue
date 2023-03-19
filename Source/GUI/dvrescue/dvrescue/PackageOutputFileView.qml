@@ -11,9 +11,11 @@ import FileUtils 1.0
 
 Rectangle {
     color: 'transparent'
+
+    signal deleteClicked(var row);
+
     property alias dataModel: dataModel
     property alias tableView: tableView
-    property alias currentIndex: tableView.currentIndex
 
     readonly property string filePathColumn: "Output File Path"
     readonly property string statusColumn: "Status"
@@ -64,7 +66,35 @@ Rectangle {
             model: sortFilterTableModel
             dataModel: dataModel
             delegateHeight: 25
-            property int currentIndex: -1
+
+            Menu {
+                id: contextMenu
+                property int currentRow: -1
+
+                MenuItem {
+                    text: "Show location"
+                    onClicked: {
+                        var filePath = dataModel.getRow(contextMenu.currentRow)[filePathColumn];
+                        Qt.openUrlExternally('file:///' + FileUtils.getFileDir(filePath))
+                    }
+                }
+
+                function showBelowControl(control) {
+                    var mapped = control.mapToItem(tableView, 0, 0);
+                    contextMenu.x = mapped.x
+                    contextMenu.y = mapped.y + control.height
+
+                    contextMenu.open()
+                }
+
+                function show(pos, row) {
+                    contextMenu.x = pos.x
+                    contextMenu.y = pos.y
+                    currentRow = row
+
+                    contextMenu.open()
+                }
+            }
 
             headerDelegate: SortableFiltrableColumnHeading {
                 id: header
@@ -128,11 +158,30 @@ Rectangle {
                         text: display
 
                         color: (row % 2) == 0 ? evenColor : oddColor
+                        CustomButton {
+                            id: deleteButton
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
+
+                            icon.color: "black"
+                            icon.source: "/icons/exit.svg"
+                            implicitHeight: parent.height
+                            implicitWidth: implicitHeight
+
+                            onClicked: {
+                                deleteClicked(row);
+                            }
+                        }
+
                         MouseArea {
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            acceptedButtons: Qt.RightButton
+                            hoverEnabled: true
                             anchors.fill: parent
                             onClicked: {
-
+                                if(mouse.button == Qt.RightButton) {
+                                    if(dataModel.getRow(row)[statusColumn] === 'finished')
+                                        contextMenu.show(mapToItem(tableView, mouseX, mouseY), row);
+                                }
                             }
                         }
                     }
