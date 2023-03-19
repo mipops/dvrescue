@@ -343,13 +343,14 @@ Item {
                                 var row = segmentDataView.model.getRow(i)
                                 var fileName = row['FileName'];
                                 if(segments.hasOwnProperty(fileName))
-                                    return false
+                                    return true
                             }
 
-                            return true;
+                            return false;
                         }
 
-                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, packageOutputFileView.dataModel.rowCount, segmentsAlreadyAdded()
+                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, packageOutputFileView.dataModel.rowCount,
+                            (segmentDataView.model.rowCount != 0 && !segmentsAlreadyAdded())
 
                         onClicked: {
                             var timestamp = new Date();
