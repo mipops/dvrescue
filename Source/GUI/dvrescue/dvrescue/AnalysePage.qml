@@ -171,7 +171,7 @@ Item {
                 playerView.height = height / 2
             }
 
-            preferredWidth: playerView.width
+            preferredWidth: splitView.width / 2
 
             PlayerView {
                 id: playerView
