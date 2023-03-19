@@ -30,6 +30,8 @@ ColumnLayout {
     property string videoPath
     property string outputPath
 
+    spacing: 0
+
     Rectangle {
         color: 'white'
         Layout.fillWidth: true
