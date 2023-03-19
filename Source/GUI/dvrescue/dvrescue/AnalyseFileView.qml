@@ -215,7 +215,7 @@ Rectangle {
                     textFont.pixelSize: 13
                     text: display
                     leftOffset: deleteButton.width + 4
-
+                    busy: decoration < 0
                     overlayColor: row == tableView.currentIndex ? 'green' : 'lightgray'
                     overlayVisible: decoration !== 1 || row == tableView.currentIndex
                     progress.visible: decoration !== 1
