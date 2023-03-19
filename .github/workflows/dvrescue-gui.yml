@@ -283,14 +283,11 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-11', 'clang-16']
+        compiler: ['gcc-11']
         include:
           - compiler: gcc-11
             packages: gcc-11 g++-11
             env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
-          - compiler: clang-16
-            packages: 'clang-16'
-            env: { 'CC': 'clang-16', 'CXX': 'clang++-16' }
 
     runs-on: ubuntu-latest
 
@@ -315,14 +312,6 @@ jobs:
       with:
         python-version: '3.7'
         architecture: 'x64'
-
-    - name: Add Clang apt repository
-      if: matrix.compiler == 'clang-16'
-      run: |
-        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy main" \
-        | sudo tee -a /etc/apt/sources.list.d/llvm.list
-        curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo apt-get update
 
     - name: Install compiler and FFmpeg dependencies
       run: |
@@ -375,14 +364,11 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-11', 'clang-16']
+        compiler: ['gcc-11']
         include:
           - compiler: gcc-11
             packages: gcc-11 g++-11
             env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
-          - compiler: clang-16
-            packages: 'clang-16'
-            env: { 'CC': 'clang-16', 'CXX': 'clang++-16' }
 
     runs-on: ubuntu-latest
 
@@ -407,14 +393,6 @@ jobs:
       with:
         python-version: '3.7'
         architecture: 'x64'
-
-    - name: Add Clang apt repository
-      if: matrix.compiler == 'clang-16'
-      run: |
-        echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy main" \
-        | sudo tee -a /etc/apt/sources.list.d/llvm.list
-        curl -L https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo apt-get update
 
     - name: Install compiler and FFmpeg dependencies
       run: |
