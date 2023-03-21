@@ -279,11 +279,17 @@ Item {
 
             onHeightChanged: {
                 fileViewColumn.height = height / 5 * 1.5
+                fileViewColumn.preferredHeight = height / 5 * 1.5
             }
 
             ColumnLayout {
                 id: fileViewColumn
                 spacing: 0
+
+                property int preferredHeight: 0
+                onPreferredHeightChanged: {
+                    SplitView.preferredHeight = preferredHeight
+                }
 
                 RowLayout {
                     id: toolsLayout
