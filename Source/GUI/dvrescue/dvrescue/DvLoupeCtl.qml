@@ -101,7 +101,7 @@ Item {
 
         console.debug('getCygwinPath: ', path)
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.outputChanged.connect((outputStringt) => {
                 outputText += outputStringt;
@@ -134,7 +134,7 @@ Item {
     function exec(args, callback, extraArgs) {
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.outputChanged.connect((outputStringt) => {
                 outputText += outputStringt;

@@ -62,7 +62,7 @@ Item {
         console.debug('querying status: ', index);
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.outputChanged.connect((outputString) => {
                 outputText += outputString;
@@ -101,7 +101,7 @@ Item {
         console.debug('stopping: ', index);
 
         var promise = new Promise((accept, reject) => {
-            var launcher = launcherFactory.createObject(null);
+            var launcher = launcherFactory.createObject(null, { useThread: true});
             var outputText = '';
             launcher.errorChanged.connect((errorString) => {
                 outputText += errorString;
@@ -272,7 +272,7 @@ Item {
             launcher.processFinished.connect(() => {
                 console.debug('got from dvrescue: \n' + outputText);
                 try {
-                    accept();
+                    accept(file + ".dvrescue.xml");
                 }
                 catch(err) {
                     reject(err);
@@ -290,9 +290,10 @@ Item {
             launcher.execute(cmd, arguments);
             if(callback)
                 callback(launcher)
-        }).then(() => {
+        }).then((reportPath) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]
+            return reportPath
         }).catch((err) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]

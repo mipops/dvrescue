@@ -13,9 +13,9 @@ class MediaInfo : public QObject
     Q_PROPERTY(QString reportPath READ reportPath WRITE setReportPath NOTIFY reportPathChanged)
     Q_PROPERTY(QString videoPath READ videoPath WRITE setVideoPath NOTIFY videoPathChanged)
     Q_PROPERTY(QString format READ format WRITE setFormat NOTIFY formatChanged)
-    Q_PROPERTY(int fileSize READ fileSize WRITE setFileSize NOTIFY fileSizeChanged)
-    Q_PROPERTY(int frameCount READ frameCount WRITE setFrameCount NOTIFY frameCountChanged)
-    Q_PROPERTY(int countOfFrameSequences READ countOfFrameSequences WRITE setCountOfFrameSequences NOTIFY countOfFrameSequencesChanged)
+    Q_PROPERTY(qint64 fileSize READ fileSize WRITE setFileSize NOTIFY fileSizeChanged)
+    Q_PROPERTY(qint64 frameCount READ frameCount WRITE setFrameCount NOTIFY frameCountChanged)
+    Q_PROPERTY(qint64 countOfFrameSequences READ countOfFrameSequences WRITE setCountOfFrameSequences NOTIFY countOfFrameSequencesChanged)
     Q_PROPERTY(QString firstTimeCode READ firstTimeCode WRITE setFirstTimeCode NOTIFY firstTimeCodeChanged)
     Q_PROPERTY(QString lastTimeCode READ lastTimeCode WRITE setLastTimeCode NOTIFY lastTimeCodeChanged)
     Q_PROPERTY(QString firstRecordingTime READ firstRecordingTime WRITE setFirstRecordingTime NOTIFY firstRecordingTimeChanged)
@@ -46,16 +46,16 @@ public:
     QString reportPath() const;
     QString videoPath() const;
     QString format() const;
-    int fileSize() const;
-    int frameCount() const;
-    int countOfFrameSequences() const;
+    qint64 fileSize() const;
+    qint64 frameCount() const;
+    qint64 countOfFrameSequences() const;
     QString firstTimeCode() const;
     QString lastTimeCode() const;
     QString firstRecordingTime() const;
     QString lastRecordingTime() const;
 
-    int reportFileSize() const;
-    int bytesProcessed() const;
+    qint64 reportFileSize() const;
+    qint64 bytesProcessed() const;
 
     bool parsing() const;
 

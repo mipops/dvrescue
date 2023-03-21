@@ -24,6 +24,7 @@
 #include <QFileInfo>
 #include <imageutils.h>
 #include <loggingutils.h>
+#include <QStyle>
 
 extern "C" {
 #include "libavutil/avutil.h"
@@ -231,6 +232,16 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
+    auto rootObject = qobject_cast<QQuickWindow*>(engine.rootObjects().first());
+
+    auto screen = QGuiApplication::primaryScreen();
+    auto availableGeometry = screen->availableGeometry();
+    auto newGeometry = QStyle::alignedRect(Qt::LayoutDirectionAuto, Qt::AlignCenter, rootObject->size(), availableGeometry);
+    if(newGeometry.y() < 0)
+        newGeometry.setY(0);
+
+    rootObject->setGeometry(newGeometry);
+    rootObject->setVisible(true);
 
     for(auto category : LoggingUtils::allCategories()) {
         qDebug() << "category: " << category->categoryName() << category->isDebugEnabled();

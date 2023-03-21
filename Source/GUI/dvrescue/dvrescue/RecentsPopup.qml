@@ -26,9 +26,19 @@ Menu {
             text: filePath
             enabled: FileUtils.exists(filePath)
 
+            Timer {
+                id: timer
+                running: false
+                repeat: false
+                interval: 100
+                onTriggered: {
+                    selected(filePath)
+                }
+            }
+
             onClicked: {
                 recentsPopup.close();
-                selected(filePath)
+                timer.start();
             }
 
             onPressAndHold: {

@@ -10,9 +10,12 @@ import MediaInfo 1.0
 import FileUtils 1.0
 
 Rectangle {
+    color: 'transparent'
+
+    signal deleteClicked(var row);
+
     property alias dataModel: dataModel
     property alias tableView: tableView
-    property alias currentIndex: tableView.currentIndex
 
     readonly property string filePathColumn: "Output File Path"
     readonly property string statusColumn: "Status"
@@ -42,152 +45,214 @@ Rectangle {
         tableView.view.contentY = -16
     }
 
-    TableViewEx {
-        id: tableView
-        anchors.fill: parent
-        anchors.margins: 1
-        model: sortFilterTableModel
-        dataModel: dataModel
-        delegateHeight: 25
-        property int currentIndex: -1
+    Text {
+        id: label
+        text: 'OUTPUT QUEUE'
+        color: 'white'
+        font.pixelSize: 20
+    }
 
-        headerDelegate: SortableFiltrableColumnHeading {
-            id: header
-            width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
-            text: dataModel.columns[modelData].display
-            canFilter: false
-            canSort: false
-            canShowIndicator: false
-            filterFont.pixelSize: 11
-            textFont.pixelSize: 13
-            height: tableView.columnWidths, tableView.getMaxDesiredHeight()
+    Rectangle {
+        color: 'white'
+        anchors.top: label.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
-            onFilterTextChanged: {
-                sortFilterTableModel.setFilterText(modelData, filterText);
+        TableViewEx {
+            id: tableView
+            anchors.fill: parent
+            anchors.margins: 1
+            model: sortFilterTableModel
+            dataModel: dataModel
+            delegateHeight: 25
+
+            Menu {
+                id: contextMenu
+                property int currentRow: -1
+
+                MenuItem {
+                    text: "Show location"
+                    onClicked: {
+                        var filePath = dataModel.getRow(contextMenu.currentRow)[filePathColumn];
+                        Qt.openUrlExternally('file:///' + FileUtils.getFileDir(filePath))
+                    }
+                }
+
+                function showBelowControl(control) {
+                    var mapped = control.mapToItem(tableView, 0, 0);
+                    contextMenu.x = mapped.x
+                    contextMenu.y = mapped.y + control.height
+
+                    contextMenu.open()
+                }
+
+                function show(pos, row) {
+                    contextMenu.x = pos.x
+                    contextMenu.y = pos.y
+                    currentRow = row
+
+                    contextMenu.open()
+                }
             }
 
-            Rectangle {
-                id: handle
-                color: "transparent"
-                height: parent.height
-                width: 10
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                MouseArea {
-                    id: mouseHandle
-                    anchors.fill: parent
-                    drag{ target: parent; axis: Drag.XAxis }
-                    hoverEnabled: true
-                    cursorShape: Qt.SizeHorCursor
-                    onMouseXChanged: {
-                        if (drag.active) {
-                            var newWidth = header.width + mouseX
-                            if (newWidth >= minimumWidth) {
-                                // header.width = newWidth
+            headerDelegate: SortableFiltrableColumnHeading {
+                id: header
+                width: tableView.columnWidths[modelData] ? tableView.columnWidths[modelData] : 50
+                text: dataModel.columns[modelData].display
+                canFilter: false
+                canSort: false
+                canShowIndicator: false
+                filterFont.pixelSize: 11
+                textFont.pixelSize: 13
+                height: tableView.columnWidths, tableView.getMaxDesiredHeight()
 
-                                var newWidths = tableView.columnWidths
-                                var oldWidth = newWidths[modelData]
-                                newWidths[modelData] = newWidth;
+                onFilterTextChanged: {
+                    sortFilterTableModel.setFilterText(modelData, filterText);
+                }
 
-                                tableView.columnWidths = newWidths
-                                tableView.view.contentWidth += newWidth - oldWidth
-                                tableView.forceLayout();
+                Rectangle {
+                    id: handle
+                    color: "transparent"
+                    height: parent.height
+                    width: 10
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    MouseArea {
+                        id: mouseHandle
+                        anchors.fill: parent
+                        drag{ target: parent; axis: Drag.XAxis }
+                        hoverEnabled: true
+                        cursorShape: Qt.SizeHorCursor
+                        onMouseXChanged: {
+                            if (drag.active) {
+                                var newWidth = header.width + mouseX
+                                if (newWidth >= minimumWidth) {
+                                    // header.width = newWidth
+
+                                    var newWidths = tableView.columnWidths
+                                    var oldWidth = newWidths[modelData]
+                                    newWidths[modelData] = newWidth;
+
+                                    tableView.columnWidths = newWidths
+                                    tableView.view.contentWidth += newWidth - oldWidth
+                                    tableView.forceLayout();
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        delegate: DelegateChooser {
-            DelegateChoice  {
-                column: 0
+            delegate: DelegateChooser {
+                DelegateChoice  {
+                    column: 0
 
-                TextDelegate {
-                    height: tableView.delegateHeight
-                    implicitHeight: tableView.delegateHeight
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-                    property color redColor: 'red'
-                    textFont.pixelSize: 13
-                    text: display
+                    TextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
 
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    MouseArea {
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        anchors.fill: parent
-                        onClicked: {
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        CustomButton {
+                            id: deleteButton
+                            anchors.left: parent.left
+                            anchors.leftMargin: 2
 
+                            icon.color: "black"
+                            icon.source: "/icons/exit.svg"
+                            implicitHeight: parent.height
+                            implicitWidth: implicitHeight
+
+                            onClicked: {
+                                deleteClicked(row);
+                            }
+                        }
+
+                        MouseArea {
+                            acceptedButtons: Qt.RightButton
+                            hoverEnabled: true
+                            anchors.fill: parent
+                            onClicked: {
+                                if(mouse.button == Qt.RightButton) {
+                                    if(dataModel.getRow(row)[statusColumn] === 'finished')
+                                        contextMenu.show(mapToItem(tableView, mouseX, mouseY), row);
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            DelegateChoice  {                
-                Rectangle {
-                    id: statusDelegate
-                    implicitWidth: 100
-                    implicitHeight: 20
-                    property color evenColor: '#e3e3e3'
-                    property color oddColor: '#f3f3f3'
-
-                    color: (row % 2) == 0 ? evenColor : oddColor
-                    property real overlayColorOpacity: 0.5
-                    property alias overlayColor: overlay.color
-                    property alias overlayVisible: overlay.visible
-
-                    Image {
-                        source: "/icons/dvpackager_processing-not-started.svg"
-                        height: statusDelegate.height
-                        width: height
-                        anchors.centerIn: parent
-                        visible: display == 'not exported'
-                    }
-
-                    Image {
-                        source: "/icons/dvpackager_processing-in-queue.svg"
-                        height: statusDelegate.height
-                        width: height
-                        anchors.centerIn: parent
-                        visible: display == 'queued'
-                    }
-
-                    Image {
-                        source: "/icons/dvpackager_processing-in-process.svg"
-                        height: statusDelegate.height
-                        width: height
-                        anchors.centerIn: parent
-                        visible: display == 'packaging'
-
-                        RotationAnimation on rotation {
-                            loops: Animation.Infinite
-                            from: 0
-                            to: 360
-                            duration: 2000
-                        }
-                    }
-
-                    Image {
-                        source: "/icons/dvpackager_processing-done.svg"
-                        height: statusDelegate.height
-                        width: height
-                        anchors.centerIn: parent
-                        visible: display == 'finished' && edit == ''
-                    }
-
-                    Image {
-                        source: "/icons/dvpackager_processing-failed-canceled.svg"
-                        height: statusDelegate.height
-                        width: height
-                        anchors.centerIn: parent
-                        visible: display == 'finished' && edit != ''
-                    }
-
+                DelegateChoice  {
                     Rectangle {
-                        id: overlay
-                        anchors.fill: parent
-                        opacity: overlayColorOpacity
-                        visible: false
+                        id: statusDelegate
+                        implicitWidth: 100
+                        implicitHeight: 20
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                        property real overlayColorOpacity: 0.5
+                        property alias overlayColor: overlay.color
+                        property alias overlayVisible: overlay.visible
+
+                        Image {
+                            source: "/icons/dvpackager_processing-not-started.svg"
+                            height: statusDelegate.height
+                            width: height
+                            anchors.centerIn: parent
+                            visible: display == 'not exported'
+                        }
+
+                        Image {
+                            source: "/icons/dvpackager_processing-in-queue.svg"
+                            height: statusDelegate.height
+                            width: height
+                            anchors.centerIn: parent
+                            visible: display == 'queued'
+                        }
+
+                        Image {
+                            source: "/icons/dvpackager_processing-in-process.svg"
+                            height: statusDelegate.height
+                            width: height
+                            anchors.centerIn: parent
+                            visible: display == 'packaging'
+
+                            RotationAnimation on rotation {
+                                loops: Animation.Infinite
+                                from: 0
+                                to: 360
+                                duration: 2000
+                            }
+                        }
+
+                        Image {
+                            source: "/icons/dvpackager_processing-done.svg"
+                            height: statusDelegate.height
+                            width: height
+                            anchors.centerIn: parent
+                            visible: display == 'finished' && edit == ''
+                        }
+
+                        Image {
+                            source: "/icons/dvpackager_processing-failed-canceled.svg"
+                            height: statusDelegate.height
+                            width: height
+                            anchors.centerIn: parent
+                            visible: display == 'finished' && edit != ''
+                        }
+
+                        Rectangle {
+                            id: overlay
+                            anchors.fill: parent
+                            opacity: overlayColorOpacity
+                            visible: false
+                        }
                     }
                 }
             }

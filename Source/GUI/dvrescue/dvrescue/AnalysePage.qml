@@ -171,7 +171,7 @@ Item {
                 playerView.height = height / 2
             }
 
-            preferredWidth: playerView.width
+            preferredWidth: splitView.width / 2
 
             PlayerView {
                 id: playerView
@@ -279,11 +279,17 @@ Item {
 
             onHeightChanged: {
                 fileViewColumn.height = height / 5 * 1.5
+                fileViewColumn.preferredHeight = height / 5 * 1.5
             }
 
             ColumnLayout {
                 id: fileViewColumn
                 spacing: 0
+
+                property int preferredHeight: 0
+                onPreferredHeightChanged: {
+                    SplitView.preferredHeight = preferredHeight
+                }
 
                 RowLayout {
                     id: toolsLayout
@@ -361,67 +367,25 @@ Item {
                         }
                     }
 
-                    function load(filePath, currentIndex) {
+                    function load(fileInfo, currentIndex) {
 
-                        console.debug('load: ', filePath, 'currentIndex: ', currentIndex)
+                        console.debug('load: ', JSON.stringify(fileInfo, 0, 4), 'currentIndex: ', currentIndex)
+                        dataModel.reset();
 
-                        dataModel.reset(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                                        plotsView.evenAudioCurve, plotsView.oddAudioCurve);
-
-                        if(filePath == undefined || filePath.length === 0) {
+                        if(fileInfo && fileInfo.videoPath) {
+                            playerView.player.source = fileInfo.videoPath;
+                            playerView.player.playPaused(0);
+                        } else {
                             playerView.player.source = '';
-                            return;
                         }
 
-                        var extension = FileUtils.getFileExtension(filePath);
-                        if(extension === 'xml') {
+                        if(fileInfo && fileInfo.reportPath) {
                             refreshTimer.start();
-                            dataModel.populate(filePath);
 
-                            if(filePath.endsWith(dvRescueXmlExtension))
-                            {
-                                var videoPath = filePath.substring(0, filePath.length - dvRescueXmlExtension.length);
-                                if(FileUtils.exists(videoPath))
-                                {
-                                    playerView.player.source = videoPath;
-                                    playerView.player.playPaused(0);
-                                }
+                            dataModel.populate(fileInfo.reportPath);
+                            if(fileInfo.videoPath) {
+                                segmentDataViewWithToolbar.segmentDataView.populateSegmentData(fileInfo.reportPath, fileInfo.videoPath)
                             }
-
-                        } else {
-                            var dvRescueXmlPath = filePath + dvRescueXmlExtension
-                            if(FileUtils.exists(dvRescueXmlPath))
-                            {
-                                refreshTimer.start();
-                                dataModel.populate(dvRescueXmlPath);
-
-                                segmentDataViewWithToolbar.segmentDataView.populateSegmentData(dvRescueXmlPath, filePath)
-                            } else {
-                                busy.running = true;
-                                dvrescue.makeReport(filePath).then(() => {
-                                                                       busy.running = false;
-                                                                       refreshTimer.start();
-                                                                       dataModel.populate(dvRescueXmlPath);
-
-                                                                       if(currentIndex !== -1 && currentIndex !== undefined) {
-                                                                           console.debug('reportPath resolved: ', dvRescueXmlPath)
-                                                                           filesModel.setProperty(currentIndex, 'reportPath', dvRescueXmlPath)
-
-                                                                           //filesModel.get(currentIndex).reportPath = dvRescueXmlPath;
-
-                                                                           var mediaInfo = fileView.mediaInfoAt(currentIndex)
-                                                                           mediaInfo.reportPath = dvRescueXmlPath;
-                                                                           mediaInfo.resolve();
-
-                                                                           segmentDataViewWithToolbar.segmentDataView.populateSegmentData(mediaInfo.reportPath, mediaInfo.videoPath)
-                                                                       }
-                                                                   }).catch((error) => {
-                                                                        busy.running = false;
-                                                                    });
-                            }
-
-                            playerView.player.source = filePath;
-                            playerView.player.playPaused(0);
                         }
                     }
                 }
@@ -445,7 +409,21 @@ Item {
                             segmentDataViewWithToolbar.hoveredItem = null
                             root.startFrame = 0;
                             root.endFrame = dataModel.total - 1;
-                            toolsLayout.load(selectedPath, fileView.currentIndex)
+
+                            if(selectedPath === null)
+                                return;
+
+                            var path = selectedPath
+                            if(dvrescue.pendingReports.hasOwnProperty(path)) {
+                                dvrescue.pendingReports[path].then((reportPath) => {
+                                                          var fileInfo = filesModel.infoByPath(path)
+                                                          console.debug('delayed reportInfo: ', path, JSON.stringify(fileInfo))
+                                                          toolsLayout.load(fileInfo, fileView.currentIndex)
+                                                      })
+                            } else {
+                                var fileInfo = filesModel.infoByPath(path)
+                                toolsLayout.load(fileInfo, fileView.currentIndex)
+                            }
                         }
                     }
 
@@ -671,8 +649,7 @@ Item {
         running: false
         onTriggered: {
             console.debug('updating plots...')
-            dataModel.update(plotsView.evenVideoCurve, plotsView.oddVideoCurve,
-                              plotsView.evenAudioCurve, plotsView.oddAudioCurve);
+            dataModel.update();
         }
     }
 }

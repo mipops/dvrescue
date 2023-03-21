@@ -13,7 +13,6 @@ ApplicationWindow {
     id: root
     width: 1600
     height: 1280
-    visible: true
     title: qsTr("DVRescue")
     color: "#2e3436"
 
@@ -128,11 +127,52 @@ ApplicationWindow {
     FilesModel {
         id: filesModel
         mediaInfoModel: instantiator
+
+        function parseReport(reportPath, index) {
+            var mediaInfo = instantiator.objectAt(index)
+            mediaInfo.reportPath = reportPath;
+            mediaInfo.resolve();
+        }
+
+        function makeReport(fileInfo, index) {
+
+            Qt.callLater(() => {
+                             var mediaInfo = instantiator.objectAt(index)
+                             mediaInfo.editRow(index, 'Progress', -1)
+                         })
+
+            dvrescue.makeReport(fileInfo.originalPath).then((reportPath) => {
+                console.debug('resolved report path: ', reportPath)
+                filesModel.setProperty(index, 'reportPath', reportPath)
+
+                var mediaInfo = instantiator.objectAt(index)
+                mediaInfo.editRow(index, 'Progress', 0)
+
+                parseReport(reportPath, index)
+            })
+        }
+
+        onAppended: {
+            var index = filesModel.count - 1
+            console.debug('FilesModel: onAppended', index, JSON.stringify(fileInfo))
+
+            if(fileInfo.reportPath === '') {
+                makeReport(fileInfo, index);
+            } else {
+                parseReport(fileInfo.reportPath, index)
+            }
+        }
     }
 
     MediaInfoModel {
         id: instantiator
         model: filesModel
+        onObjectAdded: {
+            console.debug('MediaInfoModel: added', index, JSON.stringify(object))
+        }
+        onObjectRemoved: {
+            console.debug('MediaInfoModel: removed', index, JSON.stringify(object))
+        }
     }
 
     ListModel {

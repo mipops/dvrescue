@@ -131,18 +131,9 @@ Item {
 
     RowLayout {
         id: toolsLayout
-        Layout.fillWidth: true
-
-        anchors.left: parent.left
-        anchors.right: parent.right
 
         property string dvRescueXmlExtension: ".dvrescue.xml"
         property int fileViewerHeight: 0
-
-        Item {
-            height: parent.height
-            width: 1
-        }
 
         CustomButton {
             id: addFiles
@@ -185,129 +176,6 @@ Item {
             }
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: addFiles.height
-            color: 'white'
-
-            ButtonGroup {
-                buttons: [packageIntoSameFolder, specifyPath]
-            }
-
-            ButtonGroup {
-                buttons: [mov, mkv]
-            }
-
-            RowLayout {
-                id: settingsRow
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-
-                Button {
-                    text: "Package"
-                    height: parent.height
-                    onClicked: {
-                        var packageFunc = () => {
-                            for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
-                                packageOutputFileView.updatePackagingStatus(i, "queued");
-                            }
-
-                            var packagingPath = ''
-                            var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
-                            var promise = segmentDataViewWithToolbar.segmentDataView.packaging(reportPath, videoPath, outputPath, opts, (o) => {
-                                console.debug('packaging output changed: ', o)
-
-                                var splitted = String(o).split('\n');
-                                for(var i = 0; i < splitted.length; ++i) {
-                                    var value = splitted[i].trim();
-                                    console.debug('packaging output splitted value:', value);
-
-                                    if(value.startsWith('### Packaging started: ')) {
-                                        var path = root.toNativePath(value.replace('### Packaging started: ', ''));
-                                        packagingPath = path;
-                                        packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
-                                    } else if(value.startsWith('### Packaging finished: ')) {
-                                        var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
-                                        packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
-                                    } else if(value.startsWith('### Packaging error: ')) {
-                                        var error = value.replace('### Packaging error: ', '');
-                                        packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
-                                    }
-                                }
-                            });
-                            promise.then(() => {
-                                console.debug('packaging done');
-                            }).catch((err) => {
-                                console.error('packaging failed: ', err);
-                            })
-                        }
-
-                        if (!FileUtils.isWritable(outputPath))
-                        {
-                            selectFolderDialog.currentFolder = FileUtils.toLocalUrl(outputPath)
-                            selectFolderDialog.callback = (selectedUrl) => {
-                                outputPath = FileUtils.getFilePath(selectedUrl)
-                                packageFunc()
-                            };
-                            selectFolderDialog.open()
-                        }
-                        else
-                            packageFunc()
-                    }
-                }
-
-                RadioButton {
-                    id: mov
-                    text: "mov"
-                    checked: true
-                    onCheckedChanged: {
-                        if(checked) {
-                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mov'}
-                        }
-                    }
-                }
-
-                RadioButton {
-                    id: mkv
-                    text: "mkv"
-                    onCheckedChanged: {
-                        if(checked) {
-                            segmentDataViewWithToolbar.extraOpts = {'type' : 'mkv'}
-                        }
-                    }
-                }
-
-                RadioButton {
-                    id: packageIntoSameFolder
-                    text: "Package into same folder"
-                    checked: true
-                }
-
-                RadioButton {
-                    id: specifyPath
-                    text: "Specify path"
-                }
-
-                TextField {
-                    enabled: specifyPath.checked
-                    id: customPackagingPath
-                    placeholderText: "path..."
-                    Layout.minimumWidth: 200
-                }
-
-                ToolButton {
-                    enabled: specifyPath.checked
-                    text: "..."
-                    onClicked: {
-                        selectFolderDialog.callback = (selectedUrl) => {
-                            customPackagingPath.text = FileUtils.getFilePath(selectedUrl)
-                        };
-
-                        selectFolderDialog.open()
-                    }
-                }
-            }
-        }
     }
 
 
@@ -337,25 +205,13 @@ Item {
             }
 
             onSelectedPathChanged: {
-                console.debug('PackageFileView.selectedPath: ', selectedPath);
-
-                Qt.callLater(() => {
-                                 if(dvrescue.pendingReports.hasOwnProperty(selectedPath)) {
-                                    var promise = dvrescue.pendingReports[selectedPath]
-                                    busy.running = true
-                                    promise.then(() => {
-                                         busy.running = false
-                                    }).catch((err) => {
-                                         busy.running = false
-                                    })
-                                 }
-                             });
 
             }
         }
 
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
+            property int updatesCounter: 0
 
             Component.onCompleted: {
                 SplitView.preferredHeight = Qt.binding(function() { return height })
@@ -382,16 +238,242 @@ Item {
             }
 
             onPopulated: {
-                packageOutputFileView.dataModel.clear();
-                for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
-                    var row = segmentDataView.model.getRow(i)
-                    packageOutputFileView.newRow(row['FileName'])
-                }
+                ++updatesCounter
             }
         }
 
         PackageOutputFileView {
             id: packageOutputFileView
+
+            Rectangle {
+                y: -height * 1.1
+                width: parent.width
+                height: addFiles.height
+                color: 'white'
+
+                ButtonGroup {
+                    buttons: [packageIntoSameFolder, specifyPath]
+                }
+
+                ButtonGroup {
+                    buttons: [mov, mkv]
+                }
+
+                RowLayout {
+                    id: settingsRow
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    RadioButton {
+                        id: mov
+                        text: "mov"
+                        checked: true
+                        onCheckedChanged: {
+                            if(checked) {
+                                segmentDataViewWithToolbar.extraOpts = {'type' : 'mov'}
+                            }
+                        }
+                    }
+
+                    RadioButton {
+                        id: mkv
+                        text: "mkv"
+                        onCheckedChanged: {
+                            if(checked) {
+                                segmentDataViewWithToolbar.extraOpts = {'type' : 'mkv'}
+                            }
+                        }
+                    }
+
+                    RadioButton {
+                        id: packageIntoSameFolder
+                        text: "Package into same folder"
+                        checked: true
+                    }
+
+                    RadioButton {
+                        id: specifyPath
+                        text: "Specify path"
+                    }
+
+                    TextField {
+                        enabled: specifyPath.checked
+                        id: customPackagingPath
+                        placeholderText: "path..."
+                        Layout.minimumWidth: 200
+                    }
+
+                    ToolButton {
+                        enabled: specifyPath.checked
+                        text: "..."
+                        onClicked: {
+                            selectFolderDialog.callback = (selectedUrl) => {
+                                customPackagingPath.text = FileUtils.getFilePath(selectedUrl)
+                            };
+
+                            selectFolderDialog.open()
+                        }
+                    }
+
+                    Button {
+                        id: addToQueue
+                        text: "ADD TO QUEUE"
+                        height: parent.height
+                        property alias segmentDataView: segmentDataViewWithToolbar.segmentDataView
+                        property bool isPackaging: false
+                        property var segments: ({})
+                        property int clickCounter: 0
+
+                        Connections {
+                            target: packageOutputFileView
+                            onDeleteClicked: {
+                                var outputRow = packageOutputFileView.dataModel.getRow(row)
+                                var path = outputRow[packageOutputFileView.filePathColumn];
+                                delete addToQueue.segments[path];
+
+                                var rowCount = packageOutputFileView.dataModel.rowCount;
+                                packageOutputFileView.dataModel.removeRow(row, 1);
+                                var newRowCount = packageOutputFileView.dataModel.rowCount;
+                                console.debug('packageOutputFileView..dataModel.rowCount: ', rowCount, newRowCount);
+                            }
+                        }
+
+                        function segmentsAlreadyAdded() {
+                            for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                                var row = segmentDataView.model.getRow(i)
+                                var fileName = row['FileName'];
+                                if(segments.hasOwnProperty(fileName))
+                                    return true
+                            }
+
+                            return false;
+                        }
+
+                        enabled: segmentDataViewWithToolbar.updatesCounter, clickCounter, packageOutputFileView.dataModel.rowCount,
+                            (segmentDataView.model.rowCount != 0 && !segmentsAlreadyAdded())
+
+                        onClicked: {
+                            var timestamp = new Date();
+                            for(var i = 0; i < segmentDataView.model.rowCount; ++i) {
+                                var row = segmentDataView.model.getRow(i)
+                                var fileName = row['FileName'];
+                                var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                                segments[fileName] = {
+                                    'reportPath' : reportPath,
+                                    'videoPath' : videoPath,
+                                    'outputPath' : outputPath,
+                                    'opts' : opts,
+                                    'timestamp' : timestamp
+                                }
+                                packageOutputFileView.newRow(fileName)
+                            }
+
+                            var packageFunc = () => {
+                                var indexes = []
+                                var segment = null
+
+                                for(var i = 0; i < packageOutputFileView.dataModel.rowCount; ++i) {
+                                    var row = packageOutputFileView.dataModel.getRow(i)
+                                    if(row[packageOutputFileView.statusColumn] === 'not exported') {
+                                        var fileName = row[packageOutputFileView.filePathColumn]
+                                        var currentSegment = segments[fileName];
+                                        var newTimestamp = currentSegment['timestamp'];
+                                        if(segment === null) {
+                                            segment = currentSegment
+                                        }
+                                        else if(segment['timestamp'] === newTimestamp) {
+                                            packageOutputFileView.updatePackagingStatus(i, "queued");
+                                            indexes.push(i);
+                                        }
+                                        else {
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if(segment === null)
+                                    return;
+
+                                isPackaging = true;
+                                var packagingPath = ''
+                                var opts = { 'type' : mov.checked ? 'mov' : 'mkv' }
+                                var promise = segmentDataViewWithToolbar.segmentDataView.packaging(segment.reportPath, segment.videoPath,
+                                                                                                   segment.outputPath, segment.opts, (o) => {
+                                    console.debug('packaging output changed: ', o)
+
+                                    var splitted = String(o).split('\n');
+                                    for(var i = 0; i < splitted.length; ++i) {
+                                        var value = splitted[i].trim();
+                                        console.debug('packaging output splitted value:', value);
+
+                                        if(value.startsWith('### Packaging started: ')) {
+                                            var path = root.toNativePath(value.replace('### Packaging started: ', ''));
+                                            packagingPath = path;
+                                            packageOutputFileView.updatePackagingStatusByPath(path, 'packaging');
+                                        } else if(value.startsWith('### Packaging finished: ')) {
+                                            var path = root.toNativePath(value.replace('### Packaging finished: ', ''));
+                                            packageOutputFileView.updatePackagingStatusByPath(path, 'finished');
+                                        } else if(value.startsWith('### Packaging error: ')) {
+                                            var error = value.replace('### Packaging error: ', '');
+                                            packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
+                                        }
+                                    }
+                                });
+                                promise.then(() => {
+                                    console.debug('packaging done');
+                                    indexes.forEach((index) => {
+                                                        console.debug('indexes: ', index)
+                                                        var row = packageOutputFileView.dataModel.getRow(index)
+                                                        var filePath = row[packageOutputFileView.filePathColumn]
+                                                        delete segments.filePath
+
+                                                        var status = row[packageOutputFileView.statusColumn]
+                                                        if(status === 'packaging') {
+                                                            packageOutputFileView.updatePackagingError(index, 'unexpected')
+                                                            packageOutputFileView.updatePackagingStatus(index, 'finished')
+                                                        }
+                                                    })
+                                    isPackaging = false;
+                                    packageFunc()
+                                }).catch((err) => {
+                                    console.error('packaging failed: ', err);
+                                    isPackaging = false;
+                                    packageFunc()
+                                })
+                            }
+
+                            if (!FileUtils.isWritable(outputPath))
+                            {
+                                selectFolderDialog.currentFolder = FileUtils.toLocalUrl(outputPath)
+                                selectFolderDialog.callback = (selectedUrl) => {
+                                    outputPath = FileUtils.getFilePath(selectedUrl)
+                                    if(!isPackaging)
+                                        packageFunc()
+                                };
+                                selectFolderDialog.open()
+                            }
+                            else
+                            {
+                                if(!isPackaging)
+                                    packageFunc()
+                            }
+
+                            ++clickCounter
+                        }
+                    }
+
+                    Button {
+                        text: "CLEAR QUEUE"
+                        height: parent.height
+                        onClicked: {
+                            packageOutputFileView.dataModel.clear()
+                            addToQueue.segments = {}
+                            ++addToQueue.clickCounter
+                        }
+                    }
+                }
+            }
+
 
             Component.onCompleted: {
                 SplitView.preferredHeight = Qt.binding(function() { return height })
