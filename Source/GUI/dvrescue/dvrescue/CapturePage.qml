@@ -263,6 +263,13 @@ Rectangle {
             }
         }
     }
+
+    AnimatedImage {
+        anchors.centerIn: parent
+        source: "/icons/no_decks.gif"
+        playing: devicesModel.count === 0
+        visible: devicesModel.count === 0
+    }
 }
 
 /*##^##
