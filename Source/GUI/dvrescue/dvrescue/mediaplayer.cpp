@@ -272,7 +272,7 @@ void MediaPlayer::setEnableAudio(bool newEnableAudio)
 
 QString MediaPlayer::filter() const
 {
-    return player->filter();
+    return player->filters().first();
 }
 
 void MediaPlayer::setFilter(const QString &newFilter)
