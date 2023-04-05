@@ -161,7 +161,7 @@ void MediaPlayer::stepBackward()
 void MediaPlayer::clear()
 {
     qDebug() << "clear";
-    if(!player->videoStreams().empty())
+    if(!player->currentVideoStreams().empty())
         Q_EMIT player->videoFrame(QAVVideoFrame());
 }
 
@@ -272,7 +272,10 @@ void MediaPlayer::setEnableAudio(bool newEnableAudio)
 
 QString MediaPlayer::filter() const
 {
-    return player->filter();
+    if(player->filters().empty())
+        return QString();
+
+    return player->filters().first();
 }
 
 void MediaPlayer::setFilter(const QString &newFilter)

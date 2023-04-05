@@ -11,8 +11,8 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@9
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+            packages: llvm@13
+            env: { 'CC': 'clang', 'CXX': 'clang++', 'CXXFLAGS': '-DNS_FORMAT_ARGUMENT\(A\)= -fapplication-extension -std=c++17' }
 
     runs-on: macos-latest
 
@@ -54,7 +54,7 @@ jobs:
         mkdir build
         cd build
         qmake ..
-        make -j4
+        make CC=$CC CXX=$CXX CXXFLAGS="$CXXFLAGS" -j4
 
     - name: Launch dvrescue-gui
       run: |
@@ -130,8 +130,8 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@9
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+            packages: llvm@13
+            env: { 'CC': 'clang', 'CXX': 'clang++', 'CXXFLAGS': '-DNS_FORMAT_ARGUMENT\(A\)= -fapplication-extension -std=c++17' }
 
     runs-on: macos-latest
 
@@ -162,7 +162,7 @@ jobs:
 
     - name: Build qwt
       run: |
-        git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
         qmake -r
         make -j4
@@ -191,7 +191,7 @@ jobs:
         mkdir build
         cd build
         qmake .. 
-        make -j4
+        make CC=$CC CXX=$CXX CXXFLAGS="$CXXFLAGS" -j4
 
     - name: Launch dvrescue-gui
       run: |
@@ -340,7 +340,7 @@ jobs:
 
     - name: Build qwt
       run: |
-        git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
         qmake -r
         make -j4
@@ -485,7 +485,7 @@ jobs:
 
     - name: Download and configure qwt
       run: |
-        git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         copy .github\workflows\qwtconfig.pri ..\qwt
         cd ../qwt
         qmake -r
@@ -664,7 +664,7 @@ jobs:
 
     - name: Download and configure qwt
       run: |
-        git clone --depth 1 https://github.com/opencor/qwt ../qwt
+        git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
         cd ../qwt
         qmake -r
 

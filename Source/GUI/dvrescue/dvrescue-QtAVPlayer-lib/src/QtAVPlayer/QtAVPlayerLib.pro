@@ -2,9 +2,10 @@ TARGET = QtAVPlayer
 MODULE = QtAVPlayer
 
 QT = multimedia concurrent
+# Needed for QAbstractVideoBuffer
 equals(QT_MAJOR_VERSION, 6): QT += multimedia-private
 QT_PRIVATE += gui-private
-
+CONFIG += C++1z
 INCLUDEPATH += $$absolute_path($$PWD/..)
 message ("INCLUDEPATH: " $$INCLUDEPATH)
 
@@ -37,7 +38,8 @@ PRIVATE_HEADERS += \
     qavaudioinputfilter_p.h \ 
     qavvideooutputfilter_p.h \
     qavaudiooutputfilter_p.h \
-    qaviodevice_p.h
+    qaviodevice_p.h \
+    qavfilters_p.h
 
 PUBLIC_HEADERS += \
     qavaudioformat.h \
@@ -78,7 +80,8 @@ SOURCES += \
     qavvideooutputfilter.cpp \
     qavaudiooutputfilter.cpp \
     qaviodevice.cpp \
-    qavstream.cpp
+    qavstream.cpp \
+    qavfilters.cpp
 
 qtConfig(va_x11):qtConfig(opengl): {
     QMAKE_USE += va_x11 x11
@@ -107,6 +110,7 @@ qtConfig(vdpau) {
     PRIVATE_HEADERS += qavhwdevice_vdpau_p.h
     SOURCES += qavhwdevice_vdpau.cpp
 }
+
 android {
     PRIVATE_HEADERS += qavhwdevice_mediacodec_p.h
     SOURCES += qavhwdevice_mediacodec.cpp
