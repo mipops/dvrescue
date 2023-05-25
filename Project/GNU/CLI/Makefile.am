@@ -50,6 +50,11 @@ if BUILD_AVFCTL
     bin_SCRIPTS += ../../../tools/avfctl/avfctl
 endif
 
+if BUILD_DECKLINK
+    dvrescue_SOURCES += ../../../Source/Common/DecklinkWrapper.cpp \
+                        ../../../Source/Common/Output_Mkv.cpp
+endif
+
 if BUILD_LNX1394
     dvrescue_SOURCES += ../../../Source/Common/LinuxWrapper.cpp
 endif

@@ -23,6 +23,9 @@ using namespace std::chrono;
 #ifdef ENABLE_LNX1394
 #include "Common/LinuxWrapper.h"
 #endif
+#ifdef ENABLE_DECKLINK
+#include "Common/DecklinkWrapper.h"
+#endif
 #ifdef ENABLE_SIMULATOR
 #include "Common/SimulatorWrapper.h"
 #endif
@@ -137,37 +140,44 @@ void file::Parse(const String& FileName)
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (Device_Command == 1)
     {
-        size_t i = 0;
         #ifdef ENABLE_SIMULATOR
-            for (;;)
+            for (size_t i = 0;; i++)
             {
                 auto Name = SimulatorWrapper::GetDeviceName(i);
                 if (Name.empty())
                     break;
                 cout << Name << '\n';
-                i++;
             }
         #endif
         #ifdef ENABLE_AVFCTL
-            for (;;)
+            for (size_t i = 0;; i++)
             {
                 auto Name = AVFCtlWrapper::GetDeviceName(i);
                 auto DeviceID = AVFCtlWrapper::GetDeviceID(i);
                 if (Name.empty())
                     break;
                 cout << DeviceID << ": " << Name << '\n';
-                i++;
+            }
+        #endif
+
+        #ifdef ENABLE_DECKLINK
+            for (size_t i = 0;; i++)
+            {
+                auto Name = DecklinkWrapper::GetDeviceName(i);
+                auto DeviceID = DecklinkWrapper::GetDeviceID(i);
+                if (Name.empty())
+                    break;
+                cout << DeviceID << ": " << Name << '\n';
             }
         #endif
         #ifdef ENABLE_LNX1394
-            for (;;)
+            for (size_t i = 0;; i++)
             {
                 auto Name = LinuxWrapper::GetDeviceName(i);
                 auto DeviceID = LinuxWrapper::GetDeviceID(i);
                 if (Name.empty())
                     break;
                 cout << DeviceID << ": " << Name << '\n';
-                i++;
             }
         #endif
         return;
@@ -179,7 +189,7 @@ void file::Parse(const String& FileName)
         Device = "0";
     if (!Device.empty())
     {
-        uint64_t Device_Pos;
+        uint64_t Device_Pos, Device_Offset = 0;
         istringstream iss(Device);
 
         iss >> Device_Pos;
@@ -189,19 +199,25 @@ void file::Parse(const String& FileName)
         if (false)
             ;
         #ifdef ENABLE_SIMULATOR
-            else if (Device_Pos < SimulatorWrapper::GetDeviceCount())
+            else if ((Device_Pos-=Device_Offset) < (Device_Offset=SimulatorWrapper::GetDeviceCount()))
                 Controller = new SimulatorWrapper(Device_Pos);
         #endif
         #ifdef ENABLE_AVFCTL
-            else if (Device_Pos < AVFCtlWrapper::GetDeviceCount())
+            else if ((Device_Pos-=Device_Offset) < (Device_Offset=AVFCtlWrapper::GetDeviceCount()))
                 Controller = new AVFCtlWrapper(Device_Pos);
-            else if (AVFCtlWrapper::GetDeviceIndex(Device) >= 0)
+            else if (AVFCtlWrapper::GetDeviceIndex(Device) != (size_t)-1)
                 Controller = new AVFCtlWrapper(Device);
         #endif
+        #ifdef ENABLE_DECKLINK
+            else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))
+                Controller = new DecklinkWrapper(Device_Pos);
+            else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
+                Controller = new DecklinkWrapper(Device);
+        #endif
         #ifdef ENABLE_LNX1394
-            else if (Device_Pos < LinuxWrapper::GetDeviceCount())
+            else if ((Device_Pos-=Device_Offset) < (Device_Offset=LinuxWrapper::GetDeviceCount()))
                 try { Controller = new LinuxWrapper(Device_Pos); } catch(...) {}
-            else if (LinuxWrapper::GetDeviceIndex(Device) >= 0)
+            else if (LinuxWrapper::GetDeviceIndex(Device) != (size_t)-1)
                 try { Controller = new LinuxWrapper(Device); } catch(...) {}
         #endif
     }
@@ -286,7 +302,7 @@ void file::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 //---------------------------------------------------------------------------
 void file::Terminate()
 {
-#if defined(ENABLE_AVFCTL) || defined(ENABLE_SIMULATOR)
+#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (Controller)
     {
         PauseRequested=false;
