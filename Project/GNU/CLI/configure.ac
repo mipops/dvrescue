@@ -6,6 +6,7 @@ dnl -------------------------------------------------------------------------
 dnl Test if we are at the good place
 dnl
 AC_INIT(../../../Source/CLI/CLI_Main.cpp)
+AC_LANG([C++])
 
 dnl -------------------------------------------------------------------------
 dnl sets build, host, target variables and the same with _alias
@@ -50,6 +51,7 @@ AC_ARG_ENABLE(arch-x86_64,      AC_HELP_STRING([--enable-arch-x86_64],      [Cre
 AC_ARG_ENABLE(staticlibs,       AC_HELP_STRING([--enable-staticlibs],       [Use static libmediainfo and libzen]),                        , enable_staticlibs=no)
 AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Build avfctl tool (macOS only)]),                            , enable_avfctl=yes)
 AC_ARG_ENABLE(capture,          AC_HELP_STRING([--enable-capture],          [Use libavc1394 and libdc1394 for capture support on linux]), , enable_capture=yes)
+AC_ARG_ENABLE(decklink,         AC_HELP_STRING([--enable-decklink],         [Enable capture from Blackmagic capture devices]),            , enable_decklink=no)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -57,6 +59,7 @@ dnl
 AC_ARG_WITH(macosx-sdk,         AC_HELP_STRING([--with-macosx-sdk],         [Force the Mac SDK]),                                         , with_macosx_sdk=no)
 AC_ARG_WITH(macosx-version-min, AC_HELP_STRING([--with-macosx-version-min], [Force the Mac Version]),                                     , with_macosx_version_min=no)
 AC_ARG_WITH(dll,                AC_HELP_STRING([--with-dll],                [Do not link to libmediainfo, dynamic loading]),              , with_dll=no)
+AC_ARG_WITH(decklink-sdk,       AC_HELP_STRING([--with-decklink-sdk],       [Path of the decklink SDK]),                                  , with_decklink_sdk=no)
 
 dnl #########################################################################
 dnl ### Options from elsewhere
@@ -97,6 +100,16 @@ AM_CONDITIONAL([BUILD_AVFCTL], [test "$host_macos" = "yes" -a "$enable_avfctl" =
 if test "$host_macos" = "yes" -a "$enable_avfctl" = "yes" ; then
     AC_DEFINE(ENABLE_CAPTURE)
     AC_DEFINE(ENABLE_AVFCTL)
+fi
+
+AM_CONDITIONAL([BUILD_DECKLINK], [test "$host_macos" = "yes" -a "$enable_decklink" = "yes"])
+if test "$host_macos" = "yes" -a "$enable_decklink" = "yes" ; then
+    AC_DEFINE(ENABLE_CAPTURE)
+    AC_DEFINE(ENABLE_DECKLINK)
+    if test "$with_decklink_sdk" != "no" ; then
+        CXXFLAGS="$CXXFLAGS -I$with_decklink_sdk/include"
+    fi
+    AC_CHECK_HEADERS([DeckLinkAPI.h], , [AC_MSG_ERROR([Blackmagic DeckLink SDK is not found])])
 fi
 
 dnl #########################################################################
