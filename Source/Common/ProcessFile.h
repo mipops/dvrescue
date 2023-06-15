@@ -128,7 +128,8 @@ private:
 
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 public:
-    BaseWrapper* Controller = nullptr;
+    ControllerBaseWrapper* Controller = nullptr;
+    BaseWrapper* Capture = nullptr;
     float Speed_Before = 0;
     float Speed_After = 0;
     bool PauseRequested = false;

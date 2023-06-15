@@ -27,6 +27,8 @@ vector<DecklinkWrapper::device> Devices;
 atomic<time_t> LastInput;
 mutex ProcessFrameLock;
 
+atomic<bool> DeckLinkDeckControlConnected;
+
 //---------------------------------------------------------------------------
 string PlatformStr2StdStr(PlatformStr Str)
 {
@@ -68,6 +70,8 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
     const lock_guard<mutex> Lock(ProcessFrameLock);
     if (VideoFrame && AudioPacket)
     {
+        LastInput = time(NULL);
+
         void* VideoBuffer;
         size_t VideoBufferSize = VideoFrame->GetRowBytes() * VideoFrame->GetHeight();
         if (VideoFrame->GetBytes(&VideoBuffer) != S_OK)
@@ -86,9 +90,9 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
             return E_FAIL;
         }
 
-        Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize);
+        if (Writer)
+            Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize);
     }
-
 
     if (VideoFrame)
         VideoFrame->Release();
@@ -102,6 +106,56 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
 //---------------------------------------------------------------------------
 HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags)
 {
+    return S_OK;
+}
+
+//---------------------------------------------------------------------------
+DecklinkWrapper::StatusDelegate::StatusDelegate()
+{
+}
+
+//---------------------------------------------------------------------------
+ULONG DecklinkWrapper::StatusDelegate::AddRef()
+{
+    return 0x1;
+}
+
+//---------------------------------------------------------------------------
+ULONG DecklinkWrapper::StatusDelegate::Release()
+{
+    return 0x1;
+}
+
+//---------------------------------------------------------------------------
+HRESULT DecklinkWrapper::StatusDelegate::QueryInterface(REFIID, LPVOID*)
+{
+    return E_NOINTERFACE;
+}
+
+//---------------------------------------------------------------------------
+HRESULT DecklinkWrapper::StatusDelegate::TimecodeUpdate(BMDTimecodeBCD)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------
+HRESULT DecklinkWrapper::StatusDelegate::VTRControlStateChanged(BMDDeckControlVTRControlState, BMDDeckControlError)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------
+HRESULT DecklinkWrapper::StatusDelegate::DeckControlEventReceived(BMDDeckControlEvent, BMDDeckControlError)
+{
+    return E_NOTIMPL;
+}
+
+//---------------------------------------------------------------------------
+HRESULT DecklinkWrapper::StatusDelegate::DeckControlStatusChanged(BMDDeckControlStatusFlags flags, uint32_t mask)
+{
+    if ((mask & bmdDeckControlStatusDeckConnected) && (flags & bmdDeckControlStatusDeckConnected))
+        DeckLinkDeckControlConnected = true;
+
     return S_OK;
 }
 
@@ -142,11 +196,8 @@ void DecklinkWrapper::Init()
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex) : PlaybackMode(Playback_Mode_NotPlaying),
-                                                       DeckLinkInput(nullptr),
-                                                       DeckLinkConfiguration(nullptr),
-                                                       DeckLinkCaptureDelegate(nullptr),
-                                                       MatroskaWriter(nullptr)
+DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex, ControllerBaseWrapper* Controller, bool Native) :
+    Controller(Controller)
 {
     IDeckLinkIterator* DeckLinkIterator = CreateDeckLinkIteratorInstance();
     if (!DeckLinkIterator)
@@ -165,14 +216,50 @@ DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex) : PlaybackMode(Playback_Mod
 
     if (!DeckLinkDevice)
         throw error("Device not found.");
+
+    if (!Controller && Native)
+    {
+        BMDDeckControlError Error;
+        DeckLinkDeckControlConnected = false;
+
+        DeckLinkDevice->QueryInterface(IID_IDeckLinkDeckControl, (void **)&DeckLinkDeckControl);
+
+        if (!DeckLinkDeckControl)
+        {
+            DeckLinkDevice->Release();
+            throw error("Unable to initialize DeckLink DeckControl API.");
+        }
+
+        DeckLinkStatusDelegate = new StatusDelegate();
+        DeckLinkDeckControl->SetCallback(DeckLinkStatusDelegate);
+        if (DeckLinkDeckControl->Open(30000, 1001, true, &Error) != S_OK)
+        {
+            DeckLinkDevice->Release();
+            DeckLinkDeckControl->Release();
+            delete DeckLinkStatusDelegate;
+            throw error("Could not open serial port.");
+        }
+
+        time_t Start = time(NULL);
+        while (!DeckLinkDeckControlConnected)
+        {
+            if (difftime(time(NULL), Start) > 10)
+            {
+                DeckLinkDeckControl->Close(false);
+
+                DeckLinkDevice->Release();
+                DeckLinkDeckControl->Release();
+                delete DeckLinkStatusDelegate;
+                throw error("Could not open serial port.");
+            }
+            this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::DecklinkWrapper(string DeviceID) : PlaybackMode(Playback_Mode_NotPlaying),
-                                                    DeckLinkInput(nullptr),
-                                                    DeckLinkConfiguration(nullptr),
-                                                    DeckLinkCaptureDelegate(nullptr),
-                                                    MatroskaWriter(nullptr)
+DecklinkWrapper::DecklinkWrapper(string DeviceID, ControllerBaseWrapper* Controller, bool Native) :
+    Controller(Controller)
 {
     IDeckLinkIterator* DeckLinkIterator = CreateDeckLinkIteratorInstance();
     if (!DeckLinkIterator)
@@ -203,12 +290,64 @@ DecklinkWrapper::DecklinkWrapper(string DeviceID) : PlaybackMode(Playback_Mode_N
 
     if (!DeckLinkDevice)
         throw error("Device not found.");
+
+    if (!Controller && Native)
+    {
+        BMDDeckControlError Error;
+        DeckLinkDeckControlConnected = false;
+
+        DeckLinkDevice->QueryInterface(IID_IDeckLinkDeckControl, (void **)&DeckLinkDeckControl);
+
+        if (!DeckLinkDeckControl)
+        {
+            DeckLinkDevice->Release();
+            throw error("Unable to initialize DeckLink DeckControl API.");
+        }
+
+        DeckLinkStatusDelegate = new StatusDelegate();
+        DeckLinkDeckControl->SetCallback(DeckLinkStatusDelegate);
+        if (DeckLinkDeckControl->Open(30000, 1001, true, &Error) != S_OK)
+        {
+            DeckLinkDevice->Release();
+            DeckLinkDeckControl->Release();
+            delete DeckLinkStatusDelegate;
+            throw error("Could not open serial port.");
+        }
+
+        time_t Start = time(NULL);
+        while (!DeckLinkDeckControlConnected)
+        {
+            if (difftime(time(NULL), Start) > 10)
+            {
+                DeckLinkDeckControl->Close(false);
+
+                DeckLinkDevice->Release();
+                DeckLinkDeckControl->Release();
+                delete DeckLinkStatusDelegate;
+                throw error("Could not open serial port.");
+            }
+            this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
 DecklinkWrapper::~DecklinkWrapper()
 {
-    StopCaptureSession();
+    if (Capture)
+        StopCaptureSession();
+
+    if (DeckLinkDevice)
+        DeckLinkDevice->Release();
+
+    if (DeckLinkDeckControl)
+    {
+        DeckLinkDeckControl->Close(false);
+        DeckLinkDeckControl->Release();
+    }
+
+    if (DeckLinkStatusDelegate)
+        delete DeckLinkStatusDelegate;
 }
 
 //---------------------------------------------------------------------------
@@ -272,18 +411,75 @@ size_t DecklinkWrapper::GetDeviceIndex(const string& DeviceID)
 //---------------------------------------------------------------------------
 playback_mode DecklinkWrapper::GetMode()
 {
+    if (Controller)
+        return Controller->GetMode();
+    else if (DeckLinkDeckControl)
+    {
+        BMDDeckControlMode Mode = 0;
+        BMDDeckControlVTRControlState State = 0;
+        BMDDeckControlStatusFlags Flags = 0;
+        DeckLinkDeckControl->GetCurrentState(&Mode, &State, &Flags);
+        if (State == bmdDeckControlVTRControlPlaying ||
+            State == bmdDeckControlVTRControlShuttleForward ||
+            State == bmdDeckControlVTRControlShuttleReverse ||
+            State == bmdDeckControlVTRControlJogForward ||
+            State == bmdDeckControlVTRControlJogReverse)
+                return Playback_Mode_Playing;
+            else
+                return Playback_Mode_NotPlaying;
+    }
+
     return PlaybackMode;
 }
 
 //---------------------------------------------------------------------------
 std::string DecklinkWrapper::GetStatus()
 {
+    if (Controller)
+        return Controller->GetStatus();
+    else if (DeckLinkDeckControl)
+    {
+        BMDDeckControlMode Mode = 0;
+        BMDDeckControlVTRControlState State = 0;
+        BMDDeckControlStatusFlags Flags = 0;
+        DeckLinkDeckControl->GetCurrentState(&Mode, &State, &Flags);
+        if (State == bmdDeckControlVTRControlPlaying)
+            return "playing";
+        else if (State == bmdDeckControlVTRControlShuttleForward)
+            return "playing";
+        else if (State == bmdDeckControlVTRControlShuttleReverse)
+            return "playing (reverse)";
+        else if (State == bmdDeckControlVTRControlJogForward)
+            return "playing";
+        else if (State == bmdDeckControlVTRControlJogReverse)
+            return "playing (reverse)";
+    }
     return "unknown";
 }
 
 //---------------------------------------------------------------------------
 float DecklinkWrapper::GetSpeed()
 {
+    if (Controller)
+        return Controller->GetSpeed();
+    else if (DeckLinkDeckControl)
+    {
+        BMDDeckControlMode Mode = 0;
+        BMDDeckControlVTRControlState State = 0;
+        BMDDeckControlStatusFlags Flags = 0;
+        DeckLinkDeckControl->GetCurrentState(&Mode, &State, &Flags);
+        if (State == bmdDeckControlVTRControlPlaying)
+            return 1.0f;
+        else if (State == bmdDeckControlVTRControlShuttleForward)
+            return 2.0f;
+        else if (State == bmdDeckControlVTRControlShuttleReverse)
+            return -2.0f;
+        else if (State == bmdDeckControlVTRControlJogForward)
+            return 1.5f;
+        else if (State == bmdDeckControlVTRControlJogReverse)
+            return -1.5f;
+    }
+
     return 0.0f;
 }
 
@@ -340,6 +536,8 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
 
         return;
     }
+
+    Capture = true;
 }
 
 //---------------------------------------------------------------------------
@@ -349,7 +547,7 @@ void DecklinkWrapper::StartCaptureSession()
     {
         StopCaptureSession();
     }
-    SetPlaybackMode(Playback_Mode_Playing, 0.0f);
+    SetPlaybackMode(Playback_Mode_Playing, 1.0f);
 }
 
 //---------------------------------------------------------------------------
@@ -386,6 +584,7 @@ void DecklinkWrapper::StopCaptureSession()
         MatroskaWriter=nullptr;
     }
     SetPlaybackMode(Playback_Mode_NotPlaying, 0.0f);
+    Capture = false;
 }
 
 //---------------------------------------------------------------------------
@@ -401,7 +600,7 @@ bool DecklinkWrapper::WaitForSessionEnd(uint64_t Timeout)
         }
         this_thread::sleep_for(std::chrono::milliseconds(500));
     }
-    while (PlaybackMode==Playback_Mode_Playing); //TODO: get state from device control interface
+    while (PlaybackMode == Playback_Mode_Playing);
 
     return false;
 }
@@ -409,5 +608,42 @@ bool DecklinkWrapper::WaitForSessionEnd(uint64_t Timeout)
 //---------------------------------------------------------------------------
 void DecklinkWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
 {
+    if (Controller)
+        Controller->SetPlaybackMode(Mode, Speed);
+    else if (DeckLinkDeckControl)
+    {
+        BMDDeckControlError Error = bmdDeckControlNoError;
+        switch (Mode)
+        {
+            case Playback_Mode_Playing:
+                if (Speed > 1.0f)
+                    DeckLinkDeckControl->Shuttle(25.0f, &Error);
+                if (Speed == 1.0f)
+                    DeckLinkDeckControl->Play(&Error);
+                if (Speed > 0.0f)
+                    DeckLinkDeckControl->Jog(25.0f, &Error);
+                else if (Speed < 1.0f)
+                    DeckLinkDeckControl->Shuttle(-25.0f, &Error);
+                else if (Speed < 0.0f)
+                    DeckLinkDeckControl->Jog(-25.0f, &Error);
+                else
+                    DeckLinkDeckControl->Stop(&Error);
+            break;
+            case Playback_Mode_NotPlaying:
+                if (Speed > 1.0f)
+                    DeckLinkDeckControl->FastForward(false, &Error);
+                if (Speed > 0.0f)
+                    DeckLinkDeckControl->Play(&Error);
+                else if (Speed < 0.0f)
+                    DeckLinkDeckControl->Rewind(false, &Error);
+                else
+                    DeckLinkDeckControl->Stop(&Error);
+            break;
+        }
+
+        if (Error != bmdDeckControlNoError)
+            return;
+    }
+
     PlaybackMode=Mode;
 }

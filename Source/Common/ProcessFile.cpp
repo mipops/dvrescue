@@ -26,11 +26,20 @@ using namespace std::chrono;
 #ifdef ENABLE_DECKLINK
 #include "Common/DecklinkWrapper.h"
 #endif
+#ifdef ENABLE_SONY9PIN
+#include "Common/Sony9PinWrapper.h"
+#endif
 #ifdef ENABLE_SIMULATOR
 #include "Common/SimulatorWrapper.h"
 #endif
 #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 FileWrapper* Wrapper = nullptr;
+#endif
+#ifdef ENABLE_SONY9PIN
+const char* Control_Port = nullptr;
+#endif
+#ifdef ENABLE_DECKLINK
+bool DeckLinkNativeControl = false;
 #endif
 bool InControl = false;
 string Device = "";
@@ -91,12 +100,12 @@ void InputControl_Char(file* F, char C)
 {
     switch (C)
     {
-    case 'R': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying, -2.0); break;
-    case 'r': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   , -1.0); break;
-    case 'q': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
-    case 's': F->PauseRequested = true ; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
-    case 'f': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_Playing   ,  1.0); break;
-    case 'F': F->PauseRequested = false; F->Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  2.0); break;
+    case 'R': F->PauseRequested = false; F->Capture->SetPlaybackMode(Playback_Mode_NotPlaying, -2.0); break;
+    case 'r': F->PauseRequested = false; F->Capture->SetPlaybackMode(Playback_Mode_Playing   , -1.0); break;
+    case 'q': F->PauseRequested = false; F->Capture->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
+    case 's': F->PauseRequested = true ; F->Capture->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0); break;
+    case 'f': F->PauseRequested = false; F->Capture->SetPlaybackMode(Playback_Mode_Playing   ,  1.0); break;
+    case 'F': F->PauseRequested = false; F->Capture->SetPlaybackMode(Playback_Mode_NotPlaying,  2.0); break;
     default: return;
     }
 }
@@ -182,7 +191,42 @@ void file::Parse(const String& FileName)
         #endif
         return;
     }
-    Controller = nullptr;
+    #ifdef ENABLE_SONY9PIN
+    else if (Device_Command == 4)
+    {
+        for (size_t i = 0;; i++)
+        {
+            auto Name = Sony9PinWrapper::GetDeviceName(i);
+            if (Name.empty())
+                break;
+            cout << Name << '\n';
+        }
+    }
+    #endif
+    Capture = nullptr;
+
+
+    #ifdef ENABLE_SONY9PIN
+    if (Control_Port && strcmp(Control_Port, "native") != 0)
+    {
+        uint64_t Port_Pos;
+        istringstream iss(Control_Port);
+
+        iss >> Port_Pos;
+        if (iss.fail() || !iss.eof())
+            Port_Pos = (uint64_t)-1;
+
+        if (Port_Pos < Sony9PinWrapper::GetDeviceCount())
+            try { Controller = new Sony9PinWrapper(Port_Pos); } catch(...) {}
+        else if (Sony9PinWrapper::GetDeviceIndex(Control_Port) != (size_t)-1)
+            try { Controller = new Sony9PinWrapper(Control_Port); } catch(...) {}
+    }
+    #endif
+    #ifdef ENABLE_DECKLINK
+    if (Control_Port && strcmp(Control_Port, "native") == 0)
+        DeckLinkNativeControl = true;
+    #endif
+
     if (Device.empty() && FileName.rfind(__T("device://"), 0) == 0)
         Device = Ztring(FileName.substr(9)).To_Local();
     if (Device.empty() && Device_Command)
@@ -200,43 +244,43 @@ void file::Parse(const String& FileName)
             ;
         #ifdef ENABLE_SIMULATOR
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=SimulatorWrapper::GetDeviceCount()))
-                Controller = new SimulatorWrapper(Device_Pos);
+                Capture = new SimulatorWrapper(Device_Pos);
         #endif
         #ifdef ENABLE_AVFCTL
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=AVFCtlWrapper::GetDeviceCount()))
-                Controller = new AVFCtlWrapper(Device_Pos);
+                Capture = new AVFCtlWrapper(Device_Pos);
             else if (AVFCtlWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                Controller = new AVFCtlWrapper(Device);
+                Capture = new AVFCtlWrapper(Device);
         #endif
         #ifdef ENABLE_DECKLINK
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))
-                Controller = new DecklinkWrapper(Device_Pos);
+                try { Capture = new DecklinkWrapper(Device_Pos, Controller, DeckLinkNativeControl); } catch(...) {}
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                Controller = new DecklinkWrapper(Device);
+                try { Capture = new DecklinkWrapper(Device, Controller, DeckLinkNativeControl); } catch(...) {}
         #endif
         #ifdef ENABLE_LNX1394
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=LinuxWrapper::GetDeviceCount()))
-                try { Controller = new LinuxWrapper(Device_Pos); } catch(...) {}
+                try { Capture = new LinuxWrapper(Device_Pos); } catch(...) {}
             else if (LinuxWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                try { Controller = new LinuxWrapper(Device); } catch(...) {}
+                try { Capture = new LinuxWrapper(Device); } catch(...) {}
         #endif
     }
-    if (Controller)
+    if (Capture)
     {
         if (Device_Command && !Device_ForceCapture)
         {
             if (Device_Command == 2)
             {
                 FileWrapper Wrapper(this);
-                Controller->CreateCaptureSession(&Wrapper);
+                Capture->CreateCaptureSession(&Wrapper);
                 this_thread::sleep_for(chrono::milliseconds(500)); // give time for the driver to retrieves status from the device
-                auto Status = Controller->GetStatus();
-                Controller->StopCaptureSession();
+                auto Status = Capture->GetStatus();
+                Capture->StopCaptureSession();
                 cout << Status << '\n';
             }
             if (Device_Command == 3)
             {
-                Controller->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+                Capture->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
             }
             if (Device_Command >= 0x20)
             {
@@ -244,26 +288,26 @@ void file::Parse(const String& FileName)
             }
             return;
         }
-        Speed_Before = Controller->GetSpeed();
+        Speed_Before = Capture->GetSpeed();
         auto InputHelper = InControl ? new thread(InputControl, this) : nullptr;
         FileWrapper Wrapper(this);
         MI.Open_Buffer_Init();
-        Controller->CreateCaptureSession(&Wrapper);
+        Capture->CreateCaptureSession(&Wrapper);
         for (;;)
         {
-            Controller->StartCaptureSession();
+            Capture->StartCaptureSession();
             if (!Device_Command)
-                Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
             else if (Device_Command != -1)
             {
                 if (Device_Command == 3)
-                    Controller->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+                    Capture->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
                 else if (Device_Command >= 0x20)
                     InputControl_Char(this, Device_Command);
                 Device_Command = -1;
             }
-            TimeOutReached = Controller->WaitForSessionEnd(Timeout);
-            Controller->StopCaptureSession();
+            TimeOutReached = Capture->WaitForSessionEnd(Timeout);
+            Capture->StopCaptureSession();
             if (!InputHelper)
                 break;
             if (!PauseRequested) // If stop was not requested, it is end of stream
@@ -303,10 +347,10 @@ void file::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 void file::Terminate()
 {
 #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
-    if (Controller)
+    if (Capture)
     {
         PauseRequested=false;
-        Controller->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0);
+        Capture->SetPlaybackMode(Playback_Mode_NotPlaying,  0.0);
     }
     else
 #endif
@@ -321,8 +365,8 @@ void file::Terminate()
 file::~file()
 {
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
-    if (Controller)
-        delete Controller;
+    if (Capture)
+        delete Capture;
     #endif
 
     for (auto& Frame : PerFrame)
@@ -363,7 +407,7 @@ void file::RewindToTimeCode(TimeCode TC)
 {
     RewindMode=Rewind_Mode_TimeCode;
     RewindTo_TC=TC;
-    Controller->SetPlaybackMode(Playback_Mode_Playing, -1.0);
+    Capture->SetPlaybackMode(Playback_Mode_Playing, -1.0);
 }
 #endif
 
@@ -373,7 +417,7 @@ void file::RewindToAbst(int Abst)
 {
     RewindMode=Rewind_Mode_Abst;
     RewindTo_Abst=Abst;
-    Controller->SetPlaybackMode(Playback_Mode_Playing, -1.0);
+    Capture->SetPlaybackMode(Playback_Mode_Playing, -1.0);
 }
 #endif
 
@@ -444,7 +488,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         if (!DelayedPlay)
         {
             RewindMode = Rewind_Mode_TimeCode2;
-            Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+            Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
         }
         return;
     }
@@ -473,7 +517,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                 if (!DelayedPlay)
                 {
                     RewindMode = Rewind_Mode_TimeCode2;
-                    Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                    Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
                 }
                 return; //Continue in forward mode
             }
@@ -525,7 +569,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
             if (AbstBf_Temp.AbsoluteTrackNumber()<=RewindTo_Abst)
             {
                 RewindMode=Rewind_Mode_None;
-                Controller->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
             }
             else
                 return; //Continue in rewind mode
@@ -647,7 +691,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
             Text += ' ';
             timecode_to_string(Text, RecDateTime.TimeInSeconds(), TC_Temp.DropFrame(), RecDateTime.Frames());
         }
-        if (Controller)
+        if (Capture)
         {
             Text += ' ';
             Text += '(';
