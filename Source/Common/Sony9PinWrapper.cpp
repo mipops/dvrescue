@@ -135,7 +135,11 @@ string Sony9PinWrapper::GetDeviceName(size_t DeviceIndex)
     if (DeviceIndex >= Devices.size())
         return "";
 
-    return Devices[DeviceIndex].port;
+    string name = Devices[DeviceIndex].port;
+    if (name.rfind("/dev/", 0) == 0)
+        name = name.substr(5);
+
+    return Devices[DeviceIndex].port + (name.empty() ? "" : (": " + name));
 }
 
 //---------------------------------------------------------------------------
