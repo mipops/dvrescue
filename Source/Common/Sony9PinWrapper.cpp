@@ -19,12 +19,11 @@ class QSerialPort
 {
     public:
     QSerialPort(serial::Serial* backend = nullptr) : _backend(backend) {};
-
     void attach(serial::Serial* backend) { _backend = backend; };
-    size_t read(const char* buffer, size_t size) { return _backend ? _backend->read((uint8_t*)buffer, size) : 0; };
-    size_t write(const char* buffer, size_t size) { return _backend ? _backend->write((uint8_t*)buffer, size) : 0; };
-    void flush() { if (_backend) _backend->flush(); };
-    size_t bytesAvailable() { return _backend ? _backend->available() : 0; };
+    size_t read(const char* buffer, size_t size) { try { return _backend ? _backend->read((uint8_t*)buffer, size) : 0; } catch(...) { return 0; }; };
+    size_t write(const char* buffer, size_t size) { try { return _backend ? _backend->write((uint8_t*)buffer, size) : 0; } catch(...) { return 0; }; };
+    void flush() { try {  if (_backend) _backend->flush(); } catch(...) {}; };
+    size_t bytesAvailable() { try { return _backend ? _backend->available() : 0; } catch(...) { return 0; }; };
     bool waitForBytesWritten() { return true; };
     bool waitForReadyRead(size_t) { return true; };
 
@@ -44,6 +43,7 @@ static vector<serial::PortInfo> Devices;
 static serial::Serial SerialPort;
 static QSerialPort SerialPortWrapper;
 static Sony9PinRemote::Controller Deck;
+static mutex Lock;
 
 //---------------------------------------------------------------------------
 void Sony9PinWrapper::Init()
@@ -100,6 +100,7 @@ Sony9PinWrapper::Sony9PinWrapper(string DeviceName)
 //---------------------------------------------------------------------------
 Sony9PinWrapper::~Sony9PinWrapper()
 {
+    const lock_guard<mutex> L(Lock);
     if (SerialPort.isOpen())
         SerialPort.close();
 }
@@ -154,6 +155,8 @@ size_t Sony9PinWrapper::GetDeviceIndex(const string& DeviceName)
 //---------------------------------------------------------------------------
 playback_mode Sony9PinWrapper::GetMode()
 {
+    const lock_guard<mutex> L(Lock);
+
     Deck.status_sense();
     if (Deck.parse_until(1000))
         return Deck.is_playing() ? Playback_Mode_Playing : Playback_Mode_NotPlaying;
@@ -164,6 +167,8 @@ playback_mode Sony9PinWrapper::GetMode()
 //---------------------------------------------------------------------------
 std::string Sony9PinWrapper::GetStatus()
 {
+    const lock_guard<mutex> L(Lock);
+
     Deck.status_sense();
     if (Deck.parse_until(1000))
     {
@@ -185,6 +190,8 @@ std::string Sony9PinWrapper::GetStatus()
 //---------------------------------------------------------------------------
 float Sony9PinWrapper::GetSpeed()
 {
+    const lock_guard<mutex> L(Lock);
+
     // Can't retrive speed from sony9pin, guessing most-plausible value
     Deck.status_sense();
     if (Deck.parse_until(1000))
@@ -203,6 +210,8 @@ float Sony9PinWrapper::GetSpeed()
 //---------------------------------------------------------------------------
 void Sony9PinWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
 {
+    const lock_guard<mutex> L(Lock);
+
     switch (Mode)
     {
         case Playback_Mode_Playing:

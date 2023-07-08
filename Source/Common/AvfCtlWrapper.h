@@ -19,8 +19,8 @@
 class AVFCtlWrapper : public BaseWrapper {
 public:
     // Constructor/Destructor
-    AVFCtlWrapper(std::size_t DeviceIndex);
-    AVFCtlWrapper(std::string DeviceID);
+    AVFCtlWrapper(std::size_t DeviceIndex, ControllerBaseWrapper* ExtCtl = nullptr);
+    AVFCtlWrapper(std::string DeviceID, ControllerBaseWrapper* ExtCtl = nullptr);
     ~AVFCtlWrapper();
 
     // Functions
@@ -40,4 +40,5 @@ public:
 
 private:
     void* Ctl;
+    ControllerBaseWrapper* ExtCtl;
 };

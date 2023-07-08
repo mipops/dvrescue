@@ -73,14 +73,74 @@ using namespace std;
 }
 @end
 
-AVFCtlWrapper::AVFCtlWrapper(size_t DeviceIndex)
+@interface AVFCtlExternalController : NSObject
+@property (assign,nonatomic) ControllerBaseWrapper *controller;
+- (id) initWithController:(ControllerBaseWrapper*)extCtl;
+- (NSString*) getStatus;
+- (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
+- (AVCaptureDeviceTransportControlsPlaybackMode) getMode;
+- (AVCaptureDeviceTransportControlsSpeed) getSpeed;
+@end
+
+@implementation AVFCtlExternalController
+
+- (id) initWithController:(ControllerBaseWrapper*)extCtl
 {
-    Ctl = (void*)[[AVFCtl alloc] initWithDeviceIndex:DeviceIndex];
+    self = [super init];
+
+    if (self)
+        _controller = extCtl;
+
+    return self;
 }
 
-AVFCtlWrapper::AVFCtlWrapper(string DeviceID)
+- (NSString*) getStatus
 {
-    Ctl = (void*)[[AVFCtl alloc] initWithDeviceID:[NSString stringWithUTF8String:DeviceID.c_str()]];
+    if (_controller)
+        return [NSString stringWithUTF8String:_controller->GetStatus().c_str()];
+
+    return @"unknown";
+}
+
+- (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed;
+{
+    if (_controller)
+        _controller->SetPlaybackMode((playback_mode)theMode, (float)theSpeed);
+}
+
+- (AVCaptureDeviceTransportControlsPlaybackMode) getMode
+{
+    if (_controller)
+        return (AVCaptureDeviceTransportControlsPlaybackMode)_controller->GetMode();
+
+    return AVCaptureDeviceTransportControlsNotPlayingMode;
+}
+
+- (AVCaptureDeviceTransportControlsSpeed) getSpeed
+{
+    if (_controller)
+        return (AVCaptureDeviceTransportControlsSpeed)_controller->GetSpeed();
+
+    return (AVCaptureDeviceTransportControlsSpeed)0.0f;
+}
+@end
+
+AVFCtlWrapper::AVFCtlWrapper(size_t DeviceIndex, ControllerBaseWrapper* ExtCtl) : ExtCtl(ExtCtl)
+{
+    AVFCtlExternalController* ExternalController = nil;
+    if (ExtCtl)
+        ExternalController = [[AVFCtlExternalController alloc] initWithController:ExtCtl];
+
+    Ctl = (void*)[[AVFCtl alloc] initWithDeviceIndex:DeviceIndex controller:ExternalController];
+}
+
+AVFCtlWrapper::AVFCtlWrapper(string DeviceID, ControllerBaseWrapper* ExtCtl) : ExtCtl(ExtCtl)
+{
+    AVFCtlExternalController* ExternalController = nil;
+    if (ExtCtl)
+        ExternalController = [[AVFCtlExternalController alloc] initWithController:ExtCtl];
+
+    Ctl = (void*)[[AVFCtl alloc] initWithDeviceID:[NSString stringWithUTF8String:DeviceID.c_str()] controller:ExternalController];
 }
 
 AVFCtlWrapper::~AVFCtlWrapper()

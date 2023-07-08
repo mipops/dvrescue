@@ -152,7 +152,7 @@
     return [[[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:index] transportControlsSupported];
 }
 
-- (id) initWithDeviceIndex:(NSUInteger) index
+- (id) initWithDeviceIndex:(NSUInteger) index controller:(id) extCtl
 {
     if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
         return nil;
@@ -172,11 +172,13 @@
 
         keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
         [_device addObserver:self forKeyPath:keyPath options:options context:nil];
+
+        externalController = extCtl;
     }
     return self;
 }
 
-- (id) initWithDeviceID:(NSString*) uniqueID
+- (id) initWithDeviceID:(NSString*) uniqueID controller:(id) extCtl
 {
     self = [super init];
     if (self) {
@@ -205,6 +207,8 @@
 
         keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
         [_device addObserver:self forKeyPath:keyPath options:options context:nil];
+
+        externalController = extCtl;
     }
     return self;
 }
@@ -261,6 +265,9 @@
 
 - (NSString*) getStatus
 {
+    if (externalController)
+        return [externalController getStatus];
+
     NSString *status;
 
     float speed = [_device transportControlsSpeed];
@@ -343,6 +350,12 @@
 
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed
 {
+    if (externalController)
+    {
+        [externalController setPlaybackMode:theMode speed:theSpeed];
+        return;
+    }
+
     @try {
         NSError *error = nil;
         if ([_device lockForConfiguration:&error] == YES) {
@@ -359,11 +372,17 @@
 
 - (AVCaptureDeviceTransportControlsSpeed) getSpeed
 {
+    if (externalController)
+        return [externalController getSpeed];
+
     return [_device transportControlsSpeed];
 }
 
 - (AVCaptureDeviceTransportControlsPlaybackMode) getMode
 {
+    if (externalController)
+        return [externalController getMode];
+
     return [_device transportControlsPlaybackMode];
 }
 
@@ -377,7 +396,7 @@
     [formatter setDateFormat:@"YYYY-MM-dd-HH-mm-ss"];
     // block as long as the capture session is running
     // terminates if playback mode changes to NotPlaying
-    while ([_device transportControlsSpeed] != 0.0f) {
+    while ([self getSpeed] != 0.0f) {
         if (timeout && receiverInstance && [[NSDate dateWithTimeInterval:timeout sinceDate:[receiverInstance lastInput]] compare:[NSDate date]] == NSOrderedAscending)
         {
             [self setPlaybackMode:AVCaptureDeviceTransportControlsNotPlayingMode speed: 0.0f];

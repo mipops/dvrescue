@@ -43,6 +43,7 @@
 
 @interface AVFCtl : NSObject {
     id <ReceiverTimer> receiverInstance;
+    id                 externalController;
 }
 
 @property (nonatomic, retain) AVCaptureDevice *device;
@@ -57,8 +58,8 @@
 + (NSString*) getDeviceID:(NSUInteger) index;
 + (NSInteger) getDeviceIndex:(NSString*) uniqueID;
 + (BOOL) isTransportControlsSupported:(NSUInteger) index;
-- (id) initWithDeviceIndex:(NSUInteger) index;
-- (id) initWithDeviceID:(NSString*) uniqueID;
+- (id) initWithDeviceIndex:(NSUInteger) index controller:(id) extCtl;
+- (id) initWithDeviceID:(NSString*) uniqueID controller:(id) extCtl;
 - (void) dealloc;
 - (NSString*) getStatus;
 - (void) createCaptureSession:(id) receiver;

@@ -248,9 +248,9 @@ void file::Parse(const String& FileName)
         #endif
         #ifdef ENABLE_AVFCTL
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=AVFCtlWrapper::GetDeviceCount()))
-                Capture = new AVFCtlWrapper(Device_Pos);
+                Capture = new AVFCtlWrapper(Device_Pos, Controller);
             else if (AVFCtlWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                Capture = new AVFCtlWrapper(Device);
+                Capture = new AVFCtlWrapper(Device, Controller);
         #endif
         #ifdef ENABLE_DECKLINK
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))

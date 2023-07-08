@@ -122,7 +122,7 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "        Is the default if no --cmd option is provided.\n"
         "        Usable only if input is a device.\n"
         "\n"
-        #ifdef defined(ENABLE_SONY9PIN) || defined(ENABLE_DECKLINK)
+        #if defined(ENABLE_SONY9PIN) || defined(ENABLE_DECKLINK)
         "    --control <port>\n"
         "        Set the serial port used to control the DeckLink capture device through sony9pin interface.\n"
         "        Use \"native\" to request control through DeckLink serial inteface.\n"
