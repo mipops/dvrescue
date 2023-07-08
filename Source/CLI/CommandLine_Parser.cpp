@@ -399,6 +399,87 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             Control_Port = argv_ansi[i];
         }
         #endif
+        #ifdef ENABLE_DECKLINK
+        else if (!strcmp(argv_ansi[i], "--decklink-video-mode"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing video mode after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "ntsc"))
+                DeckLinkVideoMode = 0;
+            else if (!strcmp(argv_ansi[i], "pal"))
+                DeckLinkVideoMode = 1;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: unknown decklink video mode " << argv_ansi[i] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
+        else if (!strcmp(argv_ansi[i], "--decklink-video-source"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing video source after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "sdi"))
+                DeckLinkVideoSource = 0;
+            else if (!strcmp(argv_ansi[i], "hdmi"))
+                DeckLinkVideoSource = 1;
+            else if (!strcmp(argv_ansi[i], "optical"))
+                DeckLinkVideoSource = 2;
+            else if (!strcmp(argv_ansi[i], "component"))
+                DeckLinkVideoSource = 3;
+            else if (!strcmp(argv_ansi[i], "composite"))
+                DeckLinkVideoSource = 4;
+            else if (!strcmp(argv_ansi[i], "s_video"))
+                DeckLinkVideoSource = 5;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: unknown decklink video source " << argv_ansi[i] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
+        else if (!strcmp(argv_ansi[i], "--decklink-audio-source"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing audio source after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "embedded"))
+                DeckLinkAudioSource = 0;
+            else if (!strcmp(argv_ansi[i], "aes_ebu"))
+                DeckLinkAudioSource = 1;
+            else if (!strcmp(argv_ansi[i], "analog"))
+                DeckLinkAudioSource = 2;
+            else if (!strcmp(argv_ansi[i], "analog_xlr"))
+                DeckLinkAudioSource = 3;
+            else if (!strcmp(argv_ansi[i], "analog_rca"))
+                DeckLinkAudioSource = 4;
+            else if (!strcmp(argv_ansi[i], "microphone"))
+                DeckLinkAudioSource = 5;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: unknown decklink audio source " << argv_ansi[i] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
+        #endif
         else if (!strcmp(argv_ansi[i], "--device") || !strcmp(argv_ansi[i], "-device"))
         {
             if (++i >= argc)

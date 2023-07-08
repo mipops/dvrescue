@@ -20,6 +20,36 @@
 #include "Common/Output_Mkv.h"
 
 //***************************************************************************
+// Types
+//***************************************************************************
+
+enum decklink_video_mode {
+    Decklink_Video_Mode_NTSC,
+    Decklink_Video_Mode_PAL,
+    Decklink_Video_Mode_Max
+};
+
+enum decklink_video_source {
+    Decklink_Video_Source_SDI,
+    Decklink_Video_Source_HDMI,
+    Decklink_Video_Source_Optical,
+    Decklink_Video_Source_Component,
+    Decklink_Video_Source_Composite,
+    Decklink_Video_Source_SVideo,
+    Decklink_Video_Source_Max
+};
+
+enum decklink_audio_source {
+    Decklink_Audio_Source_Embedded,
+    Decklink_Audio_Source_AESEBU,
+    Decklink_Audio_Source_Analog,
+    Decklink_Audio_Source_AnalogXLR,
+    Decklink_Audio_Source_AnalogRCA,
+    Decklink_Audio_Source_Microphone,
+    Decklink_Audio_Source_Max
+};
+
+//***************************************************************************
 // Class DecklinkWrapper
 //***************************************************************************
 
@@ -78,8 +108,18 @@ class DecklinkWrapper : public BaseWrapper {
     };
 
     // Constructor/Destructor
-    DecklinkWrapper(std::size_t DeviceIndex, ControllerBaseWrapper* Controller = nullptr, bool Native = false);
-    DecklinkWrapper(std::string DeviceID, ControllerBaseWrapper* Controller = nullptr, bool Native = false);
+    DecklinkWrapper(std::size_t DeviceIndex,
+                    decklink_video_mode Mode = Decklink_Video_Mode_NTSC,
+                    decklink_video_source VideoSrc = Decklink_Video_Source_Composite,
+                    decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
+                    ControllerBaseWrapper* Controller = nullptr,
+                    bool Native = false);
+    DecklinkWrapper(std::string DeviceID,
+                    decklink_video_mode Mode = Decklink_Video_Mode_NTSC,
+                    decklink_video_source VideoSrc = Decklink_Video_Source_Composite,
+                    decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
+                    ControllerBaseWrapper* Controller = nullptr,
+                    bool Native = false);
     ~DecklinkWrapper();
 
     // Functions
@@ -108,6 +148,11 @@ private:
     IDeckLinkConfiguration* DeckLinkConfiguration = nullptr;
     CaptureDelegate* DeckLinkCaptureDelegate = nullptr;
     StatusDelegate*  DeckLinkStatusDelegate = nullptr;
+
+    //Config
+    uint32_t DeckLinkVideoMode;
+    uint32_t DeckLinkVideoSource;
+    uint32_t DeckLinkAudioSource;
 
     // Control
     ControllerBaseWrapper* Controller = nullptr;

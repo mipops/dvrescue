@@ -14,10 +14,32 @@
 using namespace std;
 
 //---------------------------------------------------------------------------
-struct frame
+static uint32_t decklink_video_modes[Decklink_Video_Mode_Max] =
 {
-    size_t Size;
-    uint8_t* Data;
+    bmdModeNTSC,
+    bmdModePAL
+};
+
+//---------------------------------------------------------------------------
+static uint32_t decklink_video_sources[Decklink_Video_Source_Max] =
+{
+    bmdVideoConnectionSDI,
+    bmdVideoConnectionHDMI,
+    bmdVideoConnectionOpticalSDI,
+    bmdVideoConnectionComponent,
+    bmdVideoConnectionComposite,
+    bmdVideoConnectionSVideo
+};
+
+//---------------------------------------------------------------------------
+static uint32_t decklink_audio_sources[Decklink_Audio_Source_Max] =
+{
+    bmdAudioConnectionEmbedded,
+    bmdAudioConnectionAESEBU,
+    bmdAudioConnectionAnalog,
+    bmdAudioConnectionAnalogXLR,
+    bmdAudioConnectionAnalogRCA,
+    bmdAudioConnectionMicrophone
 };
 
 typedef CFStringRef PlatformStr;
@@ -196,8 +218,12 @@ void DecklinkWrapper::Init()
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex, ControllerBaseWrapper* Controller, bool Native) :
-    Controller(Controller)
+DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex,
+                                 decklink_video_mode Mode,
+                                 decklink_video_source VideoSrc,
+                                 decklink_audio_source AudioSrc,
+                                 ControllerBaseWrapper* Controller,
+                                 bool Native) : Controller(Controller)
 {
     IDeckLinkIterator* DeckLinkIterator = CreateDeckLinkIteratorInstance();
     if (!DeckLinkIterator)
@@ -216,6 +242,10 @@ DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex, ControllerBaseWrapper* Cont
 
     if (!DeckLinkDevice)
         throw error("Device not found.");
+
+    DeckLinkVideoMode = decklink_video_modes[Mode < Decklink_Video_Mode_Max ? Mode : Decklink_Video_Mode_NTSC];
+    DeckLinkVideoSource = decklink_video_sources[VideoSrc < Decklink_Video_Source_Max ? VideoSrc : Decklink_Video_Source_Composite];
+    DeckLinkAudioSource = decklink_audio_sources[AudioSrc < Decklink_Audio_Source_Max ? AudioSrc : Decklink_Audio_Source_Analog];
 
     if (!Controller && Native)
     {
@@ -258,8 +288,12 @@ DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex, ControllerBaseWrapper* Cont
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::DecklinkWrapper(string DeviceID, ControllerBaseWrapper* Controller, bool Native) :
-    Controller(Controller)
+DecklinkWrapper::DecklinkWrapper(string DeviceID,
+                                 decklink_video_mode Mode,
+                                 decklink_video_source VideoSrc,
+                                 decklink_audio_source AudioSrc,
+                                 ControllerBaseWrapper* Controller,
+                                 bool Native) : Controller(Controller)
 {
     IDeckLinkIterator* DeckLinkIterator = CreateDeckLinkIteratorInstance();
     if (!DeckLinkIterator)
@@ -290,6 +324,10 @@ DecklinkWrapper::DecklinkWrapper(string DeviceID, ControllerBaseWrapper* Control
 
     if (!DeckLinkDevice)
         throw error("Device not found.");
+
+    DeckLinkVideoMode = decklink_video_modes[Mode < Decklink_Video_Mode_Max ? Mode : Decklink_Video_Mode_NTSC];
+    DeckLinkVideoSource = decklink_video_sources[VideoSrc < Decklink_Video_Source_Max ? VideoSrc : Decklink_Video_Source_Composite];
+    DeckLinkAudioSource = decklink_audio_sources[AudioSrc < Decklink_Audio_Source_Max ? AudioSrc : Decklink_Audio_Source_Analog];
 
     if (!Controller && Native)
     {
@@ -489,6 +527,20 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
     if (DeckLinkDevice->QueryInterface(IID_IDeckLinkInput, (void **)&DeckLinkInput) != S_OK)
         return;
 
+    bool VideoModeIsSupported = false;
+    if (DeckLinkInput->DoesSupportVideoMode(DeckLinkVideoSource,
+                                            DeckLinkVideoMode,
+                                            bmdFormat10BitYUV,
+                                            bmdNoVideoInputConversion,
+                                            bmdVideoInputFlagDefault,
+                                            NULL,
+                                            &VideoModeIsSupported) != S_OK || !VideoModeIsSupported)
+    {
+        DeckLinkInput->Release();
+        DeckLinkInput=nullptr;
+        return;
+    }
+
     if (DeckLinkDevice->QueryInterface(IID_IDeckLinkConfiguration, (void **)&DeckLinkConfiguration) != S_OK)
     {
         DeckLinkInput->Release();
@@ -497,8 +549,8 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         return;
     }
 
-    if (DeckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, bmdVideoConnectionComposite) != S_OK ||
-        DeckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, bmdAudioConnectionAnalog) != S_OK)
+    if (DeckLinkConfiguration->SetInt(bmdDeckLinkConfigVideoInputConnection, DeckLinkVideoSource) != S_OK ||
+        DeckLinkConfiguration->SetInt(bmdDeckLinkConfigAudioInputConnection, DeckLinkAudioSource) != S_OK)
     {
         DeckLinkConfiguration->Release();
         DeckLinkConfiguration=nullptr;
@@ -510,12 +562,15 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
     if (Merge_OutputFileName)
     {
         Output = ofstream(Merge_OutputFileName, ios_base::binary | ios_base::trunc);
-        MatroskaWriter = new matroska_writer(&Output, 720, 486, 30000, 1001, false);
+        uint32_t Lines = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
+        uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
+        uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
+        MatroskaWriter = new matroska_writer(&Output, 720, Lines, Num, Den, false);
     }
 
     DeckLinkCaptureDelegate = new CaptureDelegate(MatroskaWriter);
 
-    if (DeckLinkInput->EnableVideoInput(bmdModeNTSC, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
+    if (DeckLinkInput->EnableVideoInput(DeckLinkVideoMode, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
         DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, 2) != S_OK ||
         DeckLinkInput->SetCallback(DeckLinkCaptureDelegate) != S_OK)
     {
