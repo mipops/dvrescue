@@ -57,6 +57,8 @@ static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
     return 0;
 }
 
+//---------------------------------------------------------------------------
+string LinuxWrapper::Interface = "DV";
 
 //---------------------------------------------------------------------------
 void LinuxWrapper::Init()
@@ -220,7 +222,7 @@ string LinuxWrapper::GetDeviceName(const string& DeviceID)
     for (size_t Pos = 0; Pos < Devices.size(); Pos++)
     {
         if (Devices[Pos].UUID == ID)
-            return Devices[Pos].Vendor + " " + Devices[Pos].Model;
+            return Devices[Pos].Vendor + " " + Devices[Pos].Model + " [" + Interface + "]";
     }
 
     return "";

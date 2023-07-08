@@ -39,6 +39,7 @@ public:
     bool WaitForSessionEnd(uint64_t Timeout);
 
 private:
+    static std::string Interface;
     void* Ctl;
     ControllerBaseWrapper* ExtCtl;
 };

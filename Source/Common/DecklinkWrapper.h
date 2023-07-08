@@ -141,6 +141,7 @@ class DecklinkWrapper : public BaseWrapper {
 private:
     playback_mode PlaybackMode = Playback_Mode_NotPlaying;
     bool Capture = false;
+    static std::string Interface;
 
     //DeckLink
     IDeckLink* DeckLinkDevice = nullptr;

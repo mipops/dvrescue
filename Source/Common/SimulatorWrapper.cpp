@@ -140,6 +140,9 @@ static ZtringListList ReadFileNames()
 }
 
 //---------------------------------------------------------------------------
+string SimulatorWrapper::Interface = "Simulator";
+
+//---------------------------------------------------------------------------
 SimulatorWrapper::SimulatorWrapper(std::size_t DeviceIndex)
 {
     auto P = new ctl;
@@ -188,7 +191,7 @@ std::string SimulatorWrapper::GetDeviceName(std::size_t DeviceIndex)
     auto List = ReadFileNames();
     if (DeviceIndex >= List.size() || List[DeviceIndex].empty())
         return {};
-    return List[DeviceIndex][0].To_UTF8() + " (Simulator)";
+    return List[DeviceIndex][0].To_UTF8() + " [" + Interface + "]";
 }
 
 //---------------------------------------------------------------------------
