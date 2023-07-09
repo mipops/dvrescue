@@ -95,15 +95,17 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config qt ffmpeg
+        brew install ${{ matrix.packages }} pkg-config ffmpeg
+
+    - name: Install Qt 6.2
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 6.2.0
+        modules: 'addons.qtmultimedia'
 
     - name: Install qwt
       run: |
         brew install qwt
-
-    - name: Set Qt6 environment path
-      run: |
-        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
 
     - name: Build dvrescue-gui
       env:
@@ -229,14 +231,15 @@ jobs:
         git -c "http.extraheader=$AUTH_HEADER" \
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
-
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} nasm qt
+        brew install ${{ matrix.packages }} nasm
 
-    - name: Set Qt6 environment path
-      run: |
-        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
+    - name: Install Qt 6.2
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 6.2.0
+        modules: 'addons.qtmultimedia'
 
     - name: Build qwt
       run: |
