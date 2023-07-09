@@ -19,7 +19,7 @@ jobs:
         run: | 
           if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
-            sudo apt-get install -y pkg-config libxml2-utils libfreetype6-dev libraw1394-dev libavc1394-dev libiec61883-dev
+            sudo apt-get install -y pkg-config libxml2-utils libfreetype-dev libharfbuzz-dev libraw1394-dev libavc1394-dev libiec61883-dev
           fi
           if [ "$RUNNER_OS" == "macOS" ]; then
             brew install automake freetype 
@@ -27,7 +27,7 @@ jobs:
       - name: FFmpeg
         run: | 
           git -C .. clone --depth=1 https://git.ffmpeg.org/ffmpeg.git
-          pushd ../ffmpeg && ./configure --prefix=.. --disable-doc --disable-x86asm --disable-ffplay --disable-ffprobe --enable-static --disable-everything --enable-protocol=file --enable-libfreetype --enable-indev=lavfi --enable-filter=testsrc2,scale,aresample,sine,drawtext,colorspace --enable-demuxer=dv --enable-muxer=dv --enable-encoder=rawvideo,wrapped_avframe,dvvideo,dvaudio,pcm_* --enable-decoder=rawvideo,wrapped_avframe,dvvideo,dvaudio,pcm_* && make && popd
+          pushd ../ffmpeg && ./configure --prefix=.. --disable-doc --disable-x86asm --disable-ffplay --disable-ffprobe --enable-static --disable-everything --enable-protocol=file --enable-libfreetype --enable-libharfbuzz --enable-indev=lavfi --enable-filter=testsrc2,scale,aresample,sine,drawtext,colorspace --enable-demuxer=dv --enable-muxer=dv --enable-encoder=rawvideo,wrapped_avframe,dvvideo,dvaudio,pcm_* --enable-decoder=rawvideo,wrapped_avframe,dvvideo,dvaudio,pcm_* && make && popd
           cp ../ffmpeg/ffmpeg Project/GNU/CLI/
       - name: ZenLib
         run: |
