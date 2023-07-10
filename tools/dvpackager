@@ -132,7 +132,7 @@ if [ "${#}" = 0 ] ; then
 fi
 
 _maketemp(){
-    mktemp -q -t "$(basename "${0}").XXXXXX"
+    mktemp -q -t "$(basename "${0}")"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
         exit 1
@@ -854,7 +854,7 @@ unset OUTPUTOPTS
 if [[ -z "${DVRESCUE_XML}" ]] ; then
     DVRESCUE_XML="${SIDECAR_DIR}/${BASENAME}.dvrescue.xml"
     if [[ ! -s "${DVRESCUE_XML}" ]] ; then
-        DVRESCUE_XML_TEMP="$(_maketemp)"
+        DVRESCUE_XML_TEMP="$(_maketemp).xml"
         OUTPUTOPTS+=(--xml-output "${DVRESCUE_XML_TEMP}")
         XML_TO_CHECK="${DVRESCUE_XML_TEMP}"
     else
