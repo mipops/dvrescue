@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
     AVFCtl *avfctl = nil;
     @try {
         // create AVFCTL with device
-        avfctl = [[AVFCtl alloc] initWithDeviceID:deviceID];
+        avfctl = [[AVFCtl alloc] initWithDeviceID:deviceID controller:nil];
     }
     @catch (NSException *e) {
         NSLog(@"Error: %@", e);

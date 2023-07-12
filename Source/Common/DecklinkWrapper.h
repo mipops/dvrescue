@@ -46,7 +46,7 @@ class DecklinkWrapper : public BaseWrapper {
 
     // IDeckLinkInputCallback
     class CaptureDelegate : public IDeckLinkInputCallback {
-        public:
+    public:
         // Constructor/Destructor
         CaptureDelegate(matroska_writer* Writer);
 
@@ -57,13 +57,29 @@ class DecklinkWrapper : public BaseWrapper {
         HRESULT VideoInputFrameArrived(IDeckLinkVideoInputFrame* VideoFrame, IDeckLinkAudioInputPacket* AudioPacket);
         HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
 
-        private:
+    private:
         matroska_writer* Writer;
     };
 
+    class StatusDelegate : public IDeckLinkDeckControlStatusCallback
+    {
+    public:
+        // Constructor/Destructor
+        StatusDelegate();
+
+        // Functions
+        ULONG AddRef();
+        ULONG Release();
+        HRESULT QueryInterface(REFIID, LPVOID*);
+        virtual HRESULT TimecodeUpdate(BMDTimecodeBCD);
+        virtual HRESULT VTRControlStateChanged (BMDDeckControlVTRControlState, BMDDeckControlError);
+        virtual HRESULT DeckControlEventReceived (BMDDeckControlEvent, BMDDeckControlError);
+        virtual HRESULT DeckControlStatusChanged (BMDDeckControlStatusFlags flags, uint32_t mask);
+    };
+
     // Constructor/Destructor
-    DecklinkWrapper(std::size_t DeviceIndex);
-    DecklinkWrapper(std::string DeviceID);
+    DecklinkWrapper(std::size_t DeviceIndex, ControllerBaseWrapper* Controller = nullptr, bool Native = false);
+    DecklinkWrapper(std::string DeviceID, ControllerBaseWrapper* Controller = nullptr, bool Native = false);
     ~DecklinkWrapper();
 
     // Functions
@@ -83,15 +99,21 @@ class DecklinkWrapper : public BaseWrapper {
     bool WaitForSessionEnd(uint64_t Timeout);
 
 private:
-    playback_mode PlaybackMode;
+    playback_mode PlaybackMode = Playback_Mode_NotPlaying;
+    bool Capture = false;
 
     //DeckLink
-    IDeckLink* DeckLinkDevice;
-    IDeckLinkInput* DeckLinkInput;
-    IDeckLinkConfiguration* DeckLinkConfiguration;
-    CaptureDelegate* DeckLinkCaptureDelegate;
+    IDeckLink* DeckLinkDevice = nullptr;
+    IDeckLinkInput* DeckLinkInput = nullptr;
+    IDeckLinkConfiguration* DeckLinkConfiguration = nullptr;
+    CaptureDelegate* DeckLinkCaptureDelegate = nullptr;
+    StatusDelegate*  DeckLinkStatusDelegate = nullptr;
+
+    // Control
+    ControllerBaseWrapper* Controller = nullptr;
+    IDeckLinkDeckControl* DeckLinkDeckControl = nullptr;
 
     //Output
-    matroska_writer* MatroskaWriter;
+    matroska_writer* MatroskaWriter = nullptr;
     std::ofstream Output;
 };

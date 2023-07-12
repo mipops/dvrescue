@@ -55,6 +55,20 @@ public:
 };
 inline BaseWrapper::~BaseWrapper() {}
 
+//TODO: split Controller/Capture logics
+class ControllerBaseWrapper {
+public:
+    // Constructor/Destructor
+    virtual ~ControllerBaseWrapper() = 0;
+
+    // Functions
+    virtual std::string GetStatus() = 0;
+    virtual float GetSpeed() = 0;
+    virtual playback_mode GetMode() = 0;
+    virtual void SetPlaybackMode(playback_mode Mode, float Speed) = 0;
+};
+inline ControllerBaseWrapper::~ControllerBaseWrapper() {}
+
 //***************************************************************************
 // Utils
 //***************************************************************************

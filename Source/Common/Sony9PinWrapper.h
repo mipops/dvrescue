@@ -7,38 +7,49 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include <cstddef> //for std::size_t, native size_t isn't avaiable in obj-c++ mode
+#include "ZenLib/Ztring.h"
+#include <exception>
+#include <atomic>
 #include <string>
+#include <thread>
+#include <mutex>
 
 #include "Common/ProcessFileWrapper.h"
 
+//---------------------------------------------------------------------------
+class Controller;
+
 //***************************************************************************
-// Class AVFCtlWrapper
+// Class DecklinkWrapper
 //***************************************************************************
 
-class AVFCtlWrapper : public BaseWrapper {
+class Sony9PinWrapper : public ControllerBaseWrapper {
 public:
+    // Types
+    class error : public std::exception
+    {
+    public:
+        error(std::string message) : std::exception(), message(message) {};
+        virtual const char* what() const throw() { return message.c_str(); }
+    private:
+        std::string message;
+    };
+
     // Constructor/Destructor
-    AVFCtlWrapper(std::size_t DeviceIndex, ControllerBaseWrapper* ExtCtl = nullptr);
-    AVFCtlWrapper(std::string DeviceID, ControllerBaseWrapper* ExtCtl = nullptr);
-    ~AVFCtlWrapper();
+    Sony9PinWrapper(std::size_t DeviceIndex);
+    Sony9PinWrapper(std::string DeviceName);
+    ~Sony9PinWrapper();
 
     // Functions
+    static void Init();
     static std::size_t GetDeviceCount();
     static std::string GetDeviceName(std::size_t DeviceIndex);
-    static std::string GetDeviceName(const std::string& DeviceID);
-    static std::string GetDeviceID(std::size_t DeviceIndex);
-    static std::size_t GetDeviceIndex(const std::string& DeviceID);
+    static std::size_t GetDeviceIndex(const std::string& DeviceName);
     std::string GetStatus();
     float GetSpeed();
     playback_mode GetMode();
-    void CreateCaptureSession(FileWrapper* Wrapper);
-    void StartCaptureSession();
-    void StopCaptureSession();
     void SetPlaybackMode(playback_mode Mode, float Speed);
-    bool WaitForSessionEnd(uint64_t Timeout);
 
 private:
-    void* Ctl;
-    ControllerBaseWrapper* ExtCtl;
+    bool Ack();
 };

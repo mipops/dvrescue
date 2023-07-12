@@ -23,7 +23,7 @@ dnl -------------------------------------------------------------------------
 dnl Autotools init
 dnl
 CFLAGS="$CFLAGS"
-CXXFLAGS="$CXXFLAGS"
+CXXFLAGS="-std=c++17 $CXXFLAGS"
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_OBJC
@@ -52,6 +52,7 @@ AC_ARG_ENABLE(staticlibs,       AC_HELP_STRING([--enable-staticlibs],       [Use
 AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Build avfctl tool (macOS only)]),                            , enable_avfctl=yes)
 AC_ARG_ENABLE(capture,          AC_HELP_STRING([--enable-capture],          [Use libavc1394 and libdc1394 for capture support on linux]), , enable_capture=yes)
 AC_ARG_ENABLE(decklink,         AC_HELP_STRING([--enable-decklink],         [Enable capture from Blackmagic capture devices]),            , enable_decklink=no)
+AC_ARG_ENABLE(sony9pin,         AC_HELP_STRING([--enable-sony9pin],         [Enable control through Sony9Pin serial interface]),          , enable_sony9pin=no)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -60,6 +61,7 @@ AC_ARG_WITH(macosx-sdk,         AC_HELP_STRING([--with-macosx-sdk],         [For
 AC_ARG_WITH(macosx-version-min, AC_HELP_STRING([--with-macosx-version-min], [Force the Mac Version]),                                     , with_macosx_version_min=no)
 AC_ARG_WITH(dll,                AC_HELP_STRING([--with-dll],                [Do not link to libmediainfo, dynamic loading]),              , with_dll=no)
 AC_ARG_WITH(decklink-sdk,       AC_HELP_STRING([--with-decklink-sdk],       [Path of the decklink SDK]),                                  , with_decklink_sdk=no)
+AC_ARG_WITH(sony9pin-sdk,       AC_HELP_STRING([--with-sony9pin-sdk],       [Path of the sony9pin SDK]),                                  , with_sony9pin_sdk=no)
 
 dnl #########################################################################
 dnl ### Options from elsewhere
@@ -110,6 +112,17 @@ if test "$host_macos" = "yes" -a "$enable_decklink" = "yes" ; then
         CXXFLAGS="$CXXFLAGS -I$with_decklink_sdk/include"
     fi
     AC_CHECK_HEADERS([DeckLinkAPI.h], , [AC_MSG_ERROR([Blackmagic DeckLink SDK is not found])])
+fi
+
+AM_CONDITIONAL([BUILD_SONY9PIN], [test "$host_macos" = "yes" -a "$enable_sony9pin" = "yes"])
+if test "$host_macos" = "yes" -a "$enable_sony9pin" = "yes" ; then
+    AC_DEFINE(ENABLE_CAPTURE)
+    AC_DEFINE(ENABLE_SONY9PIN)
+    if test "$with_sony9pin_sdk" != "no" ; then
+        CXXFLAGS="$CXXFLAGS -I$with_sony9pin_sdk"
+    fi
+    dnl TODO: find a way to check for Sony9PinRemote.h
+    dnl AC_CHECK_HEADERS([Sony9PinRemote.h], , [AC_MSG_ERROR([Sony9pin SDK is not found])])
 fi
 
 dnl #########################################################################

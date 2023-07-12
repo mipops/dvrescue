@@ -380,6 +380,25 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             Device_Command = 1;
         }
+        #ifdef ENABLE_SONY9PIN
+        else if (!strcmp(argv_ansi[i], "--list_controls") || !strcmp(argv_ansi[i], "-list_controls"))
+        {
+            Device_Command = 4;
+        }
+        #endif
+        #if defined(ENABLE_SONY9PIN) || defined(ENABLE_DECKLINK)
+        else if (!strcmp(argv_ansi[i], "--control"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing control port name after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Control_Port = argv_ansi[i];
+        }
+        #endif
         else if (!strcmp(argv_ansi[i], "--device") || !strcmp(argv_ansi[i], "-device"))
         {
             if (++i >= argc)

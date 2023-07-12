@@ -25,9 +25,11 @@ dvrescue_SOURCES = \
 INCLUDES = -I../../../Source \
            -I../../../Source/ThirdParty/ccdecoder \
            -I../../../Source/ThirdParty/TimeCode \
+           -I../../../Source/ThirdParty/serial/include \
            -I../../../../MediaInfoLib/Source \
            -I../../../../ZenLib/Source
-AM_CXXFLAGS = -std=c++11
+
+AM_CXXFLAGS = -std=c++17
 
 bin_SCRIPTS = \
     ../../../tools/dvloupe \
@@ -53,6 +55,13 @@ endif
 if BUILD_DECKLINK
     dvrescue_SOURCES += ../../../Source/Common/DecklinkWrapper.cpp \
                         ../../../Source/Common/Output_Mkv.cpp
+endif
+
+if BUILD_SONY9PIN
+    dvrescue_SOURCES += ../../../Source/Common/Sony9PinWrapper.cpp \
+                        ../../../Source/ThirdParty/serial/src/impl/list_ports/list_ports_osx.cc \
+                        ../../../Source/ThirdParty/serial/src/impl/unix.cc \
+                        ../../../Source/ThirdParty/serial/src/serial.cc
 endif
 
 if BUILD_LNX1394
