@@ -23,6 +23,11 @@ extern const char* Merge_OutputFileName;
 #ifdef ENABLE_SONY9PIN
 extern const char* Control_Port;
 #endif
+#ifdef ENABLE_DECKLINK
+extern uint8_t DeckLinkVideoMode;
+extern uint8_t DeckLinkVideoSource;
+extern uint8_t DeckLinkAudioSource;
+#endif
 extern size_t Merge_Rewind_Count;
 extern uint8_t MergeInfo_Format;
 extern uint8_t Verbosity;

@@ -40,6 +40,9 @@ const char* Control_Port = nullptr;
 #endif
 #ifdef ENABLE_DECKLINK
 bool DeckLinkNativeControl = false;
+uint8_t DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
+uint8_t DeckLinkVideoSource = (uint8_t)Decklink_Video_Source_Composite;
+uint8_t DeckLinkAudioSource = (uint8_t)Decklink_Audio_Source_Analog;
 #endif
 bool InControl = false;
 string Device = "";
@@ -254,9 +257,19 @@ void file::Parse(const String& FileName)
         #endif
         #ifdef ENABLE_DECKLINK
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))
-                try { Capture = new DecklinkWrapper(Device_Pos, Controller, DeckLinkNativeControl); } catch(...) {}
+                try { Capture = new DecklinkWrapper(Device_Pos,
+                                                    (decklink_video_mode)DeckLinkVideoMode,
+                                                    (decklink_video_source)DeckLinkVideoSource,
+                                                    (decklink_audio_source)DeckLinkAudioSource,
+                                                    Controller,
+                                                    DeckLinkNativeControl); } catch(...) {}
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                try { Capture = new DecklinkWrapper(Device, Controller, DeckLinkNativeControl); } catch(...) {}
+                try { Capture = new DecklinkWrapper(Device,
+                                                    (decklink_video_mode)DeckLinkVideoMode,
+                                                    (decklink_video_source)DeckLinkVideoSource,
+                                                    (decklink_audio_source)DeckLinkAudioSource,
+                                                    Controller,
+                                                    DeckLinkNativeControl); } catch(...) {}
         #endif
         #ifdef ENABLE_LNX1394
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=LinuxWrapper::GetDeviceCount()))
