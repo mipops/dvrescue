@@ -125,6 +125,8 @@ using namespace std;
 }
 @end
 
+string AVFCtlWrapper::Interface = "DV";
+
 AVFCtlWrapper::AVFCtlWrapper(size_t DeviceIndex, ControllerBaseWrapper* ExtCtl) : ExtCtl(ExtCtl)
 {
     AVFCtlExternalController* ExternalController = nil;
@@ -164,7 +166,7 @@ string AVFCtlWrapper::GetDeviceName(const std::string& DeviceID)
     if (DeviceIndex < 0)
         return string();
 
-    return string([[AVFCtl getDeviceName:DeviceIndex] UTF8String]);
+    return string([[AVFCtl getDeviceName:DeviceIndex] UTF8String]) + " [" + Interface + "]";
 }
 
 string AVFCtlWrapper::GetDeviceID(size_t DeviceIndex)

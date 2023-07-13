@@ -182,6 +182,9 @@ HRESULT DecklinkWrapper::StatusDelegate::DeckControlStatusChanged(BMDDeckControl
 }
 
 //---------------------------------------------------------------------------
+string DecklinkWrapper::Interface = "DeckLink";
+
+//---------------------------------------------------------------------------
 void DecklinkWrapper::Init()
 {
     Devices.clear();
@@ -404,7 +407,7 @@ string DecklinkWrapper::GetDeviceName(size_t DeviceIndex)
     if (DeviceIndex >= Devices.size())
         return "";
 
-    return Devices[DeviceIndex].Name;
+    return Devices[DeviceIndex].Name + " [" + Interface + "]";
 }
 
 //---------------------------------------------------------------------------

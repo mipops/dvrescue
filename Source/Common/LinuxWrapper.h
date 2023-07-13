@@ -69,6 +69,8 @@ class LinuxWrapper : public BaseWrapper {
     bool WaitForSessionEnd(uint64_t Timeout);
 
 private:
+    static std::string Interface;
+
     // global
     int Port = -1;
     nodeid_t Node = (nodeid_t)-1;
