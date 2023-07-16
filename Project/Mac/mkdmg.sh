@@ -69,7 +69,7 @@ if [ "$KIND" = "CLI" ]; then
     cp "../../tools/dvsampler" "${FILES}-Root/usr/local/bin"
     cp "../../tools/avfctl/avfctl" "${FILES}-Root/usr/local/bin"
     cp "../../Source/CLI/dvrescue.1" "${FILES}-Root/usr/local/share/man/man1"
-    codesign -f --options=runtime -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/${APPNAME_lower}"
+    codesign -f --options=runtime -s "Developer ID Application: ${SIGNATURE}" --verbose --entitlements CLI.entitlements "${FILES}-Root/usr/local/bin/${APPNAME_lower}"
     codesign -f --options=runtime -s "Developer ID Application: ${SIGNATURE}" --verbose "${FILES}-Root/usr/local/bin/avfctl"
 
     pkgbuild --root "${FILES}-Root" --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}" --sign "Developer ID Installer: ${SIGNATURE}" --version "${VERSION}" "${FILES}/${APPNAME_lower}.pkg"
