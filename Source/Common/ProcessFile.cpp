@@ -223,6 +223,12 @@ void file::Parse(const String& FileName)
             try { Controller = new Sony9PinWrapper(Port_Pos); } catch(...) {}
         else if (Sony9PinWrapper::GetDeviceIndex(Control_Port) != (size_t)-1)
             try { Controller = new Sony9PinWrapper(Control_Port); } catch(...) {}
+
+        if (!Controller)
+        {
+            cerr << "Error: unable to open control port: " << Control_Port << endl;
+            return;
+        }
     }
     #endif
     #ifdef ENABLE_DECKLINK
