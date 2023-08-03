@@ -42,6 +42,19 @@ static uint32_t decklink_audio_sources[Decklink_Audio_Source_Max] =
     bmdAudioConnectionMicrophone
 };
 
+//---------------------------------------------------------------------------
+static uint32_t decklink_timecode_formats[Decklink_Timecode_Format_Max] =
+{
+    bmdTimecodeRP188VITC1,
+    bmdTimecodeRP188VITC2,
+    bmdTimecodeRP188LTC,
+    bmdTimecodeRP188HighFrameRate,
+    bmdTimecodeRP188Any,
+    bmdTimecodeVITC,
+    bmdTimecodeVITCField2,
+    bmdTimecodeSerial
+};
+
 typedef CFStringRef PlatformStr;
 
 vector<DecklinkWrapper::device> Devices;
@@ -64,7 +77,7 @@ string PlatformStr2StdStr(PlatformStr Str)
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::CaptureDelegate::CaptureDelegate(matroska_writer* Writer) : Writer(Writer)
+DecklinkWrapper::CaptureDelegate::CaptureDelegate(matroska_writer* Writer, const uint32_t TimecodeFormat) : Writer(Writer), TimecodeFormat(TimecodeFormat)
 {
 }
 
@@ -112,8 +125,16 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
             return E_FAIL;
         }
 
+        timecode_struct Timecode;
+        if (TimecodeFormat != (uint32_t)-1)
+        {
+            IDeckLinkTimecode*	DeckLinkTimecode;
+            if (VideoFrame->GetTimecode(TimecodeFormat, &DeckLinkTimecode) == S_OK)
+                DeckLinkTimecode->GetComponents(&Timecode.hours, &Timecode.minutes, &Timecode.seconds, &Timecode.frames);
+        }
+
         if (Writer)
-            Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize);
+            Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
     }
 
     if (VideoFrame)
@@ -225,6 +246,7 @@ DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex,
                                  decklink_video_mode Mode,
                                  decklink_video_source VideoSrc,
                                  decklink_audio_source AudioSrc,
+                                 decklink_timecode_format TimecodeFormat,
                                  ControllerBaseWrapper* Controller,
                                  bool Native) : Controller(Controller)
 {
@@ -249,6 +271,7 @@ DecklinkWrapper::DecklinkWrapper(size_t DeviceIndex,
     DeckLinkVideoMode = decklink_video_modes[Mode < Decklink_Video_Mode_Max ? Mode : Decklink_Video_Mode_NTSC];
     DeckLinkVideoSource = decklink_video_sources[VideoSrc < Decklink_Video_Source_Max ? VideoSrc : Decklink_Video_Source_Composite];
     DeckLinkAudioSource = decklink_audio_sources[AudioSrc < Decklink_Audio_Source_Max ? AudioSrc : Decklink_Audio_Source_Analog];
+    DeckLinkTimecodeFormat = TimecodeFormat < Decklink_Timecode_Format_Max ? decklink_timecode_formats[TimecodeFormat] : (uint32_t)-1;
 
     if (!Controller && Native)
     {
@@ -295,6 +318,7 @@ DecklinkWrapper::DecklinkWrapper(string DeviceID,
                                  decklink_video_mode Mode,
                                  decklink_video_source VideoSrc,
                                  decklink_audio_source AudioSrc,
+                                 decklink_timecode_format TimecodeFormat,
                                  ControllerBaseWrapper* Controller,
                                  bool Native) : Controller(Controller)
 {
@@ -331,6 +355,7 @@ DecklinkWrapper::DecklinkWrapper(string DeviceID,
     DeckLinkVideoMode = decklink_video_modes[Mode < Decklink_Video_Mode_Max ? Mode : Decklink_Video_Mode_NTSC];
     DeckLinkVideoSource = decklink_video_sources[VideoSrc < Decklink_Video_Source_Max ? VideoSrc : Decklink_Video_Source_Composite];
     DeckLinkAudioSource = decklink_audio_sources[AudioSrc < Decklink_Audio_Source_Max ? AudioSrc : Decklink_Audio_Source_Analog];
+    DeckLinkTimecodeFormat = TimecodeFormat < Decklink_Timecode_Format_Max ? decklink_timecode_formats[TimecodeFormat] : (uint32_t)-1;
 
     if (!Controller && Native)
     {
@@ -568,10 +593,10 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         uint32_t Lines = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
         uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
         uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
-        MatroskaWriter = new matroska_writer(&Output, 720, Lines, Num, Den, false);
+        MatroskaWriter = new matroska_writer(&Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
     }
 
-    DeckLinkCaptureDelegate = new CaptureDelegate(MatroskaWriter);
+    DeckLinkCaptureDelegate = new CaptureDelegate(MatroskaWriter, DeckLinkTimecodeFormat);
 
     if (DeckLinkInput->EnableVideoInput(DeckLinkVideoMode, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
         DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, 2) != S_OK ||

@@ -43,6 +43,7 @@ bool DeckLinkNativeControl = false;
 uint8_t DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
 uint8_t DeckLinkVideoSource = (uint8_t)Decklink_Video_Source_Composite;
 uint8_t DeckLinkAudioSource = (uint8_t)Decklink_Audio_Source_Analog;
+uint8_t DecklinkTimecodeFormat = (uint8_t)Decklink_Timecode_Format_VITC;
 #endif
 bool InControl = false;
 string Device = "";
@@ -267,6 +268,7 @@ void file::Parse(const String& FileName)
                                                     (decklink_video_mode)DeckLinkVideoMode,
                                                     (decklink_video_source)DeckLinkVideoSource,
                                                     (decklink_audio_source)DeckLinkAudioSource,
+                                                    (decklink_timecode_format)DeckLinkTimecodeFormat,
                                                     Controller,
                                                     DeckLinkNativeControl); } catch(...) {}
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
@@ -274,6 +276,7 @@ void file::Parse(const String& FileName)
                                                     (decklink_video_mode)DeckLinkVideoMode,
                                                     (decklink_video_source)DeckLinkVideoSource,
                                                     (decklink_audio_source)DeckLinkAudioSource,
+                                                    (decklink_timecode_format)DeckLinkTimecodeFormat,
                                                     Controller,
                                                     DeckLinkNativeControl); } catch(...) {}
         #endif

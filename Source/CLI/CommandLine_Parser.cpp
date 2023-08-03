@@ -479,6 +479,41 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
         }
+        else if (!strcmp(argv_ansi[i], "--decklink-timecode-format"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing timecode format after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "rp188vitc"))
+                DeckLinkTimecodeFormat = 0;
+            else if (!strcmp(argv_ansi[i], "rp188vitc2"))
+                DeckLinkTimecodeFormat = 1;
+            else if (!strcmp(argv_ansi[i], "rp188ltc"))
+                DeckLinkTimecodeFormat = 2;
+            else if (!strcmp(argv_ansi[i], "rp188hfr"))
+                DeckLinkTimecodeFormat = 3;
+            else if (!strcmp(argv_ansi[i], "rp188any"))
+                DeckLinkTimecodeFormat = 4;
+            else if (!strcmp(argv_ansi[i], "vitc"))
+                DeckLinkTimecodeFormat = 5;
+            else if (!strcmp(argv_ansi[i], "vitc2"))
+                DeckLinkTimecodeFormat = 6;
+            else if (!strcmp(argv_ansi[i], "serial"))
+                DeckLinkTimecodeFormat = 7;
+            else if (!strcmp(argv_ansi[i], "none"))
+                DeckLinkTimecodeFormat = 9;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: unknown decklink audio source " << argv_ansi[i] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
         #endif
         else if (!strcmp(argv_ansi[i], "--device") || !strcmp(argv_ansi[i], "-device"))
         {

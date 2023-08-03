@@ -49,6 +49,18 @@ enum decklink_audio_source {
     Decklink_Audio_Source_Max
 };
 
+enum decklink_timecode_format {
+    Decklink_Timecode_Format_RP188_VITC,
+    Decklink_Timecode_Format_RP188_VITC2,
+    Decklink_Timecode_Format_RP188_LTC,
+    Decklink_Timecode_Format_RP188_HFR,
+    Decklink_Timecode_Format_RP188_ANY,
+    Decklink_Timecode_Format_VITC,
+    Decklink_Timecode_Format_VITC2,
+    Decklink_Timecode_Format_Serial,
+    Decklink_Timecode_Format_Max
+};
+
 //***************************************************************************
 // Class DecklinkWrapper
 //***************************************************************************
@@ -78,7 +90,7 @@ class DecklinkWrapper : public BaseWrapper {
     class CaptureDelegate : public IDeckLinkInputCallback {
     public:
         // Constructor/Destructor
-        CaptureDelegate(matroska_writer* Writer);
+        CaptureDelegate(matroska_writer* Writer, const uint32_t TimecodeFormat);
 
         // Functions
         ULONG AddRef();
@@ -89,6 +101,7 @@ class DecklinkWrapper : public BaseWrapper {
 
     private:
         matroska_writer* Writer;
+        uint32_t TimecodeFormat;
     };
 
     class StatusDelegate : public IDeckLinkDeckControlStatusCallback
@@ -112,12 +125,14 @@ class DecklinkWrapper : public BaseWrapper {
                     decklink_video_mode Mode = Decklink_Video_Mode_NTSC,
                     decklink_video_source VideoSrc = Decklink_Video_Source_Composite,
                     decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
+                    decklink_timecode_format TimecodeFormat = Decklink_Timecode_Format_VITC,
                     ControllerBaseWrapper* Controller = nullptr,
                     bool Native = false);
     DecklinkWrapper(std::string DeviceID,
                     decklink_video_mode Mode = Decklink_Video_Mode_NTSC,
                     decklink_video_source VideoSrc = Decklink_Video_Source_Composite,
                     decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
+                    decklink_timecode_format TimecodeFormat = Decklink_Timecode_Format_VITC,
                     ControllerBaseWrapper* Controller = nullptr,
                     bool Native = false);
     ~DecklinkWrapper();
@@ -154,6 +169,7 @@ private:
     uint32_t DeckLinkVideoMode;
     uint32_t DeckLinkVideoSource;
     uint32_t DeckLinkAudioSource;
+    uint32_t DeckLinkTimecodeFormat;
 
     // Control
     ControllerBaseWrapper* Controller = nullptr;
