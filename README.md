@@ -2,22 +2,24 @@
 
 Archivist-made software that supports data migration from DV tapes into digital files suitable for long-term preservation.
 
-The final documentation website is being developed, and is available at: https://mipops.github.io/dvrescue/
+## Documentation and resources
 
-For most current development docs check out the
-[google drive documentation](https://drive.google.com/drive/u/1/folders/14sKKGQ3pr5g43Po5PNwBOTKINGqHETF-)
+The final [documentation website](https://mipops.github.io/dvrescue/) is under development as the project progresses and updated as tools are finalized.
 
-DVRescue was presented at the Association of Moving Image Archivists 2019 conference. Slides from the presentation are available [here](https://docs.google.com/presentation/d/1JFYHaKMZWHd8LFOVWmGuxdLNgFOiSXcoSxCMB-TXCvA/edit?usp=sharing).
+For the most current development instructions check out the
+[Google Drive draft documentation](https://drive.google.com/drive/u/1/folders/14sKKGQ3pr5g43Po5PNwBOTKINGqHETF-).
 
-A status update of DVRescue was presented at the Association of Moving Image Archivists 2020 conference. The presentation video can be viewed [here](https://youtu.be/YGPIqJ4_ssI).
+DVRescue project status updates, demonstrations and discussions have been presented at various archival conferences. For a full list of recorded presentations, please see the [project documentation page](https://mipops.github.io/dvrescue/sections/01_introduction.html).
 
 ## How to download
 
-DVRescue is available for all major operating systems (macOS, Windows, and Linux). Installers can be downloaded here: https://mediaarea.net/DVRescue  
+DVRescue is available for all major operating systems (macOS, Windows, and Linux). Installers can be downloaded [here](https://mediaarea.net/DVRescue). Currently, the GUI is fully functional on macOS. Work continues on the GUI for Windows and Linux. For more information, please see the [issue tracker](https://github.com/mipops/dvrescue/issues).
+
+Please see the documentation for more information on [installation](https://mipops.github.io/dvrescue/sections/installation.html) and [hardware setup](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html) including troubleshooting tips.
 
 ### Daily snapshots
 
-Daily snapshots of the compiled project are available here: https://mediaarea.net/download/snapshots/binary/dvrescue/
+Daily snapshots of the compiled project are available for the command line tools ([CLI](https://mediaarea.net/download/snapshots/binary/dvrescue/)) and graphic user interface ([GUI](https://mediaarea.net/download/snapshots/binary/dvrescue-gui/)).
 
 ### Homebrew
 
@@ -63,6 +65,6 @@ They are:
 
 ## Copyrights
 
-Copyright (c) 2019-2020, Moving Image Preservation of Puget Sound.
+Copyright (c) 2019-2023, Moving Image Preservation of Puget Sound.
  
-Third party libraries Copyright (c) 2012-2020 MediaArea.net SARL.
+Third party libraries Copyright (c) 2012-2023 MediaArea.net SARL.
