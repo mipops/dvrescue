@@ -12,7 +12,7 @@ jobs:
         include:
           - compiler: clang-9
             packages: llvm@13
-            env: { 'CC': 'clang', 'CXX': 'clang++', 'CXXFLAGS': '-DNS_FORMAT_ARGUMENT\(A\)= -fapplication-extension -std=c++17' }
+            env: { 'CC': 'clang', 'CXX': 'clang++' }
 
     runs-on: macos-latest
 
@@ -54,7 +54,7 @@ jobs:
         mkdir build
         cd build
         qmake ..
-        make CC=$CC CXX=$CXX CXXFLAGS="$CXXFLAGS" -j4
+        make CC=$CC CXX=$CXX -j4
 
     - name: Launch dvrescue-gui
       run: |
@@ -72,7 +72,9 @@ jobs:
         include:
           - compiler: clang-9
             packages: llvm@9
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+            env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
+          - qt_version: "6.3.0"
+            qt_modules: "qtmultimedia"
 
     runs-on: macos-latest
 
@@ -97,15 +99,19 @@ jobs:
       run: |
         brew install ${{ matrix.packages }} pkg-config ffmpeg
 
-    - name: Install Qt 6.2
+    - name: Install Qt6
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.2.0
-        modules: 'addons.qtmultimedia'
+        version: ${{ matrix.qt_version }}
+        modules: ${{ matrix.qt_modules }}
 
     - name: Install qwt
       run: |
-        brew install qwt
+        brew install --ignore-dependencies qwt
+
+    - name: Set Qt6 environment path
+      run: |
+        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
 
     - name: Build dvrescue-gui
       env:
@@ -133,7 +139,7 @@ jobs:
         include:
           - compiler: clang-9
             packages: llvm@13
-            env: { 'CC': 'clang', 'CXX': 'clang++', 'CXXFLAGS': '-DNS_FORMAT_ARGUMENT\(A\)= -fapplication-extension -std=c++17' }
+            env: { 'CC': 'clang', 'CXX': 'clang++' }
 
     runs-on: macos-latest
 
@@ -171,7 +177,7 @@ jobs:
 
     - name: Build FFmpeg
       run: |
-        git clone --depth 1 --branch n4.4 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
         cd ../ffmpeg
         ./configure --enable-gpl \
                     --enable-static \
@@ -193,7 +199,7 @@ jobs:
         mkdir build
         cd build
         qmake .. 
-        make CC=$CC CXX=$CXX CXXFLAGS="$CXXFLAGS" -j4
+        make CC=$CC CXX=$CXX -j4
 
     - name: Launch dvrescue-gui
       run: |
@@ -211,7 +217,9 @@ jobs:
         include:
           - compiler: clang-9
             packages: llvm@9
-            env: { 'CC': 'clang-9', 'CXX': 'clang++-9' }
+            env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
+          - qt_version: "6.3.0"
+            qt_modules: "qtmultimedia"
 
     runs-on: macos-latest
 
@@ -231,15 +239,20 @@ jobs:
         git -c "http.extraheader=$AUTH_HEADER" \
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
+
     - name: Install dependencies
       run: |
         brew install ${{ matrix.packages }} nasm
 
-    - name: Install Qt 6.2
+    - name: Install Qt6
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.2.0
-        modules: 'addons.qtmultimedia'
+        version: ${{ matrix.qt_version }}
+        modules: ${{ matrix.qt_modules }}
+
+    - name: Set Qt6 environment path
+      run: |
+        echo "/usr/local/opt/qt6/bin" >> $GITHUB_PATH
 
     - name: Build qwt
       run: |
@@ -250,7 +263,7 @@ jobs:
 
     - name: Build FFmpeg
       run: |
-        git clone --depth 1 --branch n4.4 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
         cd ../ffmpeg
         ./configure --enable-gpl \
                     --enable-static \
@@ -286,11 +299,13 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-11']
+        compiler: ['gcc-9']
         include:
-          - compiler: gcc-11
-            packages: gcc-11 g++-11
-            env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
+          - compiler: gcc-9
+            packages: gcc-9 g++-9
+            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
+          - qt_version: "5.15.2"
+            qt_packages: "libxkbcommon-dev libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0"
 
     runs-on: ubuntu-latest
 
@@ -321,7 +336,6 @@ jobs:
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
                                 libunwind-dev \
-                                libfreetype-dev \
                                 libavcodec-dev \
                                 libavformat-dev \
                                 libavdevice-dev \
@@ -335,7 +349,7 @@ jobs:
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v3
       with:
-        version: 5.15.2
+        version: ${{ matrix.qt_version }}
 
     - name: Cleanup
       run: |
@@ -348,6 +362,24 @@ jobs:
         cd ../qwt
         qmake -r
         make -j4
+
+    - name: Build FFmpeg
+      run: |
+        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        cd ../ffmpeg
+        ./configure --enable-gpl \
+                    --enable-shared \
+                    --disable-static \
+                    --disable-autodetect \
+                    --disable-securetransport \
+                    --disable-videotoolbox \
+                    --disable-doc \
+                    --disable-ffplay \
+                    --disable-ffprobe \
+                    --disable-debug \
+                    --disable-x86asm
+
+        make -j12
 
     - name: Build dvrescue-gui
       run: |
@@ -368,11 +400,14 @@ jobs:
 
     strategy:
       matrix:
-        compiler: ['gcc-11']
+        compiler: ['gcc-9']
         include:
-          - compiler: gcc-11
-            packages: gcc-11 g++-11
-            env: { 'CC': 'gcc-11', 'CXX': 'g++-11' }
+          - compiler: gcc-9
+            packages: gcc-9 g++-9
+            env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
+          - qt_version: "6.5.0"
+            qt_modules: "qtmultimedia qt5compat"
+            qt_packages: "libxkbcommon-dev libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0"
 
     runs-on: ubuntu-latest
 
@@ -403,7 +438,6 @@ jobs:
         sudo apt-get update &&
         sudo apt-get install -y ${{ matrix.packages }} \
                                 libunwind-dev \
-                                libfreetype-dev \
                                 libgstreamer-plugins-base1.0-dev \
                                 libavcodec-dev \
                                 libavformat-dev \
@@ -413,11 +447,11 @@ jobs:
                                 libxkbcommon-dev \
                                 libxv-dev
 
-    - name: Install Qt 6.2
+    - name: Install Qt 6
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.2.0
-        modules: 'addons.qtmultimedia qt5compat'
+        version: ${{ matrix.qt_version }}
+        modules: ${{ matrix.qt_modules }}
 
     - name: Cleanup
       run: |
@@ -430,6 +464,24 @@ jobs:
         cd ../qwt
         qmake -r
         make -j4
+
+    - name: Build FFmpeg
+      run: |
+        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
+        cd ../ffmpeg
+        ./configure --enable-gpl \
+                    --enable-shared \
+                    --disable-static \
+                    --disable-autodetect \
+                    --disable-securetransport \
+                    --disable-videotoolbox \
+                    --disable-doc \
+                    --disable-ffplay \
+                    --disable-ffprobe \
+                    --disable-debug \
+                    --disable-x86asm
+
+        make -j12
 
     - name: Build dvrescue-gui
       run: |
@@ -448,6 +500,10 @@ jobs:
 
   build-windows-mingw:
 
+    strategy:
+      matrix:
+        qt_version: ["5.15.2"]
+
     runs-on: windows-latest
 
     steps:
@@ -465,11 +521,25 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
+    - name: Build and install zlib
+      shell: cmd
+      run: |
+        git clone --depth 1 https://github.com/madler/zlib ../zlib-dev
+        cd ../zlib-dev
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" ^
+              -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\..\zlib" ^
+              -DBUILD_SHARED_LIBS=0 ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              ..
+        make install
+
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v3
       with:
         arch: win64_mingw81
-        version: 5.15.2
+        version: ${{ matrix.qt_version }}
 
     - name: Install wget & unzip
       run: |
@@ -528,6 +598,12 @@ jobs:
 
   build-windows-mingw-Qt6:
 
+    strategy:
+      matrix:
+        include:
+          - qt_version: "6.3.0"
+            qt_modules: "qtmultimedia qt5compat"
+
     runs-on: windows-latest
 
     steps:
@@ -545,12 +621,26 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Qt 6.2
+    - name: Build and install zlib
+      shell: cmd
+      run: |
+        git clone --depth 1 https://github.com/madler/zlib ../zlib-dev
+        cd ../zlib-dev
+        mkdir build
+        cd build
+        cmake -G "Unix Makefiles" ^
+              -DCMAKE_INSTALL_PREFIX="%GITHUB_WORKSPACE%\..\zlib" ^
+              -DBUILD_SHARED_LIBS=0 ^
+              -DCMAKE_BUILD_TYPE=Release ^
+              ..
+        make install
+
+    - name: Install Qt 6
       uses: jurplel/install-qt-action@v3
       with:
-        arch: win64_mingw81
-        version: 6.2.0
-        modules: 'addons.qtmultimedia'
+        arch: win64_mingw
+        version: ${{ matrix.qt_version }}
+        modules: ${{ matrix.qt_modules }}
 
     - name: Install wget & unzip
       run: |
@@ -609,6 +699,10 @@ jobs:
 
   build-windows-vs:
 
+    strategy:
+      matrix:
+        qt_version: ["5.15.2"]
+
     runs-on: windows-latest
 
     steps:
@@ -647,8 +741,8 @@ jobs:
 
     - name: Install Qt 5.15
       uses: jurplel/install-qt-action@v3
-      with: 
-        version: 5.15.2
+      with:
+        version: ${{ matrix.qt_version }}
 
     - name: Install wget & unzip
       run: |
@@ -670,6 +764,7 @@ jobs:
     - name: Download and configure qwt
       run: |
         git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
+        copy .github\workflows\qwtconfig.pri ..\qwt
         cd ../qwt
         qmake -r
 
@@ -699,6 +794,12 @@ jobs:
         ./dvrescue/release/dvrescue
 
   build-windows-vs-Qt6:
+
+    strategy:
+      matrix:
+        include:
+          - qt_version: "6.3.0"
+            qt_modules: "qtmultimedia qt5compat"
 
     runs-on: windows-latest
 
@@ -736,11 +837,12 @@ jobs:
               ..
         nmake install
 
-    - name: Install Qt 6.2
+    - name: Install Qt 6
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.2.0
-        modules: 'addons.qtmultimedia'
+        arch: win64_msvc2019_64
+        version: ${{ matrix.qt_version }}
+        modules: ${{ matrix.qt_modules }}
 
     - name: Install wget & unzip
       run: |
@@ -760,13 +862,10 @@ jobs:
         dir ffmpeg
 
     - name: Download and configure qwt
-      shell: bash
       run: |
         git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
+        copy .github\workflows\qwtconfig.pri ..\qwt
         cd ../qwt
-        sed -i -e 's/QWT_CONFIG     += QwtTests//g' \
-               -e 's/QWT_CONFIG     += QwtExamples//g' \
-               -e 's/QWT_CONFIG     += QwtPlayground//g' qwtconfig.pri
         qmake -r
 
     - name: Build qwt
