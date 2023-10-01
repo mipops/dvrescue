@@ -363,24 +363,6 @@ jobs:
         qmake -r
         make -j4
 
-    - name: Build FFmpeg
-      run: |
-        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
-        cd ../ffmpeg
-        ./configure --enable-gpl \
-                    --enable-shared \
-                    --disable-static \
-                    --disable-autodetect \
-                    --disable-securetransport \
-                    --disable-videotoolbox \
-                    --disable-doc \
-                    --disable-ffplay \
-                    --disable-ffprobe \
-                    --disable-debug \
-                    --disable-x86asm
-
-        make -j12
-
     - name: Build dvrescue-gui
       run: |
         cd Source/GUI/dvrescue/
@@ -464,24 +446,6 @@ jobs:
         cd ../qwt
         qmake -r
         make -j4
-
-    - name: Build FFmpeg
-      run: |
-        git clone --depth 1 --branch n5.1 https://github.com/FFmpeg/FFmpeg ../ffmpeg
-        cd ../ffmpeg
-        ./configure --enable-gpl \
-                    --enable-shared \
-                    --disable-static \
-                    --disable-autodetect \
-                    --disable-securetransport \
-                    --disable-videotoolbox \
-                    --disable-doc \
-                    --disable-ffplay \
-                    --disable-ffprobe \
-                    --disable-debug \
-                    --disable-x86asm
-
-        make -j12
 
     - name: Build dvrescue-gui
       run: |
