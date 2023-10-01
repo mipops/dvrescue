@@ -1,10 +1,15 @@
 #include "playertest.h"
 #include <QTest>
 #include <QThread>
-#include <QtAVPlayer/QtAVPlayer>
+#include <QThreadPool>
+#include <QtAVPlayer/qavplayer.h>
 #include <QVideoWidget>
 #include <QtAVPlayer/qavaudiooutput.h>
 #include <QtAVPlayer/qavplayer.h>
+#include <QLocalServer>
+#include <QLocalSocket>
+#include <QMutex>
+#include <QWaitCondition>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QMediaService>
