@@ -388,7 +388,7 @@ jobs:
             packages: gcc-9 g++-9
             env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
           - qt_version: "6.5.0"
-            qt_modules: "qtmultimedia qt5compat"
+            qt_modules: "qtmultimedia qt5compat qtshadertools"
             qt_packages: "libxkbcommon-dev libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0"
 
     runs-on: ubuntu-latest
