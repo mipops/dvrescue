@@ -392,8 +392,8 @@ jobs:
         cd Source/GUI/dvrescue/
         ls
         ls ./dvrescue
-        ./dvrescue/dvrescue --platform minimal > /dev/null 2>&1 &
-        sleep 1
+        ./dvrescue/dvrescue --platform minimal 2>&1 &
+        sleep 2
         pidof dvrescue
 
   build-linux-Qt6:
@@ -494,8 +494,8 @@ jobs:
         cd Source/GUI/dvrescue/
         ls
         ls ./dvrescue
-        ./dvrescue/dvrescue --platform minimal > /dev/null 2>&1 &
-        sleep 1
+        ./dvrescue/dvrescue --platform minimal 2>&1 &
+        sleep 2
         pidof dvrescue
 
   build-windows-mingw:
