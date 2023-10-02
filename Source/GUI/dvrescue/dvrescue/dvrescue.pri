@@ -1,4 +1,5 @@
 include(./qwt.pri)
+CONFIG -= no_keywords
 
 lessThan(QT_MAJOR_VERSION, 6): {
     RESOURCES += $$PWD/graphicaleffects_qt5.qrc

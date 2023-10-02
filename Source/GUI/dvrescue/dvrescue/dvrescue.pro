@@ -1,7 +1,6 @@
 QT += qml quick widgets quickcontrols2 multimedia
 
 CONFIG += c++17
-CONFIG += no_keywords
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,13 +28,11 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-QTAVPLAYER_SRC=$$absolute_path(../dvrescue-QtAVPlayer)
-QTAVPLAYER_LIB=$$absolute_path($$OUT_PWD/../dvrescue-QtAVPlayer)
-
-message('using UseQtAVPlayerLib')
-include(../dvrescue-QtAVPlayer/UseQtAVPlayerLib.pri)
-
 include(./dvrescue.pri)
 include(../ffmpeg.pri)
+
+DEFINES += QT_AVPLAYER_MULTIMEDIA
+INCLUDEPATH += ../dvrescue-QtAVPlayer/src
+include(../dvrescue-QtAVPlayer/src/QtAVPlayer/QtAVPlayer.pri)
 
 message('QMAKE_POST_LINK: ' $${QMAKE_POST_LINK})

@@ -4,7 +4,6 @@ include(../dvrescue/dvrescue.pri)
 include(../ffmpeg.pri)
 
 CONFIG += c++17 warn_on qmltestcase
-CONFIG += no_keywords
 
 QT += quick widgets quickcontrols2 multimedia
 
@@ -32,6 +31,6 @@ HEADERS += \
 RESOURCES += \
     testdata.qrc
 
-QTAVPLAYER_SRC=$$absolute_path(../dvrescue-QtAVPlayer)
-QTAVPLAYER_LIB=$$absolute_path($$OUT_PWD/../dvrescue-QtAVPlayer)
-include(../dvrescue-QtAVPlayer/UseQtAVPlayerLib.pri)
+DEFINES += QT_AVPLAYER_MULTIMEDIA
+INCLUDEPATH += ../dvrescue-QtAVPlayer/src
+include(../dvrescue-QtAVPlayer/src/QtAVPlayer/QtAVPlayer.pri)
