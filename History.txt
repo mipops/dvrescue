@@ -1,3 +1,10 @@
+Version 23.10, 2023-10-04
++ Add experimnetal support for capture from Decklink devices to the CLI.
++ Added control support in the CLI, now offering deck control via firewire, the decklink api, or commander cable.
++ Updates to player.
++ Shows an animation in the GUI when no decks are seen.
++ Updated design in Package interface in the GUI.
+
 Version 22.12, 2022-12-08
 + Visualize tape playback errors in a graph during capture.
 + Refactor XML parsing for optimization.
