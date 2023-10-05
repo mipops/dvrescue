@@ -380,10 +380,18 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             Device_Command = 1;
         }
+        else if (!strcmp(argv_ansi[i], "--list_devices_json") || !strcmp(argv_ansi[i], "-list_devices_json"))
+        {
+            Device_Command = 4;
+        }
         #ifdef ENABLE_SONY9PIN
         else if (!strcmp(argv_ansi[i], "--list_controls") || !strcmp(argv_ansi[i], "-list_controls"))
         {
-            Device_Command = 4;
+            Device_Command = 5;
+        }
+        else if (!strcmp(argv_ansi[i], "--list_controls_json") || !strcmp(argv_ansi[i], "-list_controls_json"))
+        {
+            Device_Command = 6;
         }
         #endif
         #if defined(ENABLE_SONY9PIN) || defined(ENABLE_DECKLINK)

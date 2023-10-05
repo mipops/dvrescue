@@ -56,6 +56,29 @@ uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffe
 //---------------------------------------------------------------------------
 
 //***************************************************************************
+// Helpers
+//***************************************************************************
+string JSON_Encode (const string& Data)
+{
+    string Result;
+    for (string::size_type Pos=0; Pos<Data.size(); Pos++)
+    {
+        switch (Data[Pos])
+        {
+            case '\b': Result+="\\b"; break;
+            case '\f': Result+="\\f"; break;
+            case '\n': Result+="\\n"; break;
+            case '\r': Result+="\\r"; break;
+            case '\t': Result+="\\t"; break;
+            case '"': Result+="\\\""; break;
+            case '\\': Result+="\\\\"; break;
+            default: Result+=Data[Pos];
+        }
+    }
+     return Result;
+}
+
+//***************************************************************************
 // Callback
 //***************************************************************************
 
@@ -151,60 +174,88 @@ void file::Parse(const String& FileName)
     if (Verbosity == 10)
         cerr << "Debug: opening (in) \"" << Ztring(FileName).To_Local() << "\"..." << endl;
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
-    if (Device_Command == 1)
+    if (Device_Command == 1 || Device_Command == 4)
     {
+        size_t Count = 0;
+        if (Device_Command == 4) //JSON
+            cout << "[";
         #ifdef ENABLE_SIMULATOR
-            for (size_t i = 0;; i++)
+            for (size_t i = 0; i<SimulatorWrapper::GetDeviceCount(); i++)
             {
-                auto Name = SimulatorWrapper::GetDeviceName(i);
-                if (Name.empty())
-                    break;
-                cout << Name << '\n';
+                auto Interface = SimulatorWrapper::Interface;
+                auto DeviceName = SimulatorWrapper::GetDeviceName(i);
+                auto DeviceID = i; // Use index as deviceID for simulator
+                if (Device_Command == 4) //JSON
+                    cout << (Count++ ? "," : "") << "{\"id\":\"" << DeviceID << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                else
+                    cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
         #endif
         #ifdef ENABLE_AVFCTL
-            for (size_t i = 0;; i++)
+            for (size_t i = 0; i<AVFCtlWrapper::GetDeviceCount(); i++)
             {
-                auto Name = AVFCtlWrapper::GetDeviceName(i);
+                auto Interface = AVFCtlWrapper::Interface;
+                auto DeviceName = AVFCtlWrapper::GetDeviceName(i);
                 auto DeviceID = AVFCtlWrapper::GetDeviceID(i);
-                if (Name.empty())
-                    break;
-                cout << DeviceID << ": " << Name << '\n';
+                if (DeviceID.empty())
+                    continue;
+                if (Device_Command == 4) //JSON
+                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                else
+                    cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
         #endif
 
         #ifdef ENABLE_DECKLINK
-            for (size_t i = 0;; i++)
+            for (size_t i = 0; i<DecklinkWrapper::GetDeviceCount(); i++)
             {
-                auto Name = DecklinkWrapper::GetDeviceName(i);
+                auto Interface = DecklinkWrapper::Interface;
+                auto DeviceName = DecklinkWrapper::GetDeviceName(i);
                 auto DeviceID = DecklinkWrapper::GetDeviceID(i);
-                if (Name.empty())
-                    break;
-                cout << DeviceID << ": " << Name << '\n';
+                if (DeviceID.empty())
+                    continue;
+                if (Device_Command == 4) //JSON
+                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                else
+                    cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
         #endif
         #ifdef ENABLE_LNX1394
-            for (size_t i = 0;; i++)
+            for (size_t i = 0; i<LinuxWrapper::GetDeviceCount(); i++)
             {
-                auto Name = LinuxWrapper::GetDeviceName(i);
+                auto Interface = LinuxWrapper::Interface;
+                auto DeviceName = LinuxWrapper::GetDeviceName(i);
                 auto DeviceID = LinuxWrapper::GetDeviceID(i);
-                if (Name.empty())
-                    break;
-                cout << DeviceID << ": " << Name << '\n';
+                if (DeviceID.empty())
+                    continue;
+                if (Device_Command == 4) //JSON
+                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                else
+                    cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
         #endif
+        if (Device_Command == 4) //JSON
+            cout << "]" << '\n';
         return;
     }
     #ifdef ENABLE_SONY9PIN
-    else if (Device_Command == 4)
+    else if (Device_Command == 5 || Device_Command == 6)
     {
+        size_t Count = 0;
+        if (Device_Command == 6) //JSON
+        cout << "[";
         for (size_t i = 0;; i++)
         {
             auto Name = Sony9PinWrapper::GetDeviceName(i);
             if (Name.empty())
                 break;
-            cout << Name << '\n';
+            if (Device_Command == 6) //JSON
+                cout << (Count++ ? "," : "") << "{\"name\":\"" << JSON_Encode(Name) << "\"}";
+            else
+                cout << Name << '\n';
         }
+        if (Device_Command == 6) //JSON
+            cout << "]" << '\n';
     }
     #endif
     Capture = nullptr;

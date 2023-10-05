@@ -153,10 +153,12 @@ class DecklinkWrapper : public BaseWrapper {
     void SetPlaybackMode(playback_mode Mode, float Speed);
     bool WaitForSessionEnd(uint64_t Timeout);
 
+    // Attributes
+    static const std::string Interface;
+
 private:
     playback_mode PlaybackMode = Playback_Mode_NotPlaying;
     bool Capture = false;
-    static std::string Interface;
 
     //DeckLink
     IDeckLink* DeckLinkDevice = nullptr;

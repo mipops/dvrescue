@@ -68,9 +68,10 @@ class LinuxWrapper : public BaseWrapper {
     void SetPlaybackMode(playback_mode Mode, float Speed);
     bool WaitForSessionEnd(uint64_t Timeout);
 
-private:
-    static std::string Interface;
+    // Attributes
+    static const std::string Interface;
 
+private:
     // global
     int Port = -1;
     nodeid_t Node = (nodeid_t)-1;

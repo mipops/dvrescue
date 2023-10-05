@@ -38,8 +38,10 @@ public:
     void SetPlaybackMode(playback_mode Mode, float Speed);
     bool WaitForSessionEnd(uint64_t Timeout);
 
+    // Attributes
+    static const std::string Interface;
+
 private:
-    static std::string Interface;
     void* Ctl;
     ControllerBaseWrapper* ExtCtl;
 };
