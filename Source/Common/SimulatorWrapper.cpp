@@ -140,7 +140,7 @@ static ZtringListList ReadFileNames()
 }
 
 //---------------------------------------------------------------------------
-string SimulatorWrapper::Interface = "Simulator";
+const string SimulatorWrapper::Interface = "Simulator";
 
 //---------------------------------------------------------------------------
 SimulatorWrapper::SimulatorWrapper(std::size_t DeviceIndex)

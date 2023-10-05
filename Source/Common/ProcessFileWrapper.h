@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cstddef> //for std::size_t, native size_t isn't avaiable in obj-c++ mode
+#include <cstdint>
 #include <string>
 
 class file;
@@ -28,7 +29,7 @@ enum playback_mode {
 class FileWrapper {
 public:
     FileWrapper(file* File);
-    void Parse_Buffer(const std::uint8_t* Buffer, std::size_t Buffer_Size);
+    void Parse_Buffer(const uint8_t* Buffer, std::size_t Buffer_Size);
 
  private:
     file* File;
