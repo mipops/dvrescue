@@ -50,7 +50,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd, [ "-list_devices" ]);
+            launcher.execute(cmd, [ "-list_devices_json" ]);
             if(callback)
                 callback(launcher)
         })
