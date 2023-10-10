@@ -7,8 +7,11 @@
 //---------------------------------------------------------------------------
 #include "Output.h"
 #include "ZenLib/Ztring.h"
+#include <functional>
+#include <algorithm>
 #include <cfloat>
 #include <chrono>
+#include <cctype>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
@@ -76,6 +79,20 @@ string JSON_Encode (const string& Data)
         }
     }
      return Result;
+}
+
+//---------------------------------------------------------------------------
+string Trim(string Data) {
+
+    Data.erase(Data.begin(), std::find_if(Data.begin(), Data.end(), [](unsigned char c) {
+        return !std::isspace(c);
+    }));
+
+    Data.erase(std::find_if(Data.rbegin(), Data.rend(), [](unsigned char c) {
+        return !std::isspace(c);
+    }).base(), Data.end());
+
+    return Data;
 }
 
 //***************************************************************************
@@ -186,7 +203,14 @@ void file::Parse(const String& FileName)
                 auto DeviceName = SimulatorWrapper::GetDeviceName(i);
                 auto DeviceID = i; // Use index as deviceID for simulator
                 if (Device_Command == 4) //JSON
-                    cout << (Count++ ? "," : "") << "{\"id\":\"" << DeviceID << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                    cout << (Count++ ? "," : "")
+                         << "{\"id\":\""
+                         << DeviceID
+                         << "\",\"name\":\""
+                         << JSON_Encode(Trim(DeviceName))
+                         << "\",\"type\":\""
+                         << JSON_Encode(Trim(Interface))
+                         << "\"}";
                 else
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
@@ -200,7 +224,14 @@ void file::Parse(const String& FileName)
                 if (DeviceID.empty())
                     continue;
                 if (Device_Command == 4) //JSON
-                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                    cout << (Count++ ? "," : "")
+                         << "{\"id\":\""
+                         << JSON_Encode(Trim(DeviceID))
+                         << "\",\"name\":\""
+                         << JSON_Encode(Trim(DeviceName))
+                         << "\",\"type\":\""
+                         << JSON_Encode(Trim(Interface))
+                         << "\"}";
                 else
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
@@ -215,7 +246,11 @@ void file::Parse(const String& FileName)
                 if (DeviceID.empty())
                     continue;
                 if (Device_Command == 4) //JSON
-                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                    cout << (Count++ ? "," : "")
+                         << "{\"id\":\""
+                         << JSON_Encode(Trim(DeviceID))
+                         << "\",\"name\":\""
+                         << JSON_Encode(Trim(DeviceName)) << "\",\"type\":\"" << JSON_Encode(Trim(Interface)) << "\"}";
                 else
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
@@ -229,7 +264,14 @@ void file::Parse(const String& FileName)
                 if (DeviceID.empty())
                     continue;
                 if (Device_Command == 4) //JSON
-                    cout << (Count++ ? "," : "") << "{\"id\":\"" << JSON_Encode(DeviceID) << "\",\"name\":\"" << JSON_Encode(DeviceName) << "\",\"type\":\"" << JSON_Encode(Interface) << "\"}";
+                    cout << (Count++ ? "," : "")
+                         << "{\"id\":\""
+                         << JSON_Encode(Trim(DeviceID))
+                         << "\",\"name\":\""
+                         << JSON_Encode(Trim(DeviceName))
+                         << "\",\"type\":\""
+                         << JSON_Encode(Trim(Interface))
+                         << "\"}";
                 else
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
             }
@@ -250,7 +292,7 @@ void file::Parse(const String& FileName)
             if (Name.empty())
                 break;
             if (Device_Command == 6) //JSON
-                cout << (Count++ ? "," : "") << "{\"name\":\"" << JSON_Encode(Name) << "\"}";
+                cout << (Count++ ? "," : "") << "{\"name\":\"" << JSON_Encode(Trim(Name)) << "\"}";
             else
                 cout << Name << '\n';
         }
