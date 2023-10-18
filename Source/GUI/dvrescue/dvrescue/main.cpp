@@ -215,6 +215,15 @@ int main(int argc, char *argv[])
 #define BUILD_VERSION "devel"
 #endif //
 
+    qDebug() << "buildVersionString: " << BUILD_VERSION;
+    qDebug() << "buildDateString: " << QString("%1 %2").arg(__DATE__).arg(__TIME__);
+
+    qDebug() << "buildQtVersionString: " << QString("Qt %1.%2.%3").arg(QT_VERSION_MAJOR).arg(QT_VERSION_MINOR).arg(QT_VERSION_PATCH);
+    qDebug() << "runtimeQtVersionString: " << qVersion();
+
+    qDebug() << "buildFFmpegVersionString: " << FFMPEG_VERSION;
+    qDebug() << "runtimeFFmpegVersionString: " << av_version_info();
+
     engine.rootContext()->setContextProperty("buildVersionString", BUILD_VERSION);
     engine.rootContext()->setContextProperty("buildDateString", QString("%1 %2").arg(__DATE__).arg(__TIME__));
 

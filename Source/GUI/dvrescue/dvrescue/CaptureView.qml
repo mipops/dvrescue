@@ -104,7 +104,7 @@ Column {
             id: deviceNameTextField
             width: parent.width - outputFileNameTextField.width
             readOnly: true
-            text: "[0] DV-VCR (Sony GV-D1000)"
+            text: "*** parsing error ***"
             font.family: "Tahoma"
             placeholderText: qsTr("Searching device...")
             font.pointSize: 11
