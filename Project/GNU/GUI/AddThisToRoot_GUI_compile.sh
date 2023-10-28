@@ -47,7 +47,7 @@ Q_Make()
         qmake5 $*
     else
         echo qmake not found, please install Qt development package
-        exit
+        exit 1
     fi
 }
 
@@ -66,15 +66,15 @@ if [ "$OS" = "mac" ]; then
     echo ZenLib compiled
    else
     echo Problem while compiling ZenLib
-    exit
+    exit 1
    fi
   else
    echo Problem while configuring ZenLib
-   exit
+   exit 1
   fi
  else
   echo ZenLib directory is not found
-  exit
+  exit 1
  fi
  cd $Home
 fi
@@ -94,15 +94,15 @@ if [ "$OS" = "mac" ]; then
     echo MediaInfoLib compiled
    else
     echo Problem while compiling MediaInfoLib
-    exit
+    exit 1
    fi
   else
    echo Problem while configuring MediaInfoLib
-   exit
+   exit 1
   fi
  else
   echo MediaInfoLib directory is not found
-  exit
+  exit 1
  fi
  cd $Home
 fi
@@ -122,15 +122,15 @@ if [ "$OS" = "mac" ]; then
     echo MediaInfo compiled
    else
     echo Problem while compiling MediaInfo
-    exit
+    exit 1
    fi
   else
    echo Problem while configuring MediaInfo
-   exit
+   exit 1
   fi
  else
   echo MediaInfo directory is not found
-  exit
+  exit 1
  fi
  cd $Home
 fi
@@ -149,15 +149,15 @@ if test -e dvrescue/Project/GNU/CLI/configure; then
    echo DVRescue compiled
   else
    echo Problem while compiling DVRescue
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring DVRescue
-  exit
+  exit 1
  fi
 else
  echo DVRescue directory is not found
- exit
+ exit 1
 fi
 cd $Home
 
@@ -173,15 +173,15 @@ if test -e yasm/configure; then
    echo yasm compiled
   else
    echo Problem while compiling yasm
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring yasm
-  exit
+  exit 1
  fi
 else
  echo yasm directory is not found
- exit
+ exit 1
 fi
 cd $Home
 
@@ -201,11 +201,11 @@ if test -e freetype/configure; then
    echo freetype compiled
   else
    echo Problem while compiling freetype
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring freetype
-  exit
+  exit 1
  fi
 else
  echo freetype directory is not found
@@ -233,15 +233,15 @@ if test -e ffmpeg/configure; then
    echo ffmpeg compiled
   else
    echo Problem while compiling ffmpeg
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring ffmpeg
-  exit
+  exit 1
  fi
 else
  echo ffmpeg directory is not found
- exit
+ exit 1
 fi
 cd $Home
 
@@ -257,15 +257,15 @@ if [ "$OS" = "mac" ]; then
     echo xmlstarlet compiled
    else
     echo Problem while compiling xmlstarlet
-    exit
+    exit 1
    fi
   else
    echo Problem while configuring xmlstarlet
-   exit
+   exit 1
   fi
  else
   echo xmlstarlet directory is not found
-  exit
+  exit 1
  fi
  cd $Home
 fi
@@ -287,15 +287,15 @@ if test -e qwt/qwt.pro; then
    echo qwt compiled
   else
    echo Problem while compiling qwt
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring qwt
-  exit
+  exit 1
  fi
 else
  echo qwt directory is not found
- exit
+ exit 1
 fi
 cd $Home
 
