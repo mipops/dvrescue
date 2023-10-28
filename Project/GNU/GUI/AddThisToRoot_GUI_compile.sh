@@ -344,36 +344,36 @@ if test -e dvrescue/Source/GUI/dvrescue/dvrescue.pro; then
   if test -e dvrescue/dvrescue || test -e dvrescue/dvrescue.app; then
     if [ "$OS" = "mac" ] && ! macdeployqt dvrescue/dvrescue.app -qmldir=../dvrescue ; then
       echo Problem while bundling qt frameworks
-      exit
+      exit 1
      fi
    echo dvrescue compiled
   else
    echo Problem while compiling dvrescue
-   exit
+   exit 1
   fi
  else
   echo Problem while configuring dvrescue
-  exit
+  exit 1
  fi
 else
  echo dvrescue directory is not found
- exit
+ exit 1
 fi
 cd $Home
 
 if [ "$OS" = "mac" ]; then
  mkdir -p dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers
- cp -a ZenLib/Project/GNU/Library/.libs/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Libraries
- install_name_tool -id @executable_path/../Libraries/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Libraries/libzen.0.dylib
- cp -a MediaInfoLib/Project/GNU/Library/.libs/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Libraries
- install_name_tool -id @executable_path/../Libraries/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Libraries/libmediainfo.0.dylib
- install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Libraries/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Libraries/libmediainfo.0.dylib
+ cp -a ZenLib/Project/GNU/Library/.libs/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Frameworks
+ install_name_tool -id @executable_path/../Frameworks/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Frameworks/libzen.0.dylib
+ cp -a MediaInfoLib/Project/GNU/Library/.libs/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Frameworks
+ install_name_tool -id @executable_path/../Frameworks/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Frameworks/libmediainfo.0.dylib
+ install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Frameworks/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Frameworks/libmediainfo.0.dylib
  cp -a MediaInfo/Project/GNU/CLI/.libs/mediainfo dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers
- install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Libraries/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/mediainfo
- install_name_tool -change /usr/local/lib/libmediainfo.0.dylib @executable_path/../Libraries/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/mediainfo
+ install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Frameworks/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/mediainfo
+ install_name_tool -change /usr/local/lib/libmediainfo.0.dylib @executable_path/../Frameworks/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/mediainfo
  cp -a dvrescue/Project/GNU/CLI/.libs/dvrescue dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers
- install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Libraries/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/dvrescue
- install_name_tool -change /usr/local/lib/libmediainfo.0.dylib @executable_path/../Libraries/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/dvrescue
+ install_name_tool -change /usr/local/lib/libzen.0.dylib @executable_path/../Frameworks/libzen.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/dvrescue
+ install_name_tool -change /usr/local/lib/libmediainfo.0.dylib @executable_path/../Frameworks/libmediainfo.0.dylib dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers/dvrescue
  cp -a ffmpeg/ffmpeg dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue.app/Contents/Helpers
  avdevicever=$(basename $(ls "${PWD}"/ffmpeg/lib/libavdevice.*.dylib) | cut -d. -f2)
  avfilterver=$(basename $(ls "${PWD}"/ffmpeg/lib/libavfilter.*.dylib) | cut -d. -f2)
