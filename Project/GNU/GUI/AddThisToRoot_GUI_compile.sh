@@ -187,17 +187,18 @@ cd $Home
 
 #############################################################################
 # freetype
-if test -e freetype/configure; then
- cd freetype
+if test -e freetype/meson.build; then
+ mkdir freetype/build
+ cd freetype/build
  if [ "$OS" = "mac" ]; then
-  ./configure --prefix="$PWD/output" --without-zlib --without-bzip2 --without-png --without-harfbuzz --enable-static --disable-shared CFLAGS=-mmacosx-version-min=10.12 LDFLAGS=-mmacosx-version-min=10.12
+  CFLAGS=-mmacosx-version-min=10.12 LDFLAGS=-mmacosx-version-min=10.12 meson setup --prefix $PWD/../output --default-library=static -Dbrotli=disabled -Dbzip2=disabled -Dharfbuzz=disabled -Dpng=disabled -Dzlib=internal ..
  else
-  ./configure --prefix="$PWD/output" --without-zlib --without-bzip2 --without-png --without-harfbuzz --enable-static --disable-shared CFLAGS=-fPIC
+  meson setup --prefix $PWD/../output --default-library=static -Dbrotli=disabled -Dbzip2=disabled -Dharfbuzz=disabled -Dpng=disabled -Dzlib=internal ..
  fi
- if test -e Makefile; then
-  Zen_Make
-  make install
-  if test -e output/lib/libfreetype.a; then
+ if test -e build.ninja; then
+  ninja
+  ninja install
+  if test -e ../output/lib/libfreetype.a; then
    echo freetype compiled
   else
    echo Problem while compiling freetype
@@ -209,7 +210,36 @@ if test -e freetype/configure; then
  fi
 else
  echo freetype directory is not found
- exit
+ exit 1
+fi
+cd $Home
+
+#############################################################################
+# harfbuzz
+if test -e harfbuzz/meson.build; then
+ mkdir harfbuzz/build
+ cd harfbuzz/build
+ if [ "$OS" = "mac" ]; then
+  CFLAGS=-mmacosx-version-min=10.12 LDFLAGS=-mmacosx-version-min=10.12 PKG_CONFIG_PATH=$PWD/../../freetype/output/lib/pkgconfig meson setup --prefix $PWD/../output --default-library=static -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dchafa=disabled -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled -Dgdi=disabled -Ddirectwrite=disabled -Dcoretext=disabled -Dwasm=disabled -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled ..
+ else
+  PKG_CONFIG_PATH=$PWD/../../freetype/output/lib/pkgconfig meson setup --prefix $PWD/../output --default-library=static -Dglib=disabled -Dgobject=disabled -Dcairo=disabled -Dchafa=disabled -Dicu=disabled -Dgraphite=disabled -Dgraphite2=disabled -Dgdi=disabled -Ddirectwrite=disabled -Dcoretext=disabled -Dwasm=disabled -Dtests=disabled -Dintrospection=disabled -Ddocs=disabled -Ddoc_tests=false -Dutilities=disabled ..
+ fi
+ if test -e build.ninja; then
+  ninja
+  ninja install
+  if test -e ../output/lib/libharfbuzz.a; then
+   echo harfbuzz compiled
+  else
+   echo Problem while compiling harfbuzz
+   exit 1
+  fi
+ else
+  echo Problem while configuring harfbuzz
+  exit 1
+ fi
+else
+ echo harfbuzz directory is not found
+ exit 1
 fi
 cd $Home
 
@@ -220,11 +250,15 @@ if test -e ffmpeg/configure; then
  if [ "$OS" = "mac" ]; then
   # fix ffmpeg configure for static freetype2
   sed -i '' 's/^enabled libfreetype.*//g' configure
-  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --extra-cflags="-mmacosx-version-min=10.10" --extra-ldflags="-mmacosx-version-min=10.10" --disable-securetransport --disable-videotoolbox --disable-autodetect --disable-doc --disable-debug --enable-pic --enable-shared --disable-static --prefix="$PWD" --enable-libfreetype --extra-cflags=-I../freetype/include --extra-libs=../freetype/output/lib/libfreetype.a
+  # fix ffmpeg configure for static harfbuzz
+  sed -i '' 's/^enabled libharfbuzz.*//g' configure
+  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --disable-securetransport --disable-videotoolbox --disable-autodetect --disable-doc --disable-debug --enable-pic --enable-shared --disable-static --prefix="$PWD" --enable-libfreetype --enable-libharfbuzz --extra-ldflags="-mmacosx-version-min=10.12" --extra-cflags="-mmacosx-version-min=10.12 -I../freetype/output/include/freetype2 -I../harfbuzz/output/include/harfbuzz" --extra-libs="../freetype/output/lib/libfreetype.a ../harfbuzz/output/lib/libharfbuzz.a"
  else
   # fix ffmpeg configure for static freetype2
   sed -i 's/^enabled libfreetype.*//g' configure
-  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --disable-autodetect --disable-doc --disable-programs --disable-debug --enable-pic --enable-static --disable-shared --prefix="$PWD" --enable-libfreetype --extra-cflags=-I../freetype/include --extra-libs=../freetype/output/lib/libfreetype.a
+  # fix ffmpeg configure for static harfbuzz
+  sed -i 's/^enabled libharfbuzz.*//g' configure
+  ./configure --x86asmexe=$Home/yasm/bin/yasm --enable-gpl --disable-autodetect --disable-doc --disable-programs --disable-debug --enable-pic --enable-static --disable-shared --prefix="$PWD" --enable-libfreetype --enable-libharfbuzz --extra-cflags="-I../freetype/output/include/freetype2 -I../harfbuzz/output/include/harfbuzz" --extra-libs="../freetype/output/lib/libfreetype.a ../harfbuzz/output/lib/libharfbuzz.a"
  fi
  if test -e Makefile; then
   Zen_Make
