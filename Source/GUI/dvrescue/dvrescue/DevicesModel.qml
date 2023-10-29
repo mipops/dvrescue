@@ -12,7 +12,7 @@ ListModel {
     }
 
     function devicesEqual(device1, device2) {
-        return device1.index === device2.index && device1.name === device2.name && device1.type === device2.type
+        return device1.id === device2.id && device1.name === device2.name && device1.type === device2.type
     }
 
     function existsInDevices(devices, device) {
@@ -32,7 +32,7 @@ ListModel {
             var modelDevice = get(j);
             if(!existsInDevices(devices, modelDevice))
             {
-                console.debug('removing ', modelDevice.index, modelDevice.name, modelDevice.type);
+                console.debug('removing ', modelDevice.id, modelDevice.name, modelDevice.type);
                 remove(j, 1);
             }
         }
@@ -45,8 +45,8 @@ ListModel {
         }
 
         newDevices.forEach((device) => {
-            console.debug('adding ', device.index, device.name, device.type);
-            append({index: device.index, name: device.name, type: device.type})
+            console.debug('adding ', device.id, device.name, device.type);
+            append({id: device.id, name: device.name, type: device.type})
         });
     }
 }
