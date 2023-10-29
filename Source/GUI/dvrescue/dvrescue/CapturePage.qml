@@ -34,7 +34,7 @@ Rectangle {
                         if(querying === false)
                         {
                             querying = true;
-                            dvrescue.status(index).then((result) => {
+                            dvrescue.status(id).then((result) => {
                                 console.debug('status: ', result.status)
                                 if(pendingAction === false) {
                                     captureView.statusText = result.status
@@ -129,7 +129,7 @@ Rectangle {
                     statusText = "capturing..";
                     capturingMode = captureCmd;
 
-                    dvrescue.capture(index, playbackBuffer, csvParser, captureCmd, (launcher) => {
+                    dvrescue.capture(id, playbackBuffer, csvParser, captureCmd, (launcher) => {
                        csvParser.columnsChanged.connect(onColumnsChanged);
                        var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
                        csvParserUI.entriesReceived.connect(onEntriesReceived);
@@ -157,7 +157,7 @@ Rectangle {
                     capturingMode = deckControlCmd;
 
                     statusText = deckControlStatus + "..";
-                    dvrescue.control(index, deckControlCmd, (launcher) => {
+                    dvrescue.control(id, deckControlCmd, (launcher) => {
                         commandsLogs.logCommand(launcher);
                     }).then((result) => {
                         statusText = deckControlCmd + ".";
@@ -220,7 +220,7 @@ Rectangle {
                         var indexOfRecDateTime = -1;
 
                         grabbing = true;
-                        dvrescue.grab(index, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
+                        dvrescue.grab(id, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
                            outputFilePath = filePath
                            csvParser.columnsChanged.connect(onColumnsChanged);
                            var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
@@ -244,7 +244,7 @@ Rectangle {
                     }
 
                     if(capturing) {
-                        dvrescue.control(index, 'stop', (launcher) => {
+                        dvrescue.control(id, 'stop', (launcher) => {
                            commandsLogs.logCommand(launcher);
                         }).then((result) => {
                            statusText = "stopping.";

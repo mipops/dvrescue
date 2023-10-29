@@ -17,10 +17,6 @@ Item {
         }
     }
 
-    DvRescueParser {
-        id: parser
-    }
-
     function queryDecks(callback) {
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true});
@@ -41,7 +37,7 @@ Item {
             launcher.processFinished.connect(() => {
                 console.debug('got from dvrescue: \n' + outputText);
                 try {
-                    accept({devices: parser.parseDevicesList(outputText), launcher: launcher, outputText: outputText});
+                    accept({devices: JSON.parse(outputText), launcher: launcher, outputText: outputText});
                 }
                 catch(err) {
                     reject(err, launcher);
@@ -58,8 +54,8 @@ Item {
         return promise;
     }
 
-    function status(index, callback) {
-        console.debug('querying status: ', index);
+    function status(id, callback) {
+        console.debug('querying status: ', id);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true});
@@ -89,7 +85,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd, ["device://" + index, "-status"]);
+            launcher.execute(cmd, ["device://" + id, "-status"]);
             if(callback)
                 callback(launcher)
         })
@@ -97,8 +93,8 @@ Item {
         return promise;
     }
 
-    function control(index, command, callback) {
-        console.debug('stopping: ', index);
+    function control(id, command, callback) {
+        console.debug('stopping: ', id);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true});
@@ -128,7 +124,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd, ['device://' + index, '-cmd', command]);
+            launcher.execute(cmd, ['device://' + id, '-cmd', command]);
             if(callback)
                 callback(launcher)
         })
@@ -136,7 +132,7 @@ Item {
         return promise;
     }
 
-    function capture(index, playbackBuffer, csvParser, captureCmd, callback) {
+    function capture(id, playbackBuffer, csvParser, captureCmd, callback) {
         console.debug('starting capture');
 
         var promise = new Promise((accept, reject) => {
@@ -165,7 +161,7 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['-y', 'device://' + index, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + id, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')
@@ -180,7 +176,7 @@ Item {
         return promise;
     }
 
-    function grab(index, file, playbackBuffer, fileWriter, csvParser, callback) {
+    function grab(id, file, playbackBuffer, fileWriter, csvParser, callback) {
         console.debug('starting grab: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
@@ -228,7 +224,7 @@ Item {
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['-y', 'device://' + index, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + id, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')
