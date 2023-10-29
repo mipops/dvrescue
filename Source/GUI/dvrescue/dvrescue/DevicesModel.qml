@@ -45,8 +45,8 @@ ListModel {
         }
 
         newDevices.forEach((device) => {
-            console.debug('adding ', device.id, device.name, device.type);
-            append({id: device.id, name: device.name, type: device.type})
+            console.debug('adding ', device.id, device.name, device.type, JSON.stringify(device.controls ? device.controls : []));
+            append({id: device.id, name: device.name, type: device.type, controls: device.controls ? JSON.stringify(device.controls) : ''})
         });
     }
 }

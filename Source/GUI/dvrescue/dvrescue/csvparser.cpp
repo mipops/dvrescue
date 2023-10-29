@@ -55,7 +55,7 @@ void CsvParser::onNewEntry(const QString &entry)
         if(!ok)
             return;
 
-        // 2do: remove check after Jerome suppress 'M' entries
+        // TODO: remove check after Jerome suppress 'M' entries
         auto& InputPos = splitted[splitted.length() - 2];
         if(InputPos == "M") {
             return;
