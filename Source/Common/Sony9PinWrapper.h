@@ -43,6 +43,7 @@ public:
     // Functions
     static void Init();
     static std::size_t GetDeviceCount();
+    static std::string GetDeviceID(std::size_t DeviceIndex);
     static std::string GetDeviceName(std::size_t DeviceIndex);
     static std::size_t GetDeviceIndex(const std::string& DeviceName);
     std::string GetStatus();

@@ -128,6 +128,17 @@ size_t Sony9PinWrapper::GetDeviceCount()
 }
 
 //---------------------------------------------------------------------------
+string Sony9PinWrapper::GetDeviceID(size_t DeviceIndex)
+{
+    Init();
+
+    if (DeviceIndex >= Devices.size())
+        return "";
+
+    return Devices[DeviceIndex].port;
+}
+
+//---------------------------------------------------------------------------
 string Sony9PinWrapper::GetDeviceName(size_t DeviceIndex)
 {
     Init();
@@ -139,7 +150,7 @@ string Sony9PinWrapper::GetDeviceName(size_t DeviceIndex)
     if (name.rfind("/dev/", 0) == 0)
         name = name.substr(5);
 
-    return Devices[DeviceIndex].port + (name.empty() ? "" : (": " + name));
+    return name;
 }
 
 //---------------------------------------------------------------------------

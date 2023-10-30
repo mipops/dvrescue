@@ -285,16 +285,19 @@ void file::Parse(const String& FileName)
     {
         size_t Count = 0;
         if (Device_Command == 6) //JSON
-        cout << "[";
-        for (size_t i = 0;; i++)
+            cout << "[";
+        for (size_t i = 0; i<Sony9PinWrapper::GetDeviceCount(); i++)
         {
+            auto ID = Sony9PinWrapper::GetDeviceID(i);
             auto Name = Sony9PinWrapper::GetDeviceName(i);
-            if (Name.empty())
-                break;
             if (Device_Command == 6) //JSON
-                cout << (Count++ ? "," : "") << "{\"name\":\"" << JSON_Encode(Trim(Name)) << "\"}";
+                cout << (Count++ ? "," : "")
+                     << "{\"id\":\""
+                     << JSON_Encode(Trim(ID))
+                     << "\",\"name\":\""
+                     << JSON_Encode(Trim(Name)) << "\"}";
             else
-                cout << Name << '\n';
+                cout << ID << (Name.empty() ? "" : (": " + Name)) << '\n';
         }
         if (Device_Command == 6) //JSON
             cout << "]" << '\n';
