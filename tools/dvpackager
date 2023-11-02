@@ -630,6 +630,10 @@ if [[ -x '/usr/lib/dvrescue/bin/ffmpeg' ]] ; then
 else
     FFMPEG_PATH="$(which ffmpeg)"
 fi
+if [[ ! -x "${FFMPEG_PATH}" ]] ; then
+    _report "ffmpeg can't be found, please install of rerun by ffmpeg's path specified with -F"
+    exit 1
+fi
 }
 
 _get_mediainfo_path(){
@@ -637,6 +641,10 @@ if [[ -x '/usr/lib/dvrescue/bin/mediainfo' ]] ; then
     MEDIAINFO_PATH='/usr/lib/dvrescue/bin/mediainfo'
 else
     MEDIAINFO_PATH="$(which mediainfo)"
+fi
+if [[ ! -x "${MEDIAINFO_PATH}" ]] ; then
+    _report "mediainfo can't be found, please install of rerun by mediainfo's path specified with -M"
+    exit 1
 fi
 }
 
