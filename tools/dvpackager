@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# dependencies: dvrescue, ffmpeg, xmlstarlet
+# dependencies: dvrescue, ffmpeg, mediainfo, xmlstarlet
 
 _usage(){
     cat <<EOF
