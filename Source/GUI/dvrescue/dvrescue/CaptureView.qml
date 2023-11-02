@@ -19,6 +19,7 @@ Column {
     property alias stopButton: stopButton
     property alias rewindButton: rewindButton
     property alias captureButton: captureButton
+    property alias decklinkConfigButton: decklinkConfigButton
     property alias deviceNameTextField: deviceNameTextField
     property string outputFilePath: ''
     property alias statusText: statusText.text
@@ -362,6 +363,12 @@ Column {
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
             }
+        }
+
+        Button {
+            id: decklinkConfigButton
+            text: "decklink"
+            anchors.right: parent.right
         }
 
         CaptureFrameInfo {

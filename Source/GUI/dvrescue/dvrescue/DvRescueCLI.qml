@@ -37,7 +37,31 @@ Item {
             launcher.processFinished.connect(() => {
                 console.debug('got from dvrescue: \n' + outputText);
                 try {
-                    accept({devices: JSON.parse(outputText), launcher: launcher, outputText: outputText});
+                    var devices = JSON.parse(outputText);
+                    var hasDecklink = false;
+                    for(var i = 0; i < devices.length; ++i) {
+
+                        if(devices[i].type === 'DeckLink') {
+                            hasDecklink = true;
+                            break;
+                        }
+                    }
+
+                    if(hasDecklink) {
+                        queryControls().then((result) => {
+                            for(var i = 0; i < devices.length; ++i) {
+                                if(devices[i].type === 'DeckLink') {
+                                    console.debug('attaching controls to device: ', devices[i].name, result.outputText)
+                                    devices[i].controls = result.controls;
+                                }
+                            }
+                            accept({devices: devices, launcher: launcher, outputText: outputText});
+                        }).catch((e) => {
+                            accept({devices: devices, launcher: launcher, outputText: outputText});
+                        })
+                    } else {
+                        accept({devices: devices, launcher: launcher, outputText: outputText});
+                    }
                 }
                 catch(err) {
                     reject(err, launcher);
@@ -47,6 +71,44 @@ Item {
             });
 
             launcher.execute(cmd, [ "-list_devices_json" ]);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
+
+    function queryControls(callback) {
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true});
+            var outputText = '';
+            launcher.outputChanged.connect((outputString) => {
+                outputText += outputString;
+            });
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+
+                console.debug('got from dvrescue: \n' + outputText);
+                try {
+                    accept({controls: JSON.parse(outputText), launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err, launcher);
+                }
+
+                launcher.destroy();
+            });
+
+            launcher.execute(cmd, [ "-list_controls_json" ]);
             if(callback)
                 callback(launcher)
         })
@@ -93,7 +155,7 @@ Item {
         return promise;
     }
 
-    function control(id, command, callback) {
+    function control(id, command, opts, callback) {
         console.debug('stopping: ', id);
 
         var promise = new Promise((accept, reject) => {
@@ -124,7 +186,7 @@ Item {
                 launcher.destroy();
             });
 
-            launcher.execute(cmd, ['device://' + id, '-cmd', command]);
+            launcher.execute(cmd, ['device://' + id].concat(opts).concat(['-cmd', command]));
             if(callback)
                 callback(launcher)
         })
@@ -132,7 +194,7 @@ Item {
         return promise;
     }
 
-    function capture(id, playbackBuffer, csvParser, captureCmd, callback) {
+    function capture(id, playbackBuffer, csvParser, captureCmd, opts, callback) {
         console.debug('starting capture');
 
         var promise = new Promise((accept, reject) => {
@@ -161,7 +223,7 @@ Item {
                 launcher.destroy();
             });
 
-            var arguments = ['-y', 'device://' + id, '-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv'])
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')
@@ -176,7 +238,7 @@ Item {
         return promise;
     }
 
-    function grab(id, file, playbackBuffer, fileWriter, csvParser, callback) {
+    function grab(id, file, playbackBuffer, fileWriter, csvParser, opts, callback) {
         console.debug('starting grab: ', file, fileWriter);
 
         var promise = new Promise((accept, reject) => {
@@ -224,7 +286,7 @@ Item {
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['-y', 'device://' + id, '-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv']
+            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv'])
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')

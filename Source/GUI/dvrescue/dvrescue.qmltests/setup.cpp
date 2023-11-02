@@ -16,6 +16,9 @@
 #include <csvparser.h>
 #include <imageutils.h>
 #include <captureerrorplotdatamodel.h>
+#include <connectionutils.h>
+#include <loggingutils.h>
+#include <qtavplayerutils.h>
 
 extern "C" {
 #include "libavutil/avutil.h"
@@ -51,6 +54,30 @@ void Setup::applicationAvailable()
     qRegisterMetaType<QProcess::ExitStatus>();
     qRegisterMetaType<QProcess::ProcessError>();
 
+    qmlRegisterSingletonType<Clipboard>("Clipboard", 1, 0, "Clipboard", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        auto *clipboard = new Clipboard();
+        return clipboard;
+    });
+
+    qmlRegisterSingletonType<ConnectionUtils>("ConnectionUtils", 1, 0, "ConnectionUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        ConnectionUtils *utils = new ConnectionUtils();
+        return utils;
+    });
+
+    qmlRegisterSingletonType<LoggingUtils>("LoggingUtils", 1, 0, "LoggingUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+        Q_UNUSED(engine)
+        Q_UNUSED(scriptEngine)
+
+        LoggingUtils *utils = new LoggingUtils();
+        return utils;
+    });
+
     qmlRegisterSingletonType<FileUtils>("FileUtils", 1, 0, "FileUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)
         Q_UNUSED(scriptEngine)
@@ -75,12 +102,12 @@ void Setup::applicationAvailable()
         return utils;
     });
 
-    qmlRegisterSingletonType<Clipboard>("Clipboard", 1, 0, "Clipboard", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
+    qmlRegisterSingletonType<QtAVPlayerUtils>("QtAVPlayerUtils", 1, 0, "QtAVPlayerUtils", [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject * {
         Q_UNUSED(engine)
         Q_UNUSED(scriptEngine)
 
-        auto *clipboard = new Clipboard();
-        return clipboard;
+        QtAVPlayerUtils *utils = new QtAVPlayerUtils();
+        return utils;
     });
 
     QQuickStyle::setStyle("Material");

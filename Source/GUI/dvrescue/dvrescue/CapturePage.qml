@@ -10,6 +10,28 @@ Rectangle {
     width: 1190
     height: 768
 
+    DecklinkConfigPopup {
+        id: decklinkConfigPopup
+        anchors.centerIn: parent
+
+        property var rejectedCallback;
+        property var acceptedCallback;
+
+        onRejected: {
+            console.debug('cancelled');
+
+            if(rejectedCallback)
+                rejectedCallback();
+        }
+
+        onAccepted: {
+            console.debug('accepted');
+
+            if(acceptedCallback)
+                acceptedCallback();
+        }
+    }
+
     signal grabCompleted(string filePath);
 
     FunkyGridLayout {
@@ -54,6 +76,13 @@ Rectangle {
                 property int indexOfFrameSpeed: -1;
                 property int indexOfBlockErrors: -1;
                 property int indexOfBlockErrorsEven: -1;
+
+                property bool isDecklink: type === 'DeckLink'
+                property int currentControlIndex: 0
+                property int currentVideoModeIndex: 0
+                property int currentVideoSourceIndex: 0
+                property int currentAudioSourceIndex: 0
+                property int currentTimecodesIndex: decklinkConfigPopup.timecodesModel.indexOf('vitc')
 
                 function onColumnsChanged(columns) {
 
@@ -129,7 +158,12 @@ Rectangle {
                     statusText = "capturing..";
                     capturingMode = captureCmd;
 
-                    dvrescue.capture(id, playbackBuffer, csvParser, captureCmd, (launcher) => {
+                    var opts = [];
+                    if(isDecklink) {
+                        opts = makeDecklinkOptions();
+                    }
+
+                    dvrescue.capture(id, playbackBuffer, csvParser, captureCmd, opts, (launcher) => {
                        csvParser.columnsChanged.connect(onColumnsChanged);
                        var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
                        csvParserUI.entriesReceived.connect(onEntriesReceived);
@@ -157,7 +191,13 @@ Rectangle {
                     capturingMode = deckControlCmd;
 
                     statusText = deckControlStatus + "..";
-                    dvrescue.control(id, deckControlCmd, (launcher) => {
+
+                    var opts = [];
+                    if(isDecklink) {
+                        opts = makeDecklinkOptions();
+                    }
+
+                    dvrescue.control(id, deckControlCmd, opts, (launcher) => {
                         commandsLogs.logCommand(launcher);
                     }).then((result) => {
                         statusText = deckControlCmd + ".";
@@ -167,6 +207,7 @@ Rectangle {
                     });
                 }
 
+                rewindButton.visible: !isDecklink || currentControlIndex !== 0
                 rewindButton.onClicked: {
                     if(!capturing)
                         doCapture('rew')
@@ -174,10 +215,12 @@ Rectangle {
                         doDeckControl('rew', 'rewinding')
                 }
 
+                stopButton.visible: !isDecklink || currentControlIndex !== 0
                 stopButton.onClicked: {
                     doDeckControl('stop', 'stopping')
                 }
 
+                rplayButton.visible: !isDecklink || currentControlIndex !== 0
                 rplayButton.onClicked: {
                     if(!capturing)
                         doCapture('srew')
@@ -185,6 +228,7 @@ Rectangle {
                         doDeckControl('srew', 'rplaying')
                 }
 
+                playButton.visible: !isDecklink || currentControlIndex !== 0
                 playButton.onClicked: {
                     if(!capturing)
                         doCapture('play')
@@ -192,11 +236,27 @@ Rectangle {
                         doDeckControl('play', 'playing')
                 }
 
+                fastForwardButton.visible: !isDecklink || currentControlIndex !== 0
                 fastForwardButton.onClicked: {
                     if(!capturing)
                         doCapture('ff')
                     else
                         doDeckControl('ff', 'fast-forwarding')
+                }
+
+                function makeDecklinkOptions() {
+                    var opts = []
+                    if(currentControlIndex !== 0) {
+                        opts = opts.concat(['--control', decklinkConfigPopup.controlsModel[currentControlIndex].id])
+                    }
+
+                    opts = opts.concat(
+                        ['--decklink-video-mode', decklinkConfigPopup.videoModesModel[currentVideoModeIndex]],
+                        ['--decklink-video-source', decklinkConfigPopup.videoSourcesModel[currentVideoSourceIndex]],
+                        ['--decklink-audio-source', decklinkConfigPopup.audioSourcesModel[currentAudioSourceIndex]],
+                        ['--decklink-timecode-format', decklinkConfigPopup.timecodesModel[currentTimecodesIndex]],
+                    )
+                    return opts;
                 }
 
                 captureButton.onClicked: {
@@ -220,7 +280,13 @@ Rectangle {
                         var indexOfRecDateTime = -1;
 
                         grabbing = true;
-                        dvrescue.grab(id, filePath, playbackBuffer, fileWriter, csvParser, (launcher) => {
+
+                        var opts = [];
+                        if(isDecklink) {
+                            opts = makeDecklinkOptions();
+                        }
+
+                        dvrescue.grab(id, filePath, playbackBuffer, fileWriter, csvParser, opts, (launcher) => {
                            outputFilePath = filePath
                            csvParser.columnsChanged.connect(onColumnsChanged);
                            var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
@@ -257,6 +323,49 @@ Rectangle {
                         specifyPathDialog.reset();
                         specifyPathDialog.open();
                     }
+                }
+
+                decklinkConfigButton.visible: isDecklink
+                decklinkConfigButton.onClicked: {
+                    var combinedControls = [{name : 'No control', id: ''}].concat(JSON.parse(controls))
+                    console.debug(JSON.stringify(combinedControls))
+
+                    decklinkConfigPopup.controlsModel = combinedControls;
+                    decklinkConfigPopup.rejectedCallback = () => {
+                        decklinkConfigPopup.currentControlIndex = currentControlIndex;
+                        decklinkConfigPopup.currentVideoModeIndex = currentVideoModeIndex;
+                        decklinkConfigPopup.currentVideoSourceIndex = currentVideoSourceIndex;
+                        decklinkConfigPopup.currentAudioSourceIndex = currentAudioSourceIndex;
+                        decklinkConfigPopup.currentTimecodesIndex = currentTimecodesIndex;
+
+                        console.debug('currentControlIndex =', decklinkConfigPopup.currentControlIndex);
+                        console.debug('currentVideoModeIndex =', decklinkConfigPopup.currentVideoModeIndex);
+                        console.debug('currentVideoSourceIndex =', decklinkConfigPopup.currentVideoSourceIndex);
+                        console.debug('currentAudioSourceIndex =', decklinkConfigPopup.currentAudioSourceIndex);
+                        console.debug('currentTimecodesIndex =', decklinkConfigPopup.currentTimecodesIndex);
+                    }
+
+                    decklinkConfigPopup.acceptedCallback = () => {
+                        currentControlIndex = decklinkConfigPopup.currentControlIndex;
+                        currentVideoModeIndex = decklinkConfigPopup.currentVideoModeIndex;
+                        currentVideoSourceIndex = decklinkConfigPopup.currentVideoSourceIndex;
+                        currentAudioSourceIndex = decklinkConfigPopup.currentAudioSourceIndex;
+                        currentTimecodesIndex = decklinkConfigPopup.currentTimecodesIndex;
+
+                        console.debug('currentControlIndex =', currentControlIndex);
+                        console.debug('currentVideoModeIndex =', currentVideoModeIndex);
+                        console.debug('currentVideoSourceIndex =', currentVideoSourceIndex);
+                        console.debug('currentAudioSourceIndex =', currentAudioSourceIndex);
+                        console.debug('currentTimecodesIndex =', currentTimecodesIndex);
+                    }
+
+                    decklinkConfigPopup.currentControlIndex = currentControlIndex;
+                    decklinkConfigPopup.currentVideoModeIndex = currentVideoModeIndex;
+                    decklinkConfigPopup.currentVideoSourceIndex = currentVideoSourceIndex;
+                    decklinkConfigPopup.currentAudioSourceIndex = currentAudioSourceIndex;
+                    decklinkConfigPopup.currentTimecodesIndex = currentTimecodesIndex;
+
+                    decklinkConfigPopup.open();
                 }
 
                 deviceNameTextField.text: {

@@ -108,5 +108,6 @@
         <file>ResizeRectangle.qml</file>
         <file>AboutDialog.qml</file>
         <file>icons/no_decks.gif</file>
+        <file>DecklinkConfigPopup.qml</file>
     </qresource>
 </RCC>
