@@ -260,6 +260,7 @@ Rectangle {
                 }
 
                 captureButton.onClicked: {
+                    specifyPathDialog.extension = isDecklink ? '.mkv' : '.dv'
                     specifyPathDialog.callback = (fileUrl) => {
                         csvParser.columnsChanged.disconnect(onColumnsChanged);
                         csvParserUI.entriesReceived.disconnect(onEntriesReceived);

@@ -14,6 +14,7 @@ Dialog {
     property var filePath;
     property var fileName;
     property var fileUrl;
+    property string extension: '.dv';
 
     standardButtons: Dialog.Ok | Dialog.Cancel
 
@@ -88,8 +89,8 @@ Dialog {
 
     onAccepted: {
         fileUrl = filePath + '/' + (fileNameField.text ? fileNameField.text : fileName);
-        if (!fileUrl.endsWith('.dv'))
-            fileUrl += '.dv';
+        if (!fileUrl.endsWith(extension))
+            fileUrl += extension;
 
         console.debug('selected file: ', fileUrl);
         if (FileUtils.exists(FileUtils.getFilePath(fileUrl, true))) {
