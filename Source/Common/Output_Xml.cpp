@@ -226,7 +226,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 const auto& Frame2_Max = PerChange_Next != File->PerChange.end() ? (File->PerFrame.begin() + (*PerChange_Next)->FrameNumber) : File->PerFrame.end();
                 for (auto Frame2 = File->PerFrame.begin() + FrameNumber; Frame2 < Frame2_Max; ++Frame2)
                 {
-                    coherency_flags Coherency((*Frame2)->Coherency_Flags);
+                    coherency_flags Coherency(*Frame2);
                     if (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud())
                     {
                         no_sourceorcontrol_aud_Everywhere = false;
@@ -512,7 +512,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // Coherency
-                coherency_flags Coherency(Frame->Coherency_Flags);
+                coherency_flags Coherency(Frame);
                 if (Coherency.no_pack())
                 {
                     Text += " no_pack=\"1\"";
