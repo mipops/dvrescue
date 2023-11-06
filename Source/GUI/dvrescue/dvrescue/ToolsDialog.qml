@@ -21,7 +21,14 @@ Dialog {
     property alias mediaInfoCmd: mediaInfoField.text
     property alias xmlStarletCmd: xmlStarletField.text
     property alias enableDebugView: enableDebugViewCheckBox.checked
+
+    property alias ignoreFramesAtNonStandardPlaybackSpeed: ignoreFramesAtNonStandardPlaybackSpeedCheckBox.checked
+    property alias keepFramesAtNonStandardPlaybackSpeed: keepFramesAtNonStandardPlaybackSpeedCheckBox.checked
+
+    property alias ignoreFramesThatAllFullyConcealed: ignoreFramesThatAllFullyConcealedCheckBox.checked
+    property alias keepFramesThatAllFullyConcealed: keepFramesThatAllFullyConcealedCheckBox.checked
     property alias endTheCaptureIftheTapeContainsNoDataFor: endTheCaptureIftheTapeContainsNoDataForTextField.text
+    property alias retryToReadFramesWithErrorsUpTo: retryToReadFramesWithErrorsUpToTextField.text
     property alias saveALogOfTheCaptureProcess: saveALogOfTheCaptureProcess.checked
     property alias notSaveALogOfTheCaptureProcess: notSaveALogOfTheCaptureProcess.checked
 
@@ -94,6 +101,46 @@ Dialog {
                 spacing: 20
 
                 ColumnLayout {
+                    spacing: 0
+
+                    Text {
+                        text: "Frame Filtering"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        Text {
+                            text: "Frames at non-standard playback speed:"
+                        }
+
+                        RadioButton {
+                            id: ignoreFramesAtNonStandardPlaybackSpeedCheckBox
+                            text: "Ignore"
+                            checked: true
+                        }
+                        RadioButton {
+                            id: keepFramesAtNonStandardPlaybackSpeedCheckBox
+                            text: "Keep"
+                        }
+                    }
+                    RowLayout {
+                        Text {
+                            text: "Frames that all fully concealed:"
+                        }
+
+                        RadioButton {
+                            id: ignoreFramesThatAllFullyConcealedCheckBox
+                            text: "Ignore"
+                        }
+                        RadioButton {
+                            id: keepFramesThatAllFullyConcealedCheckBox
+                            text: "Keep"
+                            checked: true
+                        }
+                    }
+                }
+
+                ColumnLayout {
                     Text {
                         text: "Timeout"
                         font.bold: true
@@ -115,6 +162,32 @@ Dialog {
 
                         Text {
                             text: " seconds"
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    Text {
+                        text: "Retakes"
+                        font.bold: true
+                    }
+
+                    RowLayout {
+                        Text {
+                            text: "During capture, retry to read frames with errors up to "
+                        }
+
+                        TextField {
+                            id: retryToReadFramesWithErrorsUpToTextField
+                            text: ""
+                            validator: IntValidator {
+                                bottom: 0
+                                top: 20
+                            }
+                        }
+
+                        Text {
+                            text: " times (experimental)"
                         }
                     }
                 }

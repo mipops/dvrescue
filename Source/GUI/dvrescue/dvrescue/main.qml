@@ -290,7 +290,10 @@ ApplicationWindow {
     Settings {
         id: settings;
 
+        property bool keepFramesAtNonStandardPlaybackSpeed
+        property bool keepFramesThatAllFullyConcealed
         property string endTheCaptureIftheTapeContainsNoDataFor
+        property string retryToReadFramesWithErrorsUpTo
         property bool saveALogOfTheCaptureProcess
 
         property bool advancedFrameTable
@@ -316,7 +319,10 @@ ApplicationWindow {
             console.debug('onReset: currentIndex = ', currentIndex)
 
             if(currentIndex === 0) {
+                ignoreFramesAtNonStandardPlaybackSpeed = true
+                keepFramesThatAllFullyConcealed = true
                 endTheCaptureIftheTapeContainsNoDataFor = ''
+                retryToReadFramesWithErrorsUpTo = ''
                 notSaveALogOfTheCaptureProcess = true
             } else if(currentIndex === 1) {
                 simpleFrameTable = true
@@ -342,7 +348,13 @@ ApplicationWindow {
         onAccepted: {
             console.debug('onAccepted')
 
+            console.debug('keepFramesAtNonStandardPlaybackSpeed = ', keepFramesAtNonStandardPlaybackSpeed)
+            console.debug('keepFramesThatAllFullyConcealed = ', keepFramesThatAllFullyConcealed)
+
+            settings.keepFramesAtNonStandardPlaybackSpeed = keepFramesAtNonStandardPlaybackSpeed
+            settings.keepFramesThatAllFullyConcealed = keepFramesThatAllFullyConcealed
             settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
+            settings.retryToReadFramesWithErrorsUpTo = retryToReadFramesWithErrorsUpTo
             settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
             settings.advancedFrameTable = advancedFrameTable
 
@@ -376,7 +388,18 @@ ApplicationWindow {
                 console.debug('setting key: ', key, 'value: ', settings.value(key))
             }
 
+            if(settings.keepFramesAtNonStandardPlaybackSpeed)
+                keepFramesAtNonStandardPlaybackSpeed = true
+            else
+                ignoreFramesAtNonStandardPlaybackSpeed = true
+
+            if(settings.keepFramesThatAllFullyConcealed)
+                keepFramesThatAllFullyConcealed = true
+            else
+                ignoreFramesThatAllFullyConcealed = true
+
             endTheCaptureIftheTapeContainsNoDataFor = settings.endTheCaptureIftheTapeContainsNoDataFor
+            retryToReadFramesWithErrorsUpTo = settings.retryToReadFramesWithErrorsUpTo
 
             if(settings.saveALogOfTheCaptureProcess)
                 saveALogOfTheCaptureProcess = true
