@@ -361,4 +361,51 @@ Item {
         pendingReports[file] = promise;
         return promise;
     }
+
+    function merge(files, outputFile, callback) {
+        console.debug('starting merge: ', JSON.stringify(files, 0, 4), 'to: ', outputFile);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true });
+            var outputText = '';
+
+            launcher.errorChanged.connect((errorString) => {
+                console.debug('errorString: ', errorString)
+            });
+
+            launcher.outputChanged.connect((outputString) => {
+                console.debug('outputString: ', outputString)
+                outputText += outputString;
+            });
+
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                try {
+                    accept({launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+
+            var arguments = files.concat(['--csv', '-m', outputFile])
+
+            launcher.execute(cmd, arguments);
+            if(callback)
+                callback(launcher)
+        })
+
+        return promise;
+    }
 }

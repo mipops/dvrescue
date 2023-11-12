@@ -71,7 +71,7 @@ ApplicationWindow {
 
         ButtonGroup {
             id: navigationButtons
-            buttons: [captureButton, analysisButton, packageButton]
+            buttons: [captureButton, analysisButton, packageButton, mergeButton]
         }
 
         NavButton {
@@ -95,6 +95,13 @@ ApplicationWindow {
             checkable: true;
             property int index: 2
             icon.source: "/icons/menu-package.svg"
+        }
+        NavButton {
+            id: mergeButton
+            // text: qsTr("Merge")
+            checkable: true;
+            property int index: 3
+            icon.source: "/icons/menu-merge.svg"
         }
         NavButton {
             // text: qsTr("Settings")
@@ -250,6 +257,17 @@ ApplicationWindow {
             filesModel: filesModel
             recentFilesModel: recentFilesModel
             framesCount: analysePage.framesCount
+
+            dvrescueCmd: settings.dvrescueCmd
+            xmlStarletCmd: settings.xmlStarletCmd
+            mediaInfoCmd: settings.mediaInfoCmd
+            ffmpegCmd: settings.ffmpegCmd
+        }
+
+        MergePage {
+            id: mergePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd

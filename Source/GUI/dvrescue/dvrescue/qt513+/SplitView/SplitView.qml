@@ -9,6 +9,11 @@ QQC2.SplitView {
         SplitView.preferredWidth = preferredWidth
     }
 
+    property int preferredHeight: 0
+    onPreferredHeightChanged: {
+        SplitView.preferredHeight = preferredHeight
+    }
+
     handle: Rectangle {
         implicitWidth: control.orientation === Qt.Horizontal ? 3 : control.width
         implicitHeight: control.orientation === Qt.Horizontal ? control.height : 3

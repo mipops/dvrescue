@@ -29,6 +29,11 @@ void Setup::applicationAvailable()
 {
     qDebug() << "applicationAvailable";
 
+    auto& app = *QCoreApplication::instance();
+    app.setOrganizationName("dvrescue");
+    app.setOrganizationDomain("dvrescue.com");
+    app.setApplicationName("dvrescue");
+
     qmlRegisterType<Launcher>("Launcher", 0, 1, "Launcher");
     qmlRegisterType<Thread>("Thread", 0, 1, "Thread");
     qmlRegisterType<FileWriter>("FileWriter", 0, 1, "FileWriter");
