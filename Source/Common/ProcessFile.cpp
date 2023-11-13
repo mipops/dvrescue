@@ -768,7 +768,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         no_sourceorcontrol_aud_set_in_first_frame = false;
     }
 
-    if (Merge_Out)
+    if (!Merge_Out.empty())
     {
         auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
         Speed_Before = Speed_After;
@@ -844,7 +844,7 @@ void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
     // DV frame
     if (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
     {
-        if (Merge_Out && (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-" || Merge_InputFileNames[0].find("device://") == 0)) // Only for stdin
+        if (!Merge_Out.empty() && (Merge_InputFileNames.empty() || Merge_InputFileNames[0] == "-" || Merge_InputFileNames[0].find("device://") == 0)) // Only for stdin
             Merge.AddFrameData(Merge_FilePos, FrameData->Content, FrameData->Content_Size);
 
         Device_LastPacketTime = chrono::steady_clock::now();

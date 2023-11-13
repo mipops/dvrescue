@@ -22,7 +22,7 @@ using namespace ZenLib;
 
 //---------------------------------------------------------------------------
 extern vector<string> Merge_InputFileNames;
-extern const char* Merge_OutputFileName; 
+extern vector<string> Merge_OutputFileNames;
 extern uint64_t Merge_Out_Size;
 extern uint64_t Timeout;
 
@@ -152,15 +152,15 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             continue; // Show the file only if it exists
         Text += "\t<media";
         auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
-        if (FileName.empty() && Merge_OutputFileName)
-            FileName = Ztring().From_Local(Merge_OutputFileName);
+        if (FileName.empty() && !Merge_OutputFileNames.empty())
+            FileName = Ztring().From_Local(Merge_OutputFileNames[0]);
         if (!FileName.empty())
         {
             Text += " ref=\"";
             Text += Ztring(FileName).To_UTF8();
             Text += '\"';
         }
-        if (Merge_OutputFileName && Merge_InputFileNames.size() == 1)
+        if (!Merge_OutputFileNames.empty() && Merge_InputFileNames.size() == 1)
         {
             Text += " fromCapture=\"";
             Text += Merge_InputFileNames[0];

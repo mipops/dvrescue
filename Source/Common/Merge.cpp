@@ -24,9 +24,10 @@ uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffe
 
 //---------------------------------------------------------------------------
 vector<string> Merge_InputFileNames;
-FILE* Merge_Out = nullptr;
+vector<FILE*> Merge_Out;
 uint64_t Merge_Out_Size = -1;
-const char* Merge_OutputFileName = nullptr;
+vector<string> Merge_OutputFileNames;
+bool Merge_OutputFileNames_IncludesStdOut = false;
 ostream* MergeInfo_Out = nullptr;
 ofstream Out;
 static ostream* Log;
@@ -179,7 +180,8 @@ namespace
     
     struct per_file
     {
-        FILE*               F = nullptr;
+        FILE*               F;
+        vector<FILE*>       Copies;
         FILE*               F_Takes = nullptr;
         size_t              F_Takes_Start = -1;
         uint64_t            F_Pos = 0;
@@ -205,6 +207,8 @@ namespace
         {
             if (F)
                 fclose(F);
+            for (FILE* C : Copies)
+                fclose(C);
             if (F_Takes)
             {
                 if (Verbosity == 10)
@@ -360,8 +364,14 @@ bool dv_merge_private::Init()
     auto Input_Count = Merge_InputFileNames.size() + Merge_Rewind_Count;
 
     // Out config
-    Output.F = Merge_Out;
-    Log = MergeInfo_Out ? MergeInfo_Out : (Merge_Out == stdout ? &cerr : &cout);
+    for (size_t Pos=0; Pos<Merge_Out.size(); Pos++)
+    {
+        if (!Pos)
+            Output.F = Merge_Out[Pos];
+        else
+            Output.Copies.push_back(Merge_Out[Pos]);
+    }
+    Log = MergeInfo_Out ? MergeInfo_Out : (Merge_OutputFileNames_IncludesStdOut ? &cerr : &cout);
 
     Merge_Help();
 
@@ -1453,9 +1463,9 @@ bool dv_merge_private::Process(float Speed)
                 if (Input->F_Takes)
                 {
                     fclose(Input->F_Takes);
-                    remove((string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
-                    rename((string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
-                        (string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    remove((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    rename((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
+                        (Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
                     Input->F_Takes = nullptr;
                     Input->F_Takes_Start = -1;
                 }
@@ -1466,7 +1476,7 @@ bool dv_merge_private::Process(float Speed)
     }
 
     // Store bad frames
-    if (FirstFirstBadFrame != -1 && Frame_Pos <= LastBadFrame && (Merge_OutputFileName[0] != '-' || Merge_OutputFileName[1] != '\0'))
+    if (FirstFirstBadFrame != -1 && Frame_Pos <= LastBadFrame && (Merge_OutputFileNames[0] != "-"))
     {
         auto& Input = Inputs[Input_Rewind_Pos];
         auto& Frames = Input->Segments[Segment_Pos].Frames;
@@ -1476,7 +1486,7 @@ bool dv_merge_private::Process(float Speed)
             if (!Input->F_Takes)
             {
                 Input->F_Takes_Start = Frame_Pos;
-                Input->F_Takes = fopen((string(Merge_OutputFileName) + ".devrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb");
+                Input->F_Takes = fopen((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb");
             }
             if (Input->F_Takes)
             {
@@ -1504,6 +1514,8 @@ bool dv_merge_private::Process(float Speed)
         {
             auto Write_Size = BlockStatus_Count * 80;
             fwrite(Output.OutputBuffer, Write_Size, 1, Output.F);
+            for (FILE* F : Output.Copies)
+                fwrite(Output.OutputBuffer, Write_Size, 1, F);
             Output.F_Pos += Write_Size;
 
             // Release memory
@@ -1581,9 +1593,9 @@ void dv_merge_private::AddFrameAnalysis(size_t InputPos, const MediaInfo_Event_D
                 if (Input->F_Takes)
                 {
                     fclose(Input->F_Takes);
-                    remove((string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
-                    rename((string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
-                           (string(Merge_OutputFileName) + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    remove((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    rename((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
+                           (Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
                     Input->F_Takes = nullptr;
                     Input->F_Takes_Start = -1;
                 }
@@ -1608,7 +1620,7 @@ void dv_merge_private::Finish()
 {
     // Coherency check
     lock_guard<mutex> Lock(Mutex);
-    if (!Merge_Out || Merge_InputFileNames.size() > Inputs.size())
+    if (Merge_Out.empty() || Merge_InputFileNames.size() > Inputs.size())
         return;
 
     if (Verbosity > 0 && Verbosity <= 7)
