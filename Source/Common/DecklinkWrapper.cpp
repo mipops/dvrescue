@@ -77,7 +77,7 @@ string PlatformStr2StdStr(PlatformStr Str)
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::CaptureDelegate::CaptureDelegate(matroska_writer* Writer, const uint32_t TimecodeFormat) : Writer(Writer), TimecodeFormat(TimecodeFormat)
+DecklinkWrapper::CaptureDelegate::CaptureDelegate(std::vector<output> Writers, const uint32_t TimecodeFormat) : Writers(Writers), TimecodeFormat(TimecodeFormat)
 {
 }
 
@@ -133,8 +133,8 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
                 DeckLinkTimecode->GetComponents(&Timecode.hours, &Timecode.minutes, &Timecode.seconds, &Timecode.frames);
         }
 
-        if (Writer)
-            Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
+        for (output& Writer : Writers)
+            Writer.Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
     }
 
     if (VideoFrame)
@@ -587,16 +587,19 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         DeckLinkInput=nullptr;
     }
 
-    if (Merge_OutputFileName)
+    for (string OutputFile : Merge_OutputFileNames)
     {
-        Output = ofstream(Merge_OutputFileName, ios_base::binary | ios_base::trunc);
         uint32_t Lines = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
         uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
         uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
-        MatroskaWriter = new matroska_writer(&Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+
+        output Output;
+        Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
+        Output.Writer = new matroska_writer(Output.Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+        Outputs.push_back(Output);
     }
 
-    DeckLinkCaptureDelegate = new CaptureDelegate(MatroskaWriter, DeckLinkTimecodeFormat);
+    DeckLinkCaptureDelegate = new CaptureDelegate(Outputs, DeckLinkTimecodeFormat);
 
     if (DeckLinkInput->EnableVideoInput(DeckLinkVideoMode, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
         DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, 2) != S_OK ||
@@ -611,11 +614,15 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         delete DeckLinkCaptureDelegate;
         DeckLinkCaptureDelegate=nullptr;
 
-        if (MatroskaWriter)
+        for (output Output: Outputs)
         {
-            delete MatroskaWriter;
-            MatroskaWriter=nullptr;
+            if (Output.Output)
+                delete Output.Output;
+            if (Output.Writer)
+                delete Output.Writer;
         }
+        Outputs.clear();
+
 
         return;
     }
@@ -658,14 +665,15 @@ void DecklinkWrapper::StopCaptureSession()
         DeckLinkCaptureDelegate=nullptr;
     }
 
-    if (MatroskaWriter)
+    for (output Output: Outputs)
     {
-        MatroskaWriter->close(&Output);
-        Output.close();
-
-        delete MatroskaWriter;
-        MatroskaWriter=nullptr;
+        Output.Writer->close(Output.Output);
+        Output.Output->close();
+        delete Output.Writer;
+        delete Output.Output;
     }
+    Outputs.clear();
+
     SetPlaybackMode(Playback_Mode_NotPlaying, 0.0f);
     Capture = false;
 }

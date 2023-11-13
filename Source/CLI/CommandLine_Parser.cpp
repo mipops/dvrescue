@@ -328,7 +328,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
-            Merge_OutputFileName = argv_ansi[i];
+            if (!strcmp(argv_ansi[i], "-"))
+                Merge_OutputFileNames_IncludesStdOut = true;
+            else
+                Merge_OutputFileNames.push_back(argv_ansi[i]);
         }
         else if (!strcmp(argv_ansi[i], "--merge-log"))
         {
@@ -777,7 +780,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         else
         {
-            if (Webvtt_OutputFileName || Xml_OutputFileName || Merge_OutputFileName)
+            if (Webvtt_OutputFileName || Xml_OutputFileName || !Merge_OutputFileNames.empty() || Merge_OutputFileNames_IncludesStdOut)
             {
                 if (C.Err)
                     *C.Err << "Error: in order to avoid mistakes, provide output file names after input file names.\n";
@@ -860,7 +863,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
 
     if (MergeInfo_Format)
     {
-        if (!Merge_OutputFileName)
+        if (Merge_OutputFileNames.empty())
         {
             if (C.Err)
                 *C.Err << "Error: CSV format is available only for merge feature.\n";
@@ -868,6 +871,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         Verbosity = 9;
     }
+
+    if (Merge_OutputFileNames_IncludesStdOut)
+        Merge_OutputFileNames.push_back("-"); // Put stdout at last position
+
 
     if (ShowFrames_Missing == -1)
         ShowFrames_Missing = MergeInfo_Format ? false : true;
@@ -886,11 +893,19 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     }
 
     // Open files
-    if ((Xml_OutputFileName && OpenTruncateFile(C.XmlFile, Xml_OutputFileName, C, Flags))
+    bool OutputFiles_OpenError=false;
+    for (string OutputFile : Merge_OutputFileNames)
+    {
+        FILE* Temp = nullptr;
+        OutputFiles_OpenError |= OpenTruncateFile(Temp, OutputFile.c_str(), C, Flags);
+        if (Temp)
+            Merge_Out.push_back(Temp);
+    }
+
+    if ((OutputFiles_OpenError)
+     || (Xml_OutputFileName && OpenTruncateFile(C.XmlFile, Xml_OutputFileName, C, Flags))
      || (Webvtt_OutputFileName && OpenTruncateFile(C.WebvttFile, Webvtt_OutputFileName, C, Flags))
-     || (MergeInfo_OutputFileName && OpenTruncateFile(MergeInfo_Out, MergeInfo_OutputFileName, C, Flags))
-     || (Merge_OutputFileName && OpenTruncateFile(Merge_Out, Merge_OutputFileName, C, Flags))
-        )
+     || (MergeInfo_OutputFileName && OpenTruncateFile(MergeInfo_Out, MergeInfo_OutputFileName, C, Flags)))
     {
         if (C.XmlFile)
         {
@@ -907,16 +922,19 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             delete MergeInfo_Out;
             remove(MergeInfo_OutputFileName);
         }
-        if (Merge_Out)
-        {
-            fclose(Merge_Out);
-            remove(Merge_OutputFileName);
-        }
+
+        for (FILE* OutputFile : Merge_Out)
+            fclose(OutputFile);
+        Merge_Out.clear();
+
+        for (string OutputFile : Merge_OutputFileNames)
+            remove(OutputFile.c_str());
+
         return ReturnValue_ERROR;
     }
 
     if (Merge_Rewind_BaseName)
-        Merge_OutputFileName = Merge_Rewind_BaseName;
+        Merge_OutputFileNames.push_back(Merge_Rewind_BaseName);
 
     return ReturnValue;
 }

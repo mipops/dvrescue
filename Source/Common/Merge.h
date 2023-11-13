@@ -17,9 +17,10 @@ using namespace std;
 //***************************************************************************
 
 extern vector<string> Merge_InputFileNames;
-extern FILE* Merge_Out;
+extern vector<FILE*> Merge_Out;
 extern ostream* MergeInfo_Out;
-extern const char* Merge_OutputFileName;
+extern vector<string> Merge_OutputFileNames;
+extern bool Merge_OutputFileNames_IncludesStdOut;
 #ifdef ENABLE_SONY9PIN
 extern const char* Control_Port;
 #endif

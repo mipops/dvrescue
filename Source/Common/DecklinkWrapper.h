@@ -10,6 +10,7 @@
 #include "ZenLib/Ztring.h"
 #include <exception>
 #include <atomic>
+#include <vector>
 #include <string>
 #include <thread>
 #include <mutex>
@@ -86,11 +87,17 @@ class DecklinkWrapper : public BaseWrapper {
         : Name(Name), UUID(UUID) {};
     };
 
+    struct output
+    {
+        matroska_writer* Writer = nullptr;
+        std::ofstream* Output = nullptr;
+    };
+
     // IDeckLinkInputCallback
     class CaptureDelegate : public IDeckLinkInputCallback {
     public:
         // Constructor/Destructor
-        CaptureDelegate(matroska_writer* Writer, const uint32_t TimecodeFormat);
+        CaptureDelegate(std::vector<output> Writers, const uint32_t TimecodeFormat);
 
         // Functions
         ULONG AddRef();
@@ -100,7 +107,7 @@ class DecklinkWrapper : public BaseWrapper {
         HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
 
     private:
-        matroska_writer* Writer;
+        std::vector<output> Writers;
         uint32_t TimecodeFormat;
     };
 
@@ -178,6 +185,5 @@ private:
     IDeckLinkDeckControl* DeckLinkDeckControl = nullptr;
 
     //Output
-    matroska_writer* MatroskaWriter = nullptr;
-    std::ofstream Output;
+    std::vector<output> Outputs;
 };
