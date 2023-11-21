@@ -863,7 +863,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
 
     if (MergeInfo_Format)
     {
-        if (Merge_OutputFileNames.empty())
+        if (Merge_OutputFileNames.empty() && !Merge_OutputFileNames_IncludesStdOut)
         {
             if (C.Err)
                 *C.Err << "Error: CSV format is available only for merge feature.\n";
