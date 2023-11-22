@@ -571,6 +571,7 @@ while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     shift
     if [[ -n "${INPUTFILE_PATHS}" ]] ; then
+        # make a merge summary
         IFS="|" read -ra INPUTFILE_PATH <<< "${INPUTFILE_PATHS}"
         IFS="|" read -ra INPUTFILE_OFFSET <<< "${INPUTFILE_OFFSETS}"
         COUNT_INPUT_PATH="${#INPUTFILE_PATH[@]}"
@@ -588,7 +589,7 @@ while [[ "${@}" != "" ]] ; do
             MAP_COUNTER=$((MAP_COUNTER+1))
             MAP_SET+=(-map "${MAP_COUNTER}:v")
             MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
-            FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=16:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER} $(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}")@${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
+            FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
             FILTER_OUTS+="[v${INPUT_COUNTER}]"
             INPUT_COUNTER=$((INPUT_COUNTER+1))
             MAP_COUNTER=$((MAP_COUNTER+1))
@@ -600,8 +601,8 @@ while [[ "${@}" != "" ]] ; do
         FILTER_SET+="[0:v:${MAP_COUNTER}]"
         MAP_COUNTER=$((MAP_COUNTER+1))
         MAP_SET+=(-map "${MAP_COUNTER}:v")
-        MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
-        FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=16:fontcolor=white:shadowx=1:shadowy=2:text='Result $(basename "${DVFILE}")@${OFFSET}'[v${INPUT_COUNTER}];"
+        MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=white")
+        FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merged Output',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${DVFILE}") @ ${OFFSET}',drawbox=color=white[v${INPUT_COUNTER}];"
         FILTER_OUTS+="[v${INPUT_COUNTER}]"
         INPUT_COUNTER=$((INPUT_COUNTER+1))
         MAP_COUNTER=$((MAP_COUNTER+1))
@@ -611,10 +612,10 @@ while [[ "${@}" != "" ]] ; do
             fi
             DVPLAY_OUTPUT="${OUTPUTFILE}"
             ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
-            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|w0+w1+w2_0|w0+w1+w2+w3_0|w0+w1+w2+w3+w4_0|w0+w1+w2+w3+w4+w5_0" -frames:v 1 "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray" -frames:v 1 "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
         else
             ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
-            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|w0+w1+w2_0|w0+w1+w2+w3_0|w0+w1+w2+w3+w4_0|w0+w1+w2+w3+w4+w5_0" -f nut -frames:v 1 -c:v rawvideo - | \
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray" -f nut -frames:v 1 -c:v rawvideo - | \
             ffplay -
         fi
     elif [[ -n "${OUTPUTFILE}" ]]  ; then
