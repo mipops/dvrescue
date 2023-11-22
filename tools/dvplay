@@ -457,6 +457,10 @@ fi
 
 # filter handling
 _get_filters(){
+MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DVFILE}")"
+CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
+HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
+PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
 TILE_V="8"
 TILE_H="4"
 LESSONE="$((${TILE_V}*${TILE_H}-1))"
@@ -566,11 +570,6 @@ _mkdir2(){
 while [[ "${@}" != "" ]] ; do
     DVFILE="${1}"
     shift
-    MEDIAINFO_STATS="$("${MEDIAINFO_PATH}" --Inform="Video;%Format%|%Height%|%ChromaSubsampling%" "${DVFILE}")"
-    CODEC_NAME="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f1)"
-    HEIGHT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f2)"
-    PIX_FMT="$(echo "${MEDIAINFO_STATS}" | cut -d "|" -f3)"
-    _get_filters
     if [[ -n "${INPUTFILE_PATHS}" ]] ; then
         IFS="|" read -ra INPUTFILE_PATH <<< "${INPUTFILE_PATHS}"
         IFS="|" read -ra INPUTFILE_OFFSET <<< "${INPUTFILE_OFFSETS}"
@@ -619,6 +618,7 @@ while [[ "${@}" != "" ]] ; do
             ffplay -
         fi
     elif [[ -n "${OUTPUTFILE}" ]]  ; then
+        _get_filters
         if [[ "${OUTPUTFILE}" == "-" ]] ; then
             PIPE_FORMAT=(-c:v mjpeg -f image2)
         fi
