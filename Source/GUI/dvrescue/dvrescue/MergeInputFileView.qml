@@ -49,6 +49,21 @@ Rectangle {
         font.pixelSize: 20
     }
 
+    Button {
+        anchors.left: label.right
+        anchors.leftMargin: 20
+
+        anchors.top: label.top
+        anchors.topMargin: 2
+        anchors.bottom: label.bottom
+        anchors.bottomMargin: 2
+
+        text: "Clear"
+        onClicked: {
+            dataModel.clear();
+        }
+    }
+
     Rectangle {
         color: 'white'
         anchors.top: label.bottom
