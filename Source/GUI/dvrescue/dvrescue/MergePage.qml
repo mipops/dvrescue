@@ -154,6 +154,7 @@ Item {
 
                     Button {
                         text: 'Merge'
+                        enabled: mergeInputFileView.dataModel.rowCount !== 0
                         onClicked: {
                             var inputFiles = [];
                             for(var i = 0; i < mergeInputFileView.dataModel.rowCount; ++i) {
