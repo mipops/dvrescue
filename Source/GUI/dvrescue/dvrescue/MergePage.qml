@@ -26,7 +26,6 @@ Item {
     property alias csvParser: csvParser
     property alias mergeReportView: mergeReportView
 
-    /*
     DropArea {
         id: dropArea;
         anchors.fill: parent
@@ -54,7 +53,6 @@ Item {
         onExited: {
         }
     }
-    */
 
     SelectPathDialog {
         id: selectPath
