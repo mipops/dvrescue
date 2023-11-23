@@ -14,6 +14,9 @@ import CsvParser 0.1
 Item {
     id: root
 
+    signal commandExecutionStarted(var launcher);
+    signal commandExecutionFinished(var results);
+
     property string dvrescueCmd
     property string xmlStarletCmd
     property string mediaInfoCmd
@@ -172,17 +175,20 @@ Item {
                             mergeOutputFileView.newRow(outputFile);
                             mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'packaging')
 
-                            dvrescue.merge(inputFiles, outputFile)
-                                .then((result) => {
-                                    csvParser.rows = [];
-                                    csvParser.write(result.outputText);
+                            dvrescue.merge(inputFiles, outputFile, (launcher) => {
+                                commandExecutionStarted(launcher);
+                            }).then((result) => {
+                                csvParser.rows = [];
+                                csvParser.write(result.outputText);
 
-                                    mergeReportView.refresh();
-                                    mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'finished')
-                                })
-                                .catch((error) => {
-                                    packageOutputFileView.updatePackagingErrorByPath(outputFile, error);
-                                })
+                                mergeReportView.refresh();
+                                mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'finished')
+                                commandExecutionFinished(result.outputText);
+                            })
+                            .catch((error) => {
+                                packageOutputFileView.updatePackagingErrorByPath(outputFile, error);
+                                commandExecutionFinished(error);
+                            })
                         }
                     }
                 }

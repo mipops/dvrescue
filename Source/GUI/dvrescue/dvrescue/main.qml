@@ -148,7 +148,9 @@ ApplicationWindow {
                              mediaInfo.editRow(index, 'Progress', -1)
                          })
 
-            dvrescue.makeReport(fileInfo.originalPath).then((reportPath) => {
+            dvrescue.makeReport(fileInfo.originalPath, (launcher) => {
+                debugView.logCommand(launcher);
+            }).then((reportPath) => {
                 console.debug('resolved report path: ', reportPath)
                 filesModel.setProperty(index, 'reportPath', reportPath)
 
@@ -244,12 +246,18 @@ ApplicationWindow {
             onGrabCompleted: {
                 filesModel.add(filePath)
             }
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
 
         AnalysePage {
             id: analysePage
             filesModel: filesModel
             recentFilesModel: recentFilesModel
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
 
         PackagePage {
@@ -262,6 +270,9 @@ ApplicationWindow {
             xmlStarletCmd: settings.xmlStarletCmd
             mediaInfoCmd: settings.mediaInfoCmd
             ffmpegCmd: settings.ffmpegCmd
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
 
         MergePage {
@@ -273,6 +284,9 @@ ApplicationWindow {
             xmlStarletCmd: settings.xmlStarletCmd
             mediaInfoCmd: settings.mediaInfoCmd
             ffmpegCmd: settings.ffmpegCmd
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
     }
 

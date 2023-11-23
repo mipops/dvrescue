@@ -9,6 +9,9 @@ import SplitView 1.0
 Item {
     id: root
 
+    signal commandExecutionStarted(var launcher);
+    signal commandExecutionFinished(var results);
+
     property string dvrescueCmd
     property string xmlStarletCmd
     property string mediaInfoCmd
@@ -212,6 +215,14 @@ Item {
         SegmentDataViewWithToolbar {
             id: segmentDataViewWithToolbar
             property int updatesCounter: 0
+
+            onCommandExecutionStarted: {
+                root.commandExecutionStarted(launcher)
+            }
+
+            onCommandExecutionFinished: {
+                root.commandExecutionFinished(results)
+            }
 
             Component.onCompleted: {
                 SplitView.preferredHeight = Qt.binding(function() { return height })
