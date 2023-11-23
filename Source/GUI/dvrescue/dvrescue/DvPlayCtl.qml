@@ -193,6 +193,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             console.debug('dvplayCmd: ', dvPlayCmd);
             var cmd = [dvPlayCmd]
@@ -204,8 +208,6 @@ Item {
                 launcher.setPaths(paths);
 
             launcher.execute(detectedBashCmd, cmd);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;

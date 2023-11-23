@@ -69,10 +69,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, [ "-list_devices_json" ]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -107,10 +109,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, [ "-list_controls_json" ]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -146,10 +150,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, ["device://" + id, "-status"]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -185,10 +191,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, ['device://' + id].concat(opts).concat(['-cmd', command]));
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -222,6 +230,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var arguments = ['-y', 'device://' + id].concat(opts).concat(['-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv'])
 
@@ -231,8 +243,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -282,6 +292,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
@@ -299,8 +313,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -338,6 +350,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var makeReportTemplate = "-y file.dv -x file.dv.dvrescue.xml -c file.dv.dvrescue.scc";
             var arguments = makeReportTemplate.split(" ");
@@ -346,8 +362,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         }).then((reportPath) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]
@@ -398,12 +412,14 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var arguments = files.concat(['--csv', '-m', outputFile])
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
