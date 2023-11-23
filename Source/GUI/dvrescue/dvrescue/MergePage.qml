@@ -22,6 +22,7 @@ Item {
     property string mediaInfoCmd
     property string ffmpegCmd
     property alias filesModel: fileView.filesModel
+    property alias mergeInputFilesView: mergeInputFileView
     property alias recentFilesModel: recentsPopup.filesModel
     property alias csvParser: csvParser
     property alias mergeReportView: mergeReportView
@@ -104,8 +105,7 @@ Item {
             }
 
             onHeightChanged: {
-                selectFilesPanel.height = height / 5 * 2
-                summaryPanel.height = height / 5 * 1
+                selectFilesPanel.height = height / 5 * 1.5
             }
 
             Rectangle {
@@ -194,15 +194,6 @@ Item {
                             })
                         }
                     }
-                }
-            }
-
-            Rectangle {
-                id: summaryPanel
-                color: 'white'
-
-                Component.onCompleted: {
-                    SplitView.preferredHeight = Qt.binding(function() { return height })
                 }
             }
 
