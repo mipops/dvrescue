@@ -170,6 +170,10 @@ Item {
                                 outputFile = inputFiles[0] + "_merged.dv";
                             }
 
+                            if(FileUtils.exists(outputFile)) {
+                                FileUtils.remove(outputFile);
+                            }
+
                             mergeOutputFileView.newRow(outputFile);
                             mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'packaging')
 
