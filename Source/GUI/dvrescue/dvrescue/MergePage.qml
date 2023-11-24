@@ -2,8 +2,10 @@ import QtQuick 2.0
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import FileUtils 1.0
+import ImageUtils 1.0
 import Qt.labs.platform 1.1
 import Launcher 0.1
+import LoggingUtils 1.0
 import SplitView 1.0
 import TableModel 1.0
 import TableModelColumn 1.0
@@ -23,9 +25,11 @@ Item {
     property string ffmpegCmd
     property alias filesModel: fileView.filesModel
     property alias mergeInputFilesView: mergeInputFileView
+    property alias summaryTablePanel: summaryTablePanel
     property alias recentFilesModel: recentsPopup.filesModel
     property alias csvParser: csvParser
     property alias mergeReportView: mergeReportView
+    property alias mergeAnalyzeView: mergeAnalyzeView
 
     DropArea {
         id: dropArea;
@@ -84,6 +88,46 @@ Item {
                 }
 
             root.filesModel.add(filePath)
+        }
+    }
+
+    MergeAnalyzeView {
+        id: mergeAnalyzeView
+
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+
+        function doDvPlay(inputPos, inputFiles, outputPos, mergeResult) {
+            console.debug('executing dvplay... ');
+            showBusyIndicator = true
+
+            if(inputPos.indexOf('|') === -1) {
+                var inputPosArray = [];
+                for(var i = 0; i < inputFiles.length; ++i) {
+                    inputPosArray.push(inputPos);
+                }
+                inputPos = inputPosArray.join('|');
+            }
+
+            var extraParams = ['-M', dvplay.effectiveMediaInfoCmd]
+            extraParams.push(...['-F', dvplay.effectiveFfmpegCmd])
+
+            var args = ['-O', '-', '-S', inputPos, '-s', inputFiles.join('|'), '-b', outputPos, mergeResult]
+            dvplay.exec(args, (launcher) => {
+                commandExecutionStarted(launcher);
+            }, extraParams).then((result) => {
+                commandExecutionFinished('success');
+                var dataUri = ImageUtils.toDataUri(result.output, "jpg");
+                if(LoggingUtils.isDebugEnabled(dvplay.dvplayCategory.name)) {
+                    console.debug(dvplay.dvplayCategory, 'got dataUri from dvplay: ', dataUri)
+                }
+                imageSource = dataUri
+                showBusyIndicator = false
+            }).catch((err) => {
+                commandExecutionFinished(err);
+                console.error('dvplay.exec error: ', err)
+                showBusyIndicator = false
+            })
         }
     }
 
@@ -184,6 +228,8 @@ Item {
                                 csvParser.rows = [];
                                 csvParser.write(result.outputText);
 
+                                mergeReportView.inputFiles = inputFiles;
+                                mergeReportView.outputFile = outputFile;
                                 mergeReportView.refresh();
                                 mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'finished')
                                 commandExecutionFinished(result.outputText);
@@ -212,6 +258,9 @@ Item {
                     property int indexOfBlockErrors: -1
                     property int indexOfComments: -1
 
+                    property int indexOfInputPos: -1
+                    property int indexOfOutputPos: -1
+
                     property var rows: []
 
                     onColumnsChanged: {
@@ -234,6 +283,8 @@ Item {
                         indexOfIssueFixed = columnNames.indexOf('IssueFixed');
                         indexOfBlockErrors = columnNames.indexOf('BlockErrors');
                         indexOfComments = columnNames.indexOf('Comments');
+                        indexOfInputPos = columnNames.indexOf('InputPos');
+                        indexOfOutputPos = columnNames.indexOf('OutputPos');
 
                         console.debug('indexOfFramePos: ', indexOfFramePos)
                         console.debug('indexOftc: ', indexOftc)
@@ -242,6 +293,8 @@ Item {
                         console.debug('indexOfIssueFixed: ', indexOfIssueFixed)
                         console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
                         console.debug('indexOfComments: ', indexOfComments)
+                        console.debug('indexOfInputPos: ', indexOfInputPos)
+                        console.debug('indexOfOutputPos: ', indexOfOutputPos)
                     }
 
                     onEntriesReceived: {
@@ -252,6 +305,8 @@ Item {
                         var issueFixed = entries[indexOfIssueFixed]
                         var blockErrors = entries[indexOfBlockErrors]
                         var comments = entries[indexOfComments]
+                        var inputPos = entries[indexOfInputPos]
+                        var outputPos = entries[indexOfOutputPos]
 
                         rows.push({
                                       'Frame #' : framePos,
@@ -260,7 +315,9 @@ Item {
                                       'Status' : status,
                                       'IssueFixed' : issueFixed,
                                       'BlockErrors' : blockErrors,
-                                      'Comments' : comments
+                                      'Comments' : comments,
+                                      'InputPos' : inputPos,
+                                      'OutputPos' : outputPos
                                   })
                     }
                 }
@@ -277,6 +334,14 @@ Item {
                             if(i === 0 || i === (csvParser.rows.length - 1) || used !== '0')
                                 dataModel.appendRow(csvParser.rows[i])
                         }
+                    }
+
+                    onFileSelectionClicked: {
+                        var inputPos = info.InputPos;
+                        var outputPos = info.OutputPos;
+
+                        mergeAnalyzeView.doDvPlay(inputPos, inputFiles, outputPos, outputFile);
+                        mergeAnalyzeView.open();
                     }
 
                     Component.onCompleted: {

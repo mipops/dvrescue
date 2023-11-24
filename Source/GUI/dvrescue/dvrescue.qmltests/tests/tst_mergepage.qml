@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import QtTest 1.0
 import QtQuick.Window 2.12
+import FileUtils 1.0
+import ImageUtils 1.0
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
 import Qt.labs.settings 1.0
@@ -13,6 +15,21 @@ Rectangle {
 
     DvRescueReport {
         id: report
+    }
+
+    DvPlayCtl {
+        id: dvplay
+
+        xmlStarletCmd: settings.xmlStarletCmd
+        mediaInfoCmd: settings.mediaInfoCmd
+        ffmpegCmd: settings.ffmpegCmd
+
+        Component.onCompleted: {
+            if(Qt.platform.os === "windows") {
+                paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                      FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+            }
+        }
     }
 
     Settings {
@@ -84,8 +101,26 @@ Rectangle {
         function test_mergePage() {
             mergePage.visible = true;
 
+            var inputFiles = [
+                'C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv',
+                'C:\\Users\\ai\\Downloads\\sno_432600000_162000000.dv'
+            ];
+
+            for(var i = 0; i < inputFiles.length; ++i) {
+                mergePage.mergeInputFilesView.newRow(inputFiles[i])
+            }
+
+            var mergeResult = 'C:\\Users\\ai\\Downloads\\sno_1046040000_162000000.dv_merged.dv';
+            mergePage.mergeAnalyzeView.open();
+            mergePage.mergeAnalyzeView.doDvPlay('88800000', inputFiles, '88800000', mergeResult);
+
+            // filesModel.add('C:\\Users\\ai\\Downloads\\sno_0_162000000.dv');
+            // filesModel.add('C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv');
+
+            /*
             filesModel.add('D:\\Projects\\dvrescue-work\\videos\\BAVC1010689_take01_12M.dv');
             filesModel.add('D:\\Projects\\dvrescue-work\\videos\\BAVC1010689_take02_12M.dv');
+            */
 
             /*
             var data = 'FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed,SourceSpeed,FrameSpeed,InputPos,OutputPos

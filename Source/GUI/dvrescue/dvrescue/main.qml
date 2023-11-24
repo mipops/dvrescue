@@ -315,6 +315,21 @@ ApplicationWindow {
         }
     }
 
+    DvPlayCtl {
+        id: dvplay
+
+        xmlStarletCmd: settings.xmlStarletCmd
+        mediaInfoCmd: settings.mediaInfoCmd
+        ffmpegCmd: settings.ffmpegCmd
+
+        Component.onCompleted: {
+            if(Qt.platform.os === "windows") {
+                paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                      FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+            }
+        }
+    }
+
     PathResolver {
         id: pathResolver
     }

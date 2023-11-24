@@ -29,6 +29,44 @@ void Setup::applicationAvailable()
 {
     qDebug() << "applicationAvailable";
 
+#if defined(Q_OS_WIN)
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath =
+        QDir::toNativeSeparators(appDirPath + "/" + "cygwin/bin") + ";" +
+        QDir::toNativeSeparators(appDirPath + "/" + "scripts") + ";" +
+        QDir::toNativeSeparators(appDirPath + "/" + "tools") + ";" +
+        QDir::toNativeSeparators(appDirPath) + ";";
+
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+
+    // Set TMPDIR to a known writable place for cygwin's mktemp
+    auto tmpdir = QDir::tempPath();
+    qputenv("TMPDIR", tmpdir.toUtf8());
+
+#elif defined(Q_OS_MAC)
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath = QDir::toNativeSeparators(appDirPath + "/" + "../Helpers") + ":";
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+#elif defined(Q_OS_LINUX)
+    auto appDirPath = QCoreApplication::applicationDirPath();
+    qDebug() << "appDirPath: " << appDirPath;
+    auto prefix = QFileInfo(appDirPath).canonicalPath();
+    qDebug() << "prefix: " << prefix;
+    auto paths = QProcessEnvironment::systemEnvironment().value("PATH");
+    auto additionalPath =
+        QDir::toNativeSeparators(prefix + "/" + "lib64/dvrescue/bin") + ":" +
+        QDir::toNativeSeparators(prefix + "/" + "lib/dvrescue/bin") + ":";
+
+    paths.prepend(additionalPath);
+    qputenv("PATH", paths.toUtf8());
+#endif //
+
     auto& app = *QCoreApplication::instance();
     app.setOrganizationName("dvrescue");
     app.setOrganizationDomain("dvrescue.com");

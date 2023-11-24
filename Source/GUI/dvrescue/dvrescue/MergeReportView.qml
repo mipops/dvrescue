@@ -10,7 +10,10 @@ import MediaInfo 1.0
 import FileUtils 1.0
 
 Rectangle {
+    id: root
     color: 'transparent'
+
+    signal fileSelectionClicked(var info);
 
     property alias dataModel: dataModel
     property alias tableView: tableView
@@ -22,6 +25,9 @@ Rectangle {
     readonly property string issueFixedColumn: "IssueFixed"
     readonly property string blockErrorsColumn: "BlockErrors"
     readonly property string commentsColumn: "Comments"
+
+    property var inputFiles: []
+    property var outputFile;
 
     function forceLayout() {
         tableView.forceLayout();
@@ -124,6 +130,27 @@ Rectangle {
 
             delegate: DelegateChooser {
                 DelegateChoice  {
+                    column: 2
+                    HyperlinkDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: '<a href="#">' + display + '</a>'
+                        onLinkActivated: {
+                            var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
+                            var info = dataModel.getRow(sourceRow);
+
+                            root.fileSelectionClicked(info);
+                        }
+
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                    }
+                }
+
+                DelegateChoice  {
                     TextDelegate {
                         height: tableView.delegateHeight
                         implicitHeight: tableView.delegateHeight
@@ -178,11 +205,6 @@ Rectangle {
         TableModelColumn {
             display: blockErrorsColumn
             property int minWidth: 50
-        }
-
-        TableModelColumn {
-            display: commentsColumn
-            property int minWidth: 100
         }
     }
 }

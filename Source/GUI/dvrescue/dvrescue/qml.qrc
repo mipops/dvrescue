@@ -115,5 +115,6 @@
         <file>MergeOutputFileView.qml</file>
         <file>MergeReportView.qml</file>
         <file>MergeInputFileView.qml</file>
+        <file>MergeAnalyzeView.qml</file>
     </qresource>
 </RCC>
