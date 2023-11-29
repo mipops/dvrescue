@@ -583,14 +583,14 @@ while [[ "${@}" != "" ]] ; do
 
         while [[ "${INPUT_COUNTER}" < "${COUNT_INPUT_PATH}" ]]; do
             if [[ -n "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" ]] ; then
-            INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
-            INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
-            MAP_SET+=(-map "${MAP_COUNTER}:v")
-            FILTER_SET+="[0:v:${MAP_COUNTER}]"
-            MAP_COUNTER=$((MAP_COUNTER+1))
-            MAP_SET+=(-map "${MAP_COUNTER}:v")
-            MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
-            FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
+                INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
+                INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${INPUT_COUNTER}]}" -i "${INPUTFILE_PATH[${INPUT_COUNTER}]}")
+                MAP_SET+=(-map "${MAP_COUNTER}:v")
+                FILTER_SET+="[0:v:${MAP_COUNTER}]"
+                MAP_COUNTER=$((MAP_COUNTER+1))
+                MAP_SET+=(-map "${MAP_COUNTER}:v")
+                MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
+                FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
             else
                 # if missing frame then just use the first one and blank it out with a missing frame warning
                 INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[0]}" -i "${INPUTFILE_PATH[0]}")
