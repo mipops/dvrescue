@@ -574,6 +574,8 @@ while [[ "${@}" != "" ]] ; do
         # make a merge summary
         IFS="|" read -ra INPUTFILE_PATH <<< "${INPUTFILE_PATHS}"
         IFS="|" read -ra INPUTFILE_OFFSET <<< "${INPUTFILE_OFFSETS}"
+        FIRST_NON_EMPTY_OFFSET_TMP="${INPUTFILE_OFFSETS%%[0-9]*}"
+        FIRST_NON_EMPTY_OFFSET="${#FIRST_NON_EMPTY_OFFSET_TMP}"
         COUNT_INPUT_PATH="${#INPUTFILE_PATH[@]}"
         COUNT_INPUT_OFFSET="${#INPUTFILE_OFFSET[@]}"
         COLOR=(red green blue magenta yellow cyan)
@@ -593,7 +595,8 @@ while [[ "${@}" != "" ]] ; do
                 FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
             else
                 # if missing frame then just use the first one and blank it out with a missing frame warning
-                INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[0]}" -i "${INPUTFILE_PATH[0]}")
+                 v="||8" ; 
+                INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${FIRST_NON_EMPTY_OFFSET}]}" -i "${INPUTFILE_PATH[${FIRST_NON_EMPTY_OFFSET}]}")
                 MAP_SET+=(-map "${MAP_COUNTER}:v")
                 FILTER_SET+="[0:v:${MAP_COUNTER}]lutyuv=y=0,drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER} - MISSING FRAME',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}")'[v${INPUT_COUNTER}];"
             fi
