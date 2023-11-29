@@ -36,11 +36,17 @@ Core::Core()
     MediaInfo::Option_Static(__T("AcceptSignals"), __T("0"));
 
     std::signal(SIGINT, Handle_Signal);
+    #if !defined(_WIN32) && !defined(WIN32)
+    std::signal(SIGPIPE, Handle_Signal);
+    #endif
 }
 
 Core::~Core()
 {
     std::signal(SIGINT, SIG_DFL);
+    #if !defined(_WIN32) && !defined(WIN32)
+    std::signal(SIGPIPE, SIG_DFL);
+    #endif
     PerFile_Clear();
 }
 
@@ -150,6 +156,9 @@ void Handle_Signal(int Signal)
     switch (Signal)
     {
     case SIGINT:
+    #if !defined(_WIN32) && !defined(WIN32)
+    case SIGPIPE:
+    #endif
         for (auto& File : PerFile)
             File->Terminate();
         break;
