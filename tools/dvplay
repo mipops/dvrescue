@@ -612,10 +612,10 @@ while [[ "${@}" != "" ]] ; do
             fi
             DVPLAY_OUTPUT="${OUTPUTFILE}"
             ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
-            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray" -frames:v 1 "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray,scale=iw/2:ih/2" -frames:v 1 "${PIPE_FORMAT[@]}" "${DVPLAY_OUTPUT}"
         else
             ffmpeg "${INPUT_SET[@]}" "${MAP_SET[@]}" -f nut -c copy -frames:v 1 - | \
-            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray" -f nut -frames:v 1 -c:v rawvideo - | \
+            ffmpeg -i - -lavfi "${FILTER_SET%?};${FILTER_OUTS}xstack=inputs=${INPUT_COUNTER}:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0:fill=gray,scale=iw/2:ih/2" -f nut -frames:v 1 -c:v rawvideo - | \
             ffplay -
         fi
     elif [[ -n "${OUTPUTFILE}" ]]  ; then
