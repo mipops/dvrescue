@@ -69,10 +69,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, [ "-list_devices_json" ]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -107,10 +109,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, [ "-list_controls_json" ]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -146,10 +150,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, ["device://" + id, "-status"]);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -185,10 +191,12 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             launcher.execute(cmd, ['device://' + id].concat(opts).concat(['-cmd', command]));
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -222,6 +230,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var arguments = ['-y', 'device://' + id].concat(opts).concat(['-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv'])
 
@@ -231,8 +243,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -282,6 +292,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
@@ -299,8 +313,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;
@@ -338,6 +350,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             var makeReportTemplate = "-y file.dv -x file.dv.dvrescue.xml -c file.dv.dvrescue.scc";
             var arguments = makeReportTemplate.split(" ");
@@ -346,8 +362,6 @@ Item {
             }
 
             launcher.execute(cmd, arguments);
-            if(callback)
-                callback(launcher)
         }).then((reportPath) => {
             console.debug('deleting pending report: ', file);
             delete pendingReports[file]
@@ -359,6 +373,55 @@ Item {
 
         console.debug('adding pending report: ', file);
         pendingReports[file] = promise;
+        return promise;
+    }
+
+    function merge(files, outputFile, callback) {
+        console.debug('starting merge: ', JSON.stringify(files, 0, 4), 'to: ', outputFile);
+
+        var promise = new Promise((accept, reject) => {
+            var launcher = launcherFactory.createObject(null, { useThread: true });
+            var outputText = '';
+
+            launcher.errorChanged.connect((errorString) => {
+                console.debug('errorString: ', errorString)
+            });
+
+            launcher.outputChanged.connect((outputString) => {
+                console.debug('outputString: ', outputString)
+                outputText += outputString;
+            });
+
+            launcher.errorOccurred.connect((error) => {
+                try {
+                    reject(error);
+                }
+                catch(err) {
+
+                }
+
+                launcher.destroy();
+            });
+            launcher.processFinished.connect(() => {
+                try {
+                    accept({launcher: launcher, outputText: outputText});
+                }
+                catch(err) {
+                    reject(err);
+                }
+
+                launcher.destroy();
+            });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
+
+            var arguments = files.concat(['--csv', '-m', outputFile])
+
+            launcher.execute(cmd, arguments);
+        })
+
         return promise;
     }
 }

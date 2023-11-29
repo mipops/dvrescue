@@ -4,7 +4,11 @@ import QtQuick.Controls 2.12
 import ConnectionUtils 1.0
 
 Rectangle {
-    id: rectangle
+    id: root
+
+    signal commandExecutionStarted(var launcher);
+    signal commandExecutionFinished(var results);
+
     color: "#2e3436"
 
     width: 1190
@@ -169,20 +173,20 @@ Rectangle {
                        csvParserUI.entriesReceived.connect(onEntriesReceived);
 
                        console.debug('logging start capture command')
-                       commandsLogs.logCommand(launcher);
+                       commandExecutionStarted(launcher);
                     }).then((result) => {
                         capturing = false;
                         capturingMode = '';
                         pendingAction = false;
                         player.stop();
-                        commandsLogs.logResult(result.outputText);
+                        commandExecutionFinished(result.outputText);
                         return result;
                     }).catch((e) => {
                         capturing = false;
                         capturingMode = '';
                         pendingAction = false
                         player.stop();
-                        commandsLogs.logResult(e);
+                        commandExecutionFinished(e);
                     });
                 }
 
@@ -198,11 +202,11 @@ Rectangle {
                     }
 
                     dvrescue.control(id, deckControlCmd, opts, (launcher) => {
-                        commandsLogs.logCommand(launcher);
+                        commandExecutionStarted(launcher);
                     }).then((result) => {
                         statusText = deckControlCmd + ".";
                         pendingAction = false;
-                        commandsLogs.logResult(result.outputText);
+                        commandExecutionFinished(result.outputText);
                         return result;
                     });
                 }
@@ -294,28 +298,28 @@ Rectangle {
                            csvParserUI.entriesReceived.connect(onEntriesReceived);
 
                            console.debug('logging grab command')
-                           commandsLogs.logCommand(launcher);
+                           commandExecutionStarted(launcher);
                         }).then((result) => {
                            grabbing = false;
                            pendingAction = false;
                            player.stop();
-                           commandsLogs.logResult(result.outputText);
+                           commandExecutionFinished(result.outputText);
                            grabCompleted(filePath)
                            return result;
                         }).catch((e) => {
                            grabbing = false;
                            pendingAction = false;
                            player.stop();
-                           commandsLogs.logResult(e);
+                           commandExecutionFinished(e);
                         });
                     }
 
                     if(capturing) {
                         dvrescue.control(id, 'stop', (launcher) => {
-                           commandsLogs.logCommand(launcher);
+                           commandExecutionStarted(launcher);
                         }).then((result) => {
                            statusText = "stopping.";
-                           commandsLogs.logResult(result.outputText);
+                           commandExecutionFinished(result.outputText);
 
                            specifyPathDialog.reset();
                            specifyPathDialog.open();

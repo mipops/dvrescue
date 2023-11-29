@@ -11,6 +11,9 @@ import QtAVPlayerUtils 1.0
 ColumnLayout {
     id: root
 
+    signal commandExecutionStarted(var launcher);
+    signal commandExecutionFinished(var results);
+
     property alias segmentDataView: segmentDataView
     property alias currentIndex: segmentDataView.currentIndex
     property alias rowFilter: segmentDataView.rowFilter
@@ -228,7 +231,7 @@ ColumnLayout {
 
             var output = '';
             return packagerCtl.exec(opts, (launcher) => {
-                                 debugView.logCommand(launcher)
+                                 commandExecutionStarted(launcher)
                                  launcher.outputChanged.connect((outputString) => {
                                                                     if(onOutputChanged)
                                                                         onOutputChanged(outputString);
@@ -238,11 +241,11 @@ ColumnLayout {
                                  launcher.errorChanged.connect((errorString) => {
                                                                     if(onOutputChanged)
                                                                         onOutputChanged(errorString);
-                                                                    debugView.logResult(errorString);
+                                                                    commandExecutionFinished(errorString);
                                                                })
                              }, extraParams).then(() => {
                                                       console.debug('executed packagerCtl....')
-                                                      debugView.logResult(output);
+                                                      commandExecutionFinished(output);
                                                   });
         }
 
@@ -290,13 +293,13 @@ ColumnLayout {
 
             var output = '';
             packagerCtl.exec(opts, (launcher) => {
-                                 debugView.logCommand(launcher)
+                                 commandExecutionStarted(launcher)
                                  launcher.outputChanged.connect((outputString) => {
                                                                     output += outputString;
                                                                 })
                              }, extraParams).then(() => {
                                                       console.debug('executed....')
-                                                      debugView.logResult(output);
+                                                      commandExecutionFinished(output);
 
                                                       var i = 0;
                                                       segmentDataParser.parse(output, (entry) => {
@@ -339,7 +342,7 @@ ColumnLayout {
                                                       segmentDataView.populated();
                                                       busy.running = false;
                                                   }).catch((error) => {
-                                                               debugView.logResult(error);
+                                                               commandExecutionFinished(error);
                                                                segmentDataView.populated();
                                                                busy.running = false;
                                                         });

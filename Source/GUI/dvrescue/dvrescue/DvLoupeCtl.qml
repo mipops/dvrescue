@@ -173,6 +173,10 @@ Item {
 
                 launcher.destroy();
             });
+            launcher.processStarted.connect((pid) => {
+                if(callback)
+                    callback(launcher)
+            });
 
             console.debug('dvloupeCmd: ', dvLoupeCmd);
             var cmd = [dvLoupeCmd]
@@ -184,8 +188,6 @@ Item {
                 launcher.setPaths(paths);
 
             launcher.execute(detectedBashCmd, cmd);
-            if(callback)
-                callback(launcher)
         })
 
         return promise;

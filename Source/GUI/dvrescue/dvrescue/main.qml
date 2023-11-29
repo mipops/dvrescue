@@ -71,7 +71,7 @@ ApplicationWindow {
 
         ButtonGroup {
             id: navigationButtons
-            buttons: [captureButton, analysisButton, packageButton]
+            buttons: [captureButton, analysisButton, packageButton, mergeButton]
         }
 
         NavButton {
@@ -95,6 +95,13 @@ ApplicationWindow {
             checkable: true;
             property int index: 2
             icon.source: "/icons/menu-package.svg"
+        }
+        NavButton {
+            id: mergeButton
+            // text: qsTr("Merge")
+            checkable: true;
+            property int index: 3
+            icon.source: "/icons/menu-merge.svg"
         }
         NavButton {
             // text: qsTr("Settings")
@@ -141,7 +148,9 @@ ApplicationWindow {
                              mediaInfo.editRow(index, 'Progress', -1)
                          })
 
-            dvrescue.makeReport(fileInfo.originalPath).then((reportPath) => {
+            dvrescue.makeReport(fileInfo.originalPath, (launcher) => {
+                debugView.logCommand(launcher);
+            }).then((reportPath) => {
                 console.debug('resolved report path: ', reportPath)
                 filesModel.setProperty(index, 'reportPath', reportPath)
 
@@ -237,12 +246,18 @@ ApplicationWindow {
             onGrabCompleted: {
                 filesModel.add(filePath)
             }
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
 
         AnalysePage {
             id: analysePage
             filesModel: filesModel
             recentFilesModel: recentFilesModel
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
 
         PackagePage {
@@ -255,6 +270,23 @@ ApplicationWindow {
             xmlStarletCmd: settings.xmlStarletCmd
             mediaInfoCmd: settings.mediaInfoCmd
             ffmpegCmd: settings.ffmpegCmd
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
+        }
+
+        MergePage {
+            id: mergePage
+            filesModel: filesModel
+            recentFilesModel: recentFilesModel
+
+            dvrescueCmd: settings.dvrescueCmd
+            xmlStarletCmd: settings.xmlStarletCmd
+            mediaInfoCmd: settings.mediaInfoCmd
+            ffmpegCmd: settings.ffmpegCmd
+
+            onCommandExecutionStarted: debugView.logCommand(launcher)
+            onCommandExecutionFinished: debugView.logResult(results)
         }
     }
 
@@ -278,6 +310,21 @@ ApplicationWindow {
         Component.onCompleted: {
             if(Qt.platform.os === "windows") {
                 packagerCtl.paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
+                                      FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
+            }
+        }
+    }
+
+    DvPlayCtl {
+        id: dvplay
+
+        xmlStarletCmd: settings.xmlStarletCmd
+        mediaInfoCmd: settings.mediaInfoCmd
+        ffmpegCmd: settings.ffmpegCmd
+
+        Component.onCompleted: {
+            if(Qt.platform.os === "windows") {
+                paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
                                       FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
             }
         }

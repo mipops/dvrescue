@@ -16,6 +16,9 @@ import SplitView 1.0
 Item {
     id: root
 
+    signal commandExecutionStarted(var launcher);
+    signal commandExecutionFinished(var results);
+
     property int startFrame: 0
     onStartFrameChanged: {
         console.debug('analyse page: startFrame = ', startFrame)
@@ -581,27 +584,14 @@ Item {
                         var args = ['-i', playerView.player.source, '-b', offset, '-f', 'json', '-T', 'n']
                         filterOptions.forEach((opt) => args.push(opt))
                         dvloupe.exec(args, (launcher) => {
-                            debugView.logCommand(launcher)
+                            commandExecutionStarted(launcher)
                         }, extraParams).then((result) => {
+                            commandExecutionFinished(result.outputText)
                             dvloupeView.data = JSON.parse(result.outputText)
                         }).catch((err) => {
+                            commandExecutionFinished(err)
                             console.error('dvloupe.exec error: ', err)
                         })
-                    }
-                }
-
-                DvPlayCtl {
-                    id: dvplay
-
-                    xmlStarletCmd: settings.xmlStarletCmd
-                    mediaInfoCmd: settings.mediaInfoCmd
-                    ffmpegCmd: settings.ffmpegCmd
-
-                    Component.onCompleted: {
-                        if(Qt.platform.os === "windows") {
-                            paths = [ FileUtils.getFileDir(settings.dvrescueCmd), FileUtils.getFileDir(settings.xmlStarletCmd),
-                                                  FileUtils.getFileDir(settings.mediaInfoCmd), FileUtils.getFileDir(settings.ffmpegCmd) ]
-                        }
                     }
                 }
 

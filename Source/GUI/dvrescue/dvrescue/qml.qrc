@@ -44,6 +44,7 @@
         <file>icons/menu-help.svg</file>
         <file>icons/menu-package.svg</file>
         <file>icons/menu-settings.svg</file>
+        <file>icons/menu-merge.svg</file>
         <file>JumpRepeatTextDelegate.qml</file>
         <file>TextImageDelegate.qml</file>
         <file>SubstantialTextDelegate.qml</file>
@@ -109,5 +110,11 @@
         <file>AboutDialog.qml</file>
         <file>icons/no_decks.gif</file>
         <file>DecklinkConfigPopup.qml</file>
+        <file>MergePage.qml</file>
+        <file>MergeFileView.qml</file>
+        <file>MergeOutputFileView.qml</file>
+        <file>MergeReportView.qml</file>
+        <file>MergeInputFileView.qml</file>
+        <file>MergeAnalyzeView.qml</file>
     </qresource>
 </RCC>
