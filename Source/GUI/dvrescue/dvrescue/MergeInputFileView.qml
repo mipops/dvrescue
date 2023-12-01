@@ -19,6 +19,7 @@ Rectangle {
     property alias tableView: tableView
 
     readonly property string filePathColumn: "Input File Path"
+    property var colors: []
 
     function forceLayout() {
         tableView.forceLayout();
@@ -208,6 +209,8 @@ Rectangle {
                         anchors.leftMargin: deleteButton.width
 
                         color: (row % 2) == 0 ? evenColor : oddColor
+                        overlayVisible: true
+                        overlayColor: row < colors.length ? colors[row] : 'transparent'
 
                         CustomButton {
                             id: deleteButton

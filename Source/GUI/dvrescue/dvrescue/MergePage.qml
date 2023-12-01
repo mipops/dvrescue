@@ -31,6 +31,8 @@ Item {
     property alias mergeReportView: mergeReportView
     property alias mergeAnalyzeView: mergeAnalyzeView
 
+    property var colors: 'red green blue magenta yellow cyan'.split(' ')
+
     DropArea {
         id: dropArea;
         anchors.fill: parent
@@ -325,6 +327,7 @@ Item {
                 MergeReportView {
                     id: mergeReportView
                     anchors.fill: parent
+                    colors: root.colors
 
                     function refresh() {
                         dataModel.clear();
@@ -426,6 +429,7 @@ Item {
 
             MergeInputFileView {
                 id: mergeInputFileView
+                colors: root.colors
 
                 Component.onCompleted: {
                     SplitView.preferredHeight = Qt.binding(function() { return height })

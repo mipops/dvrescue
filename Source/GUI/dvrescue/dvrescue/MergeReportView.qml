@@ -29,6 +29,8 @@ Rectangle {
     property var inputFiles: []
     property var outputFile;
 
+    property var colors: []
+
     function forceLayout() {
         tableView.forceLayout();
     }
@@ -139,6 +141,8 @@ Rectangle {
                         property color redColor: 'red'
                         textFont.pixelSize: 13
                         text: '<a href="#">' + display + '</a>'
+                        overlayVisible: true
+                        overlayColor: decoration < colors.length ? colors[decoration] : 'transparent'
                         onLinkActivated: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
                             var info = dataModel.getRow(sourceRow);
@@ -159,6 +163,8 @@ Rectangle {
                         property color redColor: 'red'
                         textFont.pixelSize: 13
                         text: display
+                        overlayVisible: true
+                        overlayColor: decoration < colors.length ? colors[decoration] : 'transparent'
 
                         color: (row % 2) == 0 ? evenColor : oddColor
                     }
@@ -179,31 +185,37 @@ Rectangle {
 
         TableModelColumn {
             display: framePosColumn
+            decoration: fileSelectionColumn
             property int minWidth: 20
         }
 
         TableModelColumn {
             display: timeCodeColumn
+            decoration: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: fileSelectionColumn
+            decoration: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: statusColumn
+            decoration: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: issueFixedColumn
+            decoration: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: blockErrorsColumn
+            decoration: fileSelectionColumn
             property int minWidth: 50
         }
     }

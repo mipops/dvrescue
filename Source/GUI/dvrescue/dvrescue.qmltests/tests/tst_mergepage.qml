@@ -95,24 +95,34 @@ Rectangle {
         when: windowShown
         id: testcase
 
+        property var inputFiles: [
+            'C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv',
+            'C:\\Users\\ai\\Downloads\\sno_432600000_162000000.dv',
+        ]
+
+        property var mergeResult: 'C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv_merged.dv'
+
         function initTestCase() {
         }
 
-        function test_mergePage() {
+        function test_mergePage_popup() {
             mergePage.visible = true;
-
-            var inputFiles = [
-                'C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv',
-                'C:\\Users\\ai\\Downloads\\sno_432600000_162000000.dv'
-            ];
 
             for(var i = 0; i < inputFiles.length; ++i) {
                 mergePage.mergeInputFilesView.newRow(inputFiles[i])
             }
 
-            var mergeResult = 'C:\\Users\\ai\\Downloads\\sno_1046040000_162000000.dv_merged.dv';
             mergePage.mergeAnalyzeView.open();
             mergePage.mergeAnalyzeView.doDvPlay('88800000', inputFiles, '88800000', mergeResult);
+
+        }
+
+        function test_mergePage() {
+            mergePage.visible = true;
+
+            for(var i = 0; i < inputFiles.length; ++i) {
+                mergePage.mergeInputFilesView.newRow(inputFiles[i])
+            }
 
             // filesModel.add('C:\\Users\\ai\\Downloads\\sno_0_162000000.dv');
             // filesModel.add('C:\\Users\\ai\\Downloads\\sno_216120000_162000000.dv');
