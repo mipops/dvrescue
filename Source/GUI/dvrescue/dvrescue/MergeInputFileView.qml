@@ -33,6 +33,12 @@ Rectangle {
     }
 
     function newRow(path) {
+        for(var i = 0; i < dataModel.rowCount; ++i) {
+            var row = dataModel.getRow(i)
+            if(row[filePathColumn] === path)
+                return;
+        }
+
         var rowEntry = {}
         rowEntry[filePathColumn] = path
 
