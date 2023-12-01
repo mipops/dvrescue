@@ -258,6 +258,7 @@ Item {
                     property int indexOfStatus: -1
                     property int indexOfIssueFixed: -1
                     property int indexOfBlockErrors: -1
+                    property int indexOfBlockErrors_Even: -1
                     property int indexOfComments: -1
 
                     property int indexOfInputPos: -1
@@ -284,6 +285,7 @@ Item {
                         indexOfStatus = columnNames.indexOf('Status');
                         indexOfIssueFixed = columnNames.indexOf('IssueFixed');
                         indexOfBlockErrors = columnNames.indexOf('BlockErrors');
+                        indexOfBlockErrors_Even = columnNames.indexOf('BlockErrors_Even');
                         indexOfComments = columnNames.indexOf('Comments');
                         indexOfInputPos = columnNames.indexOf('InputPos');
                         indexOfOutputPos = columnNames.indexOf('OutputPos');
@@ -294,6 +296,7 @@ Item {
                         console.debug('indexOfStatus: ', indexOfStatus)
                         console.debug('indexOfIssueFixed: ', indexOfIssueFixed)
                         console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
+                        console.debug('indexOfBlockErrors_Even: ', indexOfBlockErrors_Even)
                         console.debug('indexOfComments: ', indexOfComments)
                         console.debug('indexOfInputPos: ', indexOfInputPos)
                         console.debug('indexOfOutputPos: ', indexOfOutputPos)
@@ -306,9 +309,18 @@ Item {
                         var status = entries[indexOfStatus]
                         var issueFixed = entries[indexOfIssueFixed]
                         var blockErrors = entries[indexOfBlockErrors]
+                        var blockErrorsEven = entries[indexOfBlockErrors_Even]
                         var comments = entries[indexOfComments]
                         var inputPos = entries[indexOfInputPos]
                         var outputPos = entries[indexOfOutputPos]
+
+                        var blockErrorsEvenOdd = Qt.point(Number(blockErrorsEven) / 1440 * 2,
+                                                          (Number(blockErrors) - Number(blockErrorsEven)) / 1440 * 2);
+
+                        if(Number(blockErrors) !== 0) {
+                            console.debug('blockErrors: ', blockErrors, 'blockErrorsEven: ', blockErrorsEven)
+                            console.debug('blockErrorsEvenOdd: ', blockErrorsEvenOdd)
+                        }
 
                         rows.push({
                                       'Frame #' : framePos,
@@ -317,6 +329,8 @@ Item {
                                       'Status' : status,
                                       'IssueFixed' : issueFixed,
                                       'BlockErrors' : blockErrors,
+                                      'hasNoBlockErrors' : Number(blockErrors) === 0,
+                                      'blockErrorsEvenOdd' : blockErrorsEvenOdd,
                                       'Comments' : comments,
                                       'InputPos' : inputPos,
                                       'OutputPos' : outputPos
