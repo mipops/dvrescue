@@ -63,6 +63,7 @@ class matroska_writer
 {
 public:
     matroska_writer(std::ostream* output, int width, int height, int framerate_num, int framerate_den, bool has_timecode = false);
+    ~matroska_writer();
 
     void write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, timecode_struct timecode = timecode_struct());
 
@@ -74,6 +75,8 @@ private:
     int framerate_num;
     int framerate_den;
     bool has_timecode;
+    char* buffer;
+    size_t buffer_size;
     unsigned long long frame_number;
     unsigned long long output_size;
     std::ostream* output;
