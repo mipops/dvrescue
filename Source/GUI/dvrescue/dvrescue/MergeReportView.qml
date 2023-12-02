@@ -13,7 +13,7 @@ Rectangle {
     id: root
     color: 'transparent'
 
-    signal fileSelectionClicked(var info);
+    signal fileSelectionClicked(var row);
 
     property alias dataModel: dataModel
     property alias tableView: tableView
@@ -153,9 +153,7 @@ Rectangle {
                         overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
                         onLinkActivated: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var info = dataModel.getRow(sourceRow);
-
-                            root.fileSelectionClicked(info);
+                            root.fileSelectionClicked(sourceRow);
                         }
 
                         color: (row % 2) == 0 ? evenColor : oddColor

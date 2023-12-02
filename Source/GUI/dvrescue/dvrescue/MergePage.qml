@@ -99,6 +99,37 @@ Item {
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
 
+        property int index: -1
+        onIndexChanged: {
+            var info = mergeReportView.dataModel.getRow(index);
+
+            inputPos = info.InputPos;
+            outputPos = info.OutputPos;
+            timecodeText = info[mergeReportView.timeCodeColumn];
+            frameNumberText = info[mergeReportView.framePosColumn];
+        }
+
+        property string inputPos: ''
+        property string outputPos: ''
+
+        canPrev: index > 0
+        canNext: index < (mergeReportView.dataModel.rowCount - 1)
+        onPrev: {
+            --index
+            fetch()
+        }
+        onNext: {
+            ++index
+            fetch()
+        }
+        onRefresh: {
+            fetch()
+        }
+
+        function fetch() {
+            doDvPlay(inputPos, mergeReportView.inputFiles, outputPos, mergeReportView.outputFile);
+        }
+
         function doDvPlay(inputPos, inputFiles, outputPos, mergeResult) {
             console.debug('executing dvplay... ');
             showBusyIndicator = true
@@ -460,10 +491,8 @@ Item {
                     }
 
                     onFileSelectionClicked: {
-                        var inputPos = info.InputPos;
-                        var outputPos = info.OutputPos;
-
-                        mergeAnalyzeView.doDvPlay(inputPos, inputFiles, outputPos, outputFile);
+                        mergeAnalyzeView.index = row;
+                        mergeAnalyzeView.fetch();
                         mergeAnalyzeView.open();
                     }
 
