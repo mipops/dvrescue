@@ -13,7 +13,7 @@ Rectangle {
     id: root
     color: 'transparent'
 
-    signal fileSelectionClicked(var info);
+    signal fileSelectionClicked(var row);
 
     property alias dataModel: dataModel
     property alias tableView: tableView
@@ -28,6 +28,8 @@ Rectangle {
 
     property var inputFiles: []
     property var outputFile;
+
+    property var colors: []
 
     function forceLayout() {
         tableView.forceLayout();
@@ -79,6 +81,14 @@ Rectangle {
             model: sortFilterTableModel
             dataModel: dataModel
             delegateHeight: 25
+
+            property int blockErrorsColumnIndex: {
+                console.debug('blockErrorsColumnIndex: dataModel.columnsNames: ', JSON.stringify(dataModel.columnsNames))
+                return dataModel.columnsNames.indexOf(blockErrorsColumn);
+            }
+            onBlockErrorsColumnIndexChanged: {
+                console.debug('blockErrorsColumnIndex: ', blockErrorsColumnIndex)
+            }
 
             headerDelegate: SortableFiltrableColumnHeading {
                 id: header
@@ -139,12 +149,34 @@ Rectangle {
                         property color redColor: 'red'
                         textFont.pixelSize: 13
                         text: '<a href="#">' + display + '</a>'
+                        overlayVisible: true
+                        overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
                         onLinkActivated: {
                             var sourceRow = sortFilterTableModel.toSourceRowIndex(row);
-                            var info = dataModel.getRow(sourceRow);
-
-                            root.fileSelectionClicked(info);
+                            root.fileSelectionClicked(sourceRow);
                         }
+
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                    }
+                }
+
+                DelegateChoice  {
+                    column: 5
+                    OddEvenTextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+                        overlayVisible: true
+                        overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
+
+                        evenProgressColor: edit ? 'yellow' : 'darkgreen'
+                        oddProgressColor: edit ? 'yellow' : 'green'
+                        evenProgress.value: edit ? 1 : decoration.x
+                        oddProgress.value: edit ? 1 : decoration.y
 
                         color: (row % 2) == 0 ? evenColor : oddColor
                     }
@@ -159,6 +191,8 @@ Rectangle {
                         property color redColor: 'red'
                         textFont.pixelSize: 13
                         text: display
+                        overlayVisible: true
+                        overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
 
                         color: (row % 2) == 0 ? evenColor : oddColor
                     }
@@ -179,31 +213,41 @@ Rectangle {
 
         TableModelColumn {
             display: framePosColumn
+            foreground: fileSelectionColumn
             property int minWidth: 20
         }
 
         TableModelColumn {
             display: timeCodeColumn
+            foreground: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: fileSelectionColumn
+            foreground: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: statusColumn
+            foreground: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: issueFixedColumn
+            foreground: fileSelectionColumn
             property int minWidth: 50
         }
 
         TableModelColumn {
             display: blockErrorsColumn
+            foreground: fileSelectionColumn
+
+            decoration: "blockErrorsEvenOdd";
+            edit: "hasNoBlockErrors";
+
             property int minWidth: 50
         }
     }

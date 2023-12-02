@@ -90,18 +90,18 @@ ApplicationWindow {
             icon.source: "/icons/menu-analysis.svg"
         }
         NavButton {
-            id: packageButton
-            // text: qsTr("Package")
-            checkable: true;
-            property int index: 2
-            icon.source: "/icons/menu-package.svg"
-        }
-        NavButton {
             id: mergeButton
             // text: qsTr("Merge")
             checkable: true;
-            property int index: 3
+            property int index: 2
             icon.source: "/icons/menu-merge.svg"
+        }
+        NavButton {
+            id: packageButton
+            // text: qsTr("Package")
+            checkable: true;
+            property int index: 3
+            icon.source: "/icons/menu-package.svg"
         }
         NavButton {
             // text: qsTr("Settings")
@@ -260,11 +260,10 @@ ApplicationWindow {
             onCommandExecutionFinished: debugView.logResult(results)
         }
 
-        PackagePage {
-            id: packagePage
+        MergePage {
+            id: mergePage
             filesModel: filesModel
             recentFilesModel: recentFilesModel
-            framesCount: analysePage.framesCount
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd
@@ -275,10 +274,11 @@ ApplicationWindow {
             onCommandExecutionFinished: debugView.logResult(results)
         }
 
-        MergePage {
-            id: mergePage
+        PackagePage {
+            id: packagePage
             filesModel: filesModel
             recentFilesModel: recentFilesModel
+            framesCount: analysePage.framesCount
 
             dvrescueCmd: settings.dvrescueCmd
             xmlStarletCmd: settings.xmlStarletCmd
