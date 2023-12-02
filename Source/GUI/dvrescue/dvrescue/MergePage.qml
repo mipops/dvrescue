@@ -137,117 +137,223 @@ Item {
         id: splitView
         anchors.fill: parent
         anchors.margins: 20
-        orientation: Qt.Horizontal
-        onWidthChanged: {
-            leftLayout.width = width / 2
+        orientation: Qt.Vertical
+        onHeightChanged: {
+            topLayout.height = height / 3
         }
 
         SplitView {
-            id: leftLayout
-            orientation: Qt.Vertical
+            id: topLayout
+            orientation: Qt.Horizontal
 
             Component.onCompleted: {
-                SplitView.preferredWidth = Qt.binding(function() { return width })
+                SplitView.preferredHeight = Qt.binding(function() { return height })
             }
 
-            onHeightChanged: {
-                selectFilesPanel.height = height / 5 * 1.5
+            onWidthChanged: {
+                filesPanel.width = width / 2
             }
 
-            Rectangle {
-                id: selectFilesPanel
-                color: 'white'
+
+            Item {
+                id: filesPanel
+                RowLayout {
+                    id: toolsLayout
+
+                    property string dvRescueXmlExtension: ".dvrescue.xml"
+                    property int fileViewerHeight: 0
+
+                    CustomButton {
+                        id: addFiles
+                        icon.color: "transparent"
+                        icon.source: "/icons/add-files.svg"
+                        implicitHeight: 30
+                        implicitWidth: 47
+
+                        onClicked: {
+                            selectPath.callback = (urls) => {
+                                urls.forEach((url) => {
+                                                 var filePath = FileUtils.getFilePath(url);
+                                                 var dirPath = FileUtils.getFileDir(filePath);
+
+                                                 // Test if we can access content directory, or open a dialog to try to gains rights on it
+                                                 if (!FileUtils.isWritable(dirPath)) {
+                                                     FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
+                                                 }
+                                                 filesModel.add(filePath);
+                                                 root.recentFilesModel.addRecent(filePath)
+                                             });
+                            }
+
+                            selectPath.open();
+                        }
+                    }
+
+                    CustomButton {
+                        icon.color: "transparent"
+                        icon.source: "/icons/recent.svg"
+                        implicitHeight: 30
+                        implicitWidth: 47
+
+                        onClicked: {
+                            var mapped = mapToItem(root, 0, 0);
+                            recentsPopup.x = mapped.x
+                            recentsPopup.y = mapped.y + height
+
+                            recentsPopup.open();
+                        }
+                    }
+                }
+
+                MergeFileView {
+                    id: fileView
+                    anchors.top: toolsLayout.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                }
+
+                Component.onCompleted: {
+                    SplitView.preferredWidth = Qt.binding(function() { return width })
+                }
+            }
+
+            MergeInputFileView {
+                id: mergeInputFileView
+                colors: root.colors
 
                 Component.onCompleted: {
                     SplitView.preferredHeight = Qt.binding(function() { return height })
                 }
+            }
+        }
 
-                ButtonGroup {
-                    buttons: [packageIntoSameFolderButton, specifyPathButton]
+        SplitView {
+            id: bottomLayout
+            orientation: Qt.Horizontal
+
+            Component.onCompleted: {
+                SplitView.preferredHeight = Qt.binding(function() { return height })
+            }
+
+            onWidthChanged: {
+                selectFilesAndMergeOutputLayout.width = width / 2
+            }
+
+            Item {
+                id: selectFilesAndMergeOutputLayout
+
+                Component.onCompleted: {
+                    SplitView.preferredWidth = Qt.binding(function() { return width })
                 }
 
-                ColumnLayout {
-                    anchors.centerIn: parent
+                Rectangle {
+                    id: selectFilesPanel
+                    color: 'white'
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: buttonsColumn.childrenRect.height
 
-                    RadioButton {
-                        id: packageIntoSameFolderButton
-                        text: 'Package into same folder'
-                        checked: true
+                    ButtonGroup {
+                        buttons: [packageIntoSameFolderButton, specifyPathButton]
                     }
 
-                    RowLayout {
+                    ColumnLayout {
+                        id: buttonsColumn
+                        anchors.centerIn: parent
+
                         RadioButton {
-                            id: specifyPathButton
-                            text: 'Specify path'
+                            id: packageIntoSameFolderButton
+                            text: 'Package into same folder'
+                            checked: true
                         }
 
-                        TextField {
-                            id: filePath
-                            placeholderText: 'path...'
-                            implicitWidth: 400
-                        }
+                        RowLayout {
+                            RadioButton {
+                                id: specifyPathButton
+                                text: 'Specify path'
+                            }
 
-                        ToolButton {
-                            onClicked: {
-                                selectFile.callback = (url) => {
-                                    var file = FileUtils.getFilePath(url);
-                                    filePath.text = file;
+                            TextField {
+                                id: filePath
+                                placeholderText: 'path...'
+                                implicitWidth: 400
+                            }
+
+                            ToolButton {
+                                onClicked: {
+                                    selectFile.callback = (url) => {
+                                        var file = FileUtils.getFilePath(url);
+                                        filePath.text = file;
+                                    }
+                                    selectFile.open();
                                 }
-                                selectFile.open();
+                            }
+                        }
+
+                        Button {
+                            text: 'Merge'
+                            enabled: mergeInputFileView.dataModel.rowCount !== 0
+                            onClicked: {
+                                var inputFiles = [];
+                                for(var i = 0; i < mergeInputFileView.dataModel.rowCount; ++i) {
+                                    inputFiles.push(mergeInputFileView.dataModel.getRow(i)[mergeInputFileView.filePathColumn])
+                                }
+
+                                var outputFile = '';
+
+                                if(specifyPathButton.checked && filePath.text !== '') {
+                                    outputFile = filePath.text
+                                }
+
+                                if(packageIntoSameFolderButton.checked) {
+                                    outputFile = inputFiles[0] + "_merged.dv";
+                                }
+
+                                if(FileUtils.exists(outputFile)) {
+                                    FileUtils.remove(outputFile);
+                                }
+
+                                mergeOutputFileView.newRow(outputFile);
+                                mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'packaging')
+
+                                dvrescue.merge(inputFiles, outputFile, (launcher) => {
+                                    commandExecutionStarted(launcher);
+                                }).then((result) => {
+                                    csvParser.rows = [];
+                                    csvParser.write(result.outputText);
+
+                                    mergeReportView.inputFiles = inputFiles;
+                                    mergeReportView.outputFile = outputFile;
+                                    mergeReportView.refresh();
+                                    mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'finished')
+                                    commandExecutionFinished(result.outputText);
+                                })
+                                .catch((error) => {
+                                    packageOutputFileView.updatePackagingErrorByPath(outputFile, error);
+                                    commandExecutionFinished(error);
+                                })
                             }
                         }
                     }
+                }
 
-                    Button {
-                        text: 'Merge'
-                        enabled: mergeInputFileView.dataModel.rowCount !== 0
-                        onClicked: {
-                            var inputFiles = [];
-                            for(var i = 0; i < mergeInputFileView.dataModel.rowCount; ++i) {
-                                inputFiles.push(mergeInputFileView.dataModel.getRow(i)[mergeInputFileView.filePathColumn])
-                            }
-
-                            var outputFile = '';
-
-                            if(specifyPathButton.checked && filePath.text !== '') {
-                                outputFile = filePath.text
-                            }
-
-                            if(packageIntoSameFolderButton.checked) {
-                                outputFile = inputFiles[0] + "_merged.dv";
-                            }
-
-                            if(FileUtils.exists(outputFile)) {
-                                FileUtils.remove(outputFile);
-                            }
-
-                            mergeOutputFileView.newRow(outputFile);
-                            mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'packaging')
-
-                            dvrescue.merge(inputFiles, outputFile, (launcher) => {
-                                commandExecutionStarted(launcher);
-                            }).then((result) => {
-                                csvParser.rows = [];
-                                csvParser.write(result.outputText);
-
-                                mergeReportView.inputFiles = inputFiles;
-                                mergeReportView.outputFile = outputFile;
-                                mergeReportView.refresh();
-                                mergeOutputFileView.updatePackagingStatusByPath(outputFile, 'finished')
-                                commandExecutionFinished(result.outputText);
-                            })
-                            .catch((error) => {
-                                packageOutputFileView.updatePackagingErrorByPath(outputFile, error);
-                                commandExecutionFinished(error);
-                            })
-                        }
-                    }
+                MergeOutputFileView {
+                    id: mergeOutputFileView
+                    anchors.top: selectFilesPanel.bottom
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                 }
             }
 
             Rectangle {
                 id: summaryTablePanel
                 color: 'transparent'
+
+                Component.onCompleted: {
+                    SplitView.preferredHeight = Qt.binding(function() { return height })
+                }
 
                 CsvParser {
                     id: csvParser
@@ -366,121 +472,6 @@ Item {
                     }
                 }
             }
-        }
-
-        SplitView {
-            id: rightLayout
-            orientation: Qt.Vertical
-
-            onHeightChanged: {
-                filesPanel.height = height / 5 * 2
-                mergeInputFileView.height = height / 5 * 2
-                mergeOutputFileView.height = height / 5 * 1
-            }
-
-            Item {
-                id: filesPanel
-                RowLayout {
-                    id: toolsLayout
-
-                    property string dvRescueXmlExtension: ".dvrescue.xml"
-                    property int fileViewerHeight: 0
-
-                    CustomButton {
-                        id: addFiles
-                        icon.color: "transparent"
-                        icon.source: "/icons/add-files.svg"
-                        implicitHeight: 30
-                        implicitWidth: 47
-
-                        onClicked: {
-                            selectPath.callback = (urls) => {
-                                urls.forEach((url) => {
-                                                 var filePath = FileUtils.getFilePath(url);
-                                                 var dirPath = FileUtils.getFileDir(filePath);
-
-                                                 // Test if we can access content directory, or open a dialog to try to gains rights on it
-                                                 if (!FileUtils.isWritable(dirPath)) {
-                                                     FileUtils.requestRWPermissionsForPath(dirPath, qsTr("Please authorize DVRescue to write to the containing folder to proceed."));
-                                                 }
-                                                 filesModel.add(filePath);
-                                                 root.recentFilesModel.addRecent(filePath)
-                                             });
-                            }
-
-                            selectPath.open();
-                        }
-                    }
-
-                    CustomButton {
-                        icon.color: "transparent"
-                        icon.source: "/icons/recent.svg"
-                        implicitHeight: 30
-                        implicitWidth: 47
-
-                        onClicked: {
-                            var mapped = mapToItem(root, 0, 0);
-                            recentsPopup.x = mapped.x
-                            recentsPopup.y = mapped.y + height
-
-                            recentsPopup.open();
-                        }
-                    }
-                }
-
-                MergeFileView {
-                    id: fileView
-                    anchors.top: toolsLayout.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                }
-
-                Component.onCompleted: {
-                    SplitView.preferredHeight = Qt.binding(function() { return height })
-                }
-            }
-
-            MergeInputFileView {
-                id: mergeInputFileView
-                colors: root.colors
-
-                Component.onCompleted: {
-                    SplitView.preferredHeight = Qt.binding(function() { return height })
-                }
-            }
-
-            MergeOutputFileView {
-                id: mergeOutputFileView
-
-                Component.onCompleted: {
-                    SplitView.preferredHeight = Qt.binding(function() { return height })
-                }
-            }
-
-            /*
-            Item {
-                id: activityLogPanel
-                Text {
-                    id: label
-                    text: 'Activity log'
-                    color: 'white'
-                    font.pixelSize: 20
-                }
-
-                Rectangle {
-                    color: 'white'
-                    anchors.top: label.bottom
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom:  parent.bottom
-
-                    TextEdit {
-                        anchors.fill: parent
-                    }
-                }
-            }
-            */
         }
     }
 }
