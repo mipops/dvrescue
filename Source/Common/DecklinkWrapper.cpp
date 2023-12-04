@@ -9,6 +9,7 @@
 #include "Common/Merge.h"
 
 #include <DeckLinkAPIDispatch.cpp>
+#include <iostream>
 #include <ctime>
 
 using namespace std;
@@ -594,8 +595,13 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
 
         output Output;
-        Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
-        Output.Writer = new matroska_writer(Output.Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+        if (OutputFile == "-")
+          Output.Writer = new matroska_writer(&cout, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+        else
+        {
+            Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
+            Output.Writer = new matroska_writer(Output.Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+        }
         Outputs.push_back(Output);
     }
 
@@ -667,10 +673,17 @@ void DecklinkWrapper::StopCaptureSession()
 
     for (output Output: Outputs)
     {
-        Output.Writer->close(Output.Output);
-        Output.Output->close();
-        delete Output.Writer;
-        delete Output.Output;
+        if (Output.Writer)
+        {
+             Output.Writer->close(Output.Output);
+             delete Output.Writer;
+        }
+
+        if (Output.Output)
+        {
+            Output.Output->close();
+            delete Output.Output;
+        }
     }
     Outputs.clear();
 
