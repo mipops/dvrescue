@@ -708,6 +708,7 @@ while [[ "${@}" != "" ]] ; do
             rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
         else
             _set_up_xsl
+            _mkdir2 "${IMAGE_DIR}"
             xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
