@@ -37,7 +37,7 @@ To vizualize the relationship between inputs and a merged output (-s, -S, and -b
  -s <list> (provide a pipe-delimited list of the input files for the merge)
  -S <list> (provide a pipe-delimited list of the offsets to the input files listed in '-s')
 
- For example `dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv` would show
+ For example 'dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv' would show
  an image that depicts the input frames (at the corresponding offsets of the corresponding input
  file) with the corresponding merged output frame at the corresponding offset.
 
@@ -290,7 +290,7 @@ cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
                       <xsl:if test="@end_pts"><dt>End timestamp</dt><dd><xsl:value-of select="@end_pts"/></dd></xsl:if>
                       <xsl:if test="@tc"><dt>Start timecode</dt><dd><xsl:value-of select="dv:frame[@tc!=''][1]/@tc"/></dd></xsl:if>
                       <xsl:if test="dv:frame/@abst"><dt>ABST Range</dt><dd><xsl:value-of select="dv:frame[@abst!=''][1]/@abst"/> - <xsl:value-of select="dv:frame[@abst!=''][last()]/@abst"/></dd></xsl:if>
-                      <xsl:if test="dv:frame/@abst"><dt>ABST Frame Rate</dt><dd><xsl:value-of select="(dv:frame[@abst!=''][last()]/@abst + dv:frame[@abst!=''][1]/@abst) div (dv:frame[@abst!=''][last()]/@n + dv:frame[@abst!=''][1]/@n)"/></dd></xsl:if>
+                      <xsl:if test="dv:frame/@abst"><dt>ABST Frame Rate</dt><dd><xsl:value-of select="(dv:frame[@abst!=''][last()]/@abst - dv:frame[@abst!=''][1]/@abst) div (dv:frame[@abst!=''][last()]/@n - dv:frame[@abst!=''][1]/@n)"/></dd></xsl:if>
                     </dl>
                   </td>
                   <td>
@@ -708,6 +708,7 @@ while [[ "${@}" != "" ]] ; do
             rm -r "${IMAGE_DIR}/dvrescue_tmp" "${GIF_PALETTE}.png"
         else
             _set_up_xsl
+            _mkdir2 "${IMAGE_DIR}"
             xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
