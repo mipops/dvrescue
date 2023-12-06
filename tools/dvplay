@@ -37,7 +37,7 @@ To vizualize the relationship between inputs and a merged output (-s, -S, and -b
  -s <list> (provide a pipe-delimited list of the input files for the merge)
  -S <list> (provide a pipe-delimited list of the offsets to the input files listed in '-s')
 
- For example `dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv` would show
+ For example 'dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv' would show
  an image that depicts the input frames (at the corresponding offsets of the corresponding input
  file) with the corresponding merged output frame at the corresponding offset.
 
