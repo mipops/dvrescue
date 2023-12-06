@@ -14,6 +14,7 @@ Rectangle {
     color: 'transparent'
     property var filesModel: null
     signal fileAdded(string filePath);
+    property bool dragActive: false
 
     property alias tableView: tableView
     readonly property string selectedPath: {
@@ -241,6 +242,9 @@ Rectangle {
                         DragHandler {
                             id: dragHandler
                             target: dragContent
+                            onActiveChanged: {
+                                root.dragActive = active
+                            }
                         }
 
                         TextInput {

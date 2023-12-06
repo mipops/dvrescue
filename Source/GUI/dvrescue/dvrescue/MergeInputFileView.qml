@@ -17,6 +17,7 @@ Rectangle {
 
     property alias dataModel: dataModel
     property alias tableView: tableView
+    property alias dropAreaEnabled: dropArea.enabled
 
     readonly property string filePathColumn: "Input File Path"
     property var colors: []
