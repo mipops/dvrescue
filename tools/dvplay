@@ -290,7 +290,7 @@ cat > "${DVPLAY_DISPLAY_TEMP}" << 'DISPLAY_XSL'
                       <xsl:if test="@end_pts"><dt>End timestamp</dt><dd><xsl:value-of select="@end_pts"/></dd></xsl:if>
                       <xsl:if test="@tc"><dt>Start timecode</dt><dd><xsl:value-of select="dv:frame[@tc!=''][1]/@tc"/></dd></xsl:if>
                       <xsl:if test="dv:frame/@abst"><dt>ABST Range</dt><dd><xsl:value-of select="dv:frame[@abst!=''][1]/@abst"/> - <xsl:value-of select="dv:frame[@abst!=''][last()]/@abst"/></dd></xsl:if>
-                      <xsl:if test="dv:frame/@abst"><dt>ABST Frame Rate</dt><dd><xsl:value-of select="(dv:frame[@abst!=''][last()]/@abst + dv:frame[@abst!=''][1]/@abst) div (dv:frame[@abst!=''][last()]/@n + dv:frame[@abst!=''][1]/@n)"/></dd></xsl:if>
+                      <xsl:if test="dv:frame/@abst"><dt>ABST Frame Rate</dt><dd><xsl:value-of select="(dv:frame[@abst!=''][last()]/@abst - dv:frame[@abst!=''][1]/@abst) div (dv:frame[@abst!=''][last()]/@n - dv:frame[@abst!=''][1]/@n)"/></dd></xsl:if>
                     </dl>
                   </td>
                   <td>
