@@ -252,6 +252,10 @@ Item {
             MergeInputFileView {
                 id: mergeInputFileView
                 colors: root.colors
+                dropAreaEnabled: fileView.dragActive
+                onDropAreaEnabledChanged: {
+                    console.debug('dropAreaEnabled: ', dropAreaEnabled);
+                }
 
                 Component.onCompleted: {
                     SplitView.preferredHeight = Qt.binding(function() { return height })

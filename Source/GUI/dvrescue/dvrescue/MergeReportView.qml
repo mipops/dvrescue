@@ -161,6 +161,61 @@ Rectangle {
                 }
 
                 DelegateChoice  {
+                    column: 3
+                    StatusDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        overlayVisible: true
+                        overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
+
+                        status: display.padEnd(inputFiles.length);
+                        color: (row % 2) == 0 ? evenColor : oddColor
+
+                        MouseArea {
+                            id: statusMouseArea
+                            hoverEnabled: true
+                            anchors.fill: parent
+                        }
+
+                        DefaultToolTip {
+                            visible: statusMouseArea.containsMouse
+                            text: {
+                                var rowData = dataModel.getRow(row);
+
+                                var text = 'For ${timecode}: '.replace('${timecode}', rowData[timeCodeColumn]);
+                                var status = rowData[statusColumn].padEnd(inputFiles.length)
+
+                                for(var i = 0; i < status.length; ++i) {
+                                    text += 'Input {number} ({status}); '.replace('{number}', i).replace('{status}', status[i] === 'M' ? 'missing' : status[i] === 'P' ? 'problem' : 'ok')
+                                }
+
+                                return text;
+                            }
+                            delay: 1500
+                            anchors.centerIn: parent
+                        }
+                    }
+
+                    /*
+                    TextDelegate {
+                        height: tableView.delegateHeight
+                        implicitHeight: tableView.delegateHeight
+                        property color evenColor: '#e3e3e3'
+                        property color oddColor: '#f3f3f3'
+                        property color redColor: 'red'
+                        textFont.pixelSize: 13
+                        text: display
+                        overlayVisible: true
+                        overlayColor: foreground < colors.length ? colors[foreground] : 'transparent'
+
+                        color: (row % 2) == 0 ? evenColor : oddColor
+                    }
+                    */
+                }
+
+                DelegateChoice  {
                     column: 5
                     OddEvenTextDelegate {
                         height: tableView.delegateHeight
@@ -232,7 +287,7 @@ Rectangle {
         TableModelColumn {
             display: statusColumn
             foreground: fileSelectionColumn
-            property int minWidth: 50
+            property int minWidth: 50 * inputFiles.length
         }
 
         TableModelColumn {
