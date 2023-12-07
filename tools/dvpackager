@@ -822,6 +822,7 @@ fi
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
+OPT_INPUT+=(-probesize 10M)
 OPT_OUTPUT+=(-c:v:0 copy)
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
