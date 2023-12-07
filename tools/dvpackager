@@ -28,7 +28,7 @@ Options:
  -o <dir> (provide a custom output directory)
 
  -e <ext> (specify the extension of the container to use. Tested with:
-           mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
+           mkv, mov, dv. Defaults to mov. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
