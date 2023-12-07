@@ -1089,7 +1089,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
                             _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
                             _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
-                            _report -w "Consider updating to the latest version of dvrescue and this error recurs,"
+                            _report -w "Consider updating to the latest version of dvrescue and if this error recurs,"
                             _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
                             CHa="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
                         fi
