@@ -409,8 +409,10 @@ _condense_ranges(){
         fi
         if [[ "${CH_FIRST}" = "4" || "${CH_PREV}" = "4" ]] ; then
             CH_FORCE="4"
-        else
+        elif [[ "${CH_FIRST}" = "2" || "${CH_PREV}" = "2" ]] ; then
             CH_FORCE="2"
+        else
+            CH_FORCE="0"
         fi
         echo "${PTS_FIRST}|${END_PTS_PREV}|${FRAME_START_FIRST}|${FRAME_END_PREV}|${TC_FIRST}|${PKT_POS_FIRST}|${RDT_FIRST}|${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FORCE}|${SR_FORCE}|${CH_FORCE}|${REC_ST_FIRST}|${RDT_NC_FIRST}|${TC_NC_FIRST}|${LAST_FRAME_NO_AUDIO_FIRST}|${PKT_POS_END_PREV}|${PKT_POS_LAST_PREV}"
     }
