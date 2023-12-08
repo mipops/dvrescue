@@ -71,7 +71,10 @@ ApplicationWindow {
 
         ButtonGroup {
             id: navigationButtons
-            buttons: [captureButton, analysisButton, packageButton, mergeButton]
+            buttons: [captureButton, analysisButton, mergeButton, packageButton]
+            onClicked: {
+                settings.defaultTabIndex = button.index
+            }
         }
 
         NavButton {
@@ -124,6 +127,10 @@ ApplicationWindow {
             }
             icon.source: "/icons/menu-debug.svg"
             visible: settings.debugVisible
+        }
+
+        Component.onCompleted: {
+            navigationButtons.buttons[settings.defaultTabIndex].checked = true
         }
     }
 
@@ -352,6 +359,7 @@ ApplicationWindow {
         property string ffmpegCmd
         property alias recentFilesJSON: recentFilesModel.recentFilesJSON
         property bool debugVisible
+        property int defaultTabIndex
 
         Component.onCompleted: {
             console.debug('settings initialized')
