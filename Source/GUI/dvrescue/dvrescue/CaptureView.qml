@@ -391,7 +391,7 @@ Column {
                 Layout.fillHeight: true
 
                 canvasItem.clip: true
-                xBottomAxisVisible: false
+                xBottomAxisVisible: true
                 yLeftAxisVisible: false
                 backgroundColor: "Cornsilk"
                 yLeftAxisRange: Qt.vector2d(-900, 900)
