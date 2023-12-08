@@ -19,8 +19,6 @@ Options:
  will be written. The following flags adjust the way dvpackager will split the
  output.
 
- -f       (forces dvpackager to ignore changes in significant technical
-           characteristics of the dv stream when splitting the output)
  -s       (split the output file at recording start markers)
  -d       (split the output file at non-consecutive recording timestamps)
  -t       (split the output file at non-consecutive timecode values)
@@ -28,7 +26,7 @@ Options:
  -o <dir> (provide a custom output directory)
 
  -e <ext> (specify the extension of the container to use. Tested with:
-           mkv, mov, dv. Defaults to mkv. Note that using the 'dv' option
+           mkv, mov, dv. Defaults to mov. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
            selected options to split the output.)
  -l <code>(specify the language code to use for the audio tracks.
@@ -151,11 +149,7 @@ _get_ranges(){
     done
     shift "$((OPTIND-1))"
     FRAME_MATCH="d:dvrescue/d:media/d:frames"
-    if [[ "${FORCE_FRAMES}" = "Y" ]] ; then
-        FRAME_MATCH="${FRAME_MATCH}[1]"
-        RANGE_MATCH="d:frame[1]"
-        RELATIVE_FRAMES="../../d:frames[last()]"
-    elif [[ -n "${1}" ]] ; then
+    if [[ -n "${1}" ]] ; then
         RANGE_MATCH="${1}"
         RELATIVE_FRAMES="parent::d:frames"
     else
@@ -409,8 +403,10 @@ _condense_ranges(){
         fi
         if [[ "${CH_FIRST}" = "4" || "${CH_PREV}" = "4" ]] ; then
             CH_FORCE="4"
-        else
+        elif [[ "${CH_FIRST}" = "2" || "${CH_PREV}" = "2" ]] ; then
             CH_FORCE="2"
+        else
+            CH_FORCE="0"
         fi
         echo "${PTS_FIRST}|${END_PTS_PREV}|${FRAME_START_FIRST}|${FRAME_END_PREV}|${TC_FIRST}|${PKT_POS_FIRST}|${RDT_FIRST}|${SIZE_FIRST}|${VIDEO_RATE_FIRST}|${CH_SUB_FIRST}|${AR_FORCE}|${SR_FORCE}|${CH_FORCE}|${REC_ST_FIRST}|${RDT_NC_FIRST}|${TC_NC_FIRST}|${LAST_FRAME_NO_AUDIO_FIRST}|${PKT_POS_END_PREV}|${PKT_POS_LAST_PREV}"
     }
@@ -664,7 +660,7 @@ CONDENSE_OPTS=(-s)
 OPTIND=1
 while getopts ":fsdto:e:l:L:mSZnN:vzuhF:M:D:X:x:V:C:34a:T:" opt ; do
     case "${opt}" in
-        f) FORCE_FRAMES="Y" ;;
+        f) FORCE_FRAMES="Y" ;; # this option has been removed
         s) REC_START_OPT="1" ; MATCH_FRAMES+="d:frame[@rec_start]|" ;;
         d) RDT_NC_OPT="1"    ; MATCH_FRAMES+="d:frame[@rdt_nc]|" ;;
         t) TC_NC_OPT="1"     ; MATCH_FRAMES+="d:frame[@tc_nc]|" ;;
@@ -820,6 +816,7 @@ fi
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
+OPT_INPUT+=(-probesize 10M)
 OPT_OUTPUT+=(-c:v:0 copy)
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
@@ -1087,7 +1084,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
                             _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
                             _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
-                            _report -w "Consider updating to the latest version of dvrescue and this error recurs,"
+                            _report -w "Consider updating to the latest version of dvrescue and if this error recurs,"
                             _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
                             CHa="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
                         fi
