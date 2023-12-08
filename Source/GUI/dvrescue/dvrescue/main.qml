@@ -485,7 +485,7 @@ ApplicationWindow {
     SpecifyPathDialog {
         id: specifyPathDialog
         filePath: Platform.StandardPaths.writableLocation(Platform.StandardPaths.MoviesLocation)
-        fileName: "out.dv"
+        fileName: 'out' + extension
     }
 
     DevicesModel {
