@@ -383,6 +383,7 @@ Column {
             anchors.left: parent.left
             anchors.right: parent.right
             height: 80
+            visible: !decklinkConfigButton.visible
 
             QwtQuick2Plot {
                 id: videoPlot
