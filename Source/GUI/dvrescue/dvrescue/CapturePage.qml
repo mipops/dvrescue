@@ -375,7 +375,7 @@ Rectangle {
 
                 deviceNameTextField.text: {
                     console.debug('resolving device info for device: ', index)
-                    return devicesModel.count === 0 ? '' : devicesModel.get(index).name + " (" + devicesModel.get(index).type + ")"
+                    return devicesModel.count === 0 ? '' : devicesModel.get(index).name + " (" + devicesModel.get(index).type + ")" + ' - ' + devicesModel.get(index).id
                 }
             }
         }
