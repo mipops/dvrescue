@@ -32,6 +32,8 @@ Item {
     property alias dataView: dataView
     property alias filesModel: fileView.filesModel
     property alias recentFilesModel: recentsPopup.filesModel
+    property alias playerView: playerView
+
     property int framesCount: dataModel.total
     onFramesCountChanged: {
         console.debug('analyse page: framesCount = ', framesCount)
