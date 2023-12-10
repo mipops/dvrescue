@@ -4,6 +4,7 @@ import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
 import QtAVMediaPlayer 1.0
 import Multimedia 1.0
+import FileUtils 1.0
 
 Rectangle {
     id: root
@@ -42,7 +43,23 @@ Rectangle {
         QtAVMediaPlayer {
             id: player
             videoOutput: videoOutput
-            filter: tcButton.checked ? "format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36" : ""
+            filter: {
+                var filters = [];
+                if(tcButton.checked)
+                    filters.push("format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36");
+                if(fsharpButton.checked)
+                    filters.push("format=rgb24,drawtext=text='frame# %{frame_num}':x=0:y=0:box=1:boxcolor=gray@0.5:fontsize=36:fontcolor=white");
+                if(ccButton.checked) {
+                    var filterItem = "subtitles=${PATH_TO_SCC}".replace('${PATH_TO_SCC}', FileUtils.getFilePath(player.source + ".dvrescue.scc", true))
+                    if(Qt.platform.os === "windows") {
+                        filterItem = filterItem.replace(/\\/g, '\\\\').replace(':', '\\:');
+                        // filterItem = filterItem.replace(':', '\\:');
+                    }
+                    filters.push(filterItem)
+                }
+
+                return filters.length === 0 ? '' : filters.join(',');
+            }
 
             Component.onCompleted: {
                 console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
@@ -206,6 +223,19 @@ Rectangle {
                 id: tcButton
                 checkable: true
                 text: "TC"
+            }
+
+            Button {
+                id: fsharpButton
+                checkable: true
+                text: "F#"
+            }
+
+            Button {
+                id: ccButton
+                checkable: true
+                enabled: FileUtils.exists(FileUtils.getFilePath(player.source + ".dvrescue.scc"));
+                text: "CC"
             }
         }
     }

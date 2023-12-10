@@ -292,3 +292,13 @@ void MediaPlayer::setFilter(const QString &newFilter)
 
     Q_EMIT filterChanged();
 }
+
+QStringList MediaPlayer::filters() const
+{
+    return player->filters();
+}
+
+void MediaPlayer::setFilters(const QStringList &newFilters)
+{
+    player->setFilters(newFilters);
+}
