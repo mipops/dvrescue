@@ -219,7 +219,6 @@ Rectangle {
                         doDeckControl('rew', 'rewinding')
                 }
 
-                stopButton.visible: !isDecklink || currentControlIndex !== 0
                 stopButton.onClicked: {
                     doDeckControl('stop', 'stopping')
                 }
@@ -232,7 +231,6 @@ Rectangle {
                         doDeckControl('srew', 'rplaying')
                 }
 
-                playButton.visible: !isDecklink || currentControlIndex !== 0
                 playButton.onClicked: {
                     if(!capturing)
                         doCapture('play')
