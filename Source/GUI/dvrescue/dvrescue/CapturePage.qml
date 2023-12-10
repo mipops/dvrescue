@@ -276,9 +276,6 @@ Rectangle {
                         pendingAction = true;
                         player.play()
 
-                        fileWriter.fileName = filePath;
-                        fileWriter.open();
-
                         var columnNames = [];
                         var indexOfFramePos = -1;
                         var indexOfTimecode = -1;
@@ -291,7 +288,7 @@ Rectangle {
                             opts = makeDecklinkOptions();
                         }
 
-                        dvrescue.grab(id, filePath, playbackBuffer, fileWriter, csvParser, opts, (launcher) => {
+                        dvrescue.grab(id, filePath, playbackBuffer, csvParser, opts, (launcher) => {
                            outputFilePath = filePath
                            csvParser.columnsChanged.connect(onColumnsChanged);
                            var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
