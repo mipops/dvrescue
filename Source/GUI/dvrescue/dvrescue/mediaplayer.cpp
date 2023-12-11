@@ -217,7 +217,10 @@ void MediaPlayer::setSource(const QString &newSource)
 {
     qDebug() << "new source: " << newSource;
 
-    player->setSource(newSource);
+    if(player->source() != newSource) {
+        player->setSource(newSource);
+        Q_EMIT sourceChanged(newSource);;
+    }
 }
 
 void MediaPlayer::classBegin()

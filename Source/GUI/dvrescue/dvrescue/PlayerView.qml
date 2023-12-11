@@ -47,9 +47,7 @@ Rectangle {
                 var filters = [];
                 if(tcButton.checked)
                     filters.push("format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36");
-                if(fsharpButton.checked)
-                    filters.push("format=rgb24,drawtext=text='frame# %{frame_num}':x=0:y=0:box=1:boxcolor=gray@0.5:fontsize=36:fontcolor=white");
-                if(ccButton.checked) {
+                if(ccButton.enabled && ccButton.checked) {
                     var filterItem = "subtitles=${PATH_TO_SCC}".replace('${PATH_TO_SCC}', FileUtils.getFilePath(player.source + ".dvrescue.scc", true))
                     if(Qt.platform.os === "windows") {
                         filterItem = filterItem.replace(/\\/g, '\\\\').replace(':', '\\:');
@@ -71,10 +69,6 @@ Rectangle {
                 console.debug('MediaPlayer.EndOfMedia: ', QtAVMediaPlayer.EndOfMedia);
                 console.debug('MediaPlayer.InvalidMedia: ', QtAVMediaPlayer.InvalidMedia);
             }
-
-            /*
-            autoLoad: true
-            */
 
             onStatusChanged: {
                 console.debug('status: ', status);
@@ -99,6 +93,11 @@ Rectangle {
                 if(status !== QtAVMediaPlayer.EndOfMedia) {
                     QtAVPlayerUtils.emitEmptyFrame(player);
                 }
+            }
+
+            onSourceChanged: {
+                tcButton.checked = false;
+                ccButton.checked = false;
             }
 
             function waitForStateChanged(expectedState, action) {
@@ -223,12 +222,6 @@ Rectangle {
                 id: tcButton
                 checkable: true
                 text: "TC"
-            }
-
-            Button {
-                id: fsharpButton
-                checkable: true
-                text: "F#"
             }
 
             Button {
