@@ -48,10 +48,9 @@ Rectangle {
                 if(tcButton.checked)
                     filters.push("format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36");
                 if(ccButton.enabled && ccButton.checked) {
-                    var filterItem = "subtitles=${PATH_TO_SCC}".replace('${PATH_TO_SCC}', FileUtils.getFilePath(player.source + ".dvrescue.scc", true))
+                    var filterItem = "subtitles='${PATH_TO_SCC}'".replace('${PATH_TO_SCC}', FileUtils.getFilePath(player.source + ".dvrescue.scc", true))
                     if(Qt.platform.os === "windows") {
                         filterItem = filterItem.replace(/\\/g, '\\\\').replace(':', '\\:');
-                        // filterItem = filterItem.replace(':', '\\:');
                     }
                     filters.push(filterItem)
                 }
