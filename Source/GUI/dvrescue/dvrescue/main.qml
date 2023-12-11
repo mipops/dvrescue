@@ -92,7 +92,7 @@ ApplicationWindow {
             checked: true
             onCheckedChanged: {
                 if(!checked) {
-                    analysePage.playerView.player.stop();
+                    analysePage.playerView.player.pause();
                 }
             }
 
