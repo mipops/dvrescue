@@ -4,7 +4,6 @@ import QtQuick.Controls 2.12
 import QtAVMediaPlayer 1.0
 import MediaPlayerBuffer 1.0
 import FileUtils 1.0
-import FileWriter 0.1
 import CsvParser 0.1
 import Thread 0.1
 import Multimedia 1.0
@@ -27,7 +26,6 @@ Column {
     property alias speedInterpretation: speedInterpretation.source
     property alias playbackBuffer: player.buffer
     property alias player: player
-    property var fileWriter: fileWriter
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
     property alias dataModel: dataModel
@@ -150,15 +148,6 @@ Column {
 
         MediaPlayerBuffer {
             id: buffer
-        }
-
-        Thread {
-            id: fileWriterThread
-            worker: fileWriter
-        }
-
-        FileWriter {
-            id: fileWriter
         }
 
         Thread {

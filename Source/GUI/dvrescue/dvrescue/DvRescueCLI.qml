@@ -248,29 +248,14 @@ Item {
         return promise;
     }
 
-    function grab(id, file, playbackBuffer, fileWriter, csvParser, opts, callback) {
-        console.debug('starting grab: ', file, fileWriter);
+    function grab(id, file, playbackBuffer, csvParser, opts, callback) {
+        console.debug('starting grab: ', file);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true });
 
             var result = ConnectionUtils.connectToSlotDirect(launcher, 'outputChanged(const QByteArray&)', playbackBuffer, 'write(const QByteArray&)');
-            var result = ConnectionUtils.connectToSlotQueued(launcher, 'outputChanged(const QByteArray&)', fileWriter, 'write(const QByteArray&)');
-
             var result = ConnectionUtils.connectToSlotQueued(launcher, 'errorChanged(const QByteArray&)', csvParser, 'write(const QByteArray&)');
-
-
-            /*
-            launcher.errorChanged.connect((errorString) => {
-                console.debug('errorString: ', errorString)
-            });
-            */
-            // launcher.outputChanged.connect(fileWriter.write);
-            /*
-            launcher.outputChanged.connect((outputString) => {
-                console.debug('outputString: ', outputString)
-            });
-            */
 
             launcher.errorOccurred.connect((error) => {
                 try {
@@ -300,7 +285,7 @@ Item {
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-x', xml, '-c', scc, '--cc-format', 'scc', '-m', '-', '--verbosity', '9', '--csv'])
+            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-x', xml, '-c', scc, '--cc-format', 'scc', '-m', file, '-m', '-', '--verbosity', '9', '--csv'])
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')
