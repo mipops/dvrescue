@@ -42,13 +42,34 @@ Rectangle {
 
         QtAVMediaPlayer {
             id: player
+
+            property string filePath: FileUtils.getFilePath(source)
+            onFilePathChanged: {
+                console.debug('player source path: ', filePath)
+            }
+
+            property string fileName: FileUtils.getFileName(filePath)
+            onFileNameChanged: {
+                console.debug('player source name: ', fileName)
+            }
+
+            property string fileDir: FileUtils.getFileDir(filePath)
+            onFileDirChanged: {
+                console.debug('player source dir: ', fileDir)
+            }
+
+            property string sccPath: FileUtils.find(fileDir, fileName + "*.scc")
+            onSccPathChanged: {
+                console.debug('player source scc path: ', sccPath)
+            }
+
             videoOutput: videoOutput
             filter: {
                 var filters = [];
                 if(tcButton.checked)
                     filters.push("format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36");
                 if(ccButton.enabled && ccButton.checked) {
-                    var filterItem = "subtitles='${PATH_TO_SCC}'".replace('${PATH_TO_SCC}', FileUtils.getFilePath(player.source + ".dvrescue.scc", true))
+                    var filterItem = "subtitles='${PATH_TO_SCC}'".replace('${PATH_TO_SCC}', FileUtils.getFilePath(sccPath, true))
                     if(Qt.platform.os === "windows") {
                         filterItem = filterItem.replace(/\\/g, '\\\\').replace(':', '\\:');
                     }
@@ -226,7 +247,7 @@ Rectangle {
             Button {
                 id: ccButton
                 checkable: true
-                enabled: FileUtils.exists(FileUtils.getFilePath(player.source + ".dvrescue.scc"));
+                enabled: FileUtils.exists(player.sccPath);
                 text: "CC"
             }
         }
