@@ -337,6 +337,8 @@ void file::Parse(const String& FileName)
         Device = Ztring(FileName.substr(9)).To_Local();
     if (Device.empty() && Device_Command)
         Device = "0";
+    if (Device.empty() && FileName.empty() && (Device_ForceCapture || !Merge_OutputFileNames.empty()))
+        Device = "0";
     if (!Device.empty())
     {
         uint64_t Device_Pos, Device_Offset = 0;
