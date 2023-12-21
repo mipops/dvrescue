@@ -90,6 +90,12 @@ ApplicationWindow {
             checkable: true;
             property int index: 1
             checked: true
+            onCheckedChanged: {
+                if(!checked) {
+                    analysePage.playerView.player.pause();
+                }
+            }
+
             icon.source: "/icons/menu-analysis.svg"
         }
         NavButton {
