@@ -222,6 +222,17 @@ QString FileUtils::find(const QString &what)
     return QString();
 }
 
+QString FileUtils::find(const QString &path, const QString &what)
+{
+    QStringList filters;
+    filters << what;
+
+    QDir dir(path);
+    auto entries = dir.entryInfoList(filters);
+
+    return entries.empty() ? QString() : entries[0].absoluteFilePath();
+}
+
 bool FileUtils::requestRWPermissionsForPath(const QString& dirPath, const QString& message)
 {
     QString dir;

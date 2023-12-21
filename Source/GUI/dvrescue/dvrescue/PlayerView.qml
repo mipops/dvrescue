@@ -4,6 +4,7 @@ import QtQuick.Controls 2.12
 import QtAVPlayerUtils 1.0
 import QtAVMediaPlayer 1.0
 import Multimedia 1.0
+import FileUtils 1.0
 
 Rectangle {
     id: root
@@ -41,8 +42,42 @@ Rectangle {
 
         QtAVMediaPlayer {
             id: player
+
+            property string filePath: FileUtils.getFilePath(source)
+            onFilePathChanged: {
+                console.debug('player source path: ', filePath)
+            }
+
+            property string fileName: FileUtils.getFileName(filePath)
+            onFileNameChanged: {
+                console.debug('player source name: ', fileName)
+            }
+
+            property string fileDir: FileUtils.getFileDir(filePath)
+            onFileDirChanged: {
+                console.debug('player source dir: ', fileDir)
+            }
+
+            property string sccPath: FileUtils.find(fileDir, fileName + "*.scc")
+            onSccPathChanged: {
+                console.debug('player source scc path: ', sccPath)
+            }
+
             videoOutput: videoOutput
-            filter: tcButton.checked ? "format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36" : ""
+            filter: {
+                var filters = [];
+                if(tcButton.checked)
+                    filters.push("format=rgb24,drawtext=text=%{pts\\\\:hms}:x=(w-text_w)/2:y=(h-text_h)*(4/5):box=1:boxcolor=gray@0.5:fontsize=36");
+                if(ccButton.enabled && ccButton.checked) {
+                    var filterItem = "subtitles='${PATH_TO_SCC}'".replace('${PATH_TO_SCC}', FileUtils.getFilePath(sccPath, true))
+                    if(Qt.platform.os === "windows") {
+                        filterItem = filterItem.replace(/\\/g, '\\\\').replace(':', '\\:');
+                    }
+                    filters.push(filterItem)
+                }
+
+                return filters.length === 0 ? '' : filters.join(',');
+            }
 
             Component.onCompleted: {
                 console.debug('MediaPlayer.StoppedState: ', QtAVMediaPlayer.StoppedState);
@@ -54,10 +89,6 @@ Rectangle {
                 console.debug('MediaPlayer.EndOfMedia: ', QtAVMediaPlayer.EndOfMedia);
                 console.debug('MediaPlayer.InvalidMedia: ', QtAVMediaPlayer.InvalidMedia);
             }
-
-            /*
-            autoLoad: true
-            */
 
             onStatusChanged: {
                 console.debug('status: ', status);
@@ -82,6 +113,11 @@ Rectangle {
                 if(status !== QtAVMediaPlayer.EndOfMedia) {
                     QtAVPlayerUtils.emitEmptyFrame(player);
                 }
+            }
+
+            onSourceChanged: {
+                tcButton.checked = false;
+                ccButton.checked = false;
             }
 
             function waitForStateChanged(expectedState, action) {
@@ -206,6 +242,13 @@ Rectangle {
                 id: tcButton
                 checkable: true
                 text: "TC"
+            }
+
+            Button {
+                id: ccButton
+                checkable: true
+                enabled: FileUtils.exists(player.sccPath);
+                text: "CC"
             }
         }
     }
