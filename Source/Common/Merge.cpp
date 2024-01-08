@@ -36,8 +36,8 @@ uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint64_t Timeout = 0;
 uint8_t UseAbst = 0;
-bool OutputFrames_Speed = false;
-bool OutputFrames_Concealed = false;
+vector<bool> OutputFrames_Speeds;
+vector<bool> OutputFrames_Concealeds;
 bool OutputFrames_NoData = false;
 int ShowFrames_Missing = -1;
 int ShowFrames_Intermediate = -1;
@@ -1495,13 +1495,23 @@ bool dv_merge_private::Process(float Speed)
         }
     }
 
-    if (!OutputFrames_Speed && !((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
-        Output.Count_Frames_Ignored_Speed++;
-    if (!OutputFrames_Concealed && !(Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
-        Output.Count_Frames_Ignored_Concealed++;
+    bool Frame_Speed = false;
+    if (!((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
+    {
+        Frame_Speed = true;
+        if (OutputFrames_Speeds.empty() || !OutputFrames_Speeds[0])
+            Output.Count_Frames_Ignored_Speed++;
+    }
+
+    bool Frame_Concealed = false;
+    if (!(Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
+    {
+        Frame_Concealed = true;
+        if (OutputFrames_Concealeds.empty() || !OutputFrames_Concealeds[0])
+            Output.Count_Frames_Ignored_Concealed++;
+    }
+
     if (true
-        && (OutputFrames_Speed || (Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed))
-        && (OutputFrames_Concealed || (Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].FullConcealed))
         && (OutputFrames_NoData || (Prefered_Frame != -1 && !Inputs[Prefered_Frame]->Segments[Segment_Pos].Frames[Frame_Pos].NoData))
         && (ShowFrames_Intermediate || (Prefered_Frame != -1 && FirstBadFrame == -1))
         )
@@ -1513,10 +1523,21 @@ bool dv_merge_private::Process(float Speed)
         if (Prefered_Frame != -1 && FirstBadFrame == -1) // Write only if there is some content from this specific frame
         {
             auto Write_Size = BlockStatus_Count * 80;
-            fwrite(Output.OutputBuffer, Write_Size, 1, Output.F);
-            for (FILE* F : Output.Copies)
-                fwrite(Output.OutputBuffer, Write_Size, 1, F);
-            Output.F_Pos += Write_Size;
+            if ((!Frame_Concealed || (!OutputFrames_Concealeds.empty() && OutputFrames_Concealeds[0])) &&
+                (!Frame_Speed || (!OutputFrames_Speeds.empty() && OutputFrames_Speeds[0])))
+            {
+                fwrite(Output.OutputBuffer, Write_Size, 1, Output.F);
+                Output.F_Pos += Write_Size;
+            }
+
+            for (size_t Pos = 0; Pos < Output.Copies.size(); Pos++)
+            {
+                if ((!Frame_Concealed || (OutputFrames_Concealeds.size() > Pos+1 && OutputFrames_Concealeds[Pos+1])) &&
+                    (!Frame_Speed || (OutputFrames_Speeds.size() > Pos+1 && OutputFrames_Speeds[Pos+1])))
+                {
+                    fwrite(Output.OutputBuffer, Write_Size, 1, Output.Copies[Pos]);
+                }
+            }
 
             // Release memory
             for (size_t i = 0; i < Inputs.size(); i++)

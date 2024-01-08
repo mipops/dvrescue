@@ -177,6 +177,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     const char* MergeInfo_OutputFileName = nullptr;
     const char* Merge_Rewind_BaseName = nullptr;
     bitset<Flag_Max> Flags;
+    bool OutputFrames_Speed = false;
+    bool OutputFrames_Speed_StdOut = false;
+    bool OutputFrames_Concealed = false;
+    bool OutputFrames_Concealed_StdOut = false;
 
     // Commands in priority
     for (int i = 1; i < argc; i++)
@@ -329,9 +333,17 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
             if (!strcmp(argv_ansi[i], "-"))
+            {
                 Merge_OutputFileNames_IncludesStdOut = true;
+                OutputFrames_Speed_StdOut = OutputFrames_Speed;
+                OutputFrames_Concealed_StdOut = OutputFrames_Concealed;
+            }
             else
+            {
                 Merge_OutputFileNames.push_back(argv_ansi[i]);
+                OutputFrames_Speeds.push_back(OutputFrames_Speed);
+                OutputFrames_Concealeds.push_back(OutputFrames_Concealed);
+            }
         }
         else if (!strcmp(argv_ansi[i], "--merge-log"))
         {
@@ -873,8 +885,11 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     }
 
     if (Merge_OutputFileNames_IncludesStdOut)
+    {
         Merge_OutputFileNames.push_back("-"); // Put stdout at last position
-
+        OutputFrames_Speeds.push_back(OutputFrames_Speed_StdOut);
+        OutputFrames_Concealeds.push_back(OutputFrames_Concealed_StdOut);
+      }
 
     if (ShowFrames_Missing == -1)
         ShowFrames_Missing = MergeInfo_Format ? false : true;
