@@ -194,17 +194,26 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 ReturnValue = ReturnValue_ERROR;
                 continue;
             }
-            if (!strcmp(argv_ansi[i], "debug") && C.Err)
+            switch (argv_ansi[i][0])
             {
-                Verbosity = 10;
-
-                *C.Err << "Debug: called with";
-                for (int i = 0; i < argc; i++)
-                {
-                    *C.Err << ' ' << '"' << argv_ansi[i] << '"';
-                }
-                *C.Err << '.' << endl;
-                break;
+                case '0':
+                case '5':
+                case '7':
+                case '9':
+                    Verbosity = argv_ansi[i][0] - '0';
+                    break;
+             case 'd':
+                    if (!strcmp(argv_ansi[i], "debug") && C.Err)
+                    {
+                        Verbosity = 10;
+                        break;
+                    }
+                    //Fallthrough
+                default:
+                    if (C.Err)
+                        *C.Err << "Error: invalid verbosity " << argv_ansi[i] << " (must be 0, 5, 7, 9 or debug).\n";
+                    ReturnValue = ReturnValue_ERROR;
+                    continue;
             }
         }
     }
@@ -674,36 +683,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     continue;
             }
         }
-        else if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v"))
+        else if (!strcmp(argv_ansi[i], "--verbosity") || !strcmp(argv_ansi[i], "-v")) // Already handled
         {
             if (++i >= argc)
-            {
-                if (C.Err)
-                    *C.Err << "Error: missing verbosity level after " << argv_ansi[i-1] << ".\n";
-                ReturnValue = ReturnValue_ERROR;
                 continue;
-            }
-            switch (argv_ansi[i][0])
-            {
-                case '0':
-                case '5':
-                case '7':
-                case '9':
-                    Verbosity = argv_ansi[i][0] - '0';
-                    break;
-                case 'd':
-                    if (!strcmp(argv_ansi[i], "debug") && C.Err)
-                    {
-                        Verbosity = 10;
-                        break;
-                    }
-                    //Fallthrough
-                default:
-                    if (C.Err)
-                        *C.Err << "Error: invalid verbosity " << argv_ansi[i] << " (must be 0, 5, 7, 9 or debug).\n";
-                    ReturnValue = ReturnValue_ERROR;
-                    continue;
-            }
         }
         else if (!strcmp(argv_ansi[i], "--version"))
         {
