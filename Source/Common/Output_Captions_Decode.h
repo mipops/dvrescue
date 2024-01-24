@@ -12,4 +12,4 @@ using namespace std;
 class file;
 //---------------------------------------------------------------------------
 
-return_value Output_Captions_Decode(const string& ScreenOutName, const string& SrtOutName, vector<file*>& PerFile, ostream* Err = nullptr);
+return_value Output_Captions_Caption(const string& ScreenOutName, const string& SrtOutName, const TimeCode* OffsetTimeCode, vector<file*>& PerFile, ostream* Err = nullptr);

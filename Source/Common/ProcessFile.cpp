@@ -882,11 +882,10 @@ void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
         if (Dseq >= PerFrame_Captions_PerSeq_PerField.size())
             PerFrame_Captions_PerSeq_PerField.resize(Dseq + 1);
         auto& PerSeq = PerFrame_Captions_PerSeq_PerField[Dseq];
-        PerSeq.PTS = FrameData->PTS / 1000000000.0;
-        PerSeq.DUR = FrameData->DUR / 1000000000.0;
         auto& FieldData = PerSeq.FieldData[i];
-        if (FieldData.empty() || FieldData.back().StartFrameNumber + FieldData.back().Captions.size() != FrameNumber)
-            FieldData.emplace_back(FrameNumber);
+        auto DUR = FrameData->DUR / 1000000000.0;
+        if (FieldData.empty() || FieldData.back().StartFrameNumber + FieldData.back().Captions.size() != FrameNumber || (!FieldData.empty() && (DUR < FieldData.back().DUR - 1 || DUR > FieldData.back().DUR + 1)))
+            FieldData.emplace_back(FrameData->PTS / 1000000000.0, DUR, FrameNumber);
         FieldData.back().Captions.emplace_back(FrameData->Content + i * 2);
     }
 }
