@@ -86,16 +86,18 @@ public:
     };
     struct captions_fielddata
     {
-        captions_fielddata(MediaInfo_int64u NewStartFrameNumber) :
+        captions_fielddata(double PTS, double DUR, MediaInfo_int64u NewStartFrameNumber) :
+            PTS(PTS),
+            DUR(DUR),
             StartFrameNumber(NewStartFrameNumber)
         {}
+        double PTS;
+        double DUR;
         MediaInfo_int64u StartFrameNumber;
         vector<caption_fielddata> Captions;
     };
     struct captions_data
     {
-        double PTS;
-        double DUR;
         vector<captions_fielddata> FieldData[2];
     };
     vector<captions_data> PerFrame_Captions_PerSeq_PerField;

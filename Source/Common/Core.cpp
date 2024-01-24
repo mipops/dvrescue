@@ -117,7 +117,7 @@ return_value Core::Process()
         auto SrtFileName = CaptionsFileNames.find(Caption_Srt);
         if (ScreenFileName != CaptionsFileNames.end() || SrtFileName != CaptionsFileNames.end())
         {
-            if (auto ToReturn2 = Output_Captions_Decode(ScreenFileName != CaptionsFileNames.end() ? ScreenFileName->second : string(), SrtFileName != CaptionsFileNames.end() ? SrtFileName->second : string(), PerFile, Err))
+            if (auto ToReturn2 = Output_Captions_Caption(ScreenFileName != CaptionsFileNames.end() ? ScreenFileName->second : string(), SrtFileName != CaptionsFileNames.end() ? SrtFileName->second : string(), OffsetTimeCode, PerFile, Err))
                 ToReturn = ToReturn2;
         }
     }

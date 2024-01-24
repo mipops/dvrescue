@@ -1,5 +1,5 @@
 Demo_DV_720x480_CC.cut.15frames.mov --cc-output;scc1.scc scc1.scc;2f69a2a185a407c0d38a1684a637c127
 Demo_DV_720x480_CC.cut.15frames.mov --cc-output;scc2.scc;--cc-tc;dv scc2.scc;ad38e371e762916bef6dbc6b58c13564
 Demo_DV_720x480_CC.cut.15frames.mov --cc-output;scc3.scc;--cc-tc;01:00:00:00 scc3.scc;e740e037dc7c7b197b96c327865b5482
-Demo_DV_720x480_CC.cut.15frames.mov --cc-output;srt1.srt srt1.cc1.srt;e5fc6b98bbb91e67ea1ec5c0bcf4a59c
+Demo_DV_720x480_CC.cut.15frames.mov --cc-output;srt1.srt srt1.cc1.srt;9e3b244854c92fe6ed19dfb0220bd38a
 Demo_DV_720x480_CC.cut.15frames.mov --cc-output;screen1.screen screen1.cc1.screen;5a58213f1835da6c3c8e20fbb11d37ee
