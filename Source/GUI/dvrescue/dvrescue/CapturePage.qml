@@ -159,7 +159,7 @@ Rectangle {
                     pendingAction = true;
                     player.play()
 
-                    statusText = "capturing..";
+                    statusText = "sending capturing";
                     capturingMode = captureCmd;
 
                     var opts = [];
@@ -194,7 +194,7 @@ Rectangle {
                     pendingAction = true;
                     capturingMode = deckControlCmd;
 
-                    statusText = deckControlStatus + "..";
+                    statusText = 'sending ' + deckControlStatus;
 
                     var opts = [];
                     if(isDecklink) {
@@ -204,7 +204,7 @@ Rectangle {
                     dvrescue.control(id, deckControlCmd, opts, (launcher) => {
                         commandExecutionStarted(launcher);
                     }).then((result) => {
-                        statusText = deckControlCmd + ".";
+                        statusText = deckControlCmd;
                         pendingAction = false;
                         commandExecutionFinished(result.outputText);
                         return result;
@@ -313,7 +313,7 @@ Rectangle {
                         dvrescue.control(id, 'stop', (launcher) => {
                            commandExecutionStarted(launcher);
                         }).then((result) => {
-                           statusText = "stopping.";
+                           statusText = "stopping";
                            commandExecutionFinished(result.outputText);
 
                            specifyPathDialog.reset();
