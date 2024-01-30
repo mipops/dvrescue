@@ -345,13 +345,14 @@ Column {
                 width: 15
                 height: 50
             }
+        }
 
-            Text {
-                id: statusText
-                anchors.verticalCenter: parent.verticalCenter
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-            }
+        Text {
+            id: statusText
+            anchors.left: row.right
+            anchors.verticalCenter: row.verticalCenter
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
         }
 
         Button {

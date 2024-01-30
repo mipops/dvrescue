@@ -149,7 +149,7 @@ Rectangle {
                     }
                 }
 
-                function doCapture(captureCmd) {
+                function doCapture(captureCmd, captureStatus) {
                     csvParser.columnsChanged.disconnect(onColumnsChanged);
                     csvParserUI.entriesReceived.disconnect(onEntriesReceived);
                     ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
@@ -159,7 +159,7 @@ Rectangle {
                     pendingAction = true;
                     player.play()
 
-                    statusText = "capturing..";
+                    statusText = "sending " + captureCmd;
                     capturingMode = captureCmd;
 
                     var opts = [];
@@ -171,6 +171,13 @@ Rectangle {
                        csvParser.columnsChanged.connect(onColumnsChanged);
                        var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
                        csvParserUI.entriesReceived.connect(onEntriesReceived);
+
+                       var statusUpdater;
+                       statusUpdater = () => {
+                            statusText = captureStatus;
+                            csvParserUI.entriesReceived.disconnect(statusUpdater);
+                       }
+                       csvParserUI.entriesReceived.connect(statusUpdater);
 
                        console.debug('logging start capture command')
                        commandExecutionStarted(launcher);
@@ -194,7 +201,7 @@ Rectangle {
                     pendingAction = true;
                     capturingMode = deckControlCmd;
 
-                    statusText = deckControlStatus + "..";
+                    statusText = 'sending ' + deckControlCmd;
 
                     var opts = [];
                     if(isDecklink) {
@@ -204,7 +211,7 @@ Rectangle {
                     dvrescue.control(id, deckControlCmd, opts, (launcher) => {
                         commandExecutionStarted(launcher);
                     }).then((result) => {
-                        statusText = deckControlCmd + ".";
+                        statusText = deckControlStatus;
                         pendingAction = false;
                         commandExecutionFinished(result.outputText);
                         return result;
@@ -214,7 +221,7 @@ Rectangle {
                 rewindButton.visible: !isDecklink || currentControlIndex !== 0
                 rewindButton.onClicked: {
                     if(!capturing)
-                        doCapture('rew')
+                        doCapture('rew', 'rewinding')
                     else
                         doDeckControl('rew', 'rewinding')
                 }
@@ -226,14 +233,14 @@ Rectangle {
                 rplayButton.visible: !isDecklink || currentControlIndex !== 0
                 rplayButton.onClicked: {
                     if(!capturing)
-                        doCapture('srew')
+                        doCapture('srew', 'rplaying')
                     else
                         doDeckControl('srew', 'rplaying')
                 }
 
                 playButton.onClicked: {
                     if(!capturing)
-                        doCapture('play')
+                        doCapture('play', 'playing')
                     else
                         doDeckControl('play', 'playing')
                 }
@@ -241,7 +248,7 @@ Rectangle {
                 fastForwardButton.visible: !isDecklink || currentControlIndex !== 0
                 fastForwardButton.onClicked: {
                     if(!capturing)
-                        doCapture('ff')
+                        doCapture('ff', 'fast-forwarding')
                     else
                         doDeckControl('ff', 'fast-forwarding')
                 }
@@ -286,11 +293,20 @@ Rectangle {
                             opts = makeDecklinkOptions();
                         }
 
+                        statusText = "sending record";
                         dvrescue.grab(id, filePath, playbackBuffer, csvParser, opts, (launcher) => {
                            outputFilePath = filePath
                            csvParser.columnsChanged.connect(onColumnsChanged);
+
                            var result = ConnectionUtils.connectToSignalQueued(csvParser, 'entriesReceived(const QStringList&)', csvParserUI, 'entriesReceived(const QStringList&)');
                            csvParserUI.entriesReceived.connect(onEntriesReceived);
+
+                           var statusUpdater;
+                           statusUpdater = () => {
+                               statusText = "recording";
+                               csvParserUI.entriesReceived.disconnect(statusUpdater);
+                           }
+                           csvParserUI.entriesReceived.connect(statusUpdater);
 
                            console.debug('logging grab command')
                            commandExecutionStarted(launcher);
@@ -313,7 +329,7 @@ Rectangle {
                         dvrescue.control(id, 'stop', (launcher) => {
                            commandExecutionStarted(launcher);
                         }).then((result) => {
-                           statusText = "stopping.";
+                           statusText = "stopping";
                            commandExecutionFinished(result.outputText);
 
                            specifyPathDialog.reset();
