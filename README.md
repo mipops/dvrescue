@@ -65,6 +65,6 @@ They are:
 
 ## Copyrights
 
-Copyright (c) 2019-2023, Moving Image Preservation of Puget Sound.
+Copyright (c) 2019-2024, Moving Image Preservation of Puget Sound.
  
 Third party libraries Copyright (c) 2012-2023 MediaArea.net SARL.
