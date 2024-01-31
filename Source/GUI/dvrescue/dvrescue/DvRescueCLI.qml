@@ -235,7 +235,7 @@ Item {
                     callback(launcher)
             });
 
-            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-capture', '-cmd', captureCmd, '-m', '-', '--verbosity', '9', '--csv'])
+            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-capture', '-cmd', captureCmd, '--merge-output-speed', '--merge-output-concealed', '-m', '-', '--verbosity', '9', '--csv'])
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')
@@ -285,7 +285,7 @@ Item {
             var xml = file + ".dvrescue.xml"
             var scc = file + ".scc"
 
-            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-x', xml, '-c', scc, '--cc-format', 'scc', '-m', file, '-m', '-', '--verbosity', '9', '--csv'])
+            var arguments = ['-y', 'device://' + id].concat(opts).concat(['-x', xml, '-c', scc, '--cc-format', 'scc', '-m', file, '--merge-output-speed', '--merge-output-concealed', '-m', '-', '--verbosity', '9', '--csv'])
 
             if(settings.endTheCaptureIftheTapeContainsNoDataFor && settings.endTheCaptureIftheTapeContainsNoDataFor !== '') {
                 arguments.push('--timeout')

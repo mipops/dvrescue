@@ -265,6 +265,7 @@ Rectangle {
                         ['--decklink-audio-source', decklinkConfigPopup.audioSourcesModel[currentAudioSourceIndex]],
                         ['--decklink-timecode-format', decklinkConfigPopup.timecodesModel[currentTimecodesIndex]],
                     )
+
                     return opts;
                 }
 
@@ -294,6 +295,19 @@ Rectangle {
                         }
 
                         statusText = "sending record";
+
+                        if(settings.keepFramesAtNonStandardPlaybackSpeed) {
+                            opts.push('--merge-output-speed');
+                        } else {
+                            opts.push('--merge-ignore-speed');
+                        }
+
+                        if(settings.keepFramesThatAllFullyConcealed) {
+                            opts.push('--merge-output-concealed');
+                        } else {
+                            opts.push('--merge-ignore-concealed');
+                        }
+
                         dvrescue.grab(id, filePath, playbackBuffer, csvParser, opts, (launcher) => {
                            outputFilePath = filePath
                            csvParser.columnsChanged.connect(onColumnsChanged);
