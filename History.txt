@@ -1,9 +1,18 @@
-Version 23.10, 2023-10-04
+Version 24.01, 2024-01-31
 + Add experimnetal support for capture from Decklink devices to the CLI.
 + Added control support in the CLI, now offering deck control via firewire, the decklink api, or commander cable.
 + Updates to player.
 + Shows an animation in the GUI when no decks are seen.
 + Updated design in Package interface in the GUI.
++ Improved capture status messages.
++ Enable options to keep or discard certain frames during capture (such as frames received at a non-standard playback speed or frames that are fully concealed).
++ Add caption viewer in the analysis player.
++ Show full device id in capture interface to distinguish video decks of the same model.
++ Improvements in dvpackager for dv with no audio tracks, increasing probesize for more accurate packaging.
++ Support multiple outputs in dvrescue-cli capture (this permits viewing the capture while writing it to a file).
++ Updates for reporting the incrementation of ABST across frames.
++ Add first draft of the Merge interface in the GUI.
+x Fix for timestamps in SRT subtitle output.
 
 Version 22.12, 2022-12-08
 + Visualize tape playback errors in a graph during capture.
