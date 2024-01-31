@@ -6,6 +6,8 @@ title: DV Formats
 # Historical Context
 The DV format launched in 1995 as an affordable and compact digital videotape. Using digital videotape greatly simplified the production process compared to analog videotape; the ease-of-use, affordability, and compactness of DV enabled many communities within heritage, journalism, and the arts to integrate video into their culturally significant work. DV videotape was popular from the mid-1990’s through the late-2000’s when it was then superseded by born-digital video recordings. Preservation communities have developed expertise, tools, and best practices for both analog videotape and born-digital file-based audiovisual data; however digital videotape, which is data stored on a tape as a stream rather than as a file on a hard drive, falls in between these eras and the preservation of digital videotape has substantially less expertise, tools, or best practices to support its preservation. The advantages of DV videotape, such as cost, size, and simplicity, enabled many communities to start using video to document and to inform. DV videotape is extremely thin and fragile, highly sensitive to contaminants, and self-deteriorates at a rate far faster than chemically more simple and stable analog videotapes.
 
+<iframe src="https://drive.google.com/file/d/1lxp3_LZrQEFtOyzypTf18joWfq6m28um/preview" width="640" height="480" allow="autoplay"></iframe>
+
 # Technical Specifics
 
 The following resources provide detailed and illustrated overviews of DV format technical specifics including compression and the digital interface format:
