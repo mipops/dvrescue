@@ -28,7 +28,7 @@ img {
   max-width: 400px;
 }
 a {
-  color: rgb(146,66,59);
+  color: #e98c94;
   text-decoration: none;
   border: none;
 }
@@ -38,7 +38,7 @@ a img {
 }
 
 a:hover {
-  color: #D50102;
+  color: #ec202f;
   border: none;
 }
 
