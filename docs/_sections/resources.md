@@ -11,9 +11,9 @@ title: Resources
 - [MIPoPS DVRescue project page](https://www.mipops.org/dvrescue/)
 - [MIPoPS Blog](https://mipops.tumblr.com/)
 
-#Articles
+# Articles
 
-#Bibliography
+# Bibliography
 - __[On the Preservation of the EastSide Arts Alliance DV Collection](https://bavc.org/on-the-preservation-of-the-east-side-arts-alliance-dv-collection/)__ by Tim Lake, May 2022
 
 This paper presents experiences and lessons learned at Bay Area Video Coalition when using DVRescue tools to process a collection of DV tapes.
