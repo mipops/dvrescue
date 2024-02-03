@@ -35,7 +35,7 @@ Item {
                 launcher.destroy();
             });
             launcher.processFinished.connect(() => {
-                console.debug('got from dvrescue: \n' + outputText);
+                console.debug('queryDecks: got from dvrescue: \n' + outputText);
                 try {
                     var devices = JSON.parse(outputText);
                     var hasDecklink = false;
@@ -99,7 +99,7 @@ Item {
             });
             launcher.processFinished.connect(() => {
 
-                console.debug('got from dvrescue: \n' + outputText);
+                console.debug('queryControls: got from dvrescue: \n' + outputText);
                 try {
                     accept({controls: JSON.parse(outputText), launcher: launcher, outputText: outputText});
                 }
@@ -162,7 +162,7 @@ Item {
     }
 
     function control(id, command, opts, callback) {
-        console.debug('stopping: ', id);
+        console.debug('control: ', id, command);
 
         var promise = new Promise((accept, reject) => {
             var launcher = launcherFactory.createObject(null, { useThread: true});
@@ -181,7 +181,7 @@ Item {
                 launcher.destroy();
             });
             launcher.processFinished.connect(() => {
-                console.debug('got from dvrescue: \n' + outputText);
+                console.debug('control: got from dvrescue: \n' + outputText);
                 try {
                     accept({launcher: launcher, outputText: outputText});
                 }
@@ -325,7 +325,7 @@ Item {
                 launcher.destroy();
             });
             launcher.processFinished.connect(() => {
-                console.debug('got from dvrescue: \n' + outputText);
+                console.debug('makeReport: got from dvrescue: \n' + outputText);
                 try {
                     accept(file + ".dvrescue.xml");
                 }
