@@ -150,6 +150,8 @@ Rectangle {
                 }
 
                 function doCapture(captureCmd, captureStatus) {
+                    console.debug('doCapture: ', captureCmd)
+
                     csvParser.columnsChanged.disconnect(onColumnsChanged);
                     csvParserUI.entriesReceived.disconnect(onEntriesReceived);
                     ConnectionUtils.disconnect(csvParser, 'entriesReceived(const QStringList&)')
@@ -198,6 +200,8 @@ Rectangle {
                 }
 
                 function doDeckControl(deckControlCmd, deckControlStatus) {
+                    console.debug('doDeckControl: ', deckControlCmd)
+
                     pendingAction = true;
                     capturingMode = deckControlCmd;
 
