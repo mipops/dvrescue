@@ -51,7 +51,7 @@ Check whether the deck is detected through the command line by opening Terminal 
 
 This is more comprehensive and accurate than what is displayed in the GUI. If your deck is listed, then DVRescue is connected to it. Restart the DVRescue GUI and wait a few minutes to see if it shows up.
 
-| <a href="{{ site.baseurl }}/images/dvrescue_no-devices.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_no-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_one-device.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_one-device.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_tw0-devices.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_two-devices.png"></a> |
+| <a href="{{ site.baseurl }}/images/dvrescue_no-devices.png"><img alt="DVRescue No Device" src="{{ site.baseurl }}/images/dvrescue_no-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_one-devices.png"><img alt="DVRescue One Device" src="{{ site.baseurl }}/images/dvrescue_one-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_two-devices.png"><img alt="DVRescue Two Devices" src="{{ site.baseurl }}/images/dvrescue_two-devices.png"></a> |
 
 However, if your deck is not detected in the list of devices, next check whether it’s detected by other programs.
 
@@ -163,14 +163,16 @@ Before reinstalling BlackMagic drivers, double check the vrecord GitHub page, in
 
 If there are no logged issues, then follow the next steps.
 
-|- Try a fresh install of BlackMagic Design drivers. If drivers are already installed, uninstall them using the uninstall command in the Blackmagic system folder. | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> |
-|- Download and install the drivers. The latest versions of BM software tend to be buggy, so just go with the oldest version of the drivers that your macOS can work with. 
-|- During the installation process, you should be prompted to allow Apple to use 3rd party extensions. Click “Open Security Preferences”
-|- System Preferences will open a new window with your Security Preferences. Click on the General tab. | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> |
-|- If it’s not already unlocked, click on the lock icon in the lower left hand corner of the window. Enter your password when prompted. 
-|- Click “Allow” near the bottom of the window.
-|- Make sure to relock the lock to save the changes you have made to your Security Preferences.
-|- Shut down your computer (don’t restart if prompted). 
+- Try a fresh install of BlackMagic Design drivers. If drivers are already installed, uninstall them using the uninstall command in the Blackmagic system folder.
+- Download and install the drivers. The latest versions of BM software tend to be buggy, so just go with the oldest version of the drivers that your macOS can work with. 
+- During the installation process, you should be prompted to allow Apple to use 3rd party extensions. Click “Open Security Preferences”
+- System Preferences will open a new window with your Security Preferences. Click on the General tab.
+- If it’s not already unlocked, click on the lock icon in the lower left hand corner of the window. Enter your password when prompted. 
+- Click “Allow” near the bottom of the window.
+- Make sure to relock the lock to save the changes you have made to your Security Preferences.
+- Shut down your computer (don’t restart if prompted). 
+
+| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | 
 
 ## Windows/Linux/Ubuntu
 
