@@ -65,7 +65,7 @@ This helps to know if the issue is with the connection between your computer and
 - If the device does not click the “Rescan” button (located below the list of the devices).
 - If this doesn’t work, try waiting a few minutes and click “Rescan” again. It can sometimes take a few times before vrecord recognizes the device.
 
-<a href="{{ site.baseurl }}/images/vrecord-check-02.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/vrecord-check-02.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord-check-02.png">"<img alt="Vrecord Check" src="{{ site.baseurl }}/images/vrecord-check-02.png"></a>
 
 #### QuickTime 
 
@@ -90,7 +90,7 @@ There are two ways you can access the list of connected devices.
 - Run <code>avfctl -list_devices</code>
 - This should generate a list of devices connected to your computer via FireWire.
 
-<a href="{{ site.baseurl }}/images/terminal-avfctl.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/terminal-avfctl.png"></a>
+<a href="{{ site.baseurl }}/images/terminal-avfctl.png">"<img alt="Terminal avfctl" src="{{ site.baseurl }}/images/terminal-avfctl.png"></a>
 
 Alternatively, you can run <code>ioreg -l</code> which will generate a list of all of the devices connected to your computer through various means. This list will be longer, but very comprehensive.
 
@@ -100,7 +100,7 @@ Alternatively, you can run <code>ioreg -l</code> which will generate a list of a
 - Scroll down to Hardware/Thunderbolt
 - The device(s) should be listed in the connected ports with the note “Device Connected”
 
-<a href="{{ site.baseurl }}/images/firewire-devices.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/firewire-devices.png"></a>
+<a href="{{ site.baseurl }}/images/firewire-devices.png">"<img alt="Firewire Devices" src="{{ site.baseurl }}/images/firewire-devices.png"></a>
 
 If the device **is not** detected in hardware, refer to the Failed Component section.
 
@@ -151,7 +151,7 @@ In the majority of cases, following the preceding steps will fix the issue. But 
 
 First check BlackMagic as well. Open BlackMagic Media Express. In the menu, choose Device. If it says “No device is connected” then this is further confirmation of the issue.
 
-| <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
+| <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png">"<img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png">"<img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
 
 #### Reinstall BlackMagic Drivers
 
@@ -170,7 +170,7 @@ If there are no logged issues, then follow the next steps.
 - Make sure to relock the lock to save the changes you have made to your Security Preferences.
 - Shut down your computer (don’t restart if prompted). 
 
-| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> |
+| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.png">"<img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png">"<img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> |
 
 ## Windows/Linux/Ubuntu
 
@@ -188,7 +188,7 @@ Try using a different deck, cable, or adapter, making sure to change only one va
 
 For most of these tips, the assumption is that you have additional cables, adapters and FireWire devices. It is our recommendation that when you purchase a cable or adapter that you buy at least two (or more) at a time to ensure that you have a replacement for testing and in the event of cable failure.
 
-<a href="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png"></a>
+<a href="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png">"<img alt="Hardware Troubleshooting" src="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png"></a>
 
 ### Try another device
 
@@ -221,7 +221,7 @@ If you are using dvcapture through vrecord, in general please refer to the vreco
 
 ## Bitstream Error Concealment
 
-<a href="{{ site.baseurl }}/images/vrecord_bitsream_errors.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/vrecord_bitsream_errors.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord_bitsream_errors.png">"<img alt="vrecord bitstream errors" src="{{ site.baseurl }}/images/vrecord_bitsream_errors.png"></a>
 
 If vrecord detects that the DV device is concealing bitstream errors, this will be noted in the Terminal. Error concealment is a built-in function of DV tapes/deck communication.
 
@@ -229,7 +229,7 @@ If vrecord detects that the DV device is concealing bitstream errors, this will 
 
 If you receive the following error while capturing via vrecord using macOS 10.14.6:
 
-<a href="{{ site.baseurl }}/images/vrecord_permissions_error.png">"<img alt="MiniDV" src="{{ site.baseurl }}/images/vrecord_permissions_error.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord_permissions_error.png">"<img alt="vrecord permissions errors" src="{{ site.baseurl }}/images/vrecord_permissions_error.png"></a>
 
 The key part here is "this app is not authorized to use DV-VCR" (the name of the deck noted in the error will reflect the one you selected from the list in the vrecord “Edit Settings” menu).
 
