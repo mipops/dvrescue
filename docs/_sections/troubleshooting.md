@@ -13,7 +13,7 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 
 # No DV Deck Detected
 
-<a href="{{ site.baseurl }}/images/no-deck-detected_small.gif">"<img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
+<a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
 
 If your deck does not show up, try the following troubleshooting. There is also [a video guide](https://www.youtube.com/watch?t=232&v=7FaZw3RoVbA&feature=youtu.be) related to this troubleshooting.
 
@@ -51,6 +51,8 @@ Check whether the deck is detected through the command line by opening Terminal 
 
 This is more comprehensive and accurate than what is displayed in the GUI. If your deck is listed, then DVRescue is connected to it. Restart the DVRescue GUI and wait a few minutes to see if it shows up.
 
+| <a href="{{ site.baseurl }}/images/dvrescue_no-devices.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_no-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_one-device.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_one-device.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_tw0-devices.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/dvrescue_two-devices.png"></a> |
+
 However, if your deck is not detected in the list of devices, next check whether it’s detected by other programs.
 
 ### Check for Device in Other Programs
@@ -65,7 +67,7 @@ This helps to know if the issue is with the connection between your computer and
 - If the device does not click the “Rescan” button (located below the list of the devices).
 - If this doesn’t work, try waiting a few minutes and click “Rescan” again. It can sometimes take a few times before vrecord recognizes the device.
 
-<a href="{{ site.baseurl }}/images/vrecord-check-02.png">"<img alt="Vrecord Check" src="{{ site.baseurl }}/images/vrecord-check-02.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord-check-02.png"><img alt="Vrecord Check" src="{{ site.baseurl }}/images/vrecord-check-02.png"></a>
 
 #### QuickTime 
 
@@ -90,7 +92,7 @@ There are two ways you can access the list of connected devices.
 - Run <code>avfctl -list_devices</code>
 - This should generate a list of devices connected to your computer via FireWire.
 
-<a href="{{ site.baseurl }}/images/terminal-avfctl.png">"<img alt="Terminal avfctl" src="{{ site.baseurl }}/images/terminal-avfctl.png"></a>
+<a href="{{ site.baseurl }}/images/terminal-avfctl.png"><img alt="Terminal avfctl" src="{{ site.baseurl }}/images/terminal-avfctl.png"></a>
 
 Alternatively, you can run <code>ioreg -l</code> which will generate a list of all of the devices connected to your computer through various means. This list will be longer, but very comprehensive.
 
@@ -100,7 +102,7 @@ Alternatively, you can run <code>ioreg -l</code> which will generate a list of a
 - Scroll down to Hardware/Thunderbolt
 - The device(s) should be listed in the connected ports with the note “Device Connected”
 
-<a href="{{ site.baseurl }}/images/firewire-devices.png">"<img alt="Firewire Devices" src="{{ site.baseurl }}/images/firewire-devices.png"></a>
+<a href="{{ site.baseurl }}/images/firewire-devices.png"><img alt="Firewire Devices" src="{{ site.baseurl }}/images/firewire-devices.png"></a>
 
 If the device **is not** detected in hardware, refer to the Failed Component section.
 
@@ -227,7 +229,7 @@ If vrecord detects that the DV device is concealing bitstream errors, this will 
 
 If you receive the following error while capturing via vrecord using macOS 10.14.6:
 
-<a href="{{ site.baseurl }}/images/vrecord_permissions_error.png">"<img alt="vrecord permissions errors" src="{{ site.baseurl }}/images/vrecord_permissions_error.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord_permissions_error.png"><img alt="vrecord permissions errors" src="{{ site.baseurl }}/images/vrecord_permissions_error.png"></a>
 
 The key part here is "this app is not authorized to use DV-VCR" (the name of the deck noted in the error will reflect the one you selected from the list in the vrecord “Edit Settings” menu).
 
