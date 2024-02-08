@@ -151,7 +151,7 @@ In the majority of cases, following the preceding steps will fix the issue. But 
 
 First check BlackMagic as well. Open BlackMagic Media Express. In the menu, choose Device. If it says “No device is connected” then this is further confirmation of the issue.
 
-| <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png">"<img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png">"<img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
+| <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
 
 #### Reinstall BlackMagic Drivers
 
@@ -161,16 +161,14 @@ Before reinstalling BlackMagic drivers, double check the vrecord GitHub page, in
 
 If there are no logged issues, then follow the next steps.
 
-- Try a fresh install of BlackMagic Design drivers. If drivers are already installed, uninstall them using the uninstall command in the Blackmagic system folder.
-- Download and install the drivers. The latest versions of BM software tend to be buggy, so just go with the oldest version of the drivers that your macOS can work with. 
-- During the installation process, you should be prompted to allow Apple to use 3rd party extensions. Click “Open Security Preferences”
-- System Preferences will open a new window with your Security Preferences. Click on the General tab.
-- If it’s not already unlocked, click on the lock icon in the lower left hand corner of the window. Enter your password when prompted. 
-- Click “Allow” near the bottom of the window.
-- Make sure to relock the lock to save the changes you have made to your Security Preferences.
-- Shut down your computer (don’t restart if prompted). 
-
-| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg">"<img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png">"<img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> |
+|- Try a fresh install of BlackMagic Design drivers. If drivers are already installed, uninstall them using the uninstall command in the Blackmagic system folder. | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> |
+|- Download and install the drivers. The latest versions of BM software tend to be buggy, so just go with the oldest version of the drivers that your macOS can work with. 
+|- During the installation process, you should be prompted to allow Apple to use 3rd party extensions. Click “Open Security Preferences”
+|- System Preferences will open a new window with your Security Preferences. Click on the General tab. | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> |
+|- If it’s not already unlocked, click on the lock icon in the lower left hand corner of the window. Enter your password when prompted. 
+|- Click “Allow” near the bottom of the window.
+|- Make sure to relock the lock to save the changes you have made to your Security Preferences.
+|- Shut down your computer (don’t restart if prompted). 
 
 ## Windows/Linux/Ubuntu
 
