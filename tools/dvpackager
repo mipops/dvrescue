@@ -292,7 +292,7 @@ _ranges_2_output_table(){
     echo "${RANGES}" | while read -r RANGE_LINE ; do
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
             OUTPUT_FILE="${SIDECAR_DIR}/${BASENAME%.*}_part${SEG_OUTPUT}.${EXTENSION}"
-            echo "${RANGE_LINE//[$'\t\r\n ']}|${OUTPUT_FILE}"
+            echo "${RANGE_LINE//[$'\t\r\n']}|${OUTPUT_FILE}"
             ((SEG_OUTPUT++))
         fi
         ((SEG_INPUT++))
