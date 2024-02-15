@@ -31,7 +31,7 @@ Item {
     property alias mergeReportView: mergeReportView
     property alias mergeAnalyzeView: mergeAnalyzeView
 
-    property var colors: 'red green blue magenta yellow cyan'.split(' ')
+    property var colors: 'orange hotpink blue mediumpurple yellow cyan'.split(' ')
 
     DropArea {
         id: dropArea;
