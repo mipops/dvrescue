@@ -578,7 +578,7 @@ while [[ "${@}" != "" ]] ; do
         FIRST_NON_EMPTY_OFFSET="${#FIRST_NON_EMPTY_OFFSET_TMP}"
         COUNT_INPUT_PATH="${#INPUTFILE_PATH[@]}"
         COUNT_INPUT_OFFSET="${#INPUTFILE_OFFSET[@]}"
-        COLOR=(red green blue magenta yellow cyan)
+        COLOR=(orange hotpink blue mediumpurple yellow cyan)
         INPUT_COUNTER=0
         MAP_COUNTER=0
         unset INPUT_SET MAP_SET FILTER_SET
