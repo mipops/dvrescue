@@ -111,20 +111,12 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
         void* VideoBuffer;
         size_t VideoBufferSize = VideoFrame->GetRowBytes() * VideoFrame->GetHeight();
         if (VideoFrame->GetBytes(&VideoBuffer) != S_OK)
-        {
-            VideoFrame->Release();
-            AudioPacket->Release();
             return E_FAIL;
-        }
 
         void* AudioBuffer;
         size_t AudioBufferSize = AudioPacket->GetSampleFrameCount() * 2 * 32 / 8;
         if (AudioPacket->GetBytes(&AudioBuffer) != S_OK)
-        {
-            VideoFrame->Release();
-            AudioPacket->Release();
             return E_FAIL;
-        }
 
         timecode_struct Timecode;
         if (TimecodeFormat != (uint32_t)-1)
@@ -137,12 +129,6 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
         for (output& Writer : Writers)
             Writer.Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
     }
-
-    if (VideoFrame)
-        VideoFrame->Release();
-
-    if (AudioPacket)
-        AudioPacket->Release();
 
     return S_OK;
 }
