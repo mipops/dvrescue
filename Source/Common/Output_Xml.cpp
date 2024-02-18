@@ -8,6 +8,9 @@
 #include "Common/Output.h"
 #include "Common/Output_Xml.h"
 #include "Common/ProcessFile.h"
+#ifdef ENABLE_DECKLINK
+#include "Common/DecklinkWrapper.h"
+#endif
 #include "ZenLib/Ztring.h"
 #include <bitset>
 #include <cstddef>
@@ -25,6 +28,11 @@ extern vector<string> Merge_InputFileNames;
 extern vector<string> Merge_OutputFileNames;
 extern uint64_t Merge_Out_Size;
 extern uint64_t Timeout;
+#ifdef ENABLE_DECKLINK
+extern uint8_t DeckLinkVideoSource;
+extern uint8_t DeckLinkAudioSource;
+extern uint8_t DeckLinkTimecodeFormat;
+#endif
 
 //---------------------------------------------------------------------------
 static const char* const Writer_Name = "XML";
@@ -127,6 +135,61 @@ static void Aud_Element(string& Text, size_t o, size_t n, vector<uint16_t> Audio
     Text += "/>\n";
 }
 
+#ifdef ENABLE_DECKLINK
+//---------------------------------------------------------------------------
+static string decklink_videosource_to_string(uint8_t value)
+{
+    string ToReturn;
+    switch (value)
+    {
+    case (uint8_t)Decklink_Video_Source_SDI: ToReturn = "sdi"; break;
+    case (uint8_t)Decklink_Video_Source_HDMI: ToReturn = "hdmi"; break;
+    case (uint8_t)Decklink_Video_Source_Optical: ToReturn = "optical"; break;
+    case (uint8_t)Decklink_Video_Source_Component: ToReturn = "component"; break;
+    case (uint8_t)Decklink_Video_Source_Composite: ToReturn = "composite"; break;
+    case (uint8_t)Decklink_Video_Source_SVideo: ToReturn = "s_video"; break;
+    default:;
+    }
+    return ToReturn;
+}
+
+//---------------------------------------------------------------------------
+static string decklink_audiosource_to_string(uint8_t value)
+{
+    string ToReturn;
+    switch (value)
+    {
+    case (uint8_t)Decklink_Audio_Source_Embedded: ToReturn = "embedded"; break;
+    case (uint8_t)Decklink_Audio_Source_AESEBU: ToReturn = "aes_ebu"; break;
+    case (uint8_t)Decklink_Audio_Source_Analog: ToReturn = "analog"; break;
+    case (uint8_t)Decklink_Audio_Source_AnalogXLR: ToReturn = "analog_xlr"; break;
+    case (uint8_t)Decklink_Audio_Source_AnalogRCA: ToReturn = "analog_rca"; break;
+    case (uint8_t)Decklink_Audio_Source_Microphone: ToReturn = "microphone"; break;
+    default:;
+    }
+    return ToReturn;
+}
+
+//---------------------------------------------------------------------------
+static string decklink_timecodeformat_to_string(uint8_t value)
+{
+    string ToReturn;
+    switch (value)
+    {
+    case (uint8_t)Decklink_Timecode_Format_RP188_VITC: ToReturn = "rp188_vitc"; break;
+    case (uint8_t)Decklink_Timecode_Format_RP188_VITC2: ToReturn = "rp188_vitc2"; break;
+    case (uint8_t)Decklink_Timecode_Format_RP188_LTC: ToReturn = "rp188_lpc"; break;
+    case (uint8_t)Decklink_Timecode_Format_RP188_HFR: ToReturn = "rp188_hfr"; break;
+    case (uint8_t)Decklink_Timecode_Format_RP188_ANY: ToReturn = "rp188_any"; break;
+    case (uint8_t)Decklink_Timecode_Format_VITC: ToReturn = "vitc"; break;
+    case (uint8_t)Decklink_Timecode_Format_VITC2: ToReturn = "vitc2"; break;
+    case (uint8_t)Decklink_Timecode_Format_Serial: ToReturn = "serial"; break;
+    default:;
+    }
+    return ToReturn;
+}
+#endif
+
 //***************************************************************************
 // Output
 //***************************************************************************
@@ -148,10 +211,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
     for (const auto& File : PerFile)
     {
         // Media header
-        if (!File->MI.Count_Get(Stream_General))
+        if (File->CaptureMode == Capture_Mode_DV && !File->MI.Count_Get(Stream_General))
             continue; // Show the file only if it exists
         Text += "\t<media";
-        auto FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
+        auto FileName = File->CaptureMode == Capture_Mode_DV ? File->MI.Get(Stream_General, 0, __T("CompleteName")) : __T("");
         if (FileName.empty() && !Merge_OutputFileNames.empty())
             FileName = Ztring().From_Local(Merge_OutputFileNames[0]);
         if (!FileName.empty())
@@ -166,31 +229,69 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += Merge_InputFileNames[0];
             Text += '\"';
         }
-        if (File->PerFrame.empty() || File->PerChange.empty())
+        if (File->CaptureMode == Capture_Mode_DV)
         {
-            if (File->MI.Get(Stream_Video, 0, __T("Format")) != __T("DV"))
-                Text += " error=\"not DV\"";
-            else
-                Text += " error=\"no frame received\"";
-            Text += "/>\n";
-            continue; // Show the file only if there is some DV content
+            if (File->PerFrame.empty() || File->PerChange.empty())
+            {
+                if (File->MI.Get(Stream_Video, 0, __T("Format")) != __T("DV"))
+                    Text += " error=\"not DV\"";
+                else
+                    Text += " error=\"no frame received\"";
+                Text += "/>\n";
+                continue; // Show the file only if there is some DV content
+            }
+            auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
+            if (!Format.empty())
+            {
+                Text += " format=\"";
+                Text += Ztring(Format).To_UTF8();
+                Text += '\"';
+            }
+            auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
+            if (FileSize.empty() && Merge_Out_Size != -1)
+                FileSize = Ztring::ToZtring(Merge_Out_Size);
+            if (!FileSize.empty())
+            {
+                Text += " size=\"";
+                Text += Ztring(FileSize).To_UTF8();
+                Text += '\"';
+            }
         }
-        auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
-        if (!Format.empty())
+        #ifdef ENABLE_DECKLINK
+        else if (File->CaptureMode == Capture_Mode_DeckLink)
         {
-            Text += " format=\"";
-            Text += Ztring(Format).To_UTF8();
-            Text += '\"';
+            if (!File->Capture)
+            {
+                Text += " error=\"decklink initialization failed\"/>\n";
+                continue;
+            }
+            else if (((DecklinkWrapper*)File->Capture)->frames.frames.empty())
+            {
+                Text += " error=\"no frame received\"/>\n";
+                continue; // Show the file only if there is some content
+            }
+
+            MediaInfo tmpMI;
+            if (tmpMI.Open(Ztring().From_Local(Merge_OutputFileNames[0])))
+            {
+                auto Format = tmpMI.Get(Stream_General, 0, __T("Format"));
+                if (!Format.empty())
+                {
+                    Text += " format=\"";
+                    Text += Ztring(Format).To_UTF8();
+                    Text += '\"';
+                }
+
+                auto FileSize = tmpMI.Get(Stream_General, 0, __T("FileSize"));
+                if (!FileSize.empty())
+                {
+                    Text += " size=\"";
+                    Text += Ztring(FileSize).To_UTF8();
+                    Text += '\"';
+                }
+            }
         }
-        auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
-        if (FileSize.empty() && Merge_Out_Size != -1)
-            FileSize = Ztring::ToZtring(Merge_Out_Size);
-        if (!FileSize.empty())
-        {
-            Text += " size=\"";
-            Text += Ztring(FileSize).To_UTF8();
-            Text += '\"';
-        }
+        #endif
         Text += ">\n";
 
         if (File->TimeOutReached)
@@ -201,6 +302,124 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         }
         else if (File->TerminateRequested)
             Text += "\t\t<stop method='user' extra='SIGINT'/>\n";
+
+        #ifdef ENABLE_DECKLINK
+        if (File->CaptureMode == Capture_Mode_DeckLink)
+        {
+            DecklinkWrapper* DeckLink=(DecklinkWrapper*)File->Capture;
+
+            Text += "\t\t<source";
+            auto Video = decklink_videosource_to_string(DeckLinkVideoSource);
+            if (!Video.empty())
+            {
+                Text += " video=\"";
+                Text += Video;
+                Text += '\"';
+            }
+
+            auto Audio = decklink_audiosource_to_string(DeckLinkAudioSource);
+            if (!Audio.empty())
+            {
+                Text += " audio=\"";
+                Text += Audio;
+                Text += '\"';
+            }
+
+            auto TimeCode = decklink_timecodeformat_to_string(DeckLinkTimecodeFormat);
+            if (!TimeCode.empty())
+            {
+                Text += " timecode=\"";
+                Text += TimeCode;
+                Text += '\"';
+            }
+            Text += "/>\n";
+
+            //Frames
+            Text += "\t\t<frames";
+            {
+                Text += " count=\"";
+                Text += to_string(DeckLink->frames.frames.size());
+                Text += '\"';
+            }
+            if (!DeckLink->frames.frames.empty())
+            {
+                    Text += " pts=\"";
+                    seconds_to_timestamp(Text, DeckLink->frames.frames[0].pts / 1000000000.0, 6, true);
+                    Text += '\"';
+
+                    Text += " end_pts=\"";
+                    seconds_to_timestamp(Text, (DeckLink->frames.frames[DeckLink->frames.frames.size()-1].pts / 1000000000.0) + DeckLink->frames.frames[DeckLink->frames.frames.size()-1].dur, 6, true);
+                    Text += '\"';
+            }
+            if (DeckLink->frames.video_width && DeckLink->frames.video_height)
+            {
+                Text += " size=\"";
+                Text += to_string(DeckLink->frames.video_width);
+                Text += 'x';
+                Text += to_string(DeckLink->frames.video_height);
+                Text += '\"';
+            }
+            if (DeckLink->frames.video_rate_num)
+            {
+                Text += " video_rate=\"";
+                Text += to_string(DeckLink->frames.video_rate_num);
+                if (DeckLink->frames.video_rate_den && DeckLink->frames.video_rate_den != 1)
+                {
+                    Text += '/';
+                    Text += to_string(DeckLink->frames.video_rate_den);
+                }
+                Text += '\"';
+            }
+            if (DeckLink->frames.audio_rate)
+            {
+                Text += " audio_rate=\"";
+                Text += to_string(DeckLink->frames.audio_rate);
+                Text += '\"';
+            }
+            if (DeckLink->frames.audio_channels)
+            {
+                Text += " channels=\"";
+                Text += to_string(DeckLink->frames.audio_channels);
+                Text += '\"';
+            }
+            Text += ">\n";
+
+            // frame
+            for (size_t Pos=0; Pos < DeckLink->frames.frames.size(); Pos++)
+            {
+                Text += "\t\t\t<frame";
+                {
+                    Text += " n=\"";
+                    Text += to_string(Pos);
+                    Text += '\"';
+                }
+                {
+                    Text += " pts=\"";
+                    seconds_to_timestamp(Text, DeckLink->frames.frames[Pos].pts / 1000000000.0, 6, true);
+                    Text += '\"';
+                }
+                if (DeckLink->frames.frames[Pos].tc.is_valid())
+                {
+                    uint64_t tc_in_seconds = (DeckLink->frames.frames[Pos].tc.hours * 3600)
+                                           + (DeckLink->frames.frames[Pos].tc.minutes * 60)
+                                           + (DeckLink->frames.frames[Pos].tc.seconds);
+                    bool dropframe = DeckLink->frames.frames[Pos].tc.dropframe;
+                    uint8_t frame = DeckLink->frames.frames[Pos].tc.frames;
+
+                    Text += " tc=\"";
+                    timecode_to_string(Text, tc_in_seconds, dropframe, frame);
+                    Text += '\"';
+                }
+
+                Text += "/>\n";
+            }
+
+            // Media footer
+            Text += "\t\t</frames>\n";
+            Text += "\t</media>\n";
+            continue;
+        }
+        #endif
 
         // By Frame - For each line
         auto FrameNumber_Max = File->PerFrame.size() - 1;

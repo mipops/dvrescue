@@ -46,6 +46,7 @@
     </xsd:annotation>
     <xsd:sequence>
       <xsd:element name="stop" type="stopType" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="source" type="sourceType" minOccurs="0" maxOccurs="1"/>
       <xsd:element name="frames" type="framesType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="ref" type="xsd:string">
@@ -107,6 +108,34 @@
     </xsd:attribute>
   </xsd:complexType>
 
+  <xsd:complexType name="sourceType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Capture source parameters for DeckLink devices.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="video" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Source of the video stream.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="audio" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Source of the audio stream.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="timecode" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Origin of the timecode values.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
   <xsd:complexType name="framesType">
     <xsd:annotation>
       <xsd:documentation xml:lang="en">
@@ -181,6 +210,7 @@
     </xsd:annotation>
     <xsd:restriction base="xsd:string">
       <xsd:enumeration value="720x480"/>
+      <xsd:enumeration value="720x486"/>
       <xsd:enumeration value="720x576"/>
       <xsd:enumeration value="1280x1080"/>
       <xsd:enumeration value="1440x1080"/>

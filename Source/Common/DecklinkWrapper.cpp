@@ -78,7 +78,7 @@ string PlatformStr2StdStr(PlatformStr Str)
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::CaptureDelegate::CaptureDelegate(std::vector<output> Writers, const uint32_t TimecodeFormat) : Writers(Writers), TimecodeFormat(TimecodeFormat)
+DecklinkWrapper::CaptureDelegate::CaptureDelegate(DecklinkWrapper* Wrapper, std::vector<output> Writers, const uint32_t TimecodeFormat) : Wrapper(Wrapper), Writers(Writers), TimecodeFormat(TimecodeFormat)
 {
 }
 
@@ -123,11 +123,22 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
         {
             IDeckLinkTimecode*	DeckLinkTimecode;
             if (VideoFrame->GetTimecode(TimecodeFormat, &DeckLinkTimecode) == S_OK)
+            {
                 DeckLinkTimecode->GetComponents(&Timecode.hours, &Timecode.minutes, &Timecode.seconds, &Timecode.frames);
+                Timecode.dropframe = (DeckLinkTimecode->GetFlags() & bmdTimecodeIsDropFrame) != 0;
+            }
         }
 
         for (output& Writer : Writers)
             Writer.Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
+
+        double FrameRate = (double)Wrapper->frames.video_rate_num / Wrapper->frames.video_rate_den;
+        double ElapsedTime = (double)Wrapper->frames.frames.size() / FrameRate;
+        Wrapper->frames.frames.push_back(decklink_frames::frame {
+            .tc = Timecode,
+            .pts = ElapsedTime * 1000000000.0,
+            .dur = 1.0 / FrameRate
+        });
     }
 
     return S_OK;
@@ -574,27 +585,36 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         DeckLinkInput=nullptr;
     }
 
+    uint32_t Width = 720;
+    uint32_t Height = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
+    uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
+    uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
+    uint32_t SampleRate = 48000;
+    uint8_t Channels = 2;
     for (string OutputFile : Merge_OutputFileNames)
     {
-        uint32_t Lines = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
-        uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
-        uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
-
         output Output;
         if (OutputFile == "-")
-          Output.Writer = new matroska_writer(&cout, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+          Output.Writer = new matroska_writer(&cout, Width, Height, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
         else
         {
             Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
-            Output.Writer = new matroska_writer(Output.Output, 720, Lines, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
+            Output.Writer = new matroska_writer(Output.Output, Width, Height, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
         }
         Outputs.push_back(Output);
     }
 
-    DeckLinkCaptureDelegate = new CaptureDelegate(Outputs, DeckLinkTimecodeFormat);
+    frames.video_width = Width;
+    frames.video_height = Height;
+    frames.video_rate_num = Num;
+    frames.video_rate_den = Den;
+    frames.audio_rate = SampleRate;
+    frames.audio_channels = Channels;
+
+    DeckLinkCaptureDelegate = new CaptureDelegate(this, Outputs, DeckLinkTimecodeFormat);
 
     if (DeckLinkInput->EnableVideoInput(DeckLinkVideoMode, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
-        DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, 2) != S_OK ||
+        DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, Channels) != S_OK ||
         DeckLinkInput->SetCallback(DeckLinkCaptureDelegate) != S_OK)
     {
         DeckLinkConfiguration->Release();
@@ -688,6 +708,7 @@ bool DecklinkWrapper::WaitForSessionEnd(uint64_t Timeout)
             if (difftime(time(NULL), LastInput) > Timeout)
                 return true;
         }
+        PlaybackMode = GetMode();
         this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     while (PlaybackMode == Playback_Mode_Playing);

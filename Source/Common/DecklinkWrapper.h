@@ -62,6 +62,23 @@ enum decklink_timecode_format {
     Decklink_Timecode_Format_Max
 };
 
+struct decklink_frames {
+    struct frame {
+        timecode_struct tc;
+        double pts;
+        double dur;
+    };
+
+    uint32_t video_width = 0;
+    uint32_t video_height = 0;
+    uint32_t video_rate_num = 0;
+    uint32_t video_rate_den = 0;
+    uint8_t audio_channels = 0;
+    uint32_t audio_rate = 0;
+
+    std::vector<frame> frames;
+};
+
 //***************************************************************************
 // Class DecklinkWrapper
 //***************************************************************************
@@ -97,7 +114,7 @@ class DecklinkWrapper : public BaseWrapper {
     class CaptureDelegate : public IDeckLinkInputCallback {
     public:
         // Constructor/Destructor
-        CaptureDelegate(std::vector<output> Writers, const uint32_t TimecodeFormat);
+        CaptureDelegate(DecklinkWrapper* Wrapper, std::vector<output> Writers, const uint32_t TimecodeFormat);
 
         // Functions
         ULONG AddRef();
@@ -107,6 +124,7 @@ class DecklinkWrapper : public BaseWrapper {
         HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
 
     private:
+        DecklinkWrapper* Wrapper;
         std::vector<output> Writers;
         uint32_t TimecodeFormat;
     };
@@ -162,6 +180,9 @@ class DecklinkWrapper : public BaseWrapper {
 
     // Attributes
     static const std::string Interface;
+
+    // Results
+    decklink_frames frames;
 
 private:
     playback_mode PlaybackMode = Playback_Mode_NotPlaying;
