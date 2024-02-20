@@ -7,7 +7,7 @@ title: Troubleshooting
 
 Below is a list of known issues for the recent builds of DVRescue. Please see the linked issues on GitHub for more details.
 
-- Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
+- Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, <a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
 - <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/746" target="_blank">Deck control in the DVRescue GUI is buggy</a>
 
@@ -234,9 +234,7 @@ If none of this works, your problem may be more complicated. You can always visi
 
 </details>
 
-<details markdown="1">
-
-# <summary markdown="span">dvcapture via vrecord</summary>
+::::expand{header="dvcapture via vrecord"}
 
 If you are using dvcapture through vrecord, in general please refer to the vrecord documentation on GitHub for troubleshooting. However, there are a few known issues:
 
@@ -266,7 +264,7 @@ You will need to change the OS camera permissions by following these steps:
 - If the Camera menu does not have the +/- you can add the Terminal to the Full Disk Access list instead. 
 - Reboot your Mac for the changes to take effect.
 
-</details>
+::::
 
 
 
