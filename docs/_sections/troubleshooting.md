@@ -7,11 +7,14 @@ title: Troubleshooting
 
 Below is a list of known issues for the recent builds of DVRescue. Please see the linked issues on GitHub for more details.
 
-- Windows/Linux connection with adapters doesn’t work.
-- DVCPRO will not capture via dvrescue GUI, CLI or vrecord.
-- Deck control in the DVRescue GUI is buggy
+- Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
+- <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
+- <a href="https://github.com/mipops/dvrescue/issues/746" target="_blank">Deck control in the DVRescue GUI is buggy</a>
 
-# No DV Deck Detected
+
+<details markdown="1">
+  
+<summary markdown="span"># No DV Deck Detected</summary>
 
 <a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
 
@@ -43,7 +46,9 @@ If it is still not detected, restart your computer.
 
 If you’re still not connected to the deck, move onto further troubleshooting steps for your system.
 
-## MacOS
+<details markdown="1">
+
+<summary markdown="span">## MacOS</summary>
 
 ### Check for the Device in the Command Line
 
@@ -172,9 +177,13 @@ If there are no logged issues, then follow the next steps.
 - Make sure to relock the lock to save the changes you have made to your Security Preferences.
 - Shut down your computer (don’t restart if prompted). 
 
-| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | 
+| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"></a> | 
 
-## Windows/Linux/Ubuntu
+</details>
+
+<details markdown="1">
+
+<summary markdown="span">## Windows/Linux/Ubuntu</summary>
 
 At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot.
 
@@ -184,13 +193,17 @@ If you suspect a hardware rather than a software issue, review the Failed Compon
 
 If the deck is not detected in your computer’s FireWire connections even after you have checked your cables and restarted your computer and deck, as outlined above, then it is likely that one of the physical components of your connection has failed.
 
+</details>
+
+<details markdown="1">
+
 ## Failed Component
 
 Try using a different deck, cable, or adapter, making sure to change only one variable at a time in order to hone in on the part that is not working. The most common issue would be a failed cord or adapter. Unfortunately, Apple adapters seem to have a longer lifespan than other brands at this time. For a step-by-step guide to ensure you determine the correct variable, see the following section.
 
 For most of these tips, the assumption is that you have additional cables, adapters and FireWire devices. It is our recommendation that when you purchase a cable or adapter that you buy at least two (or more) at a time to ensure that you have a replacement for testing and in the event of cable failure.
 
-<a href="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png">"<img alt="Hardware Troubleshooting" src="{{ site.baseurl }}/images/transfer-setup_troubleshooting.png"></a>
+<a href="{{ site.baseurl }}/images/transfer-setup_troubleshooting-chart.png">"<img alt="Hardware Troubleshooting" src="{{ site.baseurl }}/images/transfer-setup_troubleshooting-chart.png"></a>
 
 ### Try another device
 
@@ -217,13 +230,19 @@ If none of these components can be pinpointed as the source of the issue, consid
 ## Last resort
 If none of this works, your problem may be more complicated. You can always visit the <a href="https://github.com/mipops/dvrescue" target="_blank">DVRescue GitHub page</a> as a resource to see if anyone else is having similar problems or to ask questions and report issues. If you do want to report an issue, provide as much information as possible, including the devices and operating system you are using!
 
+</details>
+
+</details>
+
+<details markdown="1">
+  
 # dvcapture via vrecord
 
 If you are using dvcapture through vrecord, in general please refer to the vrecord documentation on GitHub for troubleshooting. However, there are a few known issues:
 
 ## Bitstream Error Concealment
 
-<a href="{{ site.baseurl }}/images/vrecord_bitsream_errors.png">"<img alt="vrecord bitstream errors" src="{{ site.baseurl }}/images/vrecord_bitsream_errors.png"></a>
+<a href="{{ site.baseurl }}/images/vrecord_bitstream_errors.png">"<img alt="vrecord bitstream errors" src="{{ site.baseurl }}/images/vrecord_bitstream_errors.png"></a>
 
 If vrecord detects that the DV device is concealing bitstream errors, this will be noted in the Terminal. Error concealment is a built-in function of DV tapes/deck communication.
 
@@ -247,6 +266,7 @@ You will need to change the OS camera permissions by following these steps:
 - If the Camera menu does not have the +/- you can add the Terminal to the Full Disk Access list instead. 
 - Reboot your Mac for the changes to take effect.
 
+</details>
 
 
 
