@@ -14,7 +14,11 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 
 <details markdown="1">
   
-<summary markdown="span"># No DV Deck Detected</summary>
+<summary markdown="span">
+  
+# No DV Deck Detected
+  
+</summary>
 
 <a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
 
@@ -48,7 +52,11 @@ If you’re still not connected to the deck, move onto further troubleshooting s
 
 <details markdown="1">
 
-<summary markdown="span">## MacOS</summary>
+<summary markdown="span">
+  
+## MacOS
+
+</summary>
 
 ### Check for the Device in the Command Line
 
@@ -183,7 +191,11 @@ If there are no logged issues, then follow the next steps.
 
 <details markdown="1">
 
-<summary markdown="span">## Windows/Linux/Ubuntu</summary>
+<summary markdown="span">
+
+## Windows/Linux/Ubuntu
+
+</summary>
 
 At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot.
 
@@ -197,7 +209,11 @@ If the deck is not detected in your computer’s FireWire connections even after
 
 <details markdown="1">
 
+<summary markdown="span">
+
 ## Failed Component
+
+</summary>
 
 Try using a different deck, cable, or adapter, making sure to change only one variable at a time in order to hone in on the part that is not working. The most common issue would be a failed cord or adapter. Unfortunately, Apple adapters seem to have a longer lifespan than other brands at this time. For a step-by-step guide to ensure you determine the correct variable, see the following section.
 
@@ -235,8 +251,12 @@ If none of this works, your problem may be more complicated. You can always visi
 </details>
 
 <details markdown="1">
-  
+
+<summary markdown="span">
+
 # dvcapture via vrecord
+
+</summary>
 
 If you are using dvcapture through vrecord, in general please refer to the vrecord documentation on GitHub for troubleshooting. However, there are a few known issues:
 
