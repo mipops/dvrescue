@@ -10,7 +10,6 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 - Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, <a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
 - <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/746" target="_blank">Deck control in the DVRescue GUI is buggy</a>
-
 &nbsp;
 
 # No DV Deck Detected
@@ -34,7 +33,6 @@ Start by ensuring that none of your cables are bent at a hard angle or straining
 As noted in the <a href="{{ site.baseurl }}/sections/dv_transfer_station.html">Hardware Setup guide</a>, make sure that the port and cable you are using both have the Thunderbolt symbol. For some Mac laptops, the symbols are not included above the ports, but you can check the specifics by reviewing the [Apple Port Guide](https://support.apple.com/en-us/109523).
 
 </details>
-
 &nbsp;
 
 ## Turn it On and Off Again!
@@ -58,12 +56,12 @@ If it is still not detected, restart your computer.
 If you’re still not connected to the deck, move onto further troubleshooting steps for your system.
 
 </details>
-
 &nbsp;
 
 ## MacOS Steps
 
 <details markdown="1">
+&nbsp;
 
 ### Check for the Device in the Command Line
 
@@ -78,7 +76,6 @@ This is more comprehensive and accurate than what is displayed in the GUI. If yo
 If your deck is not detected in the list of devices, next check whether it’s detected by other programs.
 
 </details>
-
 &nbsp;
 
 ### Check for Device in Other Programs
@@ -109,7 +106,6 @@ If vrecord and/or QuickTime can detect the deck, then you do have a connection. 
 If the device does not show up in QuickTime or vrecord either, move on to check to see if the device is detected by your computer at all.
 
 </details>
-
 &nbsp;
 
 ### Verify Firewire Connection
@@ -141,7 +137,6 @@ If the device **is not** detected in hardware, refer to the Failed Component sec
 If the device **is** detected in hardware, but you are unable to establish a connection via vrecord, DVRescue or QuickTime, try the following steps to confirm your permissions and security policy are setup to be compatible with dvrescue.
 
 </details>
-
 &nbsp;
 
 ### Verify Permissions, Security Policy, & System Integrity Protection
@@ -186,7 +181,6 @@ Follow the steps outlined in the <a href="{{ site.baseurl }}/sections/installati
 In the majority of cases, following the preceding steps will fix the issue. But if, after following all of this, your system still will not detect your DV deck, move onto the below steps to determine if third party extensions are not being allowed.
 
 </details>
-
 &nbsp;
 
 ### Check for Issues with BlackMagic
@@ -219,11 +213,9 @@ If there are no logged issues, then follow the next steps.
 | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"></a> | 
 
 </details>
-
 &nbsp;
 
 </details>
-
 &nbsp;
 
 ## Windows/Linux/Ubuntu Steps
@@ -237,7 +229,6 @@ Some versions of Ubuntu might need permissions to be edited to allow DVRescue ac
 If you suspect a hardware rather than a software issue, review the Failed Component troubleshooting section for general advice. Also peruse the <a href="https://github.com/mipops/dvrescue/issues" target="_blank">GitHub Issues page</a> for any discussions that might relate to your issue.
 
 </details>
-
 &nbsp;
 
 ## Failed Component
@@ -278,11 +269,9 @@ If none of these components can be pinpointed as the source of the issue, consid
 If none of this works, your problem may be more complicated. You can always visit the <a href="https://github.com/mipops/dvrescue" target="_blank">DVRescue GitHub page</a> as a resource to see if anyone else is having similar problems or to ask questions and report issues. If you do want to report an issue, provide as much information as possible, including the devices and operating system you are using!
 
 </details>
-
 &nbsp;
 
 </details>
-
 &nbsp;
 
 # dvcapture via vrecord
@@ -320,7 +309,6 @@ You will need to change the OS camera permissions by following these steps:
 - Reboot your Mac for the changes to take effect.
 
 </details>
-
 &nbsp;
 
 
