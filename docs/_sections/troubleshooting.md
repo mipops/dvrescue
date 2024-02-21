@@ -10,11 +10,12 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 - Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, <a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
 - <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/746" target="_blank">Deck control in the DVRescue GUI is buggy</a>
-
+  
+# No DV Deck Detected
 
 <details markdown="1">
-  
-# <summary markdown="span">No DV Deck Detected</summary>
+
+<summary markdown="span">Guide</summary>
 
 <a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
 
@@ -22,13 +23,19 @@ If your deck does not show up, try the following troubleshooting. There is also 
 
 After every step, re-launch DVRescue and check the capture tab to see if the device is detected. Restarting your computer and deck after major changes is also helpful.
 
-## Connections
+## Check Connections
+
+<details markdown="1">
 
 Start by ensuring that none of your cables are bent at a hard angle or straining to reach either the deck or the computer, and that all are properly supported. All three of these factors can cause cable failure. 
 
 As noted in the <a href="{{ site.baseurl }}/sections/dv_transfer_station.html">Hardware Setup guide</a>, make sure that the port and cable you are using both have the Thunderbolt symbol. For some Mac laptops, the symbols are not included above the ports, but you can check the specifics by reviewing the [Apple Port Guide](https://support.apple.com/en-us/109523).
 
+</details>
+
 ## Turn it On and Off Again!
+
+<details markdown="1">
 
 The most time-honored of troubleshooting tactics.
 
@@ -46,11 +53,15 @@ If it is still not detected, restart your computer.
 
 If you’re still not connected to the deck, move onto further troubleshooting steps for your system.
 
-<details markdown="1">
+</details>
   
-## <summary markdown="span">MacOS</summary>
+## <summary markdown="span">MacOS Steps</summary>
+
+<details markdown="1">
 
 ### Check for the Device in the Command Line
+
+<details markdown="1">
 
 Check whether the deck is detected through the command line by opening Terminal and running <code>dvrescue --list_devices</code>
 
@@ -58,11 +69,15 @@ This is more comprehensive and accurate than what is displayed in the GUI. If yo
 
 | <a href="{{ site.baseurl }}/images/dvrescue_no-devices.png"><img alt="DVRescue No Device" src="{{ site.baseurl }}/images/dvrescue_no-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_one-devices.png"><img alt="DVRescue One Device" src="{{ site.baseurl }}/images/dvrescue_one-devices.png"></a> | <a href="{{ site.baseurl }}/images/dvrescue_two-devices.png"><img alt="DVRescue Two Devices" src="{{ site.baseurl }}/images/dvrescue_two-devices.png"></a> |
 
-However, if your deck is not detected in the list of devices, next check whether it’s detected by other programs.
+If your deck is not detected in the list of devices, next check whether it’s detected by other programs.
+
+</details>
 
 ### Check for Device in Other Programs
 
 This helps to know if the issue is with the connection between your computer and the deck or with only DVRescue.
+
+<details markdown="1">
 
 #### vrecord
 
@@ -85,11 +100,13 @@ If vrecord and/or QuickTime can detect the deck, then you do have a connection. 
 
 If the device does not show up in QuickTime or vrecord either, move on to check to see if the device is detected by your computer at all.
 
+</details>
+
 ### Verify Firewire Connection
 
-If you are certain that your settings are correct and you are still unable to see the device in any programs, check to see if the FireWire connection is working.
+<details markdown="1">
 
-There are two ways you can access the list of connected devices.
+There are two ways you can access the list of connected devices to see if the FireWire connection is working at all.
 
 #### Terminal
 
@@ -113,9 +130,13 @@ If the device **is not** detected in hardware, refer to the Failed Component sec
 
 If the device **is** detected in hardware, but you are unable to establish a connection via vrecord, DVRescue or QuickTime, try the following steps to confirm your permissions and security policy are setup to be compatible with dvrescue.
 
+</details>
+
 ### Verify Permissions, Security Policy, & System Integrity Protection
 
 DVRescue requires some special permissions to access to operate and to capture DV videotape. These are all outlined in the <a href="{{ site.baseurl }}/sections/installation.html">Installation guide</a>. If any of these are not set correctly, they may block DVRescue from accessing connected devices to capture DV. Some of these settings may change or revert if your system has been updated.
+
+<details markdown="1">
 
 #### Permissions
 
@@ -152,7 +173,13 @@ Follow the steps outlined in the <a href="{{ site.baseurl }}/sections/installati
 
 In the majority of cases, following the preceding steps will fix the issue. But if, after following all of this, your system still will not detect your DV deck, move onto the below steps to determine if third party extensions are not being allowed.
 
-### Third Party Extensions
+</details>
+
+### Check for Issues with BlackMagic
+
+If all of the previous steps have failed, there may be an issue with your Blackmagic drivers. Even though you only directly use a BlackMagic video card for analog videotape captures, it is still required to run vrecord and dvrescue in general.
+
+<details markdown="1">
 
 #### Check for Device in BlackMagic Media Express
 
@@ -161,8 +188,6 @@ First check BlackMagic as well. Open BlackMagic Media Express. In the menu, choo
 | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
 
 #### Reinstall BlackMagic Drivers
-
-Even though you only need to use a BlackMagic video card for analog videotape captures, it is still required to run vrecord and dvrescue in general.
 
 Before reinstalling BlackMagic drivers, double check the vrecord GitHub page, including the current issues, for conflicts with particular versions of BlackMagic. It is not always compatible with the current release of vrecord and can cause issues.
 
@@ -181,9 +206,11 @@ If there are no logged issues, then follow the next steps.
 
 </details>
 
-<details markdown="1">
+</details>
 
-## <summary markdown="span">Windows/Linux/Ubuntu</summary>
+## <summary markdown="span">Windows/Linux/Ubuntu Steps</summary>
+
+<details markdown="1">
 
 At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot.
 
@@ -191,13 +218,13 @@ Some versions of Ubuntu might need permissions to be edited to allow DVRescue ac
 
 If you suspect a hardware rather than a software issue, review the Failed Component troubleshooting section for general advice. Also peruse the <a href="https://github.com/mipops/dvrescue/issues" target="_blank">GitHub Issues page</a> for any discussions that might relate to your issue.
 
-If the deck is not detected in your computer’s FireWire connections even after you have checked your cables and restarted your computer and deck, as outlined above, then it is likely that one of the physical components of your connection has failed.
-
 </details>
 
-<details markdown="1">
-
 ## <summary markdown="span">Failed Component</summary>
+
+If the deck is not detected in your computer’s FireWire connections even after you have checked your cables, restarted your computer and deck, and followed all other troubleshooting above, then it is likely that one of the physical components of your connection has failed.
+
+<details markdown="1">
 
 Try using a different deck, cable, or adapter, making sure to change only one variable at a time in order to hone in on the part that is not working. The most common issue would be a failed cord or adapter. Unfortunately, Apple adapters seem to have a longer lifespan than other brands at this time. For a step-by-step guide to ensure you determine the correct variable, see the following section.
 
@@ -234,7 +261,11 @@ If none of this works, your problem may be more complicated. You can always visi
 
 </details>
 
-::::expand{header="dvcapture via vrecord"}
+# dvcapture via vrecord
+
+<details markdown="1">
+
+<summary markdown="span">Guide</summary>
 
 If you are using dvcapture through vrecord, in general please refer to the vrecord documentation on GitHub for troubleshooting. However, there are a few known issues:
 
@@ -264,7 +295,7 @@ You will need to change the OS camera permissions by following these steps:
 - If the Camera menu does not have the +/- you can add the Terminal to the Full Disk Access list instead. 
 - Reboot your Mac for the changes to take effect.
 
-::::
+</details>
 
 
 
