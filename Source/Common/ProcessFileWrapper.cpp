@@ -15,6 +15,12 @@ FileWrapper::FileWrapper(file* File) : File(File)
 
 void FileWrapper::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 {
+    if (Buffer_Size < 120000)
+    {
+        // Decklink simulator, Buffer is a decklink_simulator object
+        return;
+    }
+
     if (File)
     {
         File->Speed_After = File->Capture->GetSpeed();

@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <vector>
+#include <cstring>
 
 //***************************************************************************
 // TimeCode
@@ -17,7 +18,7 @@ struct timecode_struct
 {
     timecode_struct()
     {
-        memset(this, 0xFF, sizeof(*this));
+        std::memset(this, 0xFF, sizeof(*this));
     }
 
     timecode_struct(unsigned char hours, unsigned char minutes, unsigned char seconds, unsigned char frames, unsigned char frames_max = (unsigned char)-1, bool dropframe = false)
