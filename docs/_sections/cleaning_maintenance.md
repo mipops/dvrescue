@@ -22,11 +22,11 @@ Isopropyl alcohol (with a concentration lower than 99%) and rubbing alcohol (eve
 
 There are several options for swabs used to clean video deck heads. The pointed ones are helpful for grooves and ridges that collect tape debris (but make sure the cotton is firmly packed, like a surgical swab vs. a standard Q-tip). The Chamois swabs work well for gently cleaning dirty tape heads, but you can also use Texwipe 304 clothes as well. Clothes help to prevent you from breaking or damaging the heads. For DV decks, since the parts are so small, the swabs are easier to maneuver carefully.
 
-### DV head cleaning tape
+### head cleaning tape
 
 <img alt="DV head cleaning tape" src="{{ site.baseurl }}/images/head_cleaning_tape.png">   
 
-Tape cleaning cassettes using a white or green long-fiber paper material named Pellon is the easiest way to clean DV decks and works well for light/regular cleaning. For a heavily contaminated or dirty deck, you’ll want to manually clean it with the supplied listed above. A/V archivists are still a divided on the use of cleaning tapes. In general, as long as the cleaning tapes are only used once (beginning to end) and only as instructed, there shouldn’t be a problem. However, once a cleaning tape has passed along the heads, the dirt/debris it collects can damage the tape heads if it is run through the deck again.
+DV and Digital8 cleaning cassettes using a white or green long-fiber paper material named Pellon is the easiest way to clean DV decks and works well for light/regular cleaning. For a heavily contaminated or dirty deck, you’ll want to manually clean it with the supplied listed above. A/V archivists are still a divided on the use of cleaning tapes. In general, as long as the cleaning tapes are only used once (beginning to end) and only as instructed, there shouldn’t be a problem. However, once a cleaning tape has passed along the heads, the dirt/debris it collects can damage the tape heads if it is run through the deck again.
 
 We reccomend using a cleaning tape for DV and Digital8 camcorders because they are more difficult to deassemble/reassemble. Cleaning tapes can be purchased on Amazon and through some AV retailers. 
 
