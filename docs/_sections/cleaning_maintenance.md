@@ -26,9 +26,11 @@ There are several options for swabs used to clean video deck heads. The pointed 
 
 <img alt="DV head cleaning tape" src="{{ site.baseurl }}/images/head_cleaning_tape.png">   
 
-Tape cleaning cassettes using a white or green long-fiber paper material named Pellon is the easiest way to clean DV decks and works well for light/regular cleaning. For a heavily contaminated or dirty deck, you’ll want to manually clean it with the supplied listed above. A/V archivists are still a divided on the use of cleaning tapes. In general, as long as the tapes are only used once (beginning to end) and only as instructed, there shouldn’t be a problem. However, once a cleaning tape has passed along the heads, the dirt/debris it collects can damage the tape heads if it is run through the deck again.
+Tape cleaning cassettes using a white or green long-fiber paper material named Pellon is the easiest way to clean DV decks and works well for light/regular cleaning. For a heavily contaminated or dirty deck, you’ll want to manually clean it with the supplied listed above. A/V archivists are still a divided on the use of cleaning tapes. In general, as long as the cleaning tapes are only used once (beginning to end) and only as instructed, there shouldn’t be a problem. However, once a cleaning tape has passed along the heads, the dirt/debris it collects can damage the tape heads if it is run through the deck again.
 
-For detailed instructions and training videos on cleaning decks, please see the “Deck Inspection & Cleaning” section.
+We reccomend using a cleaning tape for DV and Digital8 camcorders because they are more difficult to deassemble/reassemble. Cleaning tapes can be purchased on Amazon and through some AV retailers. 
+
+For detailed instructions and training videos on cleaning decks, please see the “Deck Inspection & Cleaning” section (coming soon).
 
 
 ## Repair supplies
