@@ -362,7 +362,8 @@ void file::Parse(const String& FileName)
         #endif
         #ifdef ENABLE_DECKLINK
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))
-                try { Capture = new DecklinkWrapper(Device_Pos,
+                try { CaptureMode = Capture_Mode_DeckLink;
+                      Capture = new DecklinkWrapper(Device_Pos,
                                                     (decklink_video_mode)DeckLinkVideoMode,
                                                     (decklink_video_source)DeckLinkVideoSource,
                                                     (decklink_audio_source)DeckLinkAudioSource,
@@ -370,7 +371,8 @@ void file::Parse(const String& FileName)
                                                     Controller,
                                                     DeckLinkNativeControl); } catch(...) {}
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                try { Capture = new DecklinkWrapper(Device,
+                try { CaptureMode = Capture_Mode_DeckLink;
+                      Capture = new DecklinkWrapper(Device,
                                                     (decklink_video_mode)DeckLinkVideoMode,
                                                     (decklink_video_source)DeckLinkVideoSource,
                                                     (decklink_audio_source)DeckLinkAudioSource,

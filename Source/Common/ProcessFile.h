@@ -49,6 +49,13 @@ enum rewind_mode {
     Rewind_Mode_TimeCode2,
     Rewind_Mode_Abst,
 };
+
+enum capture_mode {
+    Capture_Mode_DV,
+#ifdef ENABLE_DECKLINK
+    Capture_Mode_DeckLink,
+#endif
+};
 #endif
 
 //***************************************************************************
@@ -141,5 +148,6 @@ public:
     int DelayedPlay = 0;
     bool TerminateRequested = false;
     bool TimeOutReached = false;
+    capture_mode CaptureMode = Capture_Mode_DV;
     #endif
 };
