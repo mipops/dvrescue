@@ -44,7 +44,7 @@ jobs:
 
     - name: Set Qt5 environment path
       run: |
-        echo "/usr/local/opt/qt5/bin" >> $GITHUB_PATH
+        echo "/usr/local/opt/qt@5/bin" >> $GITHUB_PATH
 
     - name: Build dvrescue-gui
       env:
@@ -166,7 +166,7 @@ jobs:
 
     - name: Set Qt5 environment path
       run: |
-        echo "/usr/local/opt/qt5/bin" >> $GITHUB_PATH
+        echo "/usr/local/opt/qt@5/bin" >> $GITHUB_PATH
 
     - name: Build qwt
       run: |
