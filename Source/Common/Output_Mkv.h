@@ -11,50 +11,7 @@
 #include <vector>
 #include <cstring>
 
-//***************************************************************************
-// TimeCode
-//***************************************************************************
-struct timecode_struct
-{
-    timecode_struct()
-    {
-        std::memset(this, 0xFF, sizeof(*this));
-    }
-
-    timecode_struct(unsigned char hours, unsigned char minutes, unsigned char seconds, unsigned char frames, unsigned char frames_max = (unsigned char)-1, bool dropframe = false)
-        : hours(hours)
-        , minutes(minutes)
-        , seconds(seconds)
-        , frames(frames)
-        , frames_max(frames_max)
-        , dropframe(dropframe)
-    {
-    }
-
-    unsigned char hours;
-    unsigned char minutes;
-    unsigned char seconds;
-    unsigned char frames;
-    unsigned char frames_max;
-    bool dropframe;
-
-    bool is_valid()
-    {
-        return hours != (unsigned char)-1;
-    }
-
-    timecode_struct& operator++()
-    {
-        if (frames >= frames_max)
-        {
-            seconds++;
-            frames = 0;
-        }
-        else
-            frames++;
-        return *this;
-    }
-};
+#include "ThirdParty/TimeCode/TimeCode.h"
 
 //***************************************************************************
 // Class matroska_writer
@@ -66,7 +23,7 @@ public:
     matroska_writer(std::ostream* output, int width, int height, int framerate_num, int framerate_den, bool has_timecode = false);
     ~matroska_writer();
 
-    void write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, timecode_struct timecode = timecode_struct());
+    void write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, TimeCode timecode = TimeCode());
 
     void close(std::ofstream* output);
 

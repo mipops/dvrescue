@@ -8,9 +8,8 @@
 #include "Common/Output.h"
 #include "Common/Output_Xml.h"
 #include "Common/ProcessFile.h"
-#ifdef ENABLE_DECKLINK
-#include "Common/DecklinkWrapper.h"
-#endif
+#include "Common/ProcessFileWrapper.h"
+#include "ThirdParty/TimeCode/TimeCode.h"
 #include "ZenLib/Ztring.h"
 #include <bitset>
 #include <cstddef>
@@ -28,7 +27,7 @@ extern vector<string> Merge_InputFileNames;
 extern vector<string> Merge_OutputFileNames;
 extern uint64_t Merge_Out_Size;
 extern uint64_t Timeout;
-#ifdef ENABLE_DECKLINK
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
 extern uint8_t DeckLinkVideoSource;
 extern uint8_t DeckLinkAudioSource;
 extern uint8_t DeckLinkTimecodeFormat;
@@ -135,7 +134,7 @@ static void Aud_Element(string& Text, size_t o, size_t n, vector<uint16_t> Audio
     Text += "/>\n";
 }
 
-#ifdef ENABLE_DECKLINK
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
 //---------------------------------------------------------------------------
 static string decklink_videosource_to_string(uint8_t value)
 {
@@ -257,37 +256,40 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 Text += '\"';
             }
         }
-        #ifdef ENABLE_DECKLINK
+        #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
         else if (File->CaptureMode == Capture_Mode_DeckLink)
         {
-            if (!File->Capture)
+            if (!File->Capture || !File->Wrapper)
             {
                 Text += " error=\"decklink initialization failed\"/>\n";
                 continue;
             }
-            else if (((DecklinkWrapper*)File->Capture)->frames.frames.empty())
+            else if (((FileWrapper*)File->Wrapper)->FramesInfo.frames.empty())
             {
                 Text += " error=\"no frame received\"/>\n";
                 continue; // Show the file only if there is some content
             }
 
-            MediaInfo tmpMI;
-            if (tmpMI.Open(Ztring().From_Local(Merge_OutputFileNames[0])))
+            if (!Merge_Out.empty())
             {
-                auto Format = tmpMI.Get(Stream_General, 0, __T("Format"));
-                if (!Format.empty())
+                MediaInfo tmpMI;
+                if (tmpMI.Open(Ztring().From_Local(Merge_OutputFileNames[0])))
                 {
-                    Text += " format=\"";
-                    Text += Ztring(Format).To_UTF8();
-                    Text += '\"';
-                }
+                    auto Format = tmpMI.Get(Stream_General, 0, __T("Format"));
+                    if (!Format.empty())
+                    {
+                        Text += " format=\"";
+                        Text += Ztring(Format).To_UTF8();
+                        Text += '\"';
+                    }
 
-                auto FileSize = tmpMI.Get(Stream_General, 0, __T("FileSize"));
-                if (!FileSize.empty())
-                {
-                    Text += " size=\"";
-                    Text += Ztring(FileSize).To_UTF8();
-                    Text += '\"';
+                    auto FileSize = tmpMI.Get(Stream_General, 0, __T("FileSize"));
+                    if (!FileSize.empty())
+                    {
+                        Text += " size=\"";
+                        Text += Ztring(FileSize).To_UTF8();
+                        Text += '\"';
+                    }
                 }
             }
         }
@@ -303,11 +305,9 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         else if (File->TerminateRequested)
             Text += "\t\t<stop method='user' extra='SIGINT'/>\n";
 
-        #ifdef ENABLE_DECKLINK
+        #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
         if (File->CaptureMode == Capture_Mode_DeckLink)
         {
-            DecklinkWrapper* DeckLink=(DecklinkWrapper*)File->Capture;
-
             Text += "\t\t<source";
             auto Video = decklink_videosource_to_string(DeckLinkVideoSource);
             if (!Video.empty())
@@ -338,54 +338,54 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += "\t\t<frames";
             {
                 Text += " count=\"";
-                Text += to_string(DeckLink->frames.frames.size());
+                Text += to_string(File->Wrapper->FramesInfo.frames.size());
                 Text += '\"';
             }
-            if (!DeckLink->frames.frames.empty())
+            if (!File->Wrapper->FramesInfo.frames.empty())
             {
                     Text += " pts=\"";
-                    seconds_to_timestamp(Text, DeckLink->frames.frames[0].pts / 1000000000.0, 6, true);
+                    seconds_to_timestamp(Text, File->Wrapper->FramesInfo.frames[0].pts / 1000000000.0, 6, true);
                     Text += '\"';
 
                     Text += " end_pts=\"";
-                    seconds_to_timestamp(Text, (DeckLink->frames.frames[DeckLink->frames.frames.size()-1].pts / 1000000000.0) + DeckLink->frames.frames[DeckLink->frames.frames.size()-1].dur, 6, true);
+                    seconds_to_timestamp(Text, (File->Wrapper->FramesInfo.frames[File->Wrapper->FramesInfo.frames.size()-1].pts / 1000000000.0) + File->Wrapper->FramesInfo.frames[File->Wrapper->FramesInfo.frames.size()-1].dur, 6, true);
                     Text += '\"';
             }
-            if (DeckLink->frames.video_width && DeckLink->frames.video_height)
+            if (File->Wrapper->FramesInfo.video_width && File->Wrapper->FramesInfo.video_height)
             {
                 Text += " size=\"";
-                Text += to_string(DeckLink->frames.video_width);
+                Text += to_string(File->Wrapper->FramesInfo.video_width);
                 Text += 'x';
-                Text += to_string(DeckLink->frames.video_height);
+                Text += to_string(File->Wrapper->FramesInfo.video_height);
                 Text += '\"';
             }
-            if (DeckLink->frames.video_rate_num)
+            if (File->Wrapper->FramesInfo.video_rate_num)
             {
                 Text += " video_rate=\"";
-                Text += to_string(DeckLink->frames.video_rate_num);
-                if (DeckLink->frames.video_rate_den && DeckLink->frames.video_rate_den != 1)
+                Text += to_string(File->Wrapper->FramesInfo.video_rate_num);
+                if (File->Wrapper->FramesInfo.video_rate_den && File->Wrapper->FramesInfo.video_rate_den != 1)
                 {
                     Text += '/';
-                    Text += to_string(DeckLink->frames.video_rate_den);
+                    Text += to_string(File->Wrapper->FramesInfo.video_rate_den);
                 }
                 Text += '\"';
             }
-            if (DeckLink->frames.audio_rate)
+            if (File->Wrapper->FramesInfo.audio_rate)
             {
                 Text += " audio_rate=\"";
-                Text += to_string(DeckLink->frames.audio_rate);
+                Text += to_string(File->Wrapper->FramesInfo.audio_rate);
                 Text += '\"';
             }
-            if (DeckLink->frames.audio_channels)
+            if (File->Wrapper->FramesInfo.audio_channels)
             {
                 Text += " channels=\"";
-                Text += to_string(DeckLink->frames.audio_channels);
+                Text += to_string(File->Wrapper->FramesInfo.audio_channels);
                 Text += '\"';
             }
             Text += ">\n";
 
             // frame
-            for (size_t Pos=0; Pos < DeckLink->frames.frames.size(); Pos++)
+            for (size_t Pos=0; Pos < File->Wrapper->FramesInfo.frames.size(); Pos++)
             {
                 Text += "\t\t\t<frame";
                 {
@@ -395,16 +395,16 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
                 {
                     Text += " pts=\"";
-                    seconds_to_timestamp(Text, DeckLink->frames.frames[Pos].pts / 1000000000.0, 6, true);
+                    seconds_to_timestamp(Text, File->Wrapper->FramesInfo.frames[Pos].pts / 1000000000.0, 6, true);
                     Text += '\"';
                 }
-                if (DeckLink->frames.frames[Pos].tc.is_valid())
+                if (File->Wrapper->FramesInfo.frames[Pos].tc.HasValue())
                 {
-                    uint64_t tc_in_seconds = (DeckLink->frames.frames[Pos].tc.hours * 3600)
-                                           + (DeckLink->frames.frames[Pos].tc.minutes * 60)
-                                           + (DeckLink->frames.frames[Pos].tc.seconds);
-                    bool dropframe = DeckLink->frames.frames[Pos].tc.dropframe;
-                    uint8_t frame = DeckLink->frames.frames[Pos].tc.frames;
+                    uint64_t tc_in_seconds = (File->Wrapper->FramesInfo.frames[Pos].tc.Hours * 3600)
+                                           + (File->Wrapper->FramesInfo.frames[Pos].tc.Minutes * 60)
+                                           + (File->Wrapper->FramesInfo.frames[Pos].tc.Seconds);
+                    bool dropframe = File->Wrapper->FramesInfo.frames[Pos].tc.DropFrame;
+                    uint8_t frame = File->Wrapper->FramesInfo.frames[Pos].tc.Frames;
 
                     Text += " tc=\"";
                     timecode_to_string(Text, tc_in_seconds, dropframe, frame);

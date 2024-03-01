@@ -18,66 +18,8 @@
 #include <DeckLinkAPI.h>
 
 #include "Common/ProcessFileWrapper.h"
+#include "Common/ProcessFile.h"
 #include "Common/Output_Mkv.h"
-
-//***************************************************************************
-// Types
-//***************************************************************************
-
-enum decklink_video_mode {
-    Decklink_Video_Mode_NTSC,
-    Decklink_Video_Mode_PAL,
-    Decklink_Video_Mode_Max
-};
-
-enum decklink_video_source {
-    Decklink_Video_Source_SDI,
-    Decklink_Video_Source_HDMI,
-    Decklink_Video_Source_Optical,
-    Decklink_Video_Source_Component,
-    Decklink_Video_Source_Composite,
-    Decklink_Video_Source_SVideo,
-    Decklink_Video_Source_Max
-};
-
-enum decklink_audio_source {
-    Decklink_Audio_Source_Embedded,
-    Decklink_Audio_Source_AESEBU,
-    Decklink_Audio_Source_Analog,
-    Decklink_Audio_Source_AnalogXLR,
-    Decklink_Audio_Source_AnalogRCA,
-    Decklink_Audio_Source_Microphone,
-    Decklink_Audio_Source_Max
-};
-
-enum decklink_timecode_format {
-    Decklink_Timecode_Format_RP188_VITC,
-    Decklink_Timecode_Format_RP188_VITC2,
-    Decklink_Timecode_Format_RP188_LTC,
-    Decklink_Timecode_Format_RP188_HFR,
-    Decklink_Timecode_Format_RP188_ANY,
-    Decklink_Timecode_Format_VITC,
-    Decklink_Timecode_Format_VITC2,
-    Decklink_Timecode_Format_Serial,
-    Decklink_Timecode_Format_Max
-};
-
-struct decklink_frames {
-    struct frame {
-        timecode_struct tc;
-        double pts;
-        double dur;
-    };
-
-    uint32_t video_width = 0;
-    uint32_t video_height = 0;
-    uint32_t video_rate_num = 0;
-    uint32_t video_rate_den = 0;
-    uint8_t audio_channels = 0;
-    uint32_t audio_rate = 0;
-
-    std::vector<frame> frames;
-};
 
 //***************************************************************************
 // Class DecklinkWrapper
@@ -104,17 +46,11 @@ class DecklinkWrapper : public BaseWrapper {
         : Name(Name), UUID(UUID) {};
     };
 
-    struct output
-    {
-        matroska_writer* Writer = nullptr;
-        std::ofstream* Output = nullptr;
-    };
-
     // IDeckLinkInputCallback
     class CaptureDelegate : public IDeckLinkInputCallback {
     public:
         // Constructor/Destructor
-        CaptureDelegate(DecklinkWrapper* Wrapper, std::vector<output> Writers, const uint32_t TimecodeFormat);
+        CaptureDelegate(FileWrapper* Wrapper, const uint32_t TimecodeFormat);
 
         // Functions
         ULONG AddRef();
@@ -124,8 +60,7 @@ class DecklinkWrapper : public BaseWrapper {
         HRESULT VideoInputFormatChanged(BMDVideoInputFormatChangedEvents, IDeckLinkDisplayMode*, BMDDetectedVideoInputFormatFlags);
 
     private:
-        DecklinkWrapper* Wrapper;
-        std::vector<output> Writers;
+        FileWrapper* Wrapper;
         uint32_t TimecodeFormat;
     };
 
@@ -181,9 +116,6 @@ class DecklinkWrapper : public BaseWrapper {
     // Attributes
     static const std::string Interface;
 
-    // Results
-    decklink_frames frames;
-
 private:
     playback_mode PlaybackMode = Playback_Mode_NotPlaying;
     bool Capture = false;
@@ -204,7 +136,4 @@ private:
     // Control
     ControllerBaseWrapper* Controller = nullptr;
     IDeckLinkDeckControl* DeckLinkDeckControl = nullptr;
-
-    //Output
-    std::vector<output> Outputs;
 };

@@ -439,7 +439,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             Control_Port = argv_ansi[i];
         }
         #endif
-        #ifdef ENABLE_DECKLINK
+        #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
         else if (!strcmp(argv_ansi[i], "--decklink-video-mode"))
         {
             if (++i >= argc)
@@ -545,7 +545,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             else if (!strcmp(argv_ansi[i], "serial"))
                 DeckLinkTimecodeFormat = 7;
             else if (!strcmp(argv_ansi[i], "none"))
-                DeckLinkTimecodeFormat = 9;
+                DeckLinkTimecodeFormat = 8;
             else
             {
                 if (C.Err)

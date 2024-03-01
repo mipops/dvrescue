@@ -17,9 +17,6 @@
     #include "MediaInfo/MediaInfoList.h"
     #define MediaInfoNameSpace MediaInfoLib
 #endif
-#ifndef DISABLE_SIMULATOR
-    #define ENABLE_SIMULATOR
-#endif
 #include "Common/Merge.h"
 #include "TimeCode.h"
 #include "MediaInfo/MediaInfo_Events.h"
@@ -52,9 +49,49 @@ enum rewind_mode {
 
 enum capture_mode {
     Capture_Mode_DV,
-#ifdef ENABLE_DECKLINK
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
     Capture_Mode_DeckLink,
 #endif
+};
+#endif
+
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+enum decklink_video_mode {
+    Decklink_Video_Mode_NTSC,
+    Decklink_Video_Mode_PAL,
+    Decklink_Video_Mode_Max
+};
+
+enum decklink_video_source {
+    Decklink_Video_Source_SDI,
+    Decklink_Video_Source_HDMI,
+    Decklink_Video_Source_Optical,
+    Decklink_Video_Source_Component,
+    Decklink_Video_Source_Composite,
+    Decklink_Video_Source_SVideo,
+    Decklink_Video_Source_Max
+};
+
+enum decklink_audio_source {
+    Decklink_Audio_Source_Embedded,
+    Decklink_Audio_Source_AESEBU,
+    Decklink_Audio_Source_Analog,
+    Decklink_Audio_Source_AnalogXLR,
+    Decklink_Audio_Source_AnalogRCA,
+    Decklink_Audio_Source_Microphone,
+    Decklink_Audio_Source_Max
+};
+
+enum decklink_timecode_format {
+    Decklink_Timecode_Format_RP188_VITC,
+    Decklink_Timecode_Format_RP188_VITC2,
+    Decklink_Timecode_Format_RP188_LTC,
+    Decklink_Timecode_Format_RP188_HFR,
+    Decklink_Timecode_Format_RP188_ANY,
+    Decklink_Timecode_Format_VITC,
+    Decklink_Timecode_Format_VITC2,
+    Decklink_Timecode_Format_Serial,
+    Decklink_Timecode_Format_Max
 };
 #endif
 
@@ -139,6 +176,7 @@ private:
 public:
     ControllerBaseWrapper* Controller = nullptr;
     BaseWrapper* Capture = nullptr;
+    FileWrapper* Wrapper = nullptr;
     float Speed_Before = 0;
     float Speed_After = 0;
     bool PauseRequested = false;

@@ -287,7 +287,7 @@ void matroska_writer::write_header()
     output->write(buffer, sizeof(matroska_writer_header));
 }
 
-void matroska_writer::write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, timecode_struct timecode)
+void matroska_writer::write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, TimeCode timecode)
 {
     // Cues
     auto timecode_ms = (frame_number * 1000 * framerate_den + framerate_num / 2 - 1) / framerate_num;
@@ -297,7 +297,7 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
     
     // Buffer
     int total_size = 6 + 4 + 1 + 1 + (1 + 4 + 1 + 2 + 1) * 2 + video_size + audio_size;
-    if (timecode.is_valid())
+    if (timecode.HasValue())
         total_size += 1 + 4 + 18 + (1 + 4 + 1 + 2 + 1) * 1 + 11;
     auto total_size_with_header = 8 + total_size;
     if (buffer_size < total_size_with_header)
@@ -317,10 +317,10 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
     store_b4(cur, (int)(timecode_ms+0.5));
 
     // Video
-    if (timecode.is_valid())
+    if (timecode.HasValue())
     {
         store_b1(cur, 0xA0); // BlockGroup
-        store_e4(cur, 1 + 4 + 1 + 2 + 1 + video_size + (timecode.is_valid() ? 18 : 0));
+        store_e4(cur, 1 + 4 + 1 + 2 + 1 + video_size + (timecode.HasValue() ? 18 : 0));
         store_b1(cur, 0xA1); // Block
     }
     else
@@ -332,17 +332,17 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
     memcpy(cur, video_buffer, video_size);
     cur += video_size;
 
-    if (timecode.is_valid())
+    if (timecode.HasValue())
     {
-        unsigned long long timecode_value = ((unsigned long long)(((timecode.hours   / 10) & 3)) << 56)
-                                          | ((unsigned long long)(((timecode.hours   % 10)    )) << 48)
-                                          | ((unsigned long long)(((timecode.minutes / 10) & 7)) << 40)
-                                          | ((unsigned long long)(((timecode.minutes / 10)    )) << 32)
-                                          | ((unsigned long long)(((timecode.seconds / 10) & 7)) << 24)
-                                          | ((unsigned long long)(((timecode.seconds / 10)    )) << 16)
-                                          | ((unsigned long long)(((timecode.dropframe)       )) << 10)
-                                          | ((unsigned long long)(((timecode.frames  / 10) & 3)) <<  8)
-                                          | ((unsigned long long)(((timecode.frames  % 10)    ))      );
+        unsigned long long timecode_value = ((unsigned long long)(((timecode.Hours   / 10) & 3)) << 56)
+                                          | ((unsigned long long)(((timecode.Hours   % 10)    )) << 48)
+                                          | ((unsigned long long)(((timecode.Minutes / 10) & 7)) << 40)
+                                          | ((unsigned long long)(((timecode.Minutes / 10)    )) << 32)
+                                          | ((unsigned long long)(((timecode.Seconds / 10) & 7)) << 24)
+                                          | ((unsigned long long)(((timecode.Seconds / 10)    )) << 16)
+                                          | ((unsigned long long)(((timecode.DropFrame)       )) << 10)
+                                          | ((unsigned long long)(((timecode.Frames  / 10) & 3)) <<  8)
+                                          | ((unsigned long long)(((timecode.Frames  % 10)    ))      );
         store_b2(cur, 0x75A1); // BlockMore
         store_b8(cur, 0x8FA68DEE8179A588LL); // BlockMore size + BlockAddID + BlockAdditional
         store_b8(cur, timecode_value);
@@ -357,19 +357,19 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
     memcpy(cur, audio_buffer, audio_size);
     cur += audio_size;
 
-    if (timecode.is_valid())
+    if (timecode.HasValue())
     {
         char text_buffer[11] = { '0', '0', ':', '0', '0', ':', '0', '0', ':', '0', '0' };
-        text_buffer[ 0] += (timecode.hours   / 10) & 3;
-        text_buffer[ 1] +=  timecode.hours   % 10;
-        text_buffer[ 3] += (timecode.minutes / 10) & 3;
-        text_buffer[ 4] +=  timecode.minutes % 10;
-        text_buffer[ 6] += (timecode.seconds / 10) & 3;
-        text_buffer[ 7] +=  timecode.seconds % 10;
-        if (timecode.dropframe)
+        text_buffer[ 0] += (timecode.Hours   / 10) & 3;
+        text_buffer[ 1] +=  timecode.Hours   % 10;
+        text_buffer[ 3] += (timecode.Minutes / 10) & 3;
+        text_buffer[ 4] +=  timecode.Minutes % 10;
+        text_buffer[ 6] += (timecode.Seconds / 10) & 3;
+        text_buffer[ 7] +=  timecode.Seconds % 10;
+        if (timecode.DropFrame)
             text_buffer[ 8] = ';';
-        text_buffer[ 9] += (timecode.frames  / 10) & 3;
-        text_buffer[10] +=  timecode.frames  % 10;
+        text_buffer[ 9] += (timecode.Frames  / 10) & 3;
+        text_buffer[10] +=  timecode.Frames  % 10;
 
         store_b1(cur, 0xA3); // SimpleBlock
         store_e4(cur, 1 + 2 + 1 + 11);
@@ -383,8 +383,6 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
     output->write(buffer, size);
     output_size += size;
     frame_number++;
-
-    cerr << "\33[2K\rCapture frame " << frame_number << ", press " << (InControl ? "q" : "ctrl+c") << " to stop.";
 }
 
 void matroska_writer::close(std::ofstream* output)

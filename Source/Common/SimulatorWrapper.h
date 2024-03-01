@@ -33,6 +33,7 @@ class SimulatorWrapper : public BaseWrapper {
     void StopCaptureSession();
     void SetPlaybackMode(playback_mode Mode, float Speed);
     bool WaitForSessionEnd(uint64_t Timeout);
+    bool IsMatroska();
 
     // Attributes
     static const std::string Interface;

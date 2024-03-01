@@ -24,7 +24,7 @@ extern bool Merge_OutputFileNames_IncludesStdOut;
 #ifdef ENABLE_SONY9PIN
 extern const char* Control_Port;
 #endif
-#ifdef ENABLE_DECKLINK
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
 extern uint8_t DeckLinkVideoMode;
 extern uint8_t DeckLinkVideoSource;
 extern uint8_t DeckLinkAudioSource;
