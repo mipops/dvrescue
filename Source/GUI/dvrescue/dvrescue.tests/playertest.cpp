@@ -10,14 +10,13 @@
 #include <QLocalSocket>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QtAVPlayer/qaviodevice.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QMediaService>
 #include <QVideoRendererControl>
 #include <QAbstractVideoSurface>
 #include <QVideoSurfaceFormat>
-
-#include <QtAVPlayer/qaviodevice.h>
 
 class VideoRenderer : public QVideoRendererControl
 {
