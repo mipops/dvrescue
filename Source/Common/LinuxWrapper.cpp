@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------
 #include "Common/LinuxWrapper.h"
 
+#include <condition_variable>
 #include <ctime>
 #include <queue>
 #include <vector>
@@ -16,8 +17,6 @@
 #include <libavc1394/rom1394.h>
 #include <libavc1394/avc1394.h>
 #include <libavc1394/avc1394_vcr.h>
-
-#include <iostream>
 
 using namespace std;
 
@@ -37,6 +36,7 @@ atomic<time_t> LastInput;
 
 queue<frame> FrameBuffer;
 mutex FrameBufferLock;
+condition_variable FrameBufferCondition;
 
 
 //---------------------------------------------------------------------------
@@ -53,6 +53,7 @@ static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
     FrameBufferLock.lock();
     FrameBuffer.push(Cur);
     FrameBufferLock.unlock();
+    FrameBufferCondition.notify_all();
 
     return 0;
 }
@@ -405,8 +406,9 @@ void LinuxWrapper::StartCaptureSession()
         ProcessFrameThread = new thread([this]() {
             do
             {
-                FrameBufferLock.lock();
-                if (!FrameBuffer.empty())
+                unique_lock Lock(FrameBufferLock);
+                FrameBufferCondition.wait_for(Lock, chrono::milliseconds(100));
+                while (!FrameBuffer.empty())
                 {
                     frame Cur = FrameBuffer.front();
                     FrameBuffer.pop();
@@ -415,11 +417,9 @@ void LinuxWrapper::StartCaptureSession()
                         Wrapper->Parse_Buffer(Cur.Data, Cur.Size);
                     delete[] Cur.Data;
                 }
-                FrameBufferLock.unlock();
-
-                this_thread::yield();
+                Lock.unlock();
             }
-            while (!Raw1394PoolingThread_Terminate);
+            while (!ProcessFrameThread_Terminate);
         });
     }
 }
