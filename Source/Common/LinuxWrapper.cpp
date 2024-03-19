@@ -406,12 +406,13 @@ void LinuxWrapper::StartCaptureSession()
             do
             {
                 FrameBufferLock.lock();
-                if (Wrapper && !FrameBuffer.empty())
+                if (!FrameBuffer.empty())
                 {
-                    frame Cur = FrameBuffer.back();
+                    frame Cur = FrameBuffer.front();
                     FrameBuffer.pop();
 
-                    Wrapper->Parse_Buffer(Cur.Data, Cur.Size);
+                    if (Wrapper)
+                        Wrapper->Parse_Buffer(Cur.Data, Cur.Size);
                     delete[] Cur.Data;
                 }
                 FrameBufferLock.unlock();
@@ -452,7 +453,7 @@ void LinuxWrapper::StopCaptureSession()
     FrameBufferLock.lock();
     while (!FrameBuffer.empty())
     {
-        delete[] FrameBuffer.back().Data;
+        delete[] FrameBuffer.front().Data;
         FrameBuffer.pop();
     }
     FrameBufferLock.unlock();
