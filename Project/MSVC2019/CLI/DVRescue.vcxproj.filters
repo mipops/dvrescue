@@ -57,6 +57,9 @@
     <ClCompile Include="..\..\..\Source\Common\Output_Xml.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Output_Mkv.cpp">
+      <Filter>Source Files\Common</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\Common\Output.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
@@ -114,6 +117,9 @@
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Output_Xml.h">
+      <Filter>Header Files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Output_Mkv.h">
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Common\Output.h">

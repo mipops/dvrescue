@@ -40,8 +40,6 @@ dnl Arguments - Enable
 dnl
 
 dnl TODO: USE --enable-capture on all platforms (use --enable-avfctl only for building the tool binary)
-dnl Also provide an option to enable simulator (will disable capture)
-
 AC_ARG_ENABLE(debug,            AC_HELP_STRING([--enable-debug],            [Enable full debug]),                                         , enable_debug=no)
 AC_ARG_ENABLE(gprof,            AC_HELP_STRING([--enable-gprof],            [Enable gprof log]),                                          , enable_gprof=no)
 AC_ARG_ENABLE(universal_binary, AC_HELP_STRING([--enable-universal_binary], [Create Mac PPC/i386 Universal binary]),                      , enable_universal_binary=no)
@@ -53,6 +51,7 @@ AC_ARG_ENABLE(avfctl,           AC_HELP_STRING([--enable-avfctl],           [Bui
 AC_ARG_ENABLE(capture,          AC_HELP_STRING([--enable-capture],          [Use libavc1394 and libdc1394 for capture support on linux]), , enable_capture=yes)
 AC_ARG_ENABLE(decklink,         AC_HELP_STRING([--enable-decklink],         [Enable capture from Blackmagic capture devices]),            , enable_decklink=no)
 AC_ARG_ENABLE(sony9pin,         AC_HELP_STRING([--enable-sony9pin],         [Enable control through Sony9Pin serial interface]),          , enable_sony9pin=no)
+AC_ARG_ENABLE(simulator,        AC_HELP_STRING([--enable-simulator],        [Enable capture simulation for testing purposes]),            , enable_simulator=yes)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -123,6 +122,11 @@ if test "$host_macos" = "yes" -a "$enable_sony9pin" = "yes" ; then
     fi
     dnl TODO: find a way to check for Sony9PinRemote.h
     dnl AC_CHECK_HEADERS([Sony9PinRemote.h], , [AC_MSG_ERROR([Sony9pin SDK is not found])])
+fi
+
+AM_CONDITIONAL([BUILD_SIMULATOR], [test "$enable_simulator" = "yes"])
+if test "$enable_simulator" = "yes" ; then
+    AC_DEFINE(ENABLE_SIMULATOR)
 fi
 
 dnl #########################################################################

@@ -35,13 +35,10 @@ using namespace std::chrono;
 #ifdef ENABLE_SIMULATOR
 #include "Common/SimulatorWrapper.h"
 #endif
-#if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
-FileWrapper* Wrapper = nullptr;
-#endif
 #ifdef ENABLE_SONY9PIN
 const char* Control_Port = nullptr;
 #endif
-#ifdef ENABLE_DECKLINK
+#if defined (ENABLE_DECKLINK) || defined (ENABLE_SIMULATOR)
 bool DeckLinkNativeControl = false;
 uint8_t DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
 uint8_t DeckLinkVideoSource = (uint8_t)Decklink_Video_Source_SDI;
@@ -352,7 +349,11 @@ void file::Parse(const String& FileName)
             ;
         #ifdef ENABLE_SIMULATOR
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=SimulatorWrapper::GetDeviceCount()))
+            {
                 Capture = new SimulatorWrapper(Device_Pos);
+                if (((SimulatorWrapper*)Capture)->IsMatroska())
+                    CaptureMode = Capture_Mode_DeckLink;
+            }
         #endif
         #ifdef ENABLE_AVFCTL
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=AVFCtlWrapper::GetDeviceCount()))
@@ -393,7 +394,7 @@ void file::Parse(const String& FileName)
         {
             if (Device_Command == 2)
             {
-                FileWrapper Wrapper(this);
+                FileWrapper Wrapper(nullptr);
                 Capture->CreateCaptureSession(&Wrapper);
                 this_thread::sleep_for(chrono::milliseconds(500)); // give time for the driver to retrieves status from the device
                 auto Status = Capture->GetStatus();
@@ -412,9 +413,23 @@ void file::Parse(const String& FileName)
         }
         Speed_Before = Capture->GetSpeed();
         auto InputHelper = InControl ? new thread(InputControl, this) : nullptr;
-        FileWrapper Wrapper(this);
+        #if defined(ENABLE_SIMULATOR) || defined(ENABLE_DECKLINK)
+        if (CaptureMode == Capture_Mode_DeckLink)
+        {
+            uint32_t Width = 720;
+            uint32_t Height = DeckLinkVideoMode == Decklink_Video_Mode_NTSC ? 486 : 576;
+            uint32_t Num = DeckLinkVideoMode == Decklink_Video_Mode_NTSC ? 30000 : 25;
+            uint32_t Den = DeckLinkVideoMode == Decklink_Video_Mode_NTSC ? 1001 : 1;
+            uint32_t SampleRate = 48000;
+            uint8_t Channels = 2;
+
+            Wrapper = new FileWrapper(Width, Height, Num, Den, SampleRate, Channels, DeckLinkTimecodeFormat<Decklink_Timecode_Format_Max);
+        }
+        else
+        #endif
+            Wrapper = new FileWrapper(this);
         MI.Open_Buffer_Init();
-        Capture->CreateCaptureSession(&Wrapper);
+        Capture->CreateCaptureSession(Wrapper);
         for (;;)
         {
             Capture->StartCaptureSession();
@@ -489,6 +504,9 @@ file::~file()
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (Capture)
         delete Capture;
+
+    if (Wrapper)
+        delete Wrapper;
     #endif
 
     for (auto& Frame : PerFrame)

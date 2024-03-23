@@ -53,8 +53,15 @@ if BUILD_AVFCTL
 endif
 
 if BUILD_DECKLINK
-    dvrescue_SOURCES += ../../../Source/Common/DecklinkWrapper.cpp \
-                        ../../../Source/Common/Output_Mkv.cpp
+    dvrescue_SOURCES += ../../../Source/Common/DecklinkWrapper.cpp
+endif
+
+if BUILD_DECKLINK
+    dvrescue_SOURCES += ../../../Source/Common/Output_Mkv.cpp
+else
+if BUILD_SIMULATOR
+    dvrescue_SOURCES += ../../../Source/Common/Output_Mkv.cpp
+endif
 endif
 
 if BUILD_SONY9PIN

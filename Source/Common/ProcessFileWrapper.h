@@ -10,8 +10,14 @@
 #include <cstddef> //for std::size_t, native size_t isn't avaiable in obj-c++ mode
 #include <cstdint>
 #include <string>
+#include <vector>
+
+#include "ThirdParty/TimeCode/TimeCode.h"
 
 class file;
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+class matroska_writer;
+#endif
 
 //***************************************************************************
 // Enums
@@ -23,16 +29,69 @@ enum playback_mode {
 };
 
 //***************************************************************************
+// Structures
+//***************************************************************************
+
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+struct decklink_frame
+{
+    uint32_t                    Width = 0;
+    uint32_t                    Height = 0;
+    uint8_t*                    Video_Buffer = nullptr;
+    size_t                      Video_Buffer_Size = 0;
+    uint8_t*                    Audio_Buffer = nullptr;
+    size_t                      Audio_Buffer_Size = 0;
+    TimeCode                    TC = TimeCode();
+};
+
+struct decklink_framesinfo {
+    struct frame {
+        TimeCode tc;
+        double pts;
+        double dur;
+    };
+
+    uint32_t video_width = 0;
+    uint32_t video_height = 0;
+    uint32_t video_rate_num = 0;
+    uint32_t video_rate_den = 0;
+    uint8_t audio_channels = 0;
+    uint32_t audio_rate = 0;
+
+    std::vector<frame> frames;
+};
+
+struct matroska_output
+{
+    matroska_writer* Writer = nullptr;
+    std::ofstream* Output = nullptr;
+};
+#endif
+
+//***************************************************************************
 // Class FileWrapper
 //***************************************************************************
 
 class FileWrapper {
 public:
-    FileWrapper(file* File);
+    FileWrapper(file* File); // Constructor for DV/MediaInfo Interface
+    #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+    FileWrapper(int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode = false); // Constructor for Decklink/Matroska Interface
+    ~FileWrapper();
+    #endif
     void Parse_Buffer(const uint8_t* Buffer, std::size_t Buffer_Size);
+
+    #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+    decklink_framesinfo FramesInfo;
+    #endif
 
  private:
     file* File;
+    #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+    bool IsMatroska = false;
+    std::vector<matroska_output> Outputs;
+    size_t FrameCount = 0;
+    #endif
 };
 
 //***************************************************************************

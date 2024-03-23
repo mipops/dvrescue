@@ -78,7 +78,7 @@ string PlatformStr2StdStr(PlatformStr Str)
 }
 
 //---------------------------------------------------------------------------
-DecklinkWrapper::CaptureDelegate::CaptureDelegate(DecklinkWrapper* Wrapper, std::vector<output> Writers, const uint32_t TimecodeFormat) : Wrapper(Wrapper), Writers(Writers), TimecodeFormat(TimecodeFormat)
+DecklinkWrapper::CaptureDelegate::CaptureDelegate(FileWrapper* Wrapper, const uint32_t TimecodeFormat) : Wrapper(Wrapper), TimecodeFormat(TimecodeFormat)
 {
 }
 
@@ -118,27 +118,28 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
         if (AudioPacket->GetBytes(&AudioBuffer) != S_OK)
             return E_FAIL;
 
-        timecode_struct Timecode;
+        TimeCode TC;
         if (TimecodeFormat != (uint32_t)-1)
         {
             IDeckLinkTimecode*	DeckLinkTimecode;
             if (VideoFrame->GetTimecode(TimecodeFormat, &DeckLinkTimecode) == S_OK)
             {
-                DeckLinkTimecode->GetComponents(&Timecode.hours, &Timecode.minutes, &Timecode.seconds, &Timecode.frames);
-                Timecode.dropframe = (DeckLinkTimecode->GetFlags() & bmdTimecodeIsDropFrame) != 0;
+                DeckLinkTimecode->GetComponents(&TC.Hours, &TC.Minutes, &TC.Seconds, &TC.Frames);
+                TC.DropFrame = (DeckLinkTimecode->GetFlags() & bmdTimecodeIsDropFrame) != 0;
             }
         }
 
-        for (output& Writer : Writers)
-            Writer.Writer->write_frame((const char*)VideoBuffer, VideoBufferSize, (const char*)AudioBuffer, AudioBufferSize, Timecode);
+        decklink_frame Buffer = {
+            .Width = (uint32_t)VideoFrame->GetWidth(),
+            .Height = (uint32_t)VideoFrame->GetHeight(),
+            .Video_Buffer = (uint8_t*)VideoBuffer,
+            .Video_Buffer_Size = VideoBufferSize,
+            .Audio_Buffer = (uint8_t*)AudioBuffer,
+            .Audio_Buffer_Size = AudioBufferSize,
+            .TC = TC,
+        };
 
-        double FrameRate = (double)Wrapper->frames.video_rate_num / Wrapper->frames.video_rate_den;
-        double ElapsedTime = (double)Wrapper->frames.frames.size() / FrameRate;
-        Wrapper->frames.frames.push_back(decklink_frames::frame {
-            .tc = Timecode,
-            .pts = ElapsedTime * 1000000000.0,
-            .dur = 1.0 / FrameRate
-        });
+        Wrapper->Parse_Buffer((const uint8_t*)&Buffer, sizeof(Buffer));
     }
 
     return S_OK;
@@ -585,33 +586,8 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         DeckLinkInput=nullptr;
     }
 
-    uint32_t Width = 720;
-    uint32_t Height = DeckLinkVideoMode == bmdModeNTSC ? 486 : 576;
-    uint32_t Num = DeckLinkVideoMode == bmdModeNTSC ? 30000 : 25;
-    uint32_t Den = DeckLinkVideoMode == bmdModeNTSC ? 1001 : 1;
-    uint32_t SampleRate = 48000;
     uint8_t Channels = 2;
-    for (string OutputFile : Merge_OutputFileNames)
-    {
-        output Output;
-        if (OutputFile == "-")
-          Output.Writer = new matroska_writer(&cout, Width, Height, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
-        else
-        {
-            Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
-            Output.Writer = new matroska_writer(Output.Output, Width, Height, Num, Den, DeckLinkTimecodeFormat != (uint32_t)-1);
-        }
-        Outputs.push_back(Output);
-    }
-
-    frames.video_width = Width;
-    frames.video_height = Height;
-    frames.video_rate_num = Num;
-    frames.video_rate_den = Den;
-    frames.audio_rate = SampleRate;
-    frames.audio_channels = Channels;
-
-    DeckLinkCaptureDelegate = new CaptureDelegate(this, Outputs, DeckLinkTimecodeFormat);
+    DeckLinkCaptureDelegate = new CaptureDelegate(Wrapper_, DeckLinkTimecodeFormat);
 
     if (DeckLinkInput->EnableVideoInput(DeckLinkVideoMode, bmdFormat10BitYUV, bmdVideoInputFlagDefault) != S_OK ||
         DeckLinkInput->EnableAudioInput(bmdAudioSampleRate48kHz, bmdAudioSampleType32bitInteger, Channels) != S_OK ||
@@ -625,16 +601,6 @@ void DecklinkWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
 
         delete DeckLinkCaptureDelegate;
         DeckLinkCaptureDelegate=nullptr;
-
-        for (output Output: Outputs)
-        {
-            if (Output.Output)
-                delete Output.Output;
-            if (Output.Writer)
-                delete Output.Writer;
-        }
-        Outputs.clear();
-
 
         return;
     }
@@ -676,22 +642,6 @@ void DecklinkWrapper::StopCaptureSession()
         delete DeckLinkCaptureDelegate;
         DeckLinkCaptureDelegate=nullptr;
     }
-
-    for (output Output: Outputs)
-    {
-        if (Output.Writer)
-        {
-             Output.Writer->close(Output.Output);
-             delete Output.Writer;
-        }
-
-        if (Output.Output)
-        {
-            Output.Output->close();
-            delete Output.Output;
-        }
-    }
-    Outputs.clear();
 
     SetPlaybackMode(Playback_Mode_NotPlaying, 0.0f);
     Capture = false;

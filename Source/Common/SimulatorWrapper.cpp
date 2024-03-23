@@ -7,12 +7,14 @@
 #include "Common/SimulatorWrapper.h"
 #include "ZenLib/File.h"
 #include "ZenLib/ZtringListList.h"
+#include "TimeCode.h"
 #include <chrono>
 #include <cmath>
 #include <mutex>
 #include <cstdlib>
 #include <thread>
 #include <vector>
+#include "SimulatorWrapper.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -33,6 +35,7 @@ struct ctl
     // Current
     FileWrapper*                Wrapper = nullptr;
     bool                        IsCapturing = false;
+    bool                        IsMatroska = false;
     size_t                      F_Pos = 0;
     vector<File*>               F;
     mutex                       Mutex;
@@ -42,7 +45,327 @@ struct ctl
 
     // I/O
     size_t                      Io_Pos = (size_t)-1;
+    uint8_t*                    Buffer;
+    size_t                      Buffer_Size;
+    size_t                      Buffer_Offset;
+    size_t                      CurrentClusterPos = 0;
+    size_t                      NextClusterPos;
+
+    // MKV info
+    size_t                      Track_Pos = 0;
+    decklink_frame              Decklink_Sim;
+
+    // MKV parsing
+    uint64_t                    Get_EB();
+    bool                        UnknownSize(uint64_t Name, uint64_t Size);
+    void                        ParseBuffer_Init(File& F);
+    bool                        ParseBuffer(File& F);
+
+    typedef void (ctl::*call)();
+    typedef call(ctl::*name)(uint64_t);
+
+    static const size_t Levels_Max = 16;
+    struct levels_struct
+    {
+        name SubElements;
+        uint64_t Offset_End;
+    };
+    levels_struct Levels[Levels_Max];
+    size_t Level;
+    bool IsList;
+
+    levels_struct Cluster_Levels[Levels_Max];
+    size_t Cluster_Level = (size_t)-1;
+    size_t Cluster_Offset = (size_t)-1;
+    size_t Element_Begin_Offset;
+
+    #define MATROSKA_ELEMENT(_NAME) \
+        void _NAME(); \
+        call SubElements_##_NAME(uint64_t Name);
+
+    #define MATROSKA_ELEM_XY(_NAME, _X, _Y) \
+        void _NAME##_X##_Y() { Segment_Attachments_AttachedFile_FileData_RawCookedxxx_yyy(reversibility::element::_Y, type::_X); } \
+        call SubElements_##_NAME##_X##_Y(uint64_t Name);
+
+    MATROSKA_ELEMENT(_);
+    MATROSKA_ELEMENT(Segment);
+    MATROSKA_ELEMENT(Segment_Cluster);
+    MATROSKA_ELEMENT(Segment_Cluster_SimpleBlock);
+    MATROSKA_ELEMENT(Segment_Cluster_BlockGroup);
+    MATROSKA_ELEMENT(Segment_Cluster_BlockGroup_SimpleBlock);
+    MATROSKA_ELEMENT(Segment_Cluster_Timestamp);
+    MATROSKA_ELEMENT(Segment_Tracks);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelWidth);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelHeight);
+    MATROSKA_ELEMENT(Void);
 };
+
+//---------------------------------------------------------------------------
+// Matroska parser
+
+#define ELEMENT_BEGIN(_VALUE) \
+ctl::call ctl::SubElements_##_VALUE(uint64_t Name) \
+{ \
+    switch (Name) \
+    { \
+
+#define ELEMENT_CASE(_VALUE,_NAME) \
+    case 0x##_VALUE:  Levels[Level].SubElements = &ctl::SubElements_##_NAME;  return &ctl::_NAME;
+
+#define ELEMENT_VOID(_VALUE,_NAME) \
+    case 0x##_VALUE:  Levels[Level].SubElements = &ctl::SubElements_Void;  return &ctl::_NAME;
+
+
+#define ELEMENT_END() \
+    default:                        return SubElements_Void(Name); \
+    } \
+} \
+
+ELEMENT_BEGIN(_)
+ELEMENT_CASE( 8538067, Segment)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment)
+ELEMENT_CASE( F43B675, Segment_Cluster)
+ELEMENT_CASE( 654AE6B, Segment_Tracks)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment_Cluster)
+ELEMENT_CASE(      20, Segment_Cluster_BlockGroup)
+ELEMENT_VOID(      23, Segment_Cluster_SimpleBlock)
+ELEMENT_VOID(      67, Segment_Cluster_Timestamp)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment_Cluster_BlockGroup)
+ELEMENT_VOID(      21, Segment_Cluster_BlockGroup_SimpleBlock)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment_Tracks)
+ELEMENT_CASE(      2E, Segment_Tracks_TrackEntry)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment_Tracks_TrackEntry)
+ELEMENT_CASE(      60, Segment_Tracks_TrackEntry_Video)
+ELEMENT_END()
+
+ELEMENT_BEGIN(Segment_Tracks_TrackEntry_Video)
+ELEMENT_VOID(      30, Segment_Tracks_TrackEntry_Video_PixelWidth)
+ELEMENT_VOID(      3A, Segment_Tracks_TrackEntry_Video_PixelHeight)
+ELEMENT_END()
+
+
+//---------------------------------------------------------------------------
+ctl::call ctl::SubElements_Void(uint64_t /*Name*/)
+{
+    Levels[Level].SubElements = &ctl::SubElements_Void; return &ctl::Void;
+}
+
+//---------------------------------------------------------------------------
+uint64_t ctl::Get_EB()
+{
+    //TEST_BUFFEROVERFLOW(1);
+
+    uint64_t ToReturn = Buffer[Buffer_Offset];
+    if (!ToReturn)
+        return (uint64_t)-1; // Out of specifications, consider the value as Unlimited
+    uint64_t s = 0;
+    while (!(ToReturn & (((uint64_t)1) << (7 - s))))
+        s++;
+    ToReturn ^= (((uint64_t)1) << (7 - s));
+    //TEST_BUFFEROVERFLOW(1 + s);
+    uint64_t UnknownValue = (((uint64_t)1) << ((s + 1) * 7)) - 1;
+    while (s)
+    {
+        ToReturn <<= 8;
+        Buffer_Offset++;
+        s--;
+        ToReturn |= Buffer[Buffer_Offset];
+    }
+    if (ToReturn == UnknownValue)
+        ToReturn = (uint64_t)-1; // Unknown size
+    Buffer_Offset++;
+
+    return ToReturn;
+}
+
+//---------------------------------------------------------------------------
+bool ctl::UnknownSize(uint64_t Name, uint64_t Size)
+{
+    // Continue
+    Levels[Level].Offset_End = Levels[Level - 1].Offset_End;
+    return false;
+}
+
+//---------------------------------------------------------------------------
+void ctl::ParseBuffer_Init(File& F)
+{
+    if (Buffer_Size < 4 || Buffer[0] != 0x1A || Buffer[1] != 0x45 || Buffer[2] != 0xDF || Buffer[3] != 0xA3)
+        return;
+
+    Buffer_Offset = 0;
+    Level = 0;
+
+    Levels[Level].Offset_End = F.Size_Get();
+    Levels[Level].SubElements = &ctl::SubElements__;
+    Level++;
+
+    ParseBuffer(F);
+}
+
+//---------------------------------------------------------------------------
+bool ctl::ParseBuffer(File& F)
+{
+    while (Buffer_Offset < Levels[0].Offset_End)
+    {
+        Element_Begin_Offset = Buffer_Offset;
+        uint64_t Name = Get_EB();
+        uint64_t Size = Get_EB();
+        if (Size <= Levels[Level - 1].Offset_End - Buffer_Offset)
+            Levels[Level].Offset_End = Buffer_Offset + Size;
+        else if (UnknownSize(Name, Size))
+            break; // Problem, we stop
+        call Call = (this->*Levels[Level - 1].SubElements)(Name);
+        IsList = false;
+        (this->*Call)();
+        if (!IsList)
+            Buffer_Offset = Levels[Level].Offset_End;
+        if (Buffer_Offset < Levels[Level].Offset_End)
+            Level++;
+        else
+        {
+            while (Level && Buffer_Offset >= Levels[Level - 1].Offset_End)
+            {
+                Levels[Level].SubElements = nullptr;
+                Level--;
+            }
+        }
+
+        if (CurrentClusterPos == Buffer_Offset)
+        {
+            if (Buffer_Offset < Levels[0].Offset_End && NextClusterPos + 8 >= Buffer_Size)
+            {
+                for (size_t i = 0; i < Level; i++)
+                    Levels[i].Offset_End -= Buffer_Offset;
+                NextClusterPos -= Buffer_Offset;
+                CurrentClusterPos = NextClusterPos;
+                memmove(Buffer, Buffer + Buffer_Offset, Buffer_Size - Buffer_Offset);
+                auto ToRead = Buffer_Offset < Levels[0].Offset_End ? Buffer_Offset : Levels[0].Offset_End;
+                F.Read(Buffer + Buffer_Size - Buffer_Offset, ToRead);
+                Buffer_Offset = 0;
+            }
+
+            return false; // New cluster
+        }
+    }
+
+    return true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment()
+{
+    IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Cluster()
+{
+    IsList = true;
+
+    CurrentClusterPos = Buffer_Offset;
+    NextClusterPos = Levels[Level].Offset_End;
+    Track_Pos = (size_t)-1;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Cluster_BlockGroup()
+{
+    IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Cluster_BlockGroup_SimpleBlock()
+{
+    Segment_Cluster_SimpleBlock();
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Cluster_SimpleBlock()
+{
+    Track_Pos++;
+    Buffer_Offset += 4;
+
+    auto Size = Levels[Level].Offset_End - Buffer_Offset;
+
+    switch (Track_Pos)
+    {
+    case 0:
+        Decklink_Sim.Video_Buffer = Buffer + Buffer_Offset;
+        Decklink_Sim.Video_Buffer_Size = Size;
+        break;
+    case 1:
+        Decklink_Sim.Audio_Buffer = Buffer + Buffer_Offset;
+        Decklink_Sim.Audio_Buffer_Size = Size;
+        break;
+    case 2:
+        Decklink_Sim.TC.FromString(string((const char*)Buffer + Buffer_Offset, Size));
+        break;
+    }
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Cluster_Timestamp()
+{
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks()
+{
+    IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry()
+{
+    IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_Video()
+{
+    IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_Video_PixelWidth()
+{
+    uint32_t Data = 0;
+    if (Levels[Level].Offset_End - Buffer_Offset == 1)
+        Data = ((uint32_t)Buffer[Buffer_Offset]);
+    if (Levels[Level].Offset_End - Buffer_Offset == 2)
+        Data = (((uint32_t)Buffer[Buffer_Offset]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 1]);
+
+    Decklink_Sim.Width = Data;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_Video_PixelHeight()
+{
+    uint32_t Data = 0;
+    if (Levels[Level].Offset_End - Buffer_Offset == 1)
+        Data = ((uint32_t)Buffer[Buffer_Offset]);
+    if (Levels[Level].Offset_End - Buffer_Offset == 2)
+        Data = (((uint32_t)Buffer[Buffer_Offset]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 1]);
+
+    Decklink_Sim.Height = Data;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Void()
+{
+}
 
 //---------------------------------------------------------------------------
 static std::string GetStatus(float Speed)
@@ -157,7 +480,21 @@ SimulatorWrapper::SimulatorWrapper(std::size_t DeviceIndex)
     P->Io_Pos = DeviceIndex;
     auto const& FileName = List[DeviceIndex][0];
     if (File::Exists(FileName))
+    {
         P->F.push_back(new File(FileName));
+        auto DotPos = FileName.rfind(__T('.'));
+        P->IsMatroska = DotPos != string::npos && FileName.substr(DotPos + 1) == __T("mkv");
+        if (P->IsMatroska)
+            P->Buffer_Size = 16 * 1024 * 1024;
+        else
+            P->Buffer_Size = 120000;
+        P->Buffer = new int8u[P->Buffer_Size];
+        if (P->IsMatroska)
+        {
+            P->F.back()->Read(P->Buffer, P->Buffer_Size);
+            P->ParseBuffer_Init(*P->F.back());
+        }
+    }
     for (size_t i = 0;; i++)
     {
         auto FileNameExt = FileName + __T('.') + Ztring::ToZtring(i);
@@ -271,7 +608,6 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
     if (P->F.empty() || !P->IsCapturing)
         return false;
 
-    int8u* Buffer = new int8u[120000];
     for (;;)
     {
         P->Mutex.lock();
@@ -354,6 +690,17 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
 
         // Read next data
         P->Mutex.lock();
+        if (P->NextClusterPos)
+        {
+            if (P->ParseBuffer(*P->F[0]))
+            {
+                P->Mutex.unlock();
+                break;
+            }
+            P->Wrapper->Parse_Buffer((uint8_t*)&P->Decklink_Sim, sizeof(P->Decklink_Sim));
+        }
+        else
+        {
         auto& F = P->F[P->F_Pos];
         Mode = P->Mode;
         size_t BytesToRead = 120000;
@@ -374,7 +721,7 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
             else
                 F->GoTo(-120000 * 2, File::FromCurrent);
         }
-        auto BytesRead = F->Read(Buffer, BytesToRead);
+        auto BytesRead = F->Read(P->Buffer, BytesToRead);
         P->Mutex.unlock();
 
         if (BytesRead != 120000 && (Speed_Simulated <= -1.0 || Speed_Simulated >= 1.0))
@@ -386,9 +733,9 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
             {
                 static const float ForwardRewRatio = 2;
                 Buffer2 = new uint8_t[120000];
-                memcpy(Buffer2, Buffer, 120000);
+                memcpy(Buffer2, P->Buffer, 120000);
                 for (int Buffer_Offset = 0; Buffer_Offset < 120000; Buffer_Offset += 80)
-                    if ((Buffer[Buffer_Offset] & 0xE0) == 0x60 && Buffer[Buffer_Offset + 3] == 0x51) // Audio SCT, audio_source_control, speed near 1.0
+                    if ((P->Buffer[Buffer_Offset] & 0xE0) == 0x60 && P->Buffer[Buffer_Offset + 3] == 0x51) // Audio SCT, audio_source_control, speed near 1.0
                         Buffer2[Buffer_Offset + 3 + 3] = (Speed_Simulated > 0 ? 0x80 : 0) | int(0x20 * abs(Speed_Simulated));
                 if (P->Speed_Simulated != P->Speed)
                 {
@@ -403,22 +750,33 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
                 }
             }
             else
-                Buffer2 = Buffer;
+                Buffer2 = P->Buffer;
 
             if (BytesRead != 120000)
                 continue;
 
             P->Wrapper->Parse_Buffer(Buffer2, 120000);
 
-            if (Buffer2 != Buffer)
+            if (Buffer2 != P->Buffer)
                 delete[] Buffer2;
+            }
         }
+        P->Mutex.unlock();
     }
 
     SetPlaybackMode(Playback_Mode_NotPlaying, 0);
-    delete[] Buffer;
+    delete[] P->Buffer;
 
     return false;
+}
+
+//---------------------------------------------------------------------------
+bool SimulatorWrapper::IsMatroska()
+{
+    if (!Ctl)
+        return false;
+
+    return ((ctl*)Ctl)->IsMatroska;
 }
 
 //---------------------------------------------------------------------------
@@ -474,7 +832,7 @@ SimulatorWrapper::~SimulatorWrapper()
     auto P = (ctl*)Ctl;
 
     // I/O
-    if (P->Io_Pos != (size_t)-1)
+    if (P->Io_Pos != (size_t)-1 && P->F_Pos < P->F.size())
     {
         auto& F = P->F[P->F_Pos];
         int64u Pos = F->Position_Get();
