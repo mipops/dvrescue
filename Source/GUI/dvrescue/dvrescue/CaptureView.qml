@@ -31,6 +31,7 @@ Column {
     property alias dataModel: dataModel
 
     property int frameSpeed: 0
+    property bool noFrames: true
 
     readonly property int thresholdBetweenFastPlayAndPlay: 35
     readonly property int thresholdBetweenPlayAndSlowPlay: 30
@@ -316,6 +317,9 @@ Column {
                     anchors.fill: speedInterpretation
                     source: speedInterpretation
                     color: {
+                        if(noFrames)
+                            return "white"
+
                         if(frameSpeed <= -thresholdBetweenFastPlayAndPlay || frameSpeed >= thresholdBetweenFastPlayAndPlay)
                             return "purple"
 

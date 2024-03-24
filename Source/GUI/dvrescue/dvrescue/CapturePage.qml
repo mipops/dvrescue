@@ -73,6 +73,15 @@ Rectangle {
                     }
                 }
 
+                Timer {
+                    id: framesDetector
+                    repeat: false
+                    interval: 1000
+                    onRunningChanged: {
+                        noFrames = !running
+                    }
+                }
+
                 property int indexOfFramePos: -1;
                 property int indexOfTimecode: -1;
                 property int indexOfRecDateTime: -1;
@@ -147,6 +156,8 @@ Rectangle {
 
                         dataModel.append(framePos, blockErrorsEven, blockErrors, captureView.capturingModeInt == captureView.playing)
                     }
+
+                    framesDetector.restart()
                 }
 
                 function doCapture(captureCmd, captureStatus) {
