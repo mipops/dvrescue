@@ -10,6 +10,7 @@
 #include <QLocalSocket>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QtAVPlayer/qaviodevice.h>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QMediaService>
@@ -267,14 +268,14 @@ void PlayerTest::testPlaybackFromQIODevice()
         qDebug() << "serverSocket connected";
     });
 
-    QBufferEx client;
-    connect(&client, &QBufferEx::readyRead, [&]() {
+    QSharedPointer<QBufferEx> client(new QBufferEx);
+    connect(client.get(), &QBufferEx::readyRead, [&]() {
        qDebug() << "got more data";
-       client.wc.wakeAll();
+        client->wc.wakeAll();
     });
 
-    client.connectToServer("ringbuffer");
-    if (client.waitForConnected(1000))
+    client->connectToServer("ringbuffer");
+    if (client->waitForConnected(1000))
     {
         qDebug("Connected!");
     }
@@ -290,8 +291,8 @@ void PlayerTest::testPlaybackFromQIODevice()
         qDebug() << "got frame";
     });
 
-    auto &buffer = client;
-    p.setSource(QUrl(fileInfo.fileName()).toString(), &buffer);
+    QSharedPointer<QAVIODevice> dev(new QAVIODevice(client));
+    p.setSource(QUrl(fileInfo.fileName()).toString(), dev);
     // p.play();
 
 #if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
@@ -404,14 +405,14 @@ void PlayerTest::testPlaybackFromQIODevice2()
         qDebug() << "serverSocket connected";
     });
 
-    QBufferEx client;
-    connect(&client, &QBufferEx::readyRead, [&]() {
+    QSharedPointer<QBufferEx> client(new QBufferEx);
+    connect(client.get(), &QBufferEx::readyRead, [&]() {
        qDebug() << "got more data";
-       client.wc.wakeAll();
+        client->wc.wakeAll();
     });
 
-    client.connectToServer("ringbuffer", QIODevice::ReadWrite | QIODevice::Unbuffered);
-    if (client.waitForConnected(1000))
+    client->connectToServer("ringbuffer", QIODevice::ReadWrite | QIODevice::Unbuffered);
+    if (client->waitForConnected(1000))
     {
         qDebug("Connected!");
     }
@@ -427,8 +428,8 @@ void PlayerTest::testPlaybackFromQIODevice2()
         qDebug() << "got frame";
     });
 
-    auto &buffer = client;
-    p.setSource(fileInfo.fileName(), &buffer);
+    QSharedPointer<QAVIODevice> dev(new QAVIODevice(client));
+    p.setSource(fileInfo.fileName(), dev);
 
 #if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
     QThreadPool::globalInstance()->start([&file, &serverSocket]() {
@@ -524,8 +525,8 @@ public:
 
 void PlayerTest::testPlaybackFromQIODevice3()
 {
-    BufferSequential buffer;
-    buffer.open(QIODevice::ReadWrite);
+    QSharedPointer<BufferSequential> buffer(new BufferSequential());
+    buffer->open(QIODevice::ReadWrite);
 
     QFileInfo fileInfo(path());
     QFile file(path());
@@ -570,19 +571,23 @@ void PlayerTest::testPlaybackFromQIODevice3()
 
     QObject::connect(&p, &QAVPlayer::errorOccurred, &p, [&](QAVPlayer::Error err, const QString &) {
         if (err == QAVPlayer::ResourceError) {
-            buffer.seek(0);
+            buffer->seek(0);
             p.setSource(QLatin1String());
-            p.setSource(fileInfo.fileName(), &buffer);
+
+            QSharedPointer<QAVIODevice> dev(new QAVIODevice(buffer));
+
+            p.setSource(fileInfo.fileName(), dev);
             p.play();
         }
     });
 
-    p.setSource(fileInfo.fileName(), &buffer);
+    QSharedPointer<QAVIODevice> dev(new QAVIODevice(buffer));
+    p.setSource(fileInfo.fileName(), dev);
     p.play();
 
     while(!file.atEnd()) {
         auto bytes = file.read(4 * 1024);
-        buffer.write(bytes);
+        buffer->write(bytes);
         QTest::qWait(50);
     }
 }
@@ -593,9 +598,9 @@ void PlayerTest::testPlaybackFromQIODevice4()
     QFile file(path());
     file.open(QFile::ReadOnly);
 
-    Buffer buffer;
-    buffer.m_size = file.size();
-    buffer.open(QIODevice::ReadWrite);
+    QSharedPointer<Buffer> buffer(new Buffer);
+    buffer->m_size = file.size();
+    buffer->open(QIODevice::ReadWrite);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     VideoRenderer vr;
@@ -634,15 +639,16 @@ void PlayerTest::testPlaybackFromQIODevice4()
     });
 #endif //
 
-    p.setSource(fileInfo.fileName(), &buffer);
+    QSharedPointer<QAVIODevice> dev(new QAVIODevice(buffer));
+    p.setSource(fileInfo.fileName(), dev);
     p.play();
 
 #if QT_VERSION > QT_VERSION_CHECK(5, 12, 10)
     QThreadPool::globalInstance()->start([&file, &buffer]() {
         while(!file.atEnd()) {
             auto bytes = file.read(1 * 1024);
-            buffer.write(bytes);
-            buffer.readyRead();
+            buffer->write(bytes);
+            buffer->readyRead();
             // QTest::qWait(50);
         }
     });

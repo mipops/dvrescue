@@ -132,7 +132,7 @@ private:
 #endif //
 
     QVector2D m_ranges;
-    QIODevice* m_buffer { nullptr };
+    QSharedPointer<QIODevice> m_buffer;
 
     bool m_enableAudio { true };
 

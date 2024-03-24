@@ -1,5 +1,6 @@
 #include "mediaplayer.h"
 #include <QtAVPlayer/qavplayer.h>
+#include <QtAVPlayer/qaviodevice.h>
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QAbstractVideoSurface>
 #include <QVideoSurfaceFormat>
@@ -248,15 +249,18 @@ void MediaPlayer::setRanges(const QVector2D &newRanges)
 
 QIODevice* MediaPlayer::buffer() const
 {
-    return m_buffer;
+    return m_buffer.get();
 }
 
 void MediaPlayer::setBuffer(QIODevice* newBuffer)
 {
-    if (m_buffer == newBuffer)
+    if (m_buffer.get() == newBuffer)
         return;
-    m_buffer = newBuffer;
-    player->setSource("dummy", m_buffer);
+    m_buffer.reset(newBuffer);
+
+    QSharedPointer<QAVIODevice> dev(new QAVIODevice(m_buffer));
+
+    player->setSource("dummy", dev);
     Q_EMIT bufferChanged();
 }
 
