@@ -505,10 +505,6 @@ jobs:
         arch: win64_mingw81
         version: ${{ matrix.qt_version }}
 
-    - name: Install wget & unzip
-      run: |
-        choco install wget unzip
-
     - name: Install FFmpeg
       shell: pwsh
       run: |
@@ -603,10 +599,6 @@ jobs:
         arch: win64_mingw
         version: ${{ matrix.qt_version }}
         modules: ${{ matrix.qt_modules }}
-
-    - name: Install wget & unzip
-      run: |
-        choco install wget unzip
 
     - name: Install FFmpeg
       shell: pwsh
@@ -704,10 +696,6 @@ jobs:
       with:
         version: ${{ matrix.qt_version }}
 
-    - name: Install wget & unzip
-      run: |
-        choco install wget unzip
-
     - name: Install FFmpeg
       shell: pwsh
       run: |
@@ -801,10 +789,6 @@ jobs:
         arch: win64_msvc2019_64
         version: ${{ matrix.qt_version }}
         modules: ${{ matrix.qt_modules }}
-
-    - name: Install wget & unzip
-      run: |
-        choco install wget unzip
 
     - name: Install FFmpeg
       shell: pwsh
