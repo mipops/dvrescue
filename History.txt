@@ -1,3 +1,12 @@
+Version 24.03, 2024-03-26
++ Add preliminary xml output support for the decklink input
++ Add preferences for filtering out frames during capture that aren't at normal playback speed or are fully concealed
++ Documentation updates
++ Frame speed/direction icon is disabled when there are no input frames
+x Fixes for Linux builds
+x Timestamp fixes for the SRT output
+x Stop playback in the analysis tab when switching views
+
 Version 24.01, 2024-01-31
 + Add experimnetal support for capture from Decklink devices to the CLI.
 + Added control support in the CLI, now offering deck control via firewire, the decklink api, or commander cable.
