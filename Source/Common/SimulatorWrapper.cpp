@@ -49,7 +49,7 @@ struct ctl
     size_t                      Buffer_Size;
     size_t                      Buffer_Offset;
     size_t                      CurrentClusterPos = 0;
-    size_t                      NextClusterPos;
+    size_t                      NextClusterPos = 0;
 
     // MKV info
     size_t                      Track_Pos = 0;
@@ -459,6 +459,7 @@ static ZtringListList ReadFileNames()
     ZtringListList List;
     List.Separator_Set(1, __T(","));
     List.Write(Ztring().From_UTF8((char*)List_C, List_F.Size_Get()));
+    delete[] List_C;
     return List;
 }
 

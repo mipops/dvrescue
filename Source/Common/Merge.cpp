@@ -180,7 +180,7 @@ namespace
     
     struct per_file
     {
-        FILE*               F;
+        FILE*               F = nullptr;
         vector<FILE*>       Copies;
         FILE*               F_Takes = nullptr;
         size_t              F_Takes_Start = -1;
