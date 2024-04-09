@@ -256,7 +256,10 @@ void MediaPlayer::setBuffer(QIODevice* newBuffer)
 {
     if (m_buffer.get() == newBuffer)
         return;
-    m_buffer.reset(newBuffer);
+
+    m_buffer.reset(newBuffer, [](QObject*){}); // NoDeleter
+                                               // RAW pointer is owned by the QML engine
+                                               // and deleted outside of the shared pointer
 
     QSharedPointer<QAVIODevice> dev(new QAVIODevice(m_buffer));
 
