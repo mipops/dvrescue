@@ -1,3 +1,6 @@
+Version 24.04, 2024-04-10
+x Fix crash in GUI when a deck in unplugged or stop signal is sent (PR#846)
+
 Version 24.03, 2024-03-26
 + Add preliminary xml output support for the decklink input
 + Add preferences for filtering out frames during capture that aren't at normal playback speed or are fully concealed
