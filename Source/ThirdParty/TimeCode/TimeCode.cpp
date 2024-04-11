@@ -193,7 +193,7 @@ bool TimeCode::FromString(const char* Value)
 //---------------------------------------------------------------------------
 string TimeCode::ToString() const
 {
-    if (!IsValid())
+    if (!HasValue())
         return string();
 
     string TC;
