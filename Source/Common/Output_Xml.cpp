@@ -409,6 +409,13 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += " tc=\"";
                     timecode_to_string(Text, tc_in_seconds, dropframe, frame);
                     Text += '\"';
+
+                    if (File->Wrapper->FramesInfo.frames[Pos].tc_r)
+                        Text += " tc_r=\"1\"";
+                    else if (File->Wrapper->FramesInfo.frames[Pos].tc_nc == 2)
+                        Text += " tc_nc=\"2\"";
+                    else if (File->Wrapper->FramesInfo.frames[Pos].tc_nc == 1)
+                        Text += " tc_nc=\"1\"";
                 }
 
                 Text += "/>\n";

@@ -47,6 +47,8 @@ struct decklink_frame
 struct decklink_framesinfo {
     struct frame {
         TimeCode tc;
+        bool tc_r;
+        uint8_t tc_nc;
         double pts;
         double dur;
     };

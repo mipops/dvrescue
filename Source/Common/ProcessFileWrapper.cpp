@@ -84,16 +84,80 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
                                        (const char*)Frame->Audio_Buffer, Frame->Audio_Buffer_Size, Frame->TC);
         }
 
+        bool TimeCode_Repeat = false;
+        bool TimeCode_NonConsecutive = false;
+        bool TimeCode_NonConsecutive_IsLess = false;
+        if (Frame->TC.HasValue() && FramesInfo.frames.size() && FramesInfo.frames.back().tc.HasValue())
+        {
+            TimeCode_Repeat = Frame->TC == FramesInfo.frames.back().tc;
+            if (!TimeCode_Repeat)
+            {
+                TimeCode Previous = FramesInfo.frames.back().tc;
+                TimeCode Current = Frame->TC;
+                Previous.FramesPerSecond = (FramesInfo.video_rate_num / FramesInfo.video_rate_num) + (FramesInfo.video_rate_num % FramesInfo.video_rate_num);
+                Previous.FramesPerSecond_Is1001 = FramesInfo.video_rate_den == 1001;
+                Current.FramesPerSecond = Previous.FramesPerSecond;
+                Current.FramesPerSecond_Is1001 = Previous.FramesPerSecond_Is1001;
+
+                TimeCode_NonConsecutive = Current.ToFrames() != Previous.ToFrames() + 1;
+                if (TimeCode_NonConsecutive)
+                    TimeCode_NonConsecutive_IsLess = Current.ToFrames() < Previous.ToFrames();
+            }
+        }
 
         double FrameRate = (double)FramesInfo.video_rate_num / FramesInfo.video_rate_den;
         double ElapsedTime = (double)FramesInfo.frames.size() / FrameRate;
         FramesInfo.frames.push_back(decklink_framesinfo::frame {
             Frame->TC,
+            TimeCode_Repeat,
+            (uint8_t)(TimeCode_NonConsecutive ? (TimeCode_NonConsecutive_IsLess ? 2 : 1) : 0),
             ElapsedTime * 1000000000.0,
             1.0 / FrameRate
         });
 
-        cerr << "\33[2K\rCapture frame " << ++FrameCount << ", press " << (InControl ? "q" : "ctrl+c") << " to stop.";
+        if (MergeInfo_Format == 1)
+        {
+            if (!FrameCount)
+            {
+                cout << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed"
+                     << (Verbosity > 5 ? ",SourceSpeed,FrameSpeed,InputPos,OutputPos" : "")
+                     << (ShowFrames_Intermediate ? ",RewindStatus" : "")
+                     << endl;
+            }
+
+            cout << FrameCount++ // framePos
+                 << "," // abst
+                    "," // abst_r
+                    "," // abst_nc
+                    "," << (Frame->TC.HasValue() ? Frame->TC.ToString() : "XX:XX:XX:XX") // tc
+                 << "," << (TimeCode_Repeat ? "1" : "") // tc_r
+                 << "," << (TimeCode_NonConsecutive ? (TimeCode_NonConsecutive_IsLess ? "2" : "1") : "") // tc_nc
+                 << "," // rdt
+                    "," // rdt_r
+                    "," // rdt_nc
+                    "," // rec_start
+                    "," // rec_end
+                    "," // Used
+                    "," // Status
+                    "," // Comments
+                    "," // BlockErrors
+                    "," // BlocksErrors_Even
+                    "," // IssueFixed
+                 << (Verbosity > 5 ?
+                        "," // SourceSpeed
+                        "," // FrameSpeed
+                        "," // InputPos
+                        "," // OutputPos
+                        : ""
+                    )
+                    << (ShowFrames_Intermediate ?
+                        "," // RewindStatus
+                        : ""
+                    )
+                 << endl;
+        }
+        else
+            cerr << "\33[2K\rCapture frame " << ++FrameCount << ", press " << (InControl ? "q" : "ctrl+c") << " to stop.";
         return;
     }
     #endif
