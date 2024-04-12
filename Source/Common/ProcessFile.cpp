@@ -196,7 +196,7 @@ void file::Parse(const String& FileName)
         #ifdef ENABLE_SIMULATOR
             for (size_t i = 0; i<SimulatorWrapper::GetDeviceCount(); i++)
             {
-                auto Interface = SimulatorWrapper::Interface;
+                auto Interface = SimulatorWrapper::GetDeviceInterface(i);
                 auto DeviceName = SimulatorWrapper::GetDeviceName(i);
                 auto DeviceID = i; // Use index as deviceID for simulator
                 if (Device_Command == 4) //JSON
