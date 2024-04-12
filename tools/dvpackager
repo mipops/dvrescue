@@ -502,14 +502,14 @@ _count_dv_frames(){
 
 _get_track2_maxdiff(){
     # 1: input dv 2: byte offset 3: duration to read
-    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "Max difference:" | cut -d ":" -f2- | sed 's/ //g'
+    "${FFMPEG_PATH}" -nostdin -skip_initial_bytes "${2}" -t "${3}" -probesize 10M -i "${1}" -filter_complex "[0:a:1]astats" -f null -vn - 2>&1 | sed '1,/Overall$/d' | grep "Max difference:" | cut -d ":" -f2- | sed 's/ //g'
 }
 
 _check_audio_by_ffmpeg_subfile(){
     # The input should be a subfile input statement
     # The output will be a list of the audio track sample rates, likely "48000" or "3200032000"
     SUBFILE="${1}"
-    QUERY="$(ffmpeg -nostdin -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
+    QUERY="$(ffmpeg -nostdin -probesize 10M -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
     if [[ "${QUERY}" = "48000" ]] ; then
         echo "2-48000"
     elif [[ "${QUERY}" = "44100" ]] ; then
@@ -816,7 +816,6 @@ fi
 OPT_INPUT=(-y)
 OPT_INPUT+=(-nostdin)
 OPT_INPUT+=(-hide_banner)
-OPT_INPUT+=(-probesize 10M)
 OPT_OUTPUT+=(-c:v:0 copy)
 
 LANG1="$(echo "${LANGUAGES}" | cut -d "," -f1 )"
@@ -993,7 +992,7 @@ if [[ -f "${DVFILE}" ]] ; then
             fi
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Reading from DV stream input at byte range ${PKT_POS}-${PKT_POS_END}"
-                DV_INPUT=(-i "subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}")
+                DV_INPUT=(-probesize 10M -i "subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}")
             else
                 if [[ "${PTS}" = "00:00:00.000000" ]] ; then
                     :
@@ -1003,7 +1002,7 @@ if [[ -f "${DVFILE}" ]] ; then
                 else
                     START_TIME=(-ss "${PTS}")
                 fi
-                DV_INPUT=("${MOV_INPUT_OPT[@]}" "${MOV_INPUT_RATE_OPT[@]}" "${START_TIME[@]}" -i "${DVFILE}")
+                DV_INPUT=("${MOV_INPUT_OPT[@]}" "${MOV_INPUT_RATE_OPT[@]}" "${START_TIME[@]}" -probesize 10M -i "${DVFILE}")
             fi
             FRAME_COUNT="$(echo "${FRAME_END} - ${FRAME_START}" + 1 | bc)"
             DURATION_SECS="$(echo "${FRAME_COUNT}/(${VIDEO_RATE})" | bc -l | awk '{printf "%.9f\n", $0}')"
@@ -1073,8 +1072,8 @@ if [[ -f "${DVFILE}" ]] ; then
                         FRAME_COUNTa="$(echo "${FRAME_ENDa} - ${FRAME_STARTa}" + 1 | bc)"
                         DURATION_SECSa="$(echo "${FRAME_COUNTa}/(${VIDEO_RATEa})" | bc -l | awk '{printf "%.9f\n", $0}')"
                         AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POSa},end,${PKT_POS_ENDa:-0},,:${DVFILE}"
-                        AUDIO_INPUTS+=(-i "${AUDIO_SUBFILE_INPUT}")
-                        LAST_FRAME_SUBFILE=(-i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa:-0},,:${DVFILE}")
+                        AUDIO_INPUTS+=(-probesize 10M -i "${AUDIO_SUBFILE_INPUT}")
+                        LAST_FRAME_SUBFILE=(-probesize 10M -i "subfile,,start,${PKT_POS_LASTa},end,${PKT_POS_ENDa:-0},,:${DVFILE}")
                         FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT[@]}")"
                         if [[ "${CHa}" = "0" ]] ; then
                             DVRESCUE_AUDIO_QUERY="0"
