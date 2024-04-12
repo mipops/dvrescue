@@ -533,6 +533,19 @@ std::string SimulatorWrapper::GetDeviceName(std::size_t DeviceIndex)
 }
 
 //---------------------------------------------------------------------------
+std::string SimulatorWrapper::GetDeviceInterface(std::size_t DeviceIndex)
+{
+    auto List = ReadFileNames();
+    if (DeviceIndex >= List.size() || List[DeviceIndex].empty())
+        return {};
+
+    auto DotPos = List[DeviceIndex][0].rfind(__T('.'));
+    bool IsMatroska = DotPos != string::npos && List[DeviceIndex][0].substr(DotPos + 1) == __T("mkv");
+
+    return IsMatroska ? "DeckLink" : "DV";
+}
+
+//---------------------------------------------------------------------------
 std::string SimulatorWrapper::GetStatus()
 {
     if (!Ctl)
