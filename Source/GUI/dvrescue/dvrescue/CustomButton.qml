@@ -10,6 +10,10 @@ Button {
     icon.height: height
     icon.color: "white"
     padding: 0
+    topPadding: 0
+    leftPadding: 0
+    rightPadding: 0
+    bottomPadding: 0
     topInset: 0
     leftInset: 0
     bottomInset: 0
