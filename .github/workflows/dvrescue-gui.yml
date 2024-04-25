@@ -35,7 +35,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config ffmpeg
+        brew install ${{ matrix.packages }} pkg-config ffmpeg@6
 
     - name: Install qwt-qt5
       run: |
@@ -44,7 +44,7 @@ jobs:
 
     - name: Set Qt5 environment path
       run: |
-        echo "/usr/local/opt/qt@5/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/qt@5/bin" >> $GITHUB_PATH
 
     - name: Build dvrescue-gui
       env:
@@ -53,6 +53,7 @@ jobs:
         cd Source/GUI/dvrescue/
         mkdir build
         cd build
+        export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@6/lib/pkgconfig"
         qmake ..
         make CC=$CC CXX=$CXX -j4
 
@@ -73,7 +74,7 @@ jobs:
           - compiler: clang-9
             packages: llvm@13
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
-          - qt_version: "6.3.0"
+          - qt_version: "6.5.*"
             qt_modules: "qtmultimedia"
 
     runs-on: macos-latest
@@ -97,7 +98,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install ${{ matrix.packages }} pkg-config ffmpeg
+        brew install ${{ matrix.packages }} pkg-config ffmpeg@6
 
     - name: Install Qt6
       uses: jurplel/install-qt-action@v3
@@ -120,6 +121,7 @@ jobs:
         cd Source/GUI/dvrescue/
         mkdir build
         cd build
+        export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@6/lib/pkgconfig"
         qmake ..
         make -j4
 
@@ -166,7 +168,7 @@ jobs:
 
     - name: Set Qt5 environment path
       run: |
-        echo "/usr/local/opt/qt@5/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/qt@5/bin" >> $GITHUB_PATH
 
     - name: Build qwt
       run: |
@@ -218,7 +220,7 @@ jobs:
           - compiler: clang-9
             packages: llvm@13
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
-          - qt_version: "6.3.0"
+          - qt_version: "6.5.*"
             qt_modules: "qtmultimedia"
 
     runs-on: macos-latest
