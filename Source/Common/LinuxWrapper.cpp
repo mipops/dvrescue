@@ -13,6 +13,7 @@
 #include <vector>
 #include <cstring>
 #include <sstream>
+#include <iostream>
 #include <sys/poll.h>
 #include <libavc1394/rom1394.h>
 #include <libavc1394/avc1394.h>
@@ -133,6 +134,8 @@ LinuxWrapper::LinuxWrapper(size_t DeviceIndex)
         throw error("Unable to connect to device.");
     }
 
+    raw1394_set_bus_reset_handler(CtlHandle, LinuxWrapper::Raw1394ControlBusResetHandler);
+
     iec61883_cmp_normalize_output(CtlHandle, 0xffc0 | Node);
 }
 
@@ -189,7 +192,11 @@ LinuxWrapper::~LinuxWrapper()
     StopCaptureSession();
 
     if (CtlHandle)
+    {
+        CtlHandleMutex.lock();
         raw1394_destroy_handle(CtlHandle);
+        CtlHandleMutex.unlock();
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -264,7 +271,9 @@ size_t LinuxWrapper::GetDeviceIndex(const string& DeviceID)
 //---------------------------------------------------------------------------
 playback_mode LinuxWrapper::GetMode()
 {
+    CtlHandleMutex.lock();
     quadlet_t Status = avc1394_vcr_status(CtlHandle, Node);
+    CtlHandleMutex.unlock();
     if (AVC1394_MASK_OPCODE(Status) == AVC1394_VCR_RESPONSE_TRANSPORT_STATE_PLAY)
     {
         if (AVC1394_MASK_OPERAND0(Status) >= AVC1394_VCR_OPERAND_PLAY_SLOWEST_FORWARD &&
@@ -281,7 +290,9 @@ std::string LinuxWrapper::GetStatus()
     if (!CtlHandle || Node == (nodeid_t)-1)
         return "invalid";
 
+    CtlHandleMutex.lock();
     quadlet_t Status = avc1394_vcr_status(CtlHandle, Node);
+    CtlHandleMutex.unlock();
 
     if (AVC1394_MASK_OPCODE(Status) == AVC1394_VCR_RESPONSE_TRANSPORT_STATE_PLAY)
     {
@@ -328,7 +339,9 @@ float LinuxWrapper::GetSpeed()
     if (!CtlHandle || Node == (nodeid_t)-1)
         return 0.0f;
 
+    CtlHandleMutex.lock();
     quadlet_t Status = avc1394_vcr_status(CtlHandle, Node);
+    CtlHandleMutex.unlock();
     if (AVC1394_MASK_OPCODE(Status) == AVC1394_VCR_RESPONSE_TRANSPORT_STATE_PLAY)
     {
         if (AVC1394_MASK_OPERAND0(Status) == AVC1394_VCR_OPERAND_PLAY_REVERSE_PAUSE ||
@@ -373,6 +386,8 @@ void LinuxWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
     CaptureHandle = raw1394_new_handle_on_port(Port);
     if (CaptureHandle)
     {
+        raw1394_set_bus_reset_handler(CaptureHandle, LinuxWrapper::Raw1394CaptureBusResetHandler);
+
         Channel = iec61883_cmp_connect(CaptureHandle, Node, &OutPlug, raw1394_get_local_id(CaptureHandle), &InPlug, &Bandwidth);
         if (Channel < 0) // try broadcast channel if connect failed
             Channel = 63;
@@ -505,8 +520,25 @@ bool LinuxWrapper::WaitForSessionEnd(uint64_t Timeout)
 }
 
 //---------------------------------------------------------------------------
+int LinuxWrapper::Raw1394CaptureBusResetHandler(raw1394handle_t, unsigned int)
+{
+    cerr << "Error: Capture bus was reset."  << endl;
+    return 0;
+}
+
+//---------------------------------------------------------------------------
+int LinuxWrapper::Raw1394ControlBusResetHandler(raw1394handle_t Handle, unsigned int Generation)
+{
+    cerr << "Error: Capture bus was reset."  << endl;
+    return 0;
+}
+
+//---------------------------------------------------------------------------
 void LinuxWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
 {
+    if (!CtlHandle || Node == (nodeid_t)-1)
+        return;
+
     switch (Mode)
     {
         case Playback_Mode_Playing:
@@ -531,17 +563,24 @@ void LinuxWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
             else if (Speed <= -2.0f) // fastest reverse play mode
                 Code=AVC1394_VCR_OPERAND_PLAY_FASTEST_REVERSE;
 
+            CtlHandleMutex.lock();
             avc1394_send_command(CtlHandle, Node, CTLVCR0 | AVC1394_VCR_COMMAND_PLAY | Code);
+            CtlHandleMutex.unlock();
             break;
         }
         case Playback_Mode_NotPlaying:
         {
+            uint8_t Code;
             if (Speed == 0.0f) // stop
-                avc1394_send_command(CtlHandle, Node, CTLVCR0 | AVC1394_VCR_COMMAND_WIND | AVC1394_VCR_OPERAND_WIND_STOP);
+                Code=AVC1394_VCR_OPERAND_WIND_STOP;
             else if (Speed > 0.0f) // fast-forward
-                avc1394_send_command(CtlHandle, Node, CTLVCR0 | AVC1394_VCR_COMMAND_WIND | AVC1394_VCR_OPERAND_WIND_FAST_FORWARD);
+                Code=AVC1394_VCR_OPERAND_WIND_FAST_FORWARD;
             else if (Speed < 0.0f) // rewind
-                avc1394_send_command(CtlHandle, Node, CTLVCR0 | AVC1394_VCR_COMMAND_WIND | AVC1394_VCR_OPERAND_WIND_REWIND);
+                Code=AVC1394_VCR_OPERAND_WIND_REWIND;
+
+            CtlHandleMutex.lock();
+            avc1394_send_command(CtlHandle, Node, CTLVCR0 | AVC1394_VCR_COMMAND_WIND | Code);
+            CtlHandleMutex.unlock();
             break;
         }
     }

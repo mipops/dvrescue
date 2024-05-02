@@ -72,6 +72,10 @@ class LinuxWrapper : public BaseWrapper {
     static const std::string Interface;
 
 private:
+    // Functions
+    static int Raw1394CaptureBusResetHandler(raw1394handle_t Handle, unsigned int Generation);
+    static int Raw1394ControlBusResetHandler(raw1394handle_t Handle, unsigned int Generation);
+
     // global
     int Port = -1;
     nodeid_t Node = (nodeid_t)-1;
@@ -79,6 +83,7 @@ private:
 
     // avc1394
     raw1394handle_t CtlHandle = nullptr;
+    std::mutex CtlHandleMutex;
 
     // mi
     FileWrapper* Wrapper = nullptr;
