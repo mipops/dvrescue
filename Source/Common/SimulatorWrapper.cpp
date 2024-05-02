@@ -715,64 +715,68 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
         }
         else
         {
-        auto& F = P->F[P->F_Pos];
-        Mode = P->Mode;
-        size_t BytesToRead = 120000;
-        if (Speed_Simulated < 0)
-        {
-            auto Position = F->Position_Get();
-            if (Position < 120000 * 2)
+            auto& F = P->F[P->F_Pos];
+            Mode = P->Mode;
+            size_t BytesToRead = 120000;
+            if (Speed_Simulated < 0)
             {
-                F->GoTo(0, File::FromBegin);
-                if (Speed_Simulated <= -1.0)
+                auto Position = F->Position_Get();
+                if (Position < 120000 * 2)
+                {
+                    F->GoTo(0, File::FromBegin);
+                    if (Speed_Simulated <= -1.0)
+                    {
+                        P->Mutex.unlock();
+                        SetPlaybackMode(Playback_Mode_NotPlaying, 0);
+                        break;
+                    }
+                    BytesToRead = 0;
+                }
+                else
+                    F->GoTo(-120000 * 2, File::FromCurrent);
+            }
+            auto BytesRead = F->Read(P->Buffer, BytesToRead);
+            if (BytesRead != 120000 && (Speed_Simulated <= -1.0 || Speed_Simulated >= 1.0))
+            {
+                P->Mutex.unlock();
+                break;
+            }
+            if (Mode == Playback_Mode_Playing)
+            {
+                uint8_t* Buffer2;
+                if (Speed != 1.0 || Speed_Simulated != 1.0)
+                {
+                    static const float ForwardRewRatio = 2;
+                    Buffer2 = new uint8_t[120000];
+                    memcpy(Buffer2, P->Buffer, 120000);
+                    for (int Buffer_Offset = 0; Buffer_Offset < 120000; Buffer_Offset += 80)
+                        if ((P->Buffer[Buffer_Offset] & 0xE0) == 0x60 && P->Buffer[Buffer_Offset + 3] == 0x51) // Audio SCT, audio_source_control, speed near 1.0
+                            Buffer2[Buffer_Offset + 3 + 3] = (Speed_Simulated > 0 ? 0x80 : 0) | int(0x20 * abs(Speed_Simulated));
+                    if (P->Speed_Simulated != P->Speed)
+                    {
+                        if (abs(P->Speed_Simulated - P->Speed) <= 0.1)
+                            P->Speed_Simulated = Speed;
+                        else if (P->Speed_Simulated < P->Speed)
+                            P->Speed_Simulated += (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
+                        else if (P->Speed_Simulated > P->Speed)
+                            P->Speed_Simulated -= (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
+                        else
+                            P->Speed_Simulated = Speed;
+                    }
+                }
+                else
+                    Buffer2 = P->Buffer;
+
+                if (BytesRead != 120000)
                 {
                     P->Mutex.unlock();
-                    SetPlaybackMode(Playback_Mode_NotPlaying, 0);
-                    break;
+                    continue;
                 }
-                BytesToRead = 0;
-            }
-            else
-                F->GoTo(-120000 * 2, File::FromCurrent);
-        }
-        auto BytesRead = F->Read(P->Buffer, BytesToRead);
-        P->Mutex.unlock();
 
-        if (BytesRead != 120000 && (Speed_Simulated <= -1.0 || Speed_Simulated >= 1.0))
-            break;
-        if (Mode == Playback_Mode_Playing)
-        {
-            uint8_t* Buffer2;
-            if (Speed != 1.0 || Speed_Simulated != 1.0)
-            {
-                static const float ForwardRewRatio = 2;
-                Buffer2 = new uint8_t[120000];
-                memcpy(Buffer2, P->Buffer, 120000);
-                for (int Buffer_Offset = 0; Buffer_Offset < 120000; Buffer_Offset += 80)
-                    if ((P->Buffer[Buffer_Offset] & 0xE0) == 0x60 && P->Buffer[Buffer_Offset + 3] == 0x51) // Audio SCT, audio_source_control, speed near 1.0
-                        Buffer2[Buffer_Offset + 3 + 3] = (Speed_Simulated > 0 ? 0x80 : 0) | int(0x20 * abs(Speed_Simulated));
-                if (P->Speed_Simulated != P->Speed)
-                {
-                    if (abs(P->Speed_Simulated - P->Speed) <= 0.1)
-                        P->Speed_Simulated = Speed;
-                    else if (P->Speed_Simulated < P->Speed)
-                        P->Speed_Simulated += (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
-                    else if (P->Speed_Simulated > P->Speed)
-                        P->Speed_Simulated -= (float)0.1 * (P->Speed_Simulated > 0 ? ForwardRewRatio : 1);
-                    else
-                        P->Speed_Simulated = Speed;
-                }
-            }
-            else
-                Buffer2 = P->Buffer;
+                P->Wrapper->Parse_Buffer(Buffer2, 120000);
 
-            if (BytesRead != 120000)
-                continue;
-
-            P->Wrapper->Parse_Buffer(Buffer2, 120000);
-
-            if (Buffer2 != P->Buffer)
-                delete[] Buffer2;
+                if (Buffer2 != P->Buffer)
+                    delete[] Buffer2;
             }
         }
         P->Mutex.unlock();
