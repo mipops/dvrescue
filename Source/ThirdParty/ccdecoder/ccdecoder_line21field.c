@@ -383,6 +383,11 @@ void ccdecoder_line21_preambleaddresscode(ccdecoder_line21field_priv* priv, uint
         {
             Service->y=line21_Minimal_Rows-1;
         }
+        if (Service->y<Service->RollUpLines)
+        {
+            //"It is recommended that decoders give precedence to the caption depth when the PAC received is for a row number less than the number of roll-up rows"
+            Service->y=Service->RollUpLines;
+        }
 
         //Clearing unused text in case of roll up mode
         if (Service->RollUpLines)
@@ -393,11 +398,10 @@ void ccdecoder_line21_preambleaddresscode(ccdecoder_line21field_priv* priv, uint
             for (pos_Y=0; pos_Y<line21_Minimal_Rows; pos_Y++)
             {
                 size_t pos=priv->TextMode*2+priv->dataChannelMode;
-                if (pos_Y==((Service->y+1>Service->RollUpLines)?(Service->y+1-Service->RollUpLines):0))
+                if (pos_Y==Service->y-Service->RollUpLines)
                 {
-                    pos_Y=Service->y+1;
-                    if (pos_Y>=line21_Minimal_Rows)
-                        break;
+                    pos_Y=Service->y;
+                    continue;
                 }
                 for (pos_X=0; pos_X<line21_Minimal_Columns; pos_X++)
                     if (priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal[pos_Y][pos_X].value!=L' ')
@@ -633,9 +637,9 @@ void ccdecoder_line21_special_14(ccdecoder_line21field_priv* priv, uint8_t ccdec
     switch (ccdecoder_data_2)
     {
         case 0x20 : //RCL - Resume Caption Loading
-        case 0x25 : //RU2 - Roll-Up Captions–2 Rows
-        case 0x26 : //RU3 - Roll-Up Captions–3 Rows
-        case 0x27 : //RU4 - Roll-Up Captions–4 Rows
+        case 0x25 : //RU2 - Roll-Up Captions-2 Rows
+        case 0x26 : //RU3 - Roll-Up Captions-3 Rows
+        case 0x27 : //RU4 - Roll-Up Captions-4 Rows
         case 0x29 : //RDC - Resume Direct Captioning
         case 0x2A : //TR  - Text Restart
         case 0x2B : //RTD - Resume Text Display
@@ -713,13 +717,15 @@ void ccdecoder_line21_special_14(ccdecoder_line21field_priv* priv, uint8_t ccdec
         case 0x25 : //RU2 - Roll-Up Captions-2 Rows
         case 0x26 : //RU3 - Roll-Up Captions-3 Rows
         case 0x27 : //RU4 - Roll-Up Captions-4 Rows
-                    Service->RollUpLines=ccdecoder_data_2-0x25+2;
+                    if (!Service->RollUpLines)
+                        Service->y=14; //We keep previous line configuration it was already Roll-Up Captions-x Rows
+                    Service->RollUpLines=ccdecoder_data_2-0x25+1;
                     Service->InBack=0;
-                    break; //RUx - Roll-Up Captions–x Rows
+                    break; //RUx - Roll-Up Captions-x Rows
         case 0x28 : break; //FON - Flash On
         case 0x29 : Service->InBack=0;
                     break; //RDC - Resume Direct Captioning (paint-on style)
-        case 0x2A : Service->RollUpLines=line21_Minimal_Rows; //Roll up all the lines
+        case 0x2A : Service->RollUpLines=line21_Minimal_Rows-1; //Roll up all the lines
                     Service->y=line21_Minimal_Rows-1; //Base is the bottom line
                     Service->Attribute_Current=ccdecoder_noattribute; //Reset all attributes
                     ccdecoder_line21_special_14(priv, 0x2D); //Next line
@@ -745,15 +751,14 @@ void ccdecoder_line21_special_14(ccdecoder_line21field_priv* priv, uint8_t ccdec
         case 0x2D : 
                     if (priv->CC->transports[0] && priv->CC->transports[0]->captions && priv->CC->transports[0]->captions[priv->CC_Offset+pos] && priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal)
                     {
-                        for (pos_X=1; pos_X<Service->RollUpLines; pos_X++)
-                        {
-                            if (Service->y>=Service->RollUpLines-pos && Service->y-Service->RollUpLines+pos+1<line21_Minimal_Rows)
-                            {
-                                ccdecoder_line21_alloc_display_line_free(priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal[Service->y-Service->RollUpLines+pos_X]);
-                                priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal[Service->y-Service->RollUpLines+pos_X]=priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal[Service->y-Service->RollUpLines+pos_X+1];
-                                priv->CC->transports[0]->captions[priv->CC_Offset+pos]->minimal[Service->y-Service->RollUpLines+pos_X+1]=ccdecoder_line21_alloc_display_line_alloc();
-                            }
-                        }
+                        ccdecoder_caption* captions=priv->CC->transports[0]->captions[priv->CC_Offset+pos];
+                        size_t RollUpLines=Service->RollUpLines;
+                        size_t y=Service->y;
+                        size_t Roll_Pos=y>RollUpLines?(y-RollUpLines):0;
+                        ccdecoder_line21_alloc_display_line_free(captions->minimal[Roll_Pos]);
+                        for (;Roll_Pos<y; Roll_Pos++)
+                            captions->minimal[Roll_Pos]=captions->minimal[Roll_Pos+1];
+                        captions->minimal[y]=ccdecoder_line21_alloc_display_line_alloc();
                         if (!Service->InBack)
                             ccdecoder_line21_haschanged(priv);
                     }
