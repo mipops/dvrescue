@@ -1,3 +1,8 @@
+Version 24.05, 2024-05-03
+x Fix crash on dv capture on Linux (fixes #827)
+x Fix edge case audio handling when packaging dv (fixes #759)
++ Add timecode display when capturing from Decklink
+
 Version 24.04, 2024-04-10
 x Fix crash in GUI when a deck in unplugged or stop signal is sent (PR#846)
 
