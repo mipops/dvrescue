@@ -1496,7 +1496,7 @@ bool dv_merge_private::Process(float Speed)
     }
 
     bool Frame_Speed = false;
-    if (!((Speed && Speed != 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
+    if (!((Speed && Speed == 1.0) || GetDvSpeedIsNormalPlayback(DvSpeed)))
     {
         Frame_Speed = true;
         if (OutputFrames_Speeds.empty() || !OutputFrames_Speeds[0])
