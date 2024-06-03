@@ -5,6 +5,7 @@
  */
 
 #include "Common/SimulatorWrapper.h"
+#include "Common/ProcessFile.h"
 #include "ZenLib/File.h"
 #include "ZenLib/ZtringListList.h"
 #include "TimeCode.h"
@@ -25,6 +26,13 @@ using namespace ZenLib;
 #else
     #define SIM_PREFIX __T("/tmp/dvrescue_simulator.")
 #endif
+
+
+#define V_UNCOMPRESSED_ID "V_UNCOMPRESSED"
+#define V210_ID           "V_MS/VFW/FOURCC"
+
+#define V_UNCOMPRESSED_UYVY_CC 0x55595659
+#define V210_CC                0x76323130
 
 //---------------------------------------------------------------------------
 struct ctl
@@ -532,6 +540,7 @@ SimulatorWrapper::SimulatorWrapper(std::size_t DeviceIndex)
         else
             P->Buffer_Size = 120000;
         P->Buffer = new int8u[P->Buffer_Size];
+        memset(P->Buffer, 0, P->Buffer_Size);
         if (P->IsMatroska)
         {
             P->F.back()->Read(P->Buffer, P->Buffer_Size);
@@ -753,6 +762,21 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
                 P->Mutex.unlock();
                 break;
             }
+            if (!P->Tracks.empty())
+            {
+                if (P->Tracks.back().CodecID == V_UNCOMPRESSED_ID)
+                {
+                    switch (P->Tracks.back().FourCC)
+                    {
+                    case V_UNCOMPRESSED_UYVY_CC:
+                        P->Decklink_Sim.Pixel_Format = Decklink_Pixel_Format_8BitYUV; break;
+                    default:;
+                    }
+                }
+                else if (P->Tracks.back().CodecID == V210_ID && P->Tracks.back().FourCC == V210_CC)
+                    P->Decklink_Sim.Pixel_Format = Decklink_Pixel_Format_10BitYUV;
+            }
+
             P->Wrapper->Parse_Buffer((uint8_t*)&P->Decklink_Sim, sizeof(P->Decklink_Sim));
         }
         else

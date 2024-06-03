@@ -136,7 +136,7 @@ static void Aud_Element(string& Text, size_t o, size_t n, vector<uint16_t> Audio
 
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
 //---------------------------------------------------------------------------
-static string decklink_videosource_to_string(uint8_t value)
+string decklink_videosource_to_string(uint8_t value)
 {
     string ToReturn;
     switch (value)
@@ -153,7 +153,7 @@ static string decklink_videosource_to_string(uint8_t value)
 }
 
 //---------------------------------------------------------------------------
-static string decklink_audiosource_to_string(uint8_t value)
+string decklink_audiosource_to_string(uint8_t value)
 {
     string ToReturn;
     switch (value)
@@ -170,7 +170,23 @@ static string decklink_audiosource_to_string(uint8_t value)
 }
 
 //---------------------------------------------------------------------------
-static string decklink_timecodeformat_to_string(uint8_t value)
+string decklink_pixelformat_to_string(uint8_t value)
+{
+    string ToReturn;
+    switch (value)
+    {
+    case (uint8_t)Decklink_Pixel_Format_8BitYUV: ToReturn = "uyvy"; break;
+    case (uint8_t)Decklink_Pixel_Format_10BitYUV: ToReturn = "v210"; break;
+    case (uint8_t)Decklink_Pixel_Format_8BitARGB: ToReturn = "argb"; break;
+    case (uint8_t)Decklink_Pixel_Format_8BitBGRA: ToReturn = "bgra"; break;
+    case (uint8_t)Decklink_Pixel_Format_10BitRGB: ToReturn = "r210"; break;
+    default:;
+    }
+    return ToReturn;
+}
+
+//---------------------------------------------------------------------------
+string decklink_timecodeformat_to_string(uint8_t value)
 {
     string ToReturn;
     switch (value)
@@ -359,6 +375,14 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 Text += to_string(File->Wrapper->FramesInfo.video_height);
                 Text += '\"';
             }
+
+            if (File->Wrapper->FramesInfo.pixel_format)
+            {
+                Text += " pixel_format=\"";
+                Text += decklink_pixelformat_to_string(File->Wrapper->FramesInfo.pixel_format);
+                Text += '\"';
+            }
+
             if (File->Wrapper->FramesInfo.video_rate_num)
             {
                 Text += " video_rate=\"";
@@ -418,7 +442,37 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                         Text += " tc_nc=\"1\"";
                 }
 
-                Text += "/>\n";
+                if (File->Wrapper->FramesInfo.frames[Pos].st.HasValue())
+                {
+                    Text += ">\n";
+                    Text += "\t\t\t\t<signalstats";
+                    if (!isnan(File->Wrapper->FramesInfo.frames[Pos].st.SatAvg))
+                    {
+                        stringstream ss;
+                        ss << File->Wrapper->FramesInfo.frames[Pos].st.SatAvg;
+                        Text += " satavg=\"";
+                        Text += ss.str();
+                        Text += '\"';
+                    }
+
+                    if (File->Wrapper->FramesInfo.frames[Pos].st.SatHi != (uint16_t)-1)
+                    {
+                        Text += " sathigh=\"";
+                        Text += to_string(File->Wrapper->FramesInfo.frames[Pos].st.SatHi);
+                        Text += '\"';
+                    }
+
+                    if (File->Wrapper->FramesInfo.frames[Pos].st.SatMax != (uint16_t)-1)
+                    {
+                        Text += " satmax=\"";
+                        Text += to_string(File->Wrapper->FramesInfo.frames[Pos].st.SatMax);
+                        Text += '\"';
+                    }
+                    Text += "/>\n";
+                    Text += "\t\t\t</frame>\n";
+                }
+                else
+                    Text += "/>\n";
             }
 
             // Media footer

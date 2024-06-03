@@ -43,6 +43,7 @@ bool DeckLinkNativeControl = false;
 uint8_t DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
 uint8_t DeckLinkVideoSource = (uint8_t)Decklink_Video_Source_SDI;
 uint8_t DeckLinkAudioSource = (uint8_t)Decklink_Audio_Source_Embedded;
+uint8_t DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_Unspecified;
 uint8_t DeckLinkTimecodeFormat = (uint8_t)Decklink_Timecode_Format_VITC;
 #endif
 bool InControl = false;

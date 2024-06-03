@@ -8,10 +8,13 @@
 #include "Common/ProcessFile.h"
 
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+#include "Common/SignalStats.h"
 #include "Common/Output_Mkv.h"
+#include "Common/Output_Xml.h"
 #include "Common/Merge.h"
 
 #include <iostream>
+#include <cmath>
 #endif
 
 using namespace std;
@@ -78,11 +81,15 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
     if (IsMatroska)
     {
         decklink_frame* Frame=(decklink_frame*)Buffer;
+        if (!FramesInfo.pixel_format && Frame->Pixel_Format)
+            FramesInfo.pixel_format = Frame->Pixel_Format;
+
         for (matroska_output& Output : Outputs)
         {
             Output.Writer->write_frame((const char*)Frame->Video_Buffer, (uint32_t)Frame->Video_Buffer_Size,
                                        (const char*)Frame->Audio_Buffer, (uint32_t)Frame->Audio_Buffer_Size, Frame->TC);
         }
+        SignalStats::Stats ST = SignalStats::ComputeStats(Frame);
 
         bool TimeCode_Repeat = false;
         bool TimeCode_NonConsecutive = false;
@@ -108,6 +115,7 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
         double FrameRate = (double)FramesInfo.video_rate_num / FramesInfo.video_rate_den;
         double ElapsedTime = (double)FramesInfo.frames.size() / FrameRate;
         FramesInfo.frames.push_back(decklink_framesinfo::frame {
+            ST,
             Frame->TC,
             TimeCode_Repeat,
             (uint8_t)(TimeCode_NonConsecutive ? (TimeCode_NonConsecutive_IsLess ? 2 : 1) : 0),
@@ -119,11 +127,15 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
         {
             if (!FrameCount)
             {
-                cout << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed"
+                cout << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,pix_fmt,satavg,sathigh,satmax,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed"
                      << (Verbosity > 5 ? ",SourceSpeed,FrameSpeed,InputPos,OutputPos" : "")
                      << (ShowFrames_Intermediate ? ",RewindStatus" : "")
                      << endl;
             }
+
+            stringstream ss;
+            if (!isnan(ST.SatAvg))
+                ss << ST.SatAvg;
 
             cout << FrameCount++ // framePos
                  << "," // abst
@@ -138,7 +150,11 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
                     "," // rec_start
                     "," // rec_end
                     "," // Used
-                    "," // Status
+                 << "," << decklink_pixelformat_to_string(Frame->Pixel_Format) // pix_fmt
+                 << "," << ss.str() // satavg
+                 << "," << (ST.SatHi != (uint16_t)-1 ? to_string(ST.SatHi) : "") // sathi
+                 << "," << (ST.SatMax != (uint16_t)-1 ? to_string(ST.SatMax) : "")  // satmax
+                 << "," // Status
                     "," // Comments
                     "," // BlockErrors
                     "," // BlocksErrors_Even
