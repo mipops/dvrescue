@@ -50,6 +50,7 @@ struct ctl
     size_t                      Buffer_Offset;
     size_t                      CurrentClusterPos = 0;
     size_t                      NextClusterPos = 0;
+    bool                        FrameAvailable = false;
 
     // MKV info
     size_t                      Track_Pos = 0;
@@ -255,8 +256,12 @@ bool ctl::ParseBuffer(File& F)
                 F.Read(Buffer + Buffer_Size - Buffer_Offset, ToRead);
                 Buffer_Offset = 0;
             }
+        }
 
-            return false; // New cluster
+        if (FrameAvailable)
+        {
+            FrameAvailable = false;
+            return false;
         }
     }
 
@@ -273,6 +278,9 @@ void ctl::Segment()
 void ctl::Segment_Cluster()
 {
     IsList = true;
+
+    if (!CurrentClusterPos)
+        FrameAvailable = true; // First cluster detected, we will return now because we are in the init part
 
     CurrentClusterPos = Buffer_Offset;
     NextClusterPos = Levels[Level].Offset_End;
@@ -296,6 +304,7 @@ void ctl::Segment_Cluster_SimpleBlock()
 {
     Track_Pos++;
     Buffer_Offset += 4;
+    FrameAvailable = true;
 
     auto Size = Levels[Level].Offset_End - Buffer_Offset;
 
