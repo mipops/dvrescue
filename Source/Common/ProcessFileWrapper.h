@@ -71,6 +71,16 @@ struct matroska_output
 #endif
 
 //***************************************************************************
+//enums
+//***************************************************************************
+
+enum video_format
+{
+    v210,
+    UYVY,
+};
+
+//***************************************************************************
 // Class FileWrapper
 //***************************************************************************
 
@@ -78,7 +88,7 @@ class FileWrapper {
 public:
     FileWrapper(file* File); // Constructor for DV/MediaInfo Interface
     #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
-    FileWrapper(int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode = false); // Constructor for Decklink/Matroska Interface
+    FileWrapper(video_format vid_fmt, int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode = false); // Constructor for Decklink/Matroska Interface
     ~FileWrapper();
     #endif
     void Parse_Buffer(const uint8_t* Buffer, std::size_t Buffer_Size);

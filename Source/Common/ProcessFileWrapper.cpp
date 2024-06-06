@@ -23,18 +23,18 @@ FileWrapper::FileWrapper(file* File) : File(File)
 
 //---------------------------------------------------------------------------
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
-FileWrapper::FileWrapper(int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode) : File(nullptr)
+FileWrapper::FileWrapper(video_format vid_fmt, int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode) : File(nullptr)
 {
     IsMatroska = true;
     for (string OutputFile : Merge_OutputFileNames)
     {
         matroska_output Output;
         if (OutputFile == "-")
-          Output.Writer = new matroska_writer(&cout, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
+          Output.Writer = new matroska_writer(&cout, vid_fmt, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
         else
         {
             Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
-            Output.Writer = new matroska_writer(Output.Output, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
+            Output.Writer = new matroska_writer(Output.Output, vid_fmt, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
         }
         Outputs.push_back(Output);
     }
@@ -80,8 +80,8 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
         decklink_frame* Frame=(decklink_frame*)Buffer;
         for (matroska_output& Output : Outputs)
         {
-            Output.Writer->write_frame((const char*)Frame->Video_Buffer, Frame->Video_Buffer_Size,
-                                       (const char*)Frame->Audio_Buffer, Frame->Audio_Buffer_Size, Frame->TC);
+            Output.Writer->write_frame((const char*)Frame->Video_Buffer, (uint32_t)Frame->Video_Buffer_Size,
+                                       (const char*)Frame->Audio_Buffer, (uint32_t)Frame->Audio_Buffer_Size, Frame->TC);
         }
 
         bool TimeCode_Repeat = false;
