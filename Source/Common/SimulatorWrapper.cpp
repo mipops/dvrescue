@@ -55,6 +55,11 @@ struct ctl
     // MKV info
     size_t                      Track_Pos = 0;
     decklink_frame              Decklink_Sim;
+    struct track {
+        string                  CodecID;
+        int32u                  FourCC = 0;
+    };
+    vector<track>               Tracks;
 
     // MKV parsing
     uint64_t                    Get_EB();
@@ -97,9 +102,12 @@ struct ctl
     MATROSKA_ELEMENT(Segment_Cluster_Timestamp);
     MATROSKA_ELEMENT(Segment_Tracks);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_CodecID);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelWidth);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelHeight);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_ColourSpace);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_CodecPrivate);
     MATROSKA_ELEMENT(Void);
 };
 
@@ -148,12 +156,15 @@ ELEMENT_CASE(      2E, Segment_Tracks_TrackEntry)
 ELEMENT_END()
 
 ELEMENT_BEGIN(Segment_Tracks_TrackEntry)
+ELEMENT_VOID(       6, Segment_Tracks_TrackEntry_CodecID)
 ELEMENT_CASE(      60, Segment_Tracks_TrackEntry_Video)
+ELEMENT_VOID(    23A2, Segment_Tracks_TrackEntry_CodecPrivate)
 ELEMENT_END()
 
 ELEMENT_BEGIN(Segment_Tracks_TrackEntry_Video)
 ELEMENT_VOID(      30, Segment_Tracks_TrackEntry_Video_PixelWidth)
 ELEMENT_VOID(      3A, Segment_Tracks_TrackEntry_Video_PixelHeight)
+ELEMENT_VOID(  0EB524, Segment_Tracks_TrackEntry_Video_ColourSpace)
 ELEMENT_END()
 
 
@@ -332,6 +343,8 @@ void ctl::Segment_Cluster_Timestamp()
 //---------------------------------------------------------------------------
 void ctl::Segment_Tracks()
 {
+    Tracks.push_back({});
+
     IsList = true;
 }
 
@@ -339,6 +352,12 @@ void ctl::Segment_Tracks()
 void ctl::Segment_Tracks_TrackEntry()
 {
     IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_CodecID()
+{
+    Tracks.back().CodecID.assign((const char*)Buffer + Buffer_Offset, Levels[Level].Offset_End - Buffer_Offset);
 }
 
 //---------------------------------------------------------------------------
@@ -369,6 +388,20 @@ void ctl::Segment_Tracks_TrackEntry_Video_PixelHeight()
         Data = (((uint32_t)Buffer[Buffer_Offset]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 1]);
 
     Decklink_Sim.Height = Data;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_Video_ColourSpace()
+{
+    if (Levels[Level].Offset_End - Buffer_Offset == 4)
+        Tracks.back().FourCC = (((uint32_t)Buffer[Buffer_Offset]) << 24) | ((uint32_t)Buffer[Buffer_Offset + 1] << 16) | (((uint32_t)Buffer[Buffer_Offset + 2]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 3]);
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_CodecPrivate()
+{
+    if (Levels[Level].Offset_End - Buffer_Offset == 40 && Buffer[Buffer_Offset] == 40 && Buffer[Buffer_Offset + 1] == 0 && Buffer[Buffer_Offset + 2] == 0 && Buffer[Buffer_Offset + 3] == 0 && Tracks.back().CodecID == "V_MS/VFW/FOURCC")
+        Tracks.back().FourCC = (((uint32_t)Buffer[Buffer_Offset + 16]) << 24) | ((uint32_t)Buffer[Buffer_Offset + 17] << 16) | (((uint32_t)Buffer[Buffer_Offset + 18]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 19]);
 }
 
 //---------------------------------------------------------------------------
