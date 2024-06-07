@@ -26,22 +26,10 @@ FileWrapper::FileWrapper(file* File) : File(File)
 
 //---------------------------------------------------------------------------
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
-FileWrapper::FileWrapper(video_format vid_fmt, int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode) : File(nullptr)
+FileWrapper::FileWrapper(int Width, int Height, int Framerate_Num, int Framerate_Den, int SampleRate, int Channels, bool Has_Timecode) : File(nullptr)
 {
     IsMatroska = true;
-    for (string OutputFile : Merge_OutputFileNames)
-    {
-        matroska_output Output;
-        if (OutputFile == "-")
-          Output.Writer = new matroska_writer(&cout, vid_fmt, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
-        else
-        {
-            Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
-            Output.Writer = new matroska_writer(Output.Output, vid_fmt, Width, Height, Framerate_Num, Framerate_Den, Has_Timecode);
-        }
-        Outputs.push_back(Output);
-    }
-
+    HasTimecode = Has_Timecode;
     FramesInfo.video_width = Width;
     FramesInfo.video_height = Height;
     FramesInfo.video_rate_num = Framerate_Num;
@@ -83,6 +71,26 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
         decklink_frame* Frame=(decklink_frame*)Buffer;
         if (!FramesInfo.pixel_format && Frame->Pixel_Format)
             FramesInfo.pixel_format = Frame->Pixel_Format;
+
+        if (!Merge_OutputFileNames.empty() && Outputs.empty())
+        {
+            video_format Format = v210;
+            if (FramesInfo.pixel_format == Decklink_Pixel_Format_8BitYUV)
+                Format = UYVY;
+
+            for (string OutputFile : Merge_OutputFileNames)
+            {
+                matroska_output Output;
+                if (OutputFile == "-")
+                    Output.Writer = new matroska_writer(&cout, Format, FramesInfo.video_width, FramesInfo.video_height, FramesInfo.video_rate_num, FramesInfo.video_rate_den, HasTimecode);
+                else
+                {
+                    Output.Output = new ofstream(OutputFile, ios_base::binary | ios_base::trunc);
+                    Output.Writer = new matroska_writer(Output.Output, Format, FramesInfo.video_width, FramesInfo.video_height, FramesInfo.video_rate_num, FramesInfo.video_rate_den, HasTimecode);
+                }
+                Outputs.push_back(Output);
+            }
+        }
 
         for (matroska_output& Output : Outputs)
         {

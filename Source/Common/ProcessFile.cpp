@@ -417,7 +417,6 @@ void file::Parse(const String& FileName)
         #if defined(ENABLE_SIMULATOR) || defined(ENABLE_DECKLINK)
         if (CaptureMode == Capture_Mode_DeckLink)
         {
-            video_format VideoFormat = v210;
             uint32_t Width = 720;
             uint32_t Height = DeckLinkVideoMode == Decklink_Video_Mode_NTSC ? 486 : 576;
             uint32_t Num = DeckLinkVideoMode == Decklink_Video_Mode_NTSC ? 30000 : 25;
@@ -425,7 +424,7 @@ void file::Parse(const String& FileName)
             uint32_t SampleRate = 48000;
             uint8_t Channels = 2;
 
-            Wrapper = new FileWrapper(VideoFormat, Width, Height, Num, Den, SampleRate, Channels, DeckLinkTimecodeFormat<Decklink_Timecode_Format_Max);
+            Wrapper = new FileWrapper(Width, Height, Num, Den, SampleRate, Channels, DeckLinkTimecodeFormat<Decklink_Timecode_Format_Max);
         }
         else
         #endif
