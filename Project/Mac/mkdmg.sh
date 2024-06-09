@@ -85,13 +85,14 @@ if [ "$KIND" = "GUI" ]; then
         exit 1
     fi
     cp -R "../../Source/GUI/dvrescue/build/dvrescue/${APPNAME}.app" "${FILES}"
+    rm -fr "${FILES}/${APPNAME}.app/Contents/Frameworks/pkgconfig"
 
     # first pass, sign everything
     codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}" --verbose --force --deep --options=runtime --preserve-metadata=entitlements,identifier --sign="Developer ID Application: ${SIGNATURE}" "${FILES}/${APPNAME}.app"
     codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}.libs" --verbose --force --options=runtime --sign="Developer ID Application: ${SIGNATURE}" "${FILES}/${APPNAME}.app/Contents/Libraries/"*
     # add entitlements
     codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}" --verbose --force --options=runtime --sign="Developer ID Application: ${SIGNATURE}" --entitlements "../../Source/GUI/dvrescue/dvrescue/dvrescue.entitlements" "${FILES}/${APPNAME}.app/Contents/MacOS/dvrescue"
-    codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}.helpers" --verbose --force --options=runtime --sign="Developer ID Application: ${SIGNATURE}" "${FILES}/${APPNAME}.app/Contents/Helpers/"*
+    codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}.helpers" --verbose --force --options=runtime --sign="Developer ID Application: ${SIGNATURE}" --entitlements "Helpers.entitlements" "${FILES}/${APPNAME}.app/Contents/Helpers/"*
     # second pass, resign
     codesign --identifier "net.MediaArea.${APPNAME_lower}.mac-${KIND_lower}" --verbose --force --deep --options=runtime --preserve-metadata=entitlements,identifier --sign="Developer ID Application: ${SIGNATURE}" "${FILES}/${APPNAME}.app"
 fi
