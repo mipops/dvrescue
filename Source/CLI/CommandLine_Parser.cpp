@@ -332,6 +332,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             InControl = true;
         }
+        else if (!strcmp(argv_ansi[i], "--foreground"))
+        {
+            Foreground = true;
+        }
         else if (!strcmp(argv_ansi[i], "--merge") || !strcmp(argv_ansi[i], "-m"))
         {
             if (++i >= argc)

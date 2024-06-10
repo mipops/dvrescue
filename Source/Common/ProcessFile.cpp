@@ -46,6 +46,7 @@ uint8_t DeckLinkAudioSource = (uint8_t)Decklink_Audio_Source_Embedded;
 uint8_t DeckLinkTimecodeFormat = (uint8_t)Decklink_Timecode_Format_VITC;
 #endif
 bool InControl = false;
+bool Foreground = false;
 string Device = "";
 char Device_Command = 0;
 bool Device_ForceCapture = false;
@@ -404,10 +405,26 @@ void file::Parse(const String& FileName)
             if (Device_Command == 3)
             {
                 Capture->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+                if (Foreground && Device_Speed != 0.0f)
+                {
+                    FileWrapper Wrapper(nullptr);
+                    Capture->CreateCaptureSession(&Wrapper);
+                    Capture->StartCaptureSession();
+                    Capture->WaitForSessionEnd(Timeout);
+                    Capture->StopCaptureSession();
+                }
             }
             if (Device_Command >= 0x20)
             {
                 InputControl_Char(this, Device_Command);
+                if (Foreground && (Device_Command == 'R' || Device_Command == 'r' || Device_Command == 'F' || Device_Command == 'f'))
+                {
+                    FileWrapper Wrapper(nullptr);
+                    Capture->CreateCaptureSession(&Wrapper);
+                    Capture->StartCaptureSession();
+                    Capture->WaitForSessionEnd(Timeout);
+                    Capture->StopCaptureSession();
+                }
             }
             return;
         }
