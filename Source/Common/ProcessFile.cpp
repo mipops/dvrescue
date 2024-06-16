@@ -176,7 +176,7 @@ file::file()
 }
 
 //---------------------------------------------------------------------------
-void file::Parse(const String& FileName)
+return_value file::Parse(const String& FileName)
 {
     MI.Option(__T("File_Event_CallBackFunction"), __T("CallBack=memory://") + Ztring::ToZtring((size_t)&Event_CallBackFunction) + __T(";UserHandler=memory://") + Ztring::ToZtring((size_t)this));
     MI.Option(__T("File_DvDif_Analysis"), __T("1"));
@@ -275,7 +275,7 @@ void file::Parse(const String& FileName)
         #endif
         if (Device_Command == 4) //JSON
             cout << "]" << '\n';
-        return;
+        return ReturnValue_OK;
     }
     #ifdef ENABLE_SONY9PIN
     else if (Device_Command == 5 || Device_Command == 6)
@@ -321,7 +321,7 @@ void file::Parse(const String& FileName)
         if (!Controller)
         {
             cerr << "Error: unable to open control port: " << Control_Port << endl;
-            return;
+            return ReturnValue_ERROR;
         }
     }
     #endif
@@ -345,48 +345,64 @@ void file::Parse(const String& FileName)
         if (iss.fail() || !iss.eof())
             Device_Pos = (uint64_t)-1;
 
-        if (false)
-            ;
-        #ifdef ENABLE_SIMULATOR
+        try {
+            if (false)
+                ;
+            #ifdef ENABLE_SIMULATOR
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=SimulatorWrapper::GetDeviceCount()))
             {
                 Capture = new SimulatorWrapper(Device_Pos);
                 if (((SimulatorWrapper*)Capture)->IsMatroska())
                     CaptureMode = Capture_Mode_DeckLink;
             }
-        #endif
-        #ifdef ENABLE_AVFCTL
+            #endif
+            #ifdef ENABLE_AVFCTL
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=AVFCtlWrapper::GetDeviceCount()))
                 Capture = new AVFCtlWrapper(Device_Pos, Controller);
             else if (AVFCtlWrapper::GetDeviceIndex(Device) != (size_t)-1)
                 Capture = new AVFCtlWrapper(Device, Controller);
-        #endif
-        #ifdef ENABLE_DECKLINK
+            #endif
+            #ifdef ENABLE_DECKLINK
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=DecklinkWrapper::GetDeviceCount()))
-                try { CaptureMode = Capture_Mode_DeckLink;
-                      Capture = new DecklinkWrapper(Device_Pos,
-                                                    (decklink_video_mode)DeckLinkVideoMode,
-                                                    (decklink_video_source)DeckLinkVideoSource,
-                                                    (decklink_audio_source)DeckLinkAudioSource,
-                                                    (decklink_timecode_format)DeckLinkTimecodeFormat,
-                                                    Controller,
-                                                    DeckLinkNativeControl); } catch(...) {}
+            {
+                CaptureMode = Capture_Mode_DeckLink;
+                Capture = new DecklinkWrapper(Device_Pos,
+                                              (decklink_video_mode)DeckLinkVideoMode,
+                                              (decklink_video_source)DeckLinkVideoSource,
+                                              (decklink_audio_source)DeckLinkAudioSource,
+                                              (decklink_timecode_format)DeckLinkTimecodeFormat,
+                                              Controller,
+                                              DeckLinkNativeControl);
+            }
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                try { CaptureMode = Capture_Mode_DeckLink;
-                      Capture = new DecklinkWrapper(Device,
-                                                    (decklink_video_mode)DeckLinkVideoMode,
-                                                    (decklink_video_source)DeckLinkVideoSource,
-                                                    (decklink_audio_source)DeckLinkAudioSource,
-                                                    (decklink_timecode_format)DeckLinkTimecodeFormat,
-                                                    Controller,
-                                                    DeckLinkNativeControl); } catch(...) {}
-        #endif
-        #ifdef ENABLE_LNX1394
+            {
+                CaptureMode = Capture_Mode_DeckLink;
+                Capture = new DecklinkWrapper(Device,
+                                              (decklink_video_mode)DeckLinkVideoMode,
+                                              (decklink_video_source)DeckLinkVideoSource,
+                                              (decklink_audio_source)DeckLinkAudioSource,
+                                              (decklink_timecode_format)DeckLinkTimecodeFormat,
+                                              Controller,
+                                              DeckLinkNativeControl);
+            }
+            #endif
+            #ifdef ENABLE_LNX1394
             else if ((Device_Pos-=Device_Offset) < (Device_Offset=LinuxWrapper::GetDeviceCount()))
-                try { Capture = new LinuxWrapper(Device_Pos); } catch(...) {}
+               Capture = new LinuxWrapper(Device_Pos);
             else if (LinuxWrapper::GetDeviceIndex(Device) != (size_t)-1)
-                try { Capture = new LinuxWrapper(Device); } catch(...) {}
-        #endif
+                Capture = new LinuxWrapper(Device);
+            #endif
+            else
+            {
+                cerr << "Error: device not found: " << Device << endl;
+                return ReturnValue_ERROR;
+            }
+        }
+        catch(std::exception& e)
+        {
+            cerr << "Error: " << e.what() << endl;
+            return ReturnValue_ERROR;
+        }
     }
     if (Capture)
     {
@@ -409,7 +425,7 @@ void file::Parse(const String& FileName)
             {
                 InputControl_Char(this, Device_Command);
             }
-            return;
+            return ReturnValue_OK;
         }
         Speed_Before = Capture->GetSpeed();
         auto InputHelper = InControl ? new thread(InputControl, this) : nullptr;
@@ -472,6 +488,8 @@ void file::Parse(const String& FileName)
         FrameRate = Ztring(MI.Get(Stream_Video, 0, __T("FrameRate"))).To_float64();
     if (!FrameRate || (FrameRate >= 29.97 && FrameRate <= 29.98))
         FrameRate = double(30 / 1.001); // Default if no frame rate available, or better rounding
+
+    return ReturnValue_OK;
 }
 
 //---------------------------------------------------------------------------

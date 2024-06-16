@@ -58,32 +58,34 @@ Core::~Core()
 vector<file*>   PerFile;
 return_value Core::Process()
 {
+    return_value ToReturn = ReturnValue_OK;
+
     // Analyze files (asynchronous)
     PerFile_Clear();
     PerFile.reserve(Inputs.size());
-    std::vector<std::future<size_t>> futures;
+    std::vector<std::future<return_value>> futures;
     for (const auto& Input : Inputs)
     {
         PerFile.push_back(new file());
-        futures.emplace_back(std::async(std::launch::async, [](size_t param, const String& Input) {
-            PerFile[param]->Parse(Input);
-            return param;
+        futures.emplace_back(std::async(std::launch::async, [](size_t index, const String& Input) {
+            return PerFile[index]->Parse(Input);
             }, PerFile.size()-1, Input));
     }
     for (auto &future : futures) {
-       future.get();
+        if (auto ToReturn2 = future.get())
+            ToReturn = ToReturn2;
     }
     if (Device_Command)
-        return ReturnValue_OK;
+        return ToReturn;
+
     if (!Merge_Out.empty())
     {
         PerFile[0]->Merge_Finish();
         if (!XmlFile)
-            return ReturnValue_OK;
+            return ToReturn;
     }
 
     // Set output defaults
-    return_value ToReturn = ReturnValue_OK;
     if (!XmlFile)
         XmlFile = Out;
 

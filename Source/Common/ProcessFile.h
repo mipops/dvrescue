@@ -151,7 +151,7 @@ public:
     file();
     ~file();
 
-    void Parse(const String& FileName);
+    return_value Parse(const String& FileName);
     void Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size);
     void Terminate();
 
