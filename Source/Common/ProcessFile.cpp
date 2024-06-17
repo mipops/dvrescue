@@ -322,7 +322,7 @@ return_value file::Parse(const String& FileName)
         if (Device_Command == 5 && !Count)
             cerr << "No devices found." << '\n';
 
-        return;
+        return ReturnValue_OK;
     }
     #endif
     Capture = nullptr;
