@@ -610,7 +610,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             if (!strcmp(argv_ansi[i], "p"))
                 Device_Mode = Playback_Mode_Playing;
             else if (!strcmp(argv_ansi[i], "n"))
-                Device_Mode = Playback_Mode_Playing;
+                Device_Mode = Playback_Mode_NotPlaying;
             else
             {
                 if (C.Err)
