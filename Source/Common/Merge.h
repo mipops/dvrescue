@@ -28,6 +28,7 @@ extern const char* Control_Port;
 extern uint8_t DeckLinkVideoMode;
 extern uint8_t DeckLinkVideoSource;
 extern uint8_t DeckLinkAudioSource;
+extern uint8_t DeckLinkPixelFormat;
 extern uint8_t DeckLinkTimecodeFormat;
 #endif
 extern size_t Merge_Rewind_Count;

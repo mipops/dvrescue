@@ -13,3 +13,8 @@ class file;
 //---------------------------------------------------------------------------
 
 return_value Output_Xml(ostream& Out, vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err = nullptr);
+
+//---------------------------------------------------------------------------
+#if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
+string decklink_pixelformat_to_string(uint8_t value);
+#endif

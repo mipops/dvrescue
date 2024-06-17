@@ -180,6 +180,7 @@
       </xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="size" type="sizeType"/>
+    <xsd:attribute name="pixel_format" type="pixel_formatType"/>
     <xsd:attribute name="video_rate" type="video_rateType"/>
     <xsd:attribute name="chroma_subsampling" type="chroma_subsamplingType"/>
     <xsd:attribute name="aspect_ratio" type="aspect_ratioType"/>
@@ -215,6 +216,18 @@
       <xsd:enumeration value="1280x1080"/>
       <xsd:enumeration value="1440x1080"/>
       <xsd:enumeration value="960x720"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="pixel_formatType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Pixel format.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="uyvy"/>
+      <xsd:enumeration value="v210"/>
     </xsd:restriction>
   </xsd:simpleType>
 
@@ -309,6 +322,7 @@
       <xsd:element name="dseq" type="dseqType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="sta" type="staType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="aud" type="audType" minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="signalstats" type="signalstatsType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="n" type="xsd:integer">
       <xsd:annotation>
@@ -630,6 +644,30 @@
       <xsd:annotation>
         <xsd:documentation xml:lang="en">
           A count of this particular type of audio error within the even-numbered DIF sequences of the frame. @n minus @n_even would provide the count of this particular type of audio error within the odd-numbered DIF sequences of the frame. A discrepancy between the counts within even and odd DIF sequences can indicate that the associated error is from the playback device of the source tape rather than damage to the source tape. The range is 0-45 for NTSC DV25 and 0-54 for PAL DV25.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="signalstatsType">
+    <xsd:attribute name="satavg" type="xsd:float">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Average saturation of the frame.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="sathi" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Highest saturation of the frame excluding the to 10% values.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="satmax" type="xsd:integer">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Highest saturation of the frame.
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>

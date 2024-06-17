@@ -5,6 +5,7 @@
  */
 
 #include "Common/SimulatorWrapper.h"
+#include "Common/ProcessFile.h"
 #include "ZenLib/File.h"
 #include "ZenLib/ZtringListList.h"
 #include "TimeCode.h"
@@ -25,6 +26,13 @@ using namespace ZenLib;
 #else
     #define SIM_PREFIX __T("/tmp/dvrescue_simulator.")
 #endif
+
+
+#define V_UNCOMPRESSED_ID "V_UNCOMPRESSED"
+#define V210_ID           "V_MS/VFW/FOURCC"
+
+#define V_UNCOMPRESSED_UYVY_CC 0x55595659
+#define V210_CC                0x76323130
 
 //---------------------------------------------------------------------------
 struct ctl
@@ -50,10 +58,16 @@ struct ctl
     size_t                      Buffer_Offset;
     size_t                      CurrentClusterPos = 0;
     size_t                      NextClusterPos = 0;
+    bool                        FrameAvailable = false;
 
     // MKV info
     size_t                      Track_Pos = 0;
     decklink_frame              Decklink_Sim;
+    struct track {
+        string                  CodecID;
+        int32u                  FourCC = 0;
+    };
+    vector<track>               Tracks;
 
     // MKV parsing
     uint64_t                    Get_EB();
@@ -96,9 +110,12 @@ struct ctl
     MATROSKA_ELEMENT(Segment_Cluster_Timestamp);
     MATROSKA_ELEMENT(Segment_Tracks);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_CodecID);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelWidth);
     MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_PixelHeight);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_Video_ColourSpace);
+    MATROSKA_ELEMENT(Segment_Tracks_TrackEntry_CodecPrivate);
     MATROSKA_ELEMENT(Void);
 };
 
@@ -147,12 +164,15 @@ ELEMENT_CASE(      2E, Segment_Tracks_TrackEntry)
 ELEMENT_END()
 
 ELEMENT_BEGIN(Segment_Tracks_TrackEntry)
+ELEMENT_VOID(       6, Segment_Tracks_TrackEntry_CodecID)
 ELEMENT_CASE(      60, Segment_Tracks_TrackEntry_Video)
+ELEMENT_VOID(    23A2, Segment_Tracks_TrackEntry_CodecPrivate)
 ELEMENT_END()
 
 ELEMENT_BEGIN(Segment_Tracks_TrackEntry_Video)
 ELEMENT_VOID(      30, Segment_Tracks_TrackEntry_Video_PixelWidth)
 ELEMENT_VOID(      3A, Segment_Tracks_TrackEntry_Video_PixelHeight)
+ELEMENT_VOID(  0EB524, Segment_Tracks_TrackEntry_Video_ColourSpace)
 ELEMENT_END()
 
 
@@ -255,8 +275,12 @@ bool ctl::ParseBuffer(File& F)
                 F.Read(Buffer + Buffer_Size - Buffer_Offset, ToRead);
                 Buffer_Offset = 0;
             }
+        }
 
-            return false; // New cluster
+        if (FrameAvailable)
+        {
+            FrameAvailable = false;
+            return false;
         }
     }
 
@@ -273,6 +297,9 @@ void ctl::Segment()
 void ctl::Segment_Cluster()
 {
     IsList = true;
+
+    if (!CurrentClusterPos)
+        FrameAvailable = true; // First cluster detected, we will return now because we are in the init part
 
     CurrentClusterPos = Buffer_Offset;
     NextClusterPos = Levels[Level].Offset_End;
@@ -296,6 +323,7 @@ void ctl::Segment_Cluster_SimpleBlock()
 {
     Track_Pos++;
     Buffer_Offset += 4;
+    FrameAvailable = true;
 
     auto Size = Levels[Level].Offset_End - Buffer_Offset;
 
@@ -323,6 +351,8 @@ void ctl::Segment_Cluster_Timestamp()
 //---------------------------------------------------------------------------
 void ctl::Segment_Tracks()
 {
+    Tracks.push_back({});
+
     IsList = true;
 }
 
@@ -330,6 +360,12 @@ void ctl::Segment_Tracks()
 void ctl::Segment_Tracks_TrackEntry()
 {
     IsList = true;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_CodecID()
+{
+    Tracks.back().CodecID.assign((const char*)Buffer + Buffer_Offset, Levels[Level].Offset_End - Buffer_Offset);
 }
 
 //---------------------------------------------------------------------------
@@ -360,6 +396,20 @@ void ctl::Segment_Tracks_TrackEntry_Video_PixelHeight()
         Data = (((uint32_t)Buffer[Buffer_Offset]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 1]);
 
     Decklink_Sim.Height = Data;
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_Video_ColourSpace()
+{
+    if (Levels[Level].Offset_End - Buffer_Offset == 4)
+        Tracks.back().FourCC = (((uint32_t)Buffer[Buffer_Offset]) << 24) | ((uint32_t)Buffer[Buffer_Offset + 1] << 16) | (((uint32_t)Buffer[Buffer_Offset + 2]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 3]);
+}
+
+//---------------------------------------------------------------------------
+void ctl::Segment_Tracks_TrackEntry_CodecPrivate()
+{
+    if (Levels[Level].Offset_End - Buffer_Offset == 40 && Buffer[Buffer_Offset] == 40 && Buffer[Buffer_Offset + 1] == 0 && Buffer[Buffer_Offset + 2] == 0 && Buffer[Buffer_Offset + 3] == 0 && Tracks.back().CodecID == "V_MS/VFW/FOURCC")
+        Tracks.back().FourCC = (((uint32_t)Buffer[Buffer_Offset + 16]) << 24) | ((uint32_t)Buffer[Buffer_Offset + 17] << 16) | (((uint32_t)Buffer[Buffer_Offset + 18]) << 8) | ((uint32_t)Buffer[Buffer_Offset + 19]);
 }
 
 //---------------------------------------------------------------------------
@@ -490,6 +540,7 @@ SimulatorWrapper::SimulatorWrapper(std::size_t DeviceIndex)
         else
             P->Buffer_Size = 120000;
         P->Buffer = new int8u[P->Buffer_Size];
+        memset(P->Buffer, 0, P->Buffer_Size);
         if (P->IsMatroska)
         {
             P->F.back()->Read(P->Buffer, P->Buffer_Size);
@@ -711,6 +762,21 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
                 P->Mutex.unlock();
                 break;
             }
+            if (!P->Tracks.empty())
+            {
+                if (P->Tracks.back().CodecID == V_UNCOMPRESSED_ID)
+                {
+                    switch (P->Tracks.back().FourCC)
+                    {
+                    case V_UNCOMPRESSED_UYVY_CC:
+                        P->Decklink_Sim.Pixel_Format = Decklink_Pixel_Format_8BitYUV; break;
+                    default:;
+                    }
+                }
+                else if (P->Tracks.back().CodecID == V210_ID && P->Tracks.back().FourCC == V210_CC)
+                    P->Decklink_Sim.Pixel_Format = Decklink_Pixel_Format_10BitYUV;
+            }
+
             P->Wrapper->Parse_Buffer((uint8_t*)&P->Decklink_Sim, sizeof(P->Decklink_Sim));
         }
         else

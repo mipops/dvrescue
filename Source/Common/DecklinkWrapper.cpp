@@ -44,6 +44,17 @@ static uint32_t decklink_audio_sources[Decklink_Audio_Source_Max] =
 };
 
 //---------------------------------------------------------------------------
+static uint32_t decklink_pixel_formats[Decklink_Pixel_Format_Max] =
+{
+    bmdFormatUnspecified,
+    bmdFormat8BitYUV,
+    bmdFormat10BitYUV,
+    bmdFormat8BitARGB,
+    bmdFormat8BitBGRA,
+    bmdFormat10BitRGB
+};
+
+//---------------------------------------------------------------------------
 static uint32_t decklink_timecode_formats[Decklink_Timecode_Format_Max] =
 {
     bmdTimecodeRP188VITC1,
@@ -129,9 +140,26 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
             }
         }
 
+        uint8_t PixelFormat = (uint8_t)Decklink_Pixel_Format_Unspecified;
+        switch (VideoFrame->GetPixelFormat())
+        {
+            case bmdFormat8BitYUV:
+                PixelFormat = (uint8_t)Decklink_Pixel_Format_8BitYUV; break;
+            case bmdFormat10BitYUV:
+                PixelFormat = (uint8_t)Decklink_Pixel_Format_10BitYUV; break;
+            case bmdFormat8BitARGB:
+                PixelFormat = (uint8_t)Decklink_Pixel_Format_8BitARGB; break;
+            case bmdFormat8BitBGRA:
+                PixelFormat = (uint8_t)Decklink_Pixel_Format_8BitBGRA; break;
+            case bmdFormat10BitRGB:
+                PixelFormat = (uint8_t)Decklink_Pixel_Format_10BitRGB; break;
+            default:;
+        }
+
         decklink_frame Buffer = {
             .Width = (uint32_t)VideoFrame->GetWidth(),
             .Height = (uint32_t)VideoFrame->GetHeight(),
+            .Pixel_Format = PixelFormat,
             .Video_Buffer = (uint8_t*)VideoBuffer,
             .Video_Buffer_Size = VideoBufferSize,
             .Audio_Buffer = (uint8_t*)AudioBuffer,

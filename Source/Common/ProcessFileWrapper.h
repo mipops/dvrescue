@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "ThirdParty/TimeCode/TimeCode.h"
+#include "Common/SignalStats.h"
 
 class file;
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
@@ -37,6 +38,7 @@ struct decklink_frame
 {
     uint32_t                    Width = 0;
     uint32_t                    Height = 0;
+    uint8_t                     Pixel_Format = 0;
     uint8_t*                    Video_Buffer = nullptr;
     size_t                      Video_Buffer_Size = 0;
     uint8_t*                    Audio_Buffer = nullptr;
@@ -46,6 +48,7 @@ struct decklink_frame
 
 struct decklink_framesinfo {
     struct frame {
+        SignalStats::Stats st;
         TimeCode tc;
         bool tc_r;
         uint8_t tc_nc;
@@ -57,9 +60,9 @@ struct decklink_framesinfo {
     uint32_t video_height = 0;
     uint32_t video_rate_num = 0;
     uint32_t video_rate_den = 0;
+    uint8_t pixel_format = 0;
     uint8_t audio_channels = 0;
     uint32_t audio_rate = 0;
-
     std::vector<frame> frames;
 };
 
@@ -91,6 +94,7 @@ public:
     file* File;
     #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
     bool IsMatroska = false;
+    bool HasTimecode = false;
     std::vector<matroska_output> Outputs;
     size_t FrameCount = 0;
     #endif

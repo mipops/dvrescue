@@ -82,6 +82,16 @@ enum decklink_audio_source {
     Decklink_Audio_Source_Max
 };
 
+enum decklink_pixel_format {
+    Decklink_Pixel_Format_Unspecified,
+    Decklink_Pixel_Format_8BitYUV,
+    Decklink_Pixel_Format_10BitYUV,
+    Decklink_Pixel_Format_8BitARGB,
+    Decklink_Pixel_Format_8BitBGRA,
+    Decklink_Pixel_Format_10BitRGB,
+    Decklink_Pixel_Format_Max
+};
+
 enum decklink_timecode_format {
     Decklink_Timecode_Format_RP188_VITC,
     Decklink_Timecode_Format_RP188_VITC2,

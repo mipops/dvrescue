@@ -11,7 +11,18 @@
 #include <vector>
 #include <cstring>
 
+#include "Common/ProcessFileWrapper.h"
 #include "ThirdParty/TimeCode/TimeCode.h"
+
+//***************************************************************************
+//enums
+//***************************************************************************
+
+enum video_format
+{
+    v210,
+    UYVY,
+};
 
 //***************************************************************************
 // Class matroska_writer
@@ -20,7 +31,7 @@
 class matroska_writer
 {
 public:
-    matroska_writer(std::ostream* output, int width, int height, int framerate_num, int framerate_den, bool has_timecode = false);
+    matroska_writer(std::ostream* output, video_format vid_fmt, int width, int height, int framerate_num, int framerate_den, bool has_timecode = false);
     ~matroska_writer();
 
     void write_frame(const char* video_buffer, int video_size, const char* audio_buffer, int audio_size, TimeCode timecode = TimeCode());
@@ -28,6 +39,7 @@ public:
     void close(std::ofstream* output);
 
 private:
+    video_format vid_fmt;
     int width;
     int height;
     int framerate_num;
@@ -36,7 +48,7 @@ private:
     char* buffer;
     size_t buffer_size;
     unsigned long long frame_number;
-    unsigned long long output_size;
+    unsigned long long segment_size;
     std::ostream* output;
     struct cue_struct
     {
