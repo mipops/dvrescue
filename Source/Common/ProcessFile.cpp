@@ -210,7 +210,10 @@ return_value file::Parse(const String& FileName)
                          << JSON_Encode(Trim(Interface))
                          << "\"}";
                 else
+                {
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
+                    Count++;
+                }
             }
         #endif
         #ifdef ENABLE_AVFCTL
@@ -231,7 +234,10 @@ return_value file::Parse(const String& FileName)
                          << JSON_Encode(Trim(Interface))
                          << "\"}";
                 else
+                {
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
+                    Count++;
+                }
             }
         #endif
 
@@ -250,7 +256,10 @@ return_value file::Parse(const String& FileName)
                          << "\",\"name\":\""
                          << JSON_Encode(Trim(DeviceName)) << "\",\"type\":\"" << JSON_Encode(Trim(Interface)) << "\"}";
                 else
+                {
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
+                    Count++;
+                }
             }
         #endif
         #ifdef ENABLE_LNX1394
@@ -271,11 +280,18 @@ return_value file::Parse(const String& FileName)
                          << JSON_Encode(Trim(Interface))
                          << "\"}";
                 else
+                {
                     cout << DeviceID << ": " << DeviceName << " [" <<  Interface << "]" << '\n';
+                    Count++;
+                }
             }
         #endif
         if (Device_Command == 4) //JSON
             cout << "]" << '\n';
+
+        if (Device_Command == 1 && !Count)
+            cerr << "No devices found." << '\n';
+
         return ReturnValue_OK;
     }
     #ifdef ENABLE_SONY9PIN
@@ -295,10 +311,18 @@ return_value file::Parse(const String& FileName)
                      << "\",\"name\":\""
                      << JSON_Encode(Trim(Name)) << "\"}";
             else
+            {
                 cout << ID << (Name.empty() ? "" : (": " + Name)) << '\n';
+                Count++;
+            }
         }
         if (Device_Command == 6) //JSON
             cout << "]" << '\n';
+
+        if (Device_Command == 5 && !Count)
+            cerr << "No devices found." << '\n';
+
+        return;
     }
     #endif
     Capture = nullptr;
