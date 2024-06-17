@@ -306,7 +306,7 @@ jobs:
           - compiler: gcc-9
             packages: gcc-9 g++-9
             env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
-          - qt_version: "5.15.2"
+          - qt_version: "5.15.*"
             qt_packages: "libxkbcommon-dev libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0"
 
     runs-on: ubuntu-latest
@@ -389,7 +389,7 @@ jobs:
           - compiler: gcc-9
             packages: gcc-9 g++-9
             env: { 'CC': 'gcc-9', 'CXX': 'g++-9' }
-          - qt_version: "6.5.0"
+          - qt_version: "6.5.*"
             qt_modules: "qtmultimedia qt5compat qtshadertools"
             qt_packages: "libxkbcommon-dev libgstreamer-plugins-base1.0-0 libgstreamer-gl1.0-0"
 
@@ -468,7 +468,7 @@ jobs:
 
     strategy:
       matrix:
-        qt_version: ["5.15.2"]
+        qt_version: ["5.15.*"]
 
     runs-on: windows-latest
 
@@ -561,7 +561,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - qt_version: "6.3.0"
+          - qt_version: "6.5.*"
             qt_modules: "qtmultimedia qt5compat"
 
     runs-on: windows-latest
@@ -655,7 +655,7 @@ jobs:
 
     strategy:
       matrix:
-        qt_version: ["5.15.2"]
+        qt_version: ["5.15.*"]
 
     runs-on: windows-latest
 
@@ -746,7 +746,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - qt_version: "6.3.0"
+          - qt_version: "6.3.*"
             qt_modules: "qtmultimedia qt5compat"
 
     runs-on: windows-latest
