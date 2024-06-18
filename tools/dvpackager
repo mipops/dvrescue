@@ -42,6 +42,10 @@ Options:
            The default pattern is "%FILENAME%_part%PARTNO%". The
            extension of the output file is determined by the -e
            setting.)
+               
+           Note that if the output pattern would generate multiple output files
+           with the same name then a 3-digit incrementing number such as "-001"
+           will be added to the end of the filename.
  -e <ext> (specify the extension of the container to use. Tested with:
            mkv, mov, dv. Defaults to mov. Note that using the 'dv' option
            shall simply extract the dv from the file while using the
@@ -312,7 +316,23 @@ _ranges_2_output_table(){
     echo "${RANGES}" | while read -r RANGE_LINE ; do
         IFS='|' read -r PTS_START PTS_END FRAME_START FRAME_END TC OFFSET_START RDT FS FR CS AR SR CC RS RTJ TJ EMA OER OLR <<< "${RANGE_LINE}"
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
-            OUTPUT_FILE="$(_generate_output_filename)"
+
+            # generate output files (this code is reused in the output section)
+            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME%.*}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
+            COLLECTED_OUTPUTS+=(${APPLIED_PATTERN})
+            MATCH_NAME_COUNT=0
+            for OUTPUT_FILENAME in "${COLLECTED_OUTPUTS[@]}" ; do
+                if [[ "${OUTPUT_FILENAME}" = "${APPLIED_PATTERN}" ]]; then
+                    (( MATCH_NAME_COUNT++ ))
+                fi
+            done 
+            if [[ "${MATCH_NAME_COUNT}" -gt 1 ]] ; then
+                INCREMENT_ADD="-$(echo "${MATCH_NAME_COUNT}-1" | bc -l | awk '{printf "%03d", $0}')"
+            else
+                INCREMENT_ADD=""
+            fi
+            OUTPUT_FILE="${SIDECAR_DIR}/${APPLIED_PATTERN}${INCREMENT_ADD}.${EXTENSION}"
+
             echo "${RANGE_LINE//[$'\t\r\n']}|${OUTPUT_FILE}"
             ((SEG_OUTPUT++))
         fi
@@ -665,11 +685,6 @@ if [[ ! -x "${MEDIAINFO_PATH}" ]] ; then
 fi
 }
 
-_generate_output_filename(){
-    APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME%.*}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
-    echo "${SIDECAR_DIR}/${APPLIED_PATTERN}.${EXTENSION}"
-}
-
 MATCH_FRAMES="d:frame[1]|"
 FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
@@ -1006,7 +1021,23 @@ if [[ -f "${DVFILE}" ]] ; then
             unset START_TIME METADATA FRAME_COUNT DURATION_SECS DURATION_ARG AUDIO_FILTER APAD SUB_INPUT MOV_PTS_OFFSET MOV_INPUT_RATE_OPT
             unset DV_INPUT AUDIO_INPUTS AUDIO_RESAMPLE_FILTER AUDIO_CONCAT_FILTER AUDIO_RESAMPLE_FILTER_T2 AUDIO_CONCAT_FILTER_T2 CHAPTER_PROCESS OUTPUT_ERROR
             APAD_NOTICE="0"
-            OUTPUT_FILE="$(_generate_output_filename)"
+
+            # generate output files (this code section is in the table part too)
+            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME%.*}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
+            COLLECTED_OUTPUTS+=(${APPLIED_PATTERN})
+            MATCH_NAME_COUNT=0
+            for OUTPUT_FILENAME in "${COLLECTED_OUTPUTS[@]}" ; do
+                if [[ "${OUTPUT_FILENAME}" = "${APPLIED_PATTERN}" ]]; then
+                    (( MATCH_NAME_COUNT++ ))
+                fi
+            done 
+            if [[ "${MATCH_NAME_COUNT}" -gt 1 ]] ; then
+                INCREMENT_ADD="-$(echo "${MATCH_NAME_COUNT}-1" | bc -l | awk '{printf "%03d", $0}')"
+            else
+                INCREMENT_ADD=""
+            fi
+            OUTPUT_FILE="${SIDECAR_DIR}/${APPLIED_PATTERN}${INCREMENT_ADD}.${EXTENSION}"
+
             OUTPUT_FILE_BASENAME="$(basename "${OUTPUT_FILE}")"
             #METADATA+=(-metadata "comment=${MUXER}")
             _report -d "### Packaging started: ${OUTPUT_FILE}"
