@@ -42,6 +42,7 @@ extern bool OutputFrames_NoData;
 extern int ShowFrames_Missing;
 extern int ShowFrames_Intermediate;
 extern bool InControl;
+extern bool Foreground;
 extern string Device;
 extern char Device_Command;
 extern bool Device_ForceCapture;

@@ -47,6 +47,7 @@ uint8_t DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_Unspecified;
 uint8_t DeckLinkTimecodeFormat = (uint8_t)Decklink_Timecode_Format_VITC;
 #endif
 bool InControl = false;
+bool Foreground = false;
 string Device = "";
 char Device_Command = 0;
 bool Device_ForceCapture = false;
@@ -445,10 +446,26 @@ return_value file::Parse(const String& FileName)
             if (Device_Command == 3)
             {
                 Capture->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
+                if (Foreground && Device_Speed != 0.0f)
+                {
+                    FileWrapper Wrapper(nullptr);
+                    Capture->CreateCaptureSession(&Wrapper);
+                    Capture->StartCaptureSession();
+                    Capture->WaitForSessionEnd(Timeout);
+                    Capture->StopCaptureSession();
+                }
             }
             if (Device_Command >= 0x20)
             {
                 InputControl_Char(this, Device_Command);
+                if (Foreground && (Device_Command == 'R' || Device_Command == 'r' || Device_Command == 'F' || Device_Command == 'f'))
+                {
+                    FileWrapper Wrapper(nullptr);
+                    Capture->CreateCaptureSession(&Wrapper);
+                    Capture->StartCaptureSession();
+                    Capture->WaitForSessionEnd(Timeout);
+                    Capture->StopCaptureSession();
+                }
             }
             return ReturnValue_OK;
         }

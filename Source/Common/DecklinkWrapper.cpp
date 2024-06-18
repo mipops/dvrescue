@@ -167,7 +167,8 @@ HRESULT DecklinkWrapper::CaptureDelegate::VideoInputFrameArrived(IDeckLinkVideoI
             .TC = TC,
         };
 
-        Wrapper->Parse_Buffer((const uint8_t*)&Buffer, sizeof(Buffer));
+        if (Wrapper)
+            Wrapper->Parse_Buffer((const uint8_t*)&Buffer, sizeof(Buffer));
     }
 
     return S_OK;
