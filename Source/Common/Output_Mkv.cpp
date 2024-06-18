@@ -415,9 +415,9 @@ void matroska_writer::write_frame(const char* video_buffer, int video_size, cons
         char text_buffer[11] = { '0', '0', ':', '0', '0', ':', '0', '0', ':', '0', '0' };
         text_buffer[ 0] += (timecode.Hours   / 10) & 3;
         text_buffer[ 1] +=  timecode.Hours   % 10;
-        text_buffer[ 3] += (timecode.Minutes / 10) & 3;
+        text_buffer[ 3] += (timecode.Minutes / 10) & 7;
         text_buffer[ 4] +=  timecode.Minutes % 10;
-        text_buffer[ 6] += (timecode.Seconds / 10) & 3;
+        text_buffer[ 6] += (timecode.Seconds / 10) & 7;
         text_buffer[ 7] +=  timecode.Seconds % 10;
         if (timecode.DropFrame)
             text_buffer[ 8] = ';';
