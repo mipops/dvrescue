@@ -686,10 +686,9 @@ bool DecklinkWrapper::WaitForSessionEnd(uint64_t Timeout)
             if (difftime(time(NULL), LastInput) > Timeout)
                 return true;
         }
-        PlaybackMode = GetMode();
         this_thread::sleep_for(std::chrono::milliseconds(500));
     }
-    while (PlaybackMode == Playback_Mode_Playing);
+    while ((PlaybackMode = GetMode()) == Playback_Mode_Playing);
 
     return false;
 }
