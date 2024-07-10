@@ -31,6 +31,9 @@ Column {
     property alias dataModel: dataModel
 
     property int frameSpeed: 0
+    property int prev_abst: 0
+    property int abst: 0
+    property int abst_diff: 0
     property bool noFrames: true
 
     readonly property int thresholdBetweenFastPlayAndPlay: 35
@@ -204,6 +207,49 @@ Column {
     Rectangle {
         width: 640
         height: childrenRect.height
+
+        Rectangle {
+            height: row.height
+            anchors.verticalCenter: verticalCenter
+            anchors.left: parent.left
+            anchors.right: row.left
+
+            Image {
+                id: dvcpro_lamp_lit
+                fillMode: Image.PreserveAspectFit
+                anchors.fill: parent
+                horizontalAlignment: Image.AlignLeft
+                visible: !noFrames && ((5 - 0.5) < abst_diff && abst_diff < (5 + 0.5))
+                source: "/icons/DVCPRO-lamp-lit.svg"
+            }
+
+            Image {
+                id: dv_lp_lamp_lit
+                fillMode: Image.PreserveAspectFit
+                anchors.fill: parent
+                horizontalAlignment: Image.AlignLeft
+                visible: !noFrames && ((6.66 - 0.5) < abst_diff && abst_diff < (6.66 + 0.5))
+                source: "/icons/DV-LP-lamp-lit_NEW.svg"
+            }
+
+            Image {
+                id: dv_sp_lamp_lit
+                fillMode: Image.PreserveAspectFit
+                anchors.fill: parent
+                horizontalAlignment: Image.AlignLeft
+                visible: !noFrames && ((10 - 0.5) < abst_diff && abst_diff < (10 + 0.5))
+                source: "/icons/DV-SP-lamp-lit_NEW.svg"
+            }
+
+            Image {
+                id: dvcam_lamp_lit
+                fillMode: Image.PreserveAspectFit
+                anchors.fill: parent
+                horizontalAlignment: Image.AlignLeft
+                visible: !noFrames && ((15 - 0.5) < abst_diff && abst_diff < (15 + 0.5))
+                source: "/icons/DVCAM-lamp-lit.svg"
+            }
+        }
 
         Row {
             id: row
