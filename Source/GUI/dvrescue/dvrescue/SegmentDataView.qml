@@ -353,5 +353,10 @@ Rectangle {
             display: "Video/Audio";
             property int minWidth: 200 + columnSpacing + timecodeMetrics.height * 2
         }
+
+        TableModelColumn {
+            display: "Filename Pattern"
+            property int minWidth: 300
+        }
     }
 }
