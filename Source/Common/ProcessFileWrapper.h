@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "ThirdParty/TimeCode/TimeCode.h"
 #include "Common/SignalStats.h"
@@ -97,6 +98,7 @@ public:
     bool HasTimecode = false;
     std::vector<matroska_output> Outputs;
     size_t FrameCount = 0;
+    ostream* Log;
     #endif
 };
 

@@ -36,6 +36,8 @@ FileWrapper::FileWrapper(int Width, int Height, int Framerate_Num, int Framerate
     FramesInfo.video_rate_den = Framerate_Den;
     FramesInfo.audio_rate = SampleRate;
     FramesInfo.audio_channels = Channels;
+
+    Log = MergeInfo_Out ? MergeInfo_Out : (Merge_OutputFileNames_IncludesStdOut ? &cerr : &cout);
 }
 
 //---------------------------------------------------------------------------
@@ -135,7 +137,7 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
         {
             if (!FrameCount)
             {
-                cout << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,pix_fmt,satavg,sathigh,satmax,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed"
+                *Log << "FramePos,abst,abst_r,abst_nc,tc,tc_r,tc_nc,rdt,rdt_r,rdt_nc,rec_start,rec_end,pix_fmt,satavg,sathigh,satmax,Used,Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed"
                      << (Verbosity > 5 ? ",SourceSpeed,FrameSpeed,InputPos,OutputPos" : "")
                      << (ShowFrames_Intermediate ? ",RewindStatus" : "")
                      << endl;
@@ -145,7 +147,7 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
             if (!isnan(ST.SatAvg))
                 ss << ST.SatAvg;
 
-            cout << FrameCount++ // framePos
+            *Log << FrameCount++ // framePos
                  << "," // abst
                     "," // abst_r
                     "," // abst_nc
