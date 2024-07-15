@@ -159,11 +159,11 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
                     "," // rdt_nc
                     "," // rec_start
                     "," // rec_end
-                    "," // Used
                  << "," << decklink_pixelformat_to_string(Frame->Pixel_Format) // pix_fmt
                  << "," << ss.str() // satavg
                  << "," << (ST.SatHi != (uint16_t)-1 ? to_string(ST.SatHi) : "") // sathi
                  << "," << (ST.SatMax != (uint16_t)-1 ? to_string(ST.SatMax) : "")  // satmax
+                 << "," // Used
                  << "," // Status
                     "," // Comments
                     "," // BlockErrors
