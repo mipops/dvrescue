@@ -567,6 +567,24 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     seconds_to_timestamp(Text, TimeStamp_End, 6, true);
                     Text += '\"';
                 }
+                {
+                    auto AbstBf = abst_bf(Frame->AbstBf);
+                    if (AbstBf.HasAbsoluteTrackNumberValue())
+                    {
+                        Text += " abst=\"";
+                        Text += to_string(AbstBf.AbsoluteTrackNumber());
+                        Text += '\"';
+                    }
+                }
+                {
+                    auto AbstBf = abst_bf(File->PerFrame.back()->AbstBf);
+                    if (AbstBf.HasAbsoluteTrackNumberValue())
+                    {
+                        Text += " abst_end=\"";
+                        Text += to_string(AbstBf.AbsoluteTrackNumber());
+                        Text += '\"';
+                    }
+                }
                 if (Change->Width && Change->Height)
                 {
                     Text += " size=\"";
