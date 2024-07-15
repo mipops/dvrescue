@@ -32,6 +32,7 @@ ColumnLayout {
     property string reportPath
     property string videoPath
     property string outputPath
+    property string pattern: patterns.currentText
 
     spacing: 0
 
@@ -96,6 +97,21 @@ ColumnLayout {
                     "No and use most common aspect ratio",
                     "No and force segments to use 4/3",
                     "No and force segments to use 16/9"
+                ]
+                onCurrentIndexChanged: {
+                    segmentationOptionsLayout.needsApply = true
+                }
+            }
+
+            ComboBoxEx {
+                id: patterns
+                sizeToContents: true
+                Layout.minimumWidth: modelWidth + 2*leftPadding + 2*rightPadding
+                model: [
+                    "%FILENAME%_part%PARTNO%",
+                    "%FILENAME%_%RECDATE%_%RECTIME%",
+                    "%FILENAME%_%PARTNO%_%TC%",
+                    "%FILENAME%_%RECDATE%-%RECTIME%_%TC%"
                 ]
                 onCurrentIndexChanged: {
                     segmentationOptionsLayout.needsApply = true
@@ -173,7 +189,8 @@ ColumnLayout {
                 'Recording Time' : '',
                 'Recording Time: Jump/Repeat' : Qt.point(0, 0),
                 'Recording Marks' : Qt.point(0, 0),
-                'Video/Audio' : ''
+                'Video/Audio' : '',
+                'Filename Pattern' : ''
             }
 
             segmentDataView.model.appendRow(e);
@@ -250,7 +267,7 @@ ColumnLayout {
         }
 
         function populateSegmentData(reportPath, videoPath, outputPath, extraOpts) {
-            console.debug('populateSegmentData: reportPath = ', reportPath, 'outputPath = ', outputPath)
+            console.debug('populateSegmentData: reportPath = ', reportPath, 'videoPath = ', videoPath, 'outputPath = ', outputPath)
 
             segmentDataView.model.clear();
 
@@ -259,7 +276,7 @@ ColumnLayout {
                 videoPath = "/cygdrive/" + videoPath.replace(":", "");
             }
 
-            var extraParams = ['-v', '-X', packagerCtl.effectiveXmlStarletCmd]
+            var extraParams = ['-v', '-X', packagerCtl.effectiveXmlStarletCmd, '-O', pattern]
             var opts = [];
             if(recordingStartMarkers.checked)
                 opts.push('-s')
@@ -325,7 +342,8 @@ ColumnLayout {
                                                                                       'Recording Time: Jump/Repeat' : Qt.point(entry.recTimeJump, 0),
                                                                                       'Recording Marks' : Qt.point(entry.recStart, 0),
                                                                                       'Video/Audio' : videoAudio.join(' '),
-                                                                                      'FileName' : entry.segmentFileName ? entry.segmentFileName : i
+                                                                                      'FileName' : entry.segmentFileName ? entry.segmentFileName : i,
+                                                                                      'Filename Pattern' : entry.segmentFileName ? entry.segmentFileName : i
                                                                                   }
 
                                                                                   if(Qt.platform.os === "windows") {
@@ -334,6 +352,7 @@ ColumnLayout {
                                                                                       if(splittedWinPath.length !== 0) {
                                                                                         splittedWinPath[0] = splittedWinPath[0] + ':'
                                                                                         e.FileName = splittedWinPath.join('\\')
+                                                                                        e['Filename Pattern'] = e.FileName
                                                                                       }
                                                                                   }
 
