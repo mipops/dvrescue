@@ -89,6 +89,7 @@ Rectangle {
                 property int indexOfFrameSpeed: -1;
                 property int indexOfBlockErrors: -1;
                 property int indexOfBlockErrorsEven: -1;
+                property int indexOfAbst: -1;
 
                 property bool isDecklink: type === 'DeckLink'
                 property int currentControlIndex: 0
@@ -112,6 +113,7 @@ Rectangle {
                     indexOfFrameSpeed = columnNames.indexOf('FrameSpeed');
                     indexOfBlockErrors = columnNames.indexOf('BlockErrors');
                     indexOfBlockErrorsEven = columnNames.indexOf('BlockErrors_Even');
+                    indexOfAbst = columnNames.indexOf('abst');
 
                     console.debug('indexOfFramePos: ', indexOfFramePos)
                     console.debug('indexOfTimecode: ', indexOfTimecode)
@@ -120,6 +122,7 @@ Rectangle {
                     console.debug('indexOfFrameSpeed: ', indexOfFrameSpeed)
                     console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
                     console.debug('indexOfBlockErrorsEven: ', indexOfBlockErrorsEven)
+                    console.debug('abst: ', indexOfAbst)
                 }
 
                 function onEntriesReceived(entries) {
@@ -155,6 +158,13 @@ Rectangle {
                         var blockErrorsEven = entries[indexOfBlockErrorsEven]
 
                         dataModel.append(framePos, blockErrorsEven, blockErrors, captureView.capturingModeInt == captureView.playing)
+                    }
+
+                    if(indexOfAbst !== -1) {
+                        prev_abst = abst;
+                        abst = entries[indexOfAbst];
+
+                        abst_diff = abst - prev_abst;
                     }
 
                     framesDetector.restart()

@@ -117,5 +117,15 @@
         <file>MergeInputFileView.qml</file>
         <file>MergeAnalyzeView.qml</file>
         <file>StatusDelegate.qml</file>
+        <file>icons/DVCAM-lamp-lit.svg</file>
+        <file>icons/DVCAM-lamp-out.svg</file>
+        <file>icons/DVCPRO-lamp-lit.svg</file>
+        <file>icons/DVCPRO-lamp-out.svg</file>
+        <file>icons/DV-LP-lamp-lit_NEW.svg</file>
+        <file>icons/DV-LP-lamp-out_NEW.svg</file>
+        <file>icons/DV-SP-lamp-lit_NEW.svg</file>
+        <file>icons/DV-SP-lamp-out_NEW.svg</file>
+        <file>icons/HDV-lamp-lit_NEW.svg</file>
+        <file>icons/HDV-lamp-out_NEW.svg</file>
     </qresource>
 </RCC>
