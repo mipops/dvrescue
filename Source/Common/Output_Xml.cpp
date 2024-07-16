@@ -577,12 +577,16 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     }
                 }
                 {
-                    auto AbstBf = abst_bf(File->PerFrame.back()->AbstBf);
-                    if (AbstBf.HasAbsoluteTrackNumberValue())
+                    auto FrameNumber = PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (MediaInfo_int64u)File->PerFrame.size()-1;
+                    if (FrameNumber < File->PerFrame.size())
                     {
-                        Text += " abst_end=\"";
-                        Text += to_string(AbstBf.AbsoluteTrackNumber());
-                        Text += '\"';
+                        auto AbstBf = abst_bf(File->PerFrame[FrameNumber]->AbstBf);
+                        if (AbstBf.HasAbsoluteTrackNumberValue())
+                        {
+                            Text += " end_abst=\"";
+                            Text += to_string(AbstBf.AbsoluteTrackNumber());
+                            Text += '\"';
+                        }
                     }
                 }
                 if (Change->Width && Change->Height)

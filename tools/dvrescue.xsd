@@ -179,6 +179,20 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="abst" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Absolute Timecode for start of sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="end_abst" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Absolute Timecode of end of sequence.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
     <xsd:attribute name="size" type="sizeType"/>
     <xsd:attribute name="pixel_format" type="pixel_formatType"/>
     <xsd:attribute name="video_rate" type="video_rateType"/>
