@@ -16,6 +16,7 @@
 #include <csvparser.h>
 #include <imageutils.h>
 #include <captureerrorplotdatamodel.h>
+#include <capturesaturationplotdatamodel.h>
 #include <connectionutils.h>
 #include <loggingutils.h>
 #include <qtavplayerutils.h>
@@ -78,6 +79,7 @@ void Setup::applicationAvailable()
     qmlRegisterType<CsvParser>("CsvParser", 0, 1, "CsvParser");
     qmlRegisterType<DataModel>("DataModel", 1, 0, "DataModel");
     qmlRegisterType<CaptureErrorPlotDataModel>("CaptureErrorPlotDataModel", 1, 0, "CaptureErrorPlotDataModel");
+    qmlRegisterType<CaptureSaturationPlotDataModel>("CaptureSaturationPlotDataModel", 1, 0, "CaptureSaturationPlotDataModel");
     qmlRegisterType<MediaInfo>("MediaInfo", 1, 0, "MediaInfo");
     qmlRegisterType<MediaPlayer>("QtAVMediaPlayer", 1, 0, "QtAVMediaPlayer");
     qmlRegisterType<BufferSequential>("MediaPlayerBuffer", 1, 0, "MediaPlayerBuffer");
@@ -86,6 +88,7 @@ void Setup::applicationAvailable()
     qmlRegisterType<QwtQuick2PlotGrid>("QwtQuick2", 1, 0, "QwtQuick2PlotGrid");
     qmlRegisterType<QwtQuick2PlotPicker>("QwtQuick2", 1, 0, "QwtQuick2PlotPicker");
     qmlRegisterType<QwtQuick2PlotLegend>("QwtQuick2", 1, 0, "QwtQuick2PlotLegend");
+    qmlRegisterType<QwtQuick2PlotMarker>("QwtQuick2", 1, 0, "QwtQuick2PlotMarker");
     qmlRegisterType<SortFilterTableModel>("SortFilterTableModel", 1, 0, "SortFilterTableModel");
     qmlRegisterType<QQmlTableModel>("TableModel", 1, 0, "TableModel");
     qmlRegisterType<QQmlTableModelColumn>("TableModelColumn", 1, 0, "TableModelColumn");

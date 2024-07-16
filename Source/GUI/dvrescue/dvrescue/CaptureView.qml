@@ -10,6 +10,7 @@ import Multimedia 1.0
 import GraphicalEffects 1.0
 import QwtQuick2 1.0
 import CaptureErrorPlotDataModel 1.0
+import CaptureSaturationPlotDataModel 1.0
 
 Column {
     property alias fastForwardButton: fastForwardButton
@@ -29,11 +30,13 @@ Column {
     property var csvParser: csvParser
     property var csvParserUI: csvParserUI
     property alias dataModel: dataModel
+    property alias decklinkDataModel: decklinkDataModel
 
     property int frameSpeed: 0
     property int prev_abst: 0
     property int abst: 0
     property int abst_diff: 0
+    property bool isV210: false
     property bool noFrames: true
 
     readonly property int thresholdBetweenFastPlayAndPlay: 35
@@ -210,7 +213,7 @@ Column {
 
         Rectangle {
             height: row.height
-            anchors.verticalCenter: verticalCenter
+            anchors.verticalCenter: row.verticalCenter
             anchors.left: parent.left
             anchors.right: row.left
 
@@ -423,12 +426,12 @@ Column {
             anchors.left: parent.left
             anchors.right: parent.right
             height: 80
-            visible: !decklinkConfigButton.visible
 
             QwtQuick2Plot {
                 id: videoPlot
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                visible: !decklinkConfigButton.visible
 
                 canvasItem.clip: true
                 xBottomAxisVisible: true
@@ -507,6 +510,114 @@ Column {
                     hoverEnabled: true
                 }
             }
+
+            QwtQuick2Plot {
+                id: decklinkVideoPlot
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: decklinkConfigButton.visible
+
+                canvasItem.clip: true
+                xBottomAxisVisible: true
+                yLeftAxisVisible: false
+                backgroundColor: "Cornsilk"
+
+                property real yaxis_min: 0
+                property real yaxis_high: isV210 ? 1023 : 255
+                property real sat1: 88.7
+                property real sat2: 118.2
+                property real sat3: 118.2
+                property int sat_multiplier: isV210 ? 1 : 4
+
+                yLeftAxisRange: Qt.vector2d(0, yaxis_high)
+
+                Component.onCompleted: {
+                    yLeftAxisFont.bold = false
+                    yLeftAxisFont.pixelSize = yLeftAxisFont.pixelSize - 2
+                    xBottomAxisFont.bold = false
+                    xBottomAxisFont.pixelSize = xBottomAxisFont.pixelSize - 2
+                }
+
+                QwtQuick2PlotCurve {
+                    id: satavgCurve
+                    title: "satavg";
+                    curveStyle: QwtQuick2PlotCurve.Lines
+                    color: "black"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordSatavgCurve
+                    curveStyle: QwtQuick2PlotCurve.Lines
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: satmaxCurve
+                    title: "satmax";
+                    curveStyle: QwtQuick2PlotCurve.Lines
+                    color: "darkgreen"
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotCurve {
+                    id: notInPlayOrRecordSatmaxCurve
+                    curveStyle: QwtQuick2PlotCurve.Lines
+                    color: Qt.rgba(0.1, 0.1, 0.1, 0.5)
+                    titleColor: "darkgray"
+                }
+
+                QwtQuick2PlotGrid {
+                    enableXMin: true
+                    enableYMin: true
+                    majorPenColor: 'darkGray'
+                    majorPenStyle: Qt.DotLine
+                    minorPenColor: 'transparent'
+                    minorPenStyle: Qt.DotLine
+                }
+
+                QwtQuick2PlotMarker {
+                    lineStyle: QwtQuick2PlotMarker.HLine
+                    penStyle: Qt.DashDotDotLine
+                    penColor: 'red'
+                    value: Qt.point(0, decklinkVideoPlot.sat3 * decklinkVideoPlot.sat_multiplier)
+                }
+
+                QwtQuick2PlotMarker {
+                    lineStyle: QwtQuick2PlotMarker.HLine
+                    penStyle: Qt.DashDotDotLine
+                    penColor: 'orange'
+                    value: Qt.point(0, decklinkVideoPlot.sat2 * decklinkVideoPlot.sat_multiplier)
+                }
+
+                ToolTip {
+                    /*
+                    text: {
+                        if(decklinkDataModel.total < 9000) {
+                            return "Of the X frames received, Y contain error concealment."
+                                .replace("X", decklinkDataModel.total).replace("Y", decklinkDataModel.totalWithErrors)
+                        } else {
+                            if(decklinkDataModel.totalWithErrors < 2) {
+                                return "Of the X frames received, Y contains error concealment (Z within the last 9000 frames shown here)."
+                                    .replace("X", decklinkDataModel.total).replace("Y", decklinkDataModel.totalWithErrors).replace("Z", decklinkDataModel.lastWithErrors)
+                            } else {
+                                return "Of the X frames received, Y contain error concealment (Z within the last 9000 frames shown here)."
+                                    .replace("X", decklinkDataModel.total).replace("Y", decklinkDataModel.totalWithErrors).replace("Z", decklinkDataModel.lastWithErrors)
+                            }
+                        }
+                    }
+                    */
+
+                    visible: decklinkTooltipMouseArea.containsMouse
+                }
+
+                MouseArea {
+                    id: decklinkTooltipMouseArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
+            }
         }
 
         CaptureErrorPlotDataModel {
@@ -545,6 +656,29 @@ Column {
             onTriggered: {
                 console.debug('updating plots...')
                 dataModel.update();
+                decklinkDataModel.update();
+            }
+        }
+
+        CaptureSaturationPlotDataModel {
+            id: decklinkDataModel
+
+            satavgCurve: satavgCurve
+            notInPlayOrRecordSatavgCurve: notInPlayOrRecordSatavgCurve
+
+            satmaxCurve: satmaxCurve
+            notInPlayOrRecordSatmaxCurve: notInPlayOrRecordSatmaxCurve
+
+            onTotalChanged: {
+                console.debug('total changed: ', total)
+            }
+
+            onLastChanged: {
+                console.debug('last changed: ', last)
+            }
+
+            Component.onCompleted: {
+                decklinkDataModel.update();
             }
         }
     }

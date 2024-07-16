@@ -8,6 +8,7 @@ Rectangle {
 
     signal commandExecutionStarted(var launcher);
     signal commandExecutionFinished(var results);
+    property alias captureViewRepeater: captureViewRepeater
 
     color: "#2e3436"
 
@@ -90,6 +91,9 @@ Rectangle {
                 property int indexOfBlockErrors: -1;
                 property int indexOfBlockErrorsEven: -1;
                 property int indexOfAbst: -1;
+                property int indexOfSatAvg: -1
+                property int indexOfSatMax: -1
+                property int indexOfPixFmt: -1
 
                 property bool isDecklink: type === 'DeckLink'
                 property int currentControlIndex: 0
@@ -114,6 +118,9 @@ Rectangle {
                     indexOfBlockErrors = columnNames.indexOf('BlockErrors');
                     indexOfBlockErrorsEven = columnNames.indexOf('BlockErrors_Even');
                     indexOfAbst = columnNames.indexOf('abst');
+                    indexOfSatAvg = columnNames.indexOf('satavg');
+                    indexOfSatMax = columnNames.indexOf('satmax');
+                    indexOfPixFmt = columnNames.indexOf('pix_fmt');
 
                     console.debug('indexOfFramePos: ', indexOfFramePos)
                     console.debug('indexOfTimecode: ', indexOfTimecode)
@@ -123,6 +130,9 @@ Rectangle {
                     console.debug('indexOfBlockErrors: ', indexOfBlockErrors)
                     console.debug('indexOfBlockErrorsEven: ', indexOfBlockErrorsEven)
                     console.debug('abst: ', indexOfAbst)
+                    console.debug('indexOfSatAvg: ', indexOfSatAvg)
+                    console.debug('indexOfSatMax: ', indexOfSatMax)
+                    console.debug('indexOfPixFmt: ', indexOfPixFmt)
                 }
 
                 function onEntriesReceived(entries) {
@@ -153,11 +163,25 @@ Rectangle {
                             frameSpeed = frameSpeedValue
                     }
 
-                    if(indexOfBlockErrors !== -1 && indexOfBlockErrorsEven !== -1) {
-                        var blockErrors = entries[indexOfBlockErrors]
-                        var blockErrorsEven = entries[indexOfBlockErrorsEven]
+                    if(isDecklink) {
+                        if(indexOfSatAvg !== -1 && indexOfSatMax !== -1) {
+                            var satavg = entries[indexOfSatAvg]
+                            var satmax = entries[indexOfSatMax]
 
-                        dataModel.append(framePos, blockErrorsEven, blockErrors, captureView.capturingModeInt == captureView.playing)
+                            decklinkDataModel.append(framePos, satavg, satmax, captureView.capturingModeInt == captureView.playing)
+                        }
+                    } else {
+                        if(indexOfPixFmt !== -1) {
+                            var pix_fmt = entries[indexOfPixFmt];
+                            isV210 = (pix_fmt === 'v210')
+                        }
+
+                        if(indexOfBlockErrors !== -1 && indexOfBlockErrorsEven !== -1) {
+                            var blockErrors = entries[indexOfBlockErrors]
+                            var blockErrorsEven = entries[indexOfBlockErrorsEven]
+
+                            dataModel.append(framePos, blockErrorsEven, blockErrors, captureView.capturingModeInt == captureView.playing)
+                        }
                     }
 
                     if(indexOfAbst !== -1) {

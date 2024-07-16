@@ -118,6 +118,8 @@ void QwtQuick2Plot::attach(QObject *child)
         qobject_cast<QwtQuick2PlotGrid *>(child)->attach(this);
     } else if(qobject_cast<QwtQuick2PlotPicker *>(child)) {
         qobject_cast<QwtQuick2PlotPicker *>(child)->attach(this);
+    } else if(qobject_cast<QwtQuick2PlotMarker *>(child)) {
+        qobject_cast<QwtQuick2PlotMarker *>(child)->attach(this);
     }
 }
 
@@ -949,4 +951,94 @@ void QwtQuick2Plot::setXBottomAxisVisible(bool newXBottomAxisVisible)
         m_qwtPlot->enableAxis(QwtPlot::xBottom, newXBottomAxisVisible);
         Q_EMIT yLeftAxisVisibleChanged();
     }
+}
+
+QwtQuick2PlotMarker::QwtQuick2PlotMarker(QObject *parent) : QObject(parent)
+{
+    m_qwtPlotMarker = new QwtPlotMarker();
+}
+
+void QwtQuick2PlotMarker::attach(QwtQuick2Plot *plot)
+{
+    m_qwtPlotMarker->attach(plot->plot());
+}
+
+QColor QwtQuick2PlotMarker::penColor() const
+{
+    return m_qwtPlotMarker->linePen().color();
+}
+
+qreal QwtQuick2PlotMarker::penWidth() const
+{
+    return m_qwtPlotMarker->linePen().widthF();
+}
+
+Qt::PenStyle QwtQuick2PlotMarker::penStyle() const
+{
+    return m_qwtPlotMarker->linePen().style();
+}
+
+void QwtQuick2PlotMarker::setPenColor(QColor penColor)
+{
+    if (m_qwtPlotMarker->linePen().color() == penColor)
+        return;
+
+    auto pen = m_qwtPlotMarker->linePen();
+    pen.setColor(penColor);
+
+    m_qwtPlotMarker->setLinePen(pen);
+    Q_EMIT penColorChanged(m_qwtPlotMarker->linePen().color());
+}
+
+void QwtQuick2PlotMarker::setPenWidth(qreal penWidth)
+{
+    qWarning("Floating point comparison needs context sanity check");
+    if (qFuzzyCompare(m_qwtPlotMarker->linePen().widthF(), penWidth))
+        return;
+
+    auto pen = m_qwtPlotMarker->linePen();
+    pen.setWidthF(penWidth);
+
+    m_qwtPlotMarker->setLinePen(pen);
+    Q_EMIT penWidthChanged(m_qwtPlotMarker->linePen().widthF());
+}
+
+void QwtQuick2PlotMarker::setPenStyle(Qt::PenStyle penStyle)
+{
+    if (m_qwtPlotMarker->linePen().style() == penStyle)
+        return;
+
+    auto pen = m_qwtPlotMarker->linePen();
+    pen.setStyle(penStyle);
+
+    m_qwtPlotMarker->setLinePen(pen);
+    Q_EMIT penStyleChanged(m_qwtPlotMarker->linePen().style());
+}
+
+QPointF QwtQuick2PlotMarker::value() const
+{
+    return m_qwtPlotMarker->value();
+}
+
+void QwtQuick2PlotMarker::setValue(QPointF newValue)
+{
+    if (m_qwtPlotMarker->value() == newValue)
+        return;
+
+    m_qwtPlotMarker->setValue(newValue);
+    Q_EMIT valueChanged();
+}
+
+QwtQuick2PlotMarker::LineStyle QwtQuick2PlotMarker::lineStyle() const
+{
+    return (QwtQuick2PlotMarker::LineStyle) m_qwtPlotMarker->lineStyle();
+}
+
+void QwtQuick2PlotMarker::setLineStyle(const QwtQuick2PlotMarker::LineStyle &newLineStyle)
+{
+    if (m_qwtPlotMarker->lineStyle() == (QwtPlotMarker::LineStyle) newLineStyle)
+        return;
+
+    m_qwtPlotMarker->setLineStyle((QwtPlotMarker::LineStyle) newLineStyle);
+    Q_EMIT lineStyleChanged();
 }
