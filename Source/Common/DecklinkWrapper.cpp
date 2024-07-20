@@ -707,9 +707,9 @@ void DecklinkWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
             case Playback_Mode_Playing:
                 if (Speed > 1.0f)
                     DeckLinkDeckControl->Shuttle(25.0f, &Error);
-                if (Speed == 1.0f)
+                else if (Speed == 1.0f)
                     DeckLinkDeckControl->Play(&Error);
-                if (Speed > 0.0f)
+                else if (Speed > 0.0f)
                     DeckLinkDeckControl->Jog(25.0f, &Error);
                 else if (Speed < 1.0f)
                     DeckLinkDeckControl->Shuttle(-25.0f, &Error);
@@ -721,7 +721,7 @@ void DecklinkWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
             case Playback_Mode_NotPlaying:
                 if (Speed > 1.0f)
                     DeckLinkDeckControl->FastForward(false, &Error);
-                if (Speed > 0.0f)
+                else if (Speed > 0.0f)
                     DeckLinkDeckControl->Play(&Error);
                 else if (Speed < 0.0f)
                     DeckLinkDeckControl->Rewind(false, &Error);
