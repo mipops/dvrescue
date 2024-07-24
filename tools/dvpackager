@@ -1260,8 +1260,8 @@ if [[ -f "${DVFILE}" ]] ; then
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             fi
             if [[ ! -s "${OUTPUT_FILE}" ]] ; then
-                _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
                 OUTPUT_ERROR+=("file-missing")
+                OUTPUT_ERROR_NOTE+=("Tried to write an output to ${OUTPUT_FILE} but it's not there. :-/ ")
             else
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     # quick track duration check on the result
@@ -1278,22 +1278,23 @@ if [[ -f "${DVFILE}" ]] ; then
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                             _report -v "DUR_DIFF is within an acceptable range."
                         else
-                            _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                             OUTPUT_ERROR+=("audio-video-duration-mismatch")
+                            OUTPUT_ERROR_NOTE+="In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync. "
                         fi
                     else
                         _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
                     fi
                 fi
                 if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
-                    _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                     OUTPUT_ERROR+=("input-output-framecount-mismatch")
+                    OUTPUT_ERROR_NOTE+="${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV. "
                 fi
                 _report -d "### Done:seg_input=${SEG_INPUT}|seg_output=${SEG_OUTPUT}|output_frames=${PACKAGED_DVFRAMES}|input_frames=${FRAME_COUNT}|audio_fill=${APAD_NOTICE}|output_file=${OUTPUT_FILE}"
             fi
             ((SEG_OUTPUT++))
             if [[ "${OUTPUT_ERROR[@]}" != "" ]] ; then
                 _report -w "### Packaging error: ${OUTPUT_ERROR[*]}"
+                _report -w "### Packaging error note: ${OUTPUT_ERROR_NOTE[*]}"
             fi
             _report -d "### Packaging finished: ${OUTPUT_FILE}"
         fi
