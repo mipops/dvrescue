@@ -108,7 +108,7 @@ Audio Resample Options
                 - 9: Do not split segments for aspect ratio changes alone,
                      and if packaging a mix of 4/3 and 16/9 content together,
                      then label it as 16/9 in the container.
-                 -c: Do not split segments for aspect ratio changes alone,
+                - c: Do not split segments for aspect ratio changes alone,
                      and if packaging a mix of 4/3 and 16/9 content together,
                      then label it according the more common aspect ratio in
                      that segment.
