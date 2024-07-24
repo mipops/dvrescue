@@ -565,7 +565,7 @@ _check_audio_by_ffmpeg_subfile(){
     elif [[ -z "$QUERY" ]] ; then
         echo "0" 
     else
-        _report -w "Error: there was an unexpected result (${QUERY}) from ffmpeg when querying the audio."
+        _report -w "Error: there was an unexpected result (${QUERY}) from ffmpeg when querying the audio. Please consider mentioning this at https://github.com/mipops/dvrescue/issues."
         echo "0"
     fi
 }
