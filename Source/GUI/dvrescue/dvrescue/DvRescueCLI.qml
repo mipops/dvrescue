@@ -292,6 +292,11 @@ Item {
                 arguments.push(settings.endTheCaptureIftheTapeContainsNoDataFor)
             }
 
+            if(settings.retryToReadFramesWithErrorsUpTo && settings.retryToReadFramesWithErrorsUpTo !== '') {
+                arguments.push('--rewind-count')
+                arguments.push(settings.retryToReadFramesWithErrorsUpTo)
+            }
+
             if(settings.saveALogOfTheCaptureProcess) {
                 arguments.push('--merge-log')
                 arguments.push(file + ".capture.log")
