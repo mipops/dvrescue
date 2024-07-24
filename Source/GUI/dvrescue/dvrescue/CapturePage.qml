@@ -382,7 +382,7 @@ Rectangle {
 
                 decklinkConfigButton.visible: isDecklink
                 decklinkConfigButton.onClicked: {
-                    var combinedControls = [{name : 'No control', id: ''}].concat(JSON.parse(controls))
+                    var combinedControls = [{name : 'No control', id: ''},{name : 'Native', id: 'native'}].concat(JSON.parse(controls))
                     console.debug(JSON.stringify(combinedControls))
 
                     decklinkConfigPopup.controlsModel = combinedControls;
