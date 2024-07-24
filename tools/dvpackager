@@ -557,7 +557,7 @@ _check_audio_by_ffmpeg_subfile(){
         echo "2-44100"
     elif [[ "${QUERY}" = "32000" ]] ; then
         echo "2-32000"
-    elif [[ "${QUERY}" = "4800032000" && "${QUERY}" = "4410032000" ]] ; then
+    elif [[ "${QUERY}" = "4800032000" || "${QUERY}" = "4410032000" ]] ; then
         # ffmpeg is being weird here
         echo "4-32000"
     elif [[ "${QUERY}" = "3200032000" ]] ; then
