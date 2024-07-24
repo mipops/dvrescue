@@ -108,7 +108,7 @@ Audio Resample Options
                 - 9: Do not split segments for aspect ratio changes alone,
                      and if packaging a mix of 4/3 and 16/9 content together,
                      then label it as 16/9 in the container.
-                 -c: Do not split segments for aspect ratio changes alone,
+                - c: Do not split segments for aspect ratio changes alone,
                      and if packaging a mix of 4/3 and 16/9 content together,
                      then label it according the more common aspect ratio in
                      that segment.
@@ -550,16 +550,22 @@ _check_audio_by_ffmpeg_subfile(){
     # The input should be a subfile input statement
     # The output will be a list of the audio track sample rates, likely "48000" or "3200032000"
     SUBFILE="${1}"
-    QUERY="$(ffmpeg -nostdin -probesize 10M -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
+    QUERY="$("${FFMPEG_PATH}" -nostdin -probesize 10M -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
     if [[ "${QUERY}" = "48000" ]] ; then
         echo "2-48000"
     elif [[ "${QUERY}" = "44100" ]] ; then
         echo "2-44100"
     elif [[ "${QUERY}" = "32000" ]] ; then
         echo "2-32000"
+    elif [[ "${QUERY}" = "4800032000" || "${QUERY}" = "4410032000" ]] ; then
+        # ffmpeg is being weird here
+        echo "4-32000"
     elif [[ "${QUERY}" = "3200032000" ]] ; then
         echo "4-32000"
+    elif [[ -z "$QUERY" ]] ; then
+        echo "0" 
     else
+        _report -w "Error: there was an unexpected result (${QUERY}) from ffmpeg when querying the audio. Please consider mentioning this at https://github.com/mipops/dvrescue/issues."
         echo "0"
     fi
 }
@@ -826,12 +832,7 @@ fi
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
 if [[ -z "${FFMPEG_PATH}" ]] ; then
-    FFMPEG_DL_GUESS="$(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl"
-    if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
-        FFMPEG_PATH="${FFMPEG_DL_GUESS}"
-    else
-        _get_ffmpeg_path
-    fi
+    _get_ffmpeg_path
 fi
 # verify that ffmpeg is installed and qualifies
 if [[ -z "${FFMPEG_PATH}" ]] ; then
@@ -1082,6 +1083,21 @@ if [[ -f "${DVFILE}" ]] ; then
                         _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
                         APAD_NOTICE="1"
                     fi
+
+                    AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}"
+                    FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT[@]}")"
+                    if [[ "${CH}" = "0" ]] ; then
+                        DVRESCUE_AUDIO_QUERY="0"
+                    else
+                        DVRESCUE_AUDIO_QUERY="${CH}-${AUDIO_RATE}"
+                    fi
+                    if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
+                        _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
+                        _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
+                        _report -w "Consider updating to the latest version of dvrescue and if this error recurs,"
+                        _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
+                        CH="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
+                    fi
                     _report -v "Prepping a mapping for ${CH} channel input (${MONO_CHANNELS})."
                     if [[ "${CH}" = "2" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
@@ -1254,14 +1270,14 @@ if [[ -f "${DVFILE}" ]] ; then
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             else
-                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | "${FFMPEG_PATH}" ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
-                   -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
+                   -map 0:v:0 -c:v:0 copy -f rawvideo - | "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             fi
             if [[ ! -s "${OUTPUT_FILE}" ]] ; then
-                _report -w "ERROR: ${OUTPUT_FILE_BASENAME} is expected but missing. Please retry with the -v option and report to https://github.com/mipops/dvrescue/issues."
                 OUTPUT_ERROR+=("file-missing")
+                OUTPUT_ERROR_NOTE+=("Tried to write an output to ${OUTPUT_FILE} but it's not there. :-/ ")
             else
                 if [[ -f "${MEDIAINFO_PATH}" ]] ; then
                     # quick track duration check on the result
@@ -1278,25 +1294,25 @@ if [[ -f "${DVFILE}" ]] ; then
                         if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
                             _report -v "DUR_DIFF is within an acceptable range."
                         else
-                            _report -w "ERROR: In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync."
                             OUTPUT_ERROR+=("audio-video-duration-mismatch")
+                            OUTPUT_ERROR_NOTE+="In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync. "
                         fi
                     else
                         _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."
                     fi
                 fi
                 if [[ -f "${MEDIAINFO_PATH}" ]] && [[ "${PACKAGED_DVFRAMES}" != "${FRAME_COUNT}" ]] ; then
-                    _report -w "ERROR: ${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV."
                     OUTPUT_ERROR+=("input-output-framecount-mismatch")
+                    OUTPUT_ERROR_NOTE+="${BASENAME} contained ${FRAME_COUNT} DV frames at ${PTS}-${END_PTS} but ${OUTPUT_FILE_BASENAME} contains ${PACKAGED_DVFRAMES} frames of DV. "
                 fi
                 _report -d "### Done:seg_input=${SEG_INPUT}|seg_output=${SEG_OUTPUT}|output_frames=${PACKAGED_DVFRAMES}|input_frames=${FRAME_COUNT}|audio_fill=${APAD_NOTICE}|output_file=${OUTPUT_FILE}"
-                if [[ "${OUTPUT_ERROR[@]}" != "" ]] ; then
-                    _report -w "### Packaging error: ${OUTPUT_ERROR[@]}"
-                fi
-                _report -d "### Packaging finished: ${OUTPUT_FILE}"
-                
             fi
             ((SEG_OUTPUT++))
+            if [[ "${OUTPUT_ERROR[@]}" != "" ]] ; then
+                _report -w "### Packaging error: ${OUTPUT_ERROR[*]}"
+                _report -w "### Packaging error note: ${OUTPUT_ERROR_NOTE[*]}"
+            fi
+            _report -d "### Packaging finished: ${OUTPUT_FILE}"
         fi
         ((SEG_INPUT++))
         if [[ "${OUTPUT_COUNTER}" == "${OUTPUT_TOTAL}" ]] ; then
