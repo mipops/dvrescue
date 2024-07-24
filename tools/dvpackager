@@ -1290,13 +1290,12 @@ if [[ -f "${DVFILE}" ]] ; then
                     OUTPUT_ERROR+=("input-output-framecount-mismatch")
                 fi
                 _report -d "### Done:seg_input=${SEG_INPUT}|seg_output=${SEG_OUTPUT}|output_frames=${PACKAGED_DVFRAMES}|input_frames=${FRAME_COUNT}|audio_fill=${APAD_NOTICE}|output_file=${OUTPUT_FILE}"
-                if [[ "${OUTPUT_ERROR[@]}" != "" ]] ; then
-                    _report -w "### Packaging error: ${OUTPUT_ERROR[@]}"
-                fi
-                _report -d "### Packaging finished: ${OUTPUT_FILE}"
-                
             fi
             ((SEG_OUTPUT++))
+            if [[ "${OUTPUT_ERROR[@]}" != "" ]] ; then
+                _report -w "### Packaging error: ${OUTPUT_ERROR[*]}"
+            fi
+            _report -d "### Packaging finished: ${OUTPUT_FILE}"
         fi
         ((SEG_INPUT++))
         if [[ "${OUTPUT_COUNTER}" == "${OUTPUT_TOTAL}" ]] ; then
