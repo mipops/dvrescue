@@ -832,12 +832,7 @@ fi
 
 # if FFMPEG_PATH wasn't provided as an argument then see if one is installed
 if [[ -z "${FFMPEG_PATH}" ]] ; then
-    FFMPEG_DL_GUESS="$(brew --prefix ffmpegdecklink)/bin/ffmpeg-dl"
-    if [[ -x "${FFMPEG_DL_GUESS}" ]] ; then
-        FFMPEG_PATH="${FFMPEG_DL_GUESS}"
-    else
-        _get_ffmpeg_path
-    fi
+    _get_ffmpeg_path
 fi
 # verify that ffmpeg is installed and qualifies
 if [[ -z "${FFMPEG_PATH}" ]] ; then
