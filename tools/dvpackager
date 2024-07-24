@@ -557,9 +557,15 @@ _check_audio_by_ffmpeg_subfile(){
         echo "2-44100"
     elif [[ "${QUERY}" = "32000" ]] ; then
         echo "2-32000"
+    elif [[ "${QUERY}" = "4800032000" ]] ; then
+        # ffmpeg is being weird here
+        echo "4-32000"
     elif [[ "${QUERY}" = "3200032000" ]] ; then
         echo "4-32000"
+    elif [[ -z "$QUERY" ]] ; then
+        echo "0" 
     else
+        _report -w "Error: there was an unexpected result (${QUERY}) from ffmpeg when querying the audio."
         echo "0"
     fi
 }
