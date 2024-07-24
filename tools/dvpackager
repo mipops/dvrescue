@@ -550,7 +550,7 @@ _check_audio_by_ffmpeg_subfile(){
     # The input should be a subfile input statement
     # The output will be a list of the audio track sample rates, likely "48000" or "3200032000"
     SUBFILE="${1}"
-    QUERY="$(ffmpeg -nostdin -probesize 10M -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
+    QUERY="$("${FFMPEG_PATH}" -nostdin -probesize 10M -i "${SUBFILE}" 2>&1 | grep Audio: | grep -o "[0-9]* Hz" | awk '{printf $1}')"
     if [[ "${QUERY}" = "48000" ]] ; then
         echo "2-48000"
     elif [[ "${QUERY}" = "44100" ]] ; then
@@ -1254,9 +1254,9 @@ if [[ -f "${DVFILE}" ]] ; then
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             else
-                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
+                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0:v:0 -c:v:0 copy -f rawvideo - | "${FFMPEG_PATH}" ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} -i - ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
-                   -map 0:v:0 -c:v:0 copy -f rawvideo - | ffmpeg "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
+                   -map 0:v:0 -c:v:0 copy -f rawvideo - | "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" -i - \
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"
             fi
             if [[ ! -s "${OUTPUT_FILE}" ]] ; then
