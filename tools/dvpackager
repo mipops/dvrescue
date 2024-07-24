@@ -1088,6 +1088,21 @@ if [[ -f "${DVFILE}" ]] ; then
                         _report -d "FYI: Padding a little silence at the end of ${OUTPUT_FILE_BASENAME} since the source ends with frames missing audio."
                         APAD_NOTICE="1"
                     fi
+
+                    AUDIO_SUBFILE_INPUT="subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}"
+                    FFMPEG_AUDIO_QUERY_START="$(_check_audio_by_ffmpeg_subfile "${AUDIO_SUBFILE_INPUT[@]}")"
+                    if [[ "${CH}" = "0" ]] ; then
+                        DVRESCUE_AUDIO_QUERY="0"
+                    else
+                        DVRESCUE_AUDIO_QUERY="${CH}-${AUDIO_RATE}"
+                    fi
+                    if [[ "${FFMPEG_AUDIO_QUERY_START}" != "${DVRESCUE_AUDIO_QUERY}" ]] ; then
+                        _report -w "ERROR: ffmpeg and dvrescue disagree about the audio characterstics at offset ${PKT_POSa} at ${PTSa}."
+                        _report -w "We shall use ffmpeg's analysis on this. (ff:${FFMPEG_AUDIO_QUERY_START} != dvr:${DVRESCUE_AUDIO_QUERY})"
+                        _report -w "Consider updating to the latest version of dvrescue and if this error recurs,"
+                        _report -w "then consider mentioning this at https://github.com/mipops/dvrescue/issues."
+                        CH="$(echo "${FFMPEG_AUDIO_QUERY_START}" | cut -d "-" -f1)"
+                    fi
                     _report -v "Prepping a mapping for ${CH} channel input (${MONO_CHANNELS})."
                     if [[ "${CH}" = "2" ]] ; then
                         if [[ "${MONO_CHANNELS}" == "Y" ]] ; then
