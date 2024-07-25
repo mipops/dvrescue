@@ -523,7 +523,7 @@ Column {
                 backgroundColor: "Cornsilk"
 
                 property real yaxis_min: 0
-                property real yaxis_high: isV210 ? 1023 : 255
+                property real yaxis_high: 725
                 property real sat1: 88.7
                 property real sat2: 118.2
                 property real sat3: 118.2
