@@ -127,5 +127,9 @@
         <file>icons/DV-SP-lamp-out_NEW.svg</file>
         <file>icons/HDV-lamp-lit_NEW.svg</file>
         <file>icons/HDV-lamp-out_NEW.svg</file>
+        <file>icons/package-alert-output-warning.svg</file>
+        <file>icons/package-error-audio-video-duration-mismatch.svg</file>
+        <file>icons/package-error-ffmpeg-error.svg</file>
+        <file>icons/package-error-input-output-framecount-mismatch.svg</file>
     </qresource>
 </RCC>
