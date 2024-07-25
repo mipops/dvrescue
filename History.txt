@@ -1,3 +1,13 @@
+Version 24.07, 2024-07-25
++ implement rewind/merge dv capture process in GUI
++ tweaks to handling xml and scc data during capture
++ dvpackager updates (fixes a few failed packaging scenarios)
++ add a label during capture to note what type of DV (DV LP, DV SP, DVCam, etc)
++ adds a rolling saturation graph during capture from decklink devices
+x fixes to writing timecode tracks in decklink captures to matroska
++ updates to permissions handling in mac, supporting decklink video input
+x fixes to rollup captions with srt outputs
+
 Version 24.05, 2024-05-03
 x Fix crash on dv capture on Linux (fixes #827)
 x Fix edge case audio handling when packaging dv (fixes #759)
