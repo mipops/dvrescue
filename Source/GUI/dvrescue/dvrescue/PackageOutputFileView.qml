@@ -263,7 +263,7 @@ Rectangle {
                             anchors.left: errorImage.right
                             height: statusDelegate.height
                             width: height
-                            visible: display == 'finished' && edit === 'ffmpeg-error'
+                            visible: display == 'finished' && edit === 'file-missing'
                         }
 
                         Image {
