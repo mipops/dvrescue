@@ -34,7 +34,7 @@ EOF
 }
 
 _maketemp(){
-    mktemp -q -t "$(basename "${0}")"
+    mktemp -q -t "$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
         exit 1
