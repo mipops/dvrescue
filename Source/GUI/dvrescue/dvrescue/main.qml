@@ -354,7 +354,6 @@ ApplicationWindow {
         property bool keepFramesThatAllFullyConcealed
         property string endTheCaptureIftheTapeContainsNoDataFor
         property string retryToReadFramesWithErrorsUpTo
-        property bool saveALogOfTheCaptureProcess
 
         property bool advancedFrameTable
         property var frameTableColumns: []
@@ -384,7 +383,6 @@ ApplicationWindow {
                 keepFramesThatAllFullyConcealed = true
                 endTheCaptureIftheTapeContainsNoDataFor = ''
                 retryToReadFramesWithErrorsUpTo = ''
-                notSaveALogOfTheCaptureProcess = true
             } else if(currentIndex === 1) {
                 simpleFrameTable = true
                 selectedFrameTableColumns.forEach((c) => {
@@ -416,7 +414,6 @@ ApplicationWindow {
             settings.keepFramesThatAllFullyConcealed = keepFramesThatAllFullyConcealed
             settings.endTheCaptureIftheTapeContainsNoDataFor = endTheCaptureIftheTapeContainsNoDataFor
             settings.retryToReadFramesWithErrorsUpTo = retryToReadFramesWithErrorsUpTo
-            settings.saveALogOfTheCaptureProcess = saveALogOfTheCaptureProcess
             settings.advancedFrameTable = advancedFrameTable
 
             var filteredSelectedFrameTableColumns = selectedFrameTableColumns.filter((column) => { return column.selected })
@@ -461,11 +458,6 @@ ApplicationWindow {
 
             endTheCaptureIftheTapeContainsNoDataFor = settings.endTheCaptureIftheTapeContainsNoDataFor
             retryToReadFramesWithErrorsUpTo = settings.retryToReadFramesWithErrorsUpTo
-
-            if(settings.saveALogOfTheCaptureProcess)
-                saveALogOfTheCaptureProcess = true
-            else
-                notSaveALogOfTheCaptureProcess = true
 
             dvrescueCmd = settings.dvrescueCmd
             xmlStarletCmd = settings.xmlStarletCmd
