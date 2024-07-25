@@ -297,11 +297,6 @@ Item {
                 arguments.push(settings.retryToReadFramesWithErrorsUpTo)
             }
 
-            if(settings.saveALogOfTheCaptureProcess) {
-                arguments.push('--merge-log')
-                arguments.push(file + ".capture.log")
-            }
-
             launcher.execute(cmd, arguments);
         })
 

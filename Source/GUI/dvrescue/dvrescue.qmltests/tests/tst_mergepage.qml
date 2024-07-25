@@ -36,7 +36,6 @@ Rectangle {
         id: settings;
 
         property string endTheCaptureIftheTapeContainsNoDataFor
-        property bool saveALogOfTheCaptureProcess
 
         property bool advancedFrameTable
         property var frameTableColumns: []

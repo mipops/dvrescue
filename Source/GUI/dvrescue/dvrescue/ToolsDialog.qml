@@ -29,8 +29,6 @@ Dialog {
     property alias keepFramesThatAllFullyConcealed: keepFramesThatAllFullyConcealedCheckBox.checked
     property alias endTheCaptureIftheTapeContainsNoDataFor: endTheCaptureIftheTapeContainsNoDataForTextField.text
     property alias retryToReadFramesWithErrorsUpTo: retryToReadFramesWithErrorsUpToTextField.text
-    property alias saveALogOfTheCaptureProcess: saveALogOfTheCaptureProcess.checked
-    property alias notSaveALogOfTheCaptureProcess: notSaveALogOfTheCaptureProcess.checked
 
     property alias simpleFrameTable: simpleFrameTable.checked
     property alias advancedFrameTable: advancedFrameTable.checked
@@ -188,29 +186,6 @@ Dialog {
 
                         Text {
                             text: " times (experimental)"
-                        }
-                    }
-                }
-
-                ColumnLayout {
-                    Text {
-                        text: "Log"
-                        font.bold: true
-                    }
-
-                    RowLayout {
-                        Text {
-                            text: "Save a Log of the Capture Process:"
-                        }
-
-                        RadioButton {
-                            id: saveALogOfTheCaptureProcess
-                            text: "Yes"
-                        }
-                        RadioButton {
-                            id: notSaveALogOfTheCaptureProcess
-                            text: "No"
-                            checked: true
                         }
                     }
                 }
