@@ -7,6 +7,7 @@
 #include <qwt_plot_curve.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_picker.h>
+#include <qwt_plot_marker.h>
 #include <qwt_legend.h>
 
 namespace QwtQuick2
@@ -286,6 +287,61 @@ protected:
 private:
     QwtLegend* m_legend;
     QwtQuick2Plot* m_qwtQuickPlot { nullptr };
+};
+
+class QwtQuick2PlotMarker : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QColor penColor READ penColor WRITE setPenColor NOTIFY penColorChanged)
+    Q_PROPERTY(qreal penWidth READ penWidth WRITE setPenWidth NOTIFY penWidthChanged)
+    Q_PROPERTY(Qt::PenStyle penStyle READ penStyle WRITE setPenStyle NOTIFY penStyleChanged)
+    Q_PROPERTY(LineStyle lineStyle READ lineStyle WRITE setLineStyle NOTIFY lineStyleChanged)
+
+    Q_PROPERTY(QPointF value READ value WRITE setValue NOTIFY valueChanged)
+public:
+    enum LineStyle {
+        //! No line
+        NoLine,
+
+        //! A horizontal line
+        HLine,
+
+        //! A vertical line
+        VLine,
+
+        //! A crosshair
+        Cross
+    };
+    Q_ENUM(LineStyle)
+
+    QwtQuick2PlotMarker(QObject* parent = nullptr);
+
+    void attach(QwtQuick2Plot* plot);
+
+    QColor penColor() const;
+    qreal penWidth() const;
+    Qt::PenStyle penStyle() const;
+
+    void setPenColor(QColor penColor);
+    void setPenWidth(qreal penWidth);
+    void setPenStyle(Qt::PenStyle penStyle);
+
+    QPointF value() const;
+    void setValue(QPointF newValue);
+
+    LineStyle lineStyle() const;
+    void setLineStyle(const LineStyle &newLineStyle);
+
+Q_SIGNALS:
+    void penColorChanged(QColor penColor);
+    void penWidthChanged(qreal penWidth);
+    void penStyleChanged(Qt::PenStyle penStyle);
+
+    void valueChanged();
+    void lineStyleChanged();
+
+private:
+    QwtPlotMarker* m_qwtPlotMarker;
 };
 
 #endif // QMLPLOT_H

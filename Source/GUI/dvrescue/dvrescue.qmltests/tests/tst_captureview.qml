@@ -78,7 +78,7 @@ Rectangle {
             interval: 1000
             repeat: true
             onTriggered: {
-                captureView.frameSpeed = testcase.frameSpeeds[testcase.index]
+                singleCaptureView.frameSpeed = testcase.frameSpeeds[testcase.index]
                 testcase.index = (testcase.index + 1) % testcase.frameSpeeds.length
             }
         }
@@ -86,23 +86,29 @@ Rectangle {
         Timer {
             id: chartsTimer
             property int frameNumber: 0
+            property var callback;
 
             running: false
             interval: 100
             repeat: true
             onTriggered: {
-                captureView.dataModel.append(frameNumber, frameNumber, - frameNumber / 2, true)
-                ++frameNumber;
-                if(frameNumber == 900)
-                    frameNumber = 0;
-
-                console.debug('frameNumber: ', frameNumber)
+                if(callback)
+                    callback();
             }
         }
 
         function test_captureView_dynamic() {
             singleCaptureView.visible = true;
             frameSpeedTimer.running = true;
+            chartsTimer.callback = () => {
+                singleCaptureView.dataModel.append(chartsTimer.frameNumber, chartsTimer.frameNumber, - chartsTimer.frameNumber / 2, true)
+                ++chartsTimer.frameNumber;
+                if(chartsTimer.frameNumber == 900)
+                    chartsTimer.frameNumber = 0;
+
+                console.debug('frameNumber: ', chartsTimer.frameNumber)
+            }
+
             chartsTimer.running = true;
             wait(100000)
         }
@@ -138,6 +144,21 @@ Rectangle {
                             })
 
             capturePage.visible = true;
+
+            var item = capturePage.captureViewRepeater.itemAt(1);
+            var decklinkDataModel = item.decklinkDataModel;
+
+            chartsTimer.callback = () => {
+                decklinkDataModel.append(chartsTimer.frameNumber, -chartsTimer.frameNumber * 2, chartsTimer.frameNumber * 3, true)
+                ++chartsTimer.frameNumber;
+                if(chartsTimer.frameNumber == 900)
+                    chartsTimer.frameNumber = 0;
+
+                console.debug('frameNumber: ', chartsTimer.frameNumber)
+            }
+
+            chartsTimer.running = true;
+
             wait(100000)
         }
 

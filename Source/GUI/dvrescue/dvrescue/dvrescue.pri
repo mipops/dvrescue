@@ -31,6 +31,7 @@ HEADERS += \
     $$PWD/connectionutils.h \
     $$PWD/datamodel.h \
     $$PWD/captureerrorplotdatamodel.h \
+    $$PWD/capturesaturationplotdatamodel.h \
     $$PWD/filewriter.h \
     $$PWD/imageutils.h \
     $$PWD/launcher.h \
@@ -58,6 +59,7 @@ SOURCES += \
     $$PWD/connectionutils.cpp \
     $$PWD/datamodel.cpp \
     $$PWD/captureerrorplotdatamodel.cpp \
+    $$PWD/capturesaturationplotdatamodel.cpp \
     $$PWD/filewriter.cpp \
     $$PWD/imageutils.cpp \
     $$PWD/launcher.cpp \
