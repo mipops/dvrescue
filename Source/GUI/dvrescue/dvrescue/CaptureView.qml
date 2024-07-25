@@ -144,7 +144,7 @@ Column {
         Text {
             anchors.centerIn: parent
             color: 'white'
-            text: "NO SIGNAL"
+            text: "Device Connected"
         }
 
         VideoOutput {
