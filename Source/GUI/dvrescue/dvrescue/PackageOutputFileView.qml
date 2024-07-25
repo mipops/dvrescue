@@ -20,6 +20,7 @@ Rectangle {
     readonly property string filePathColumn: "Output File Path"
     readonly property string statusColumn: "Status"
     readonly property string errorColumn: "Error"
+    readonly property string tooltipColumn: "Tooltip"
 
     function forceLayout() {
         tableView.forceLayout();
@@ -37,6 +38,7 @@ Rectangle {
         rowEntry[filePathColumn] = path
         rowEntry[statusColumn] = "not exported"
         rowEntry[errorColumn] = ""
+        rowEntry[tooltipColumn] = ""
 
         dataModel.appendRow(rowEntry)
     }
@@ -240,6 +242,7 @@ Rectangle {
                         }
 
                         Image {
+                            id: errorImage
                             source: "/icons/dvpackager_processing-failed-canceled.svg"
                             height: statusDelegate.height
                             width: height
@@ -247,11 +250,48 @@ Rectangle {
                             visible: display == 'finished' && edit != ''
                         }
 
+                        Image {
+                            source: "/icons/package-error-input-output-framecount-mismatch.svg"
+                            anchors.left: errorImage.right
+                            height: statusDelegate.height
+                            width: height
+                            visible: display == 'finished' && edit === 'input-output-framecount-mismatch'
+                        }
+
+                        Image {
+                            source: "/icons/package-error-ffmpeg-error.svg"
+                            anchors.left: errorImage.right
+                            height: statusDelegate.height
+                            width: height
+                            visible: display == 'finished' && edit === 'file-missing'
+                        }
+
+                        Image {
+                            source: "/icons/package-error-audio-video-duration-mismatch.svg"
+                            anchors.left: errorImage.right
+                            height: statusDelegate.height
+                            width: height
+                            visible: display == 'finished' && edit === 'audio-video-duration-mismatch'
+                        }
+
                         Rectangle {
                             id: overlay
                             anchors.fill: parent
                             opacity: overlayColorOpacity
                             visible: false
+                        }
+
+                        MouseArea {
+                            id: tooltipMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            enabled: display == 'finished' && edit != ''
+                        }
+
+                        DefaultToolTip {
+                            visible: tooltipMouseArea.containsMouse
+                            text: decoration
+                            anchors.centerIn: parent
                         }
                     }
                 }
@@ -277,6 +317,7 @@ Rectangle {
         TableModelColumn {
             display: "Status"
             edit: "Error"
+            decoration: "Tooltip"
             property int minWidth: 40
         }
     }

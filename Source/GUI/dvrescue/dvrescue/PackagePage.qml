@@ -427,6 +427,9 @@ Item {
                                         } else if(value.startsWith('### Packaging error: ')) {
                                             var error = value.replace('### Packaging error: ', '');
                                             packageOutputFileView.updatePackagingErrorByPath(packagingPath, error);
+                                        } else if(value.startsWith('### Packaging error note: ')) {
+                                            var tooltip = value.replace('### Packaging error note: ', '');
+                                            packageOutputFileView.updatePackagingErrorNoteByPath(packagingPath, tooltip);
                                         }
                                     }
                                 });
@@ -493,6 +496,11 @@ Item {
             function updatePackagingErrorByPath(path, error) {
                 console.debug('PackageOutputFileView: updatePackagingErrorByPath: ', path, error);
                 updatePropertyByPath(path, 'Error', error)
+            }
+
+            function updatePackagingErrorNoteByPath(path, tooltip) {
+                console.debug('PackageOutputFileView: updatePackagingErrorNoteByPath: ', path, tooltip);
+                updatePropertyByPath(path, 'Tooltip', tooltip)
             }
 
             function updatePackagingStatusByPath(path, status) {
