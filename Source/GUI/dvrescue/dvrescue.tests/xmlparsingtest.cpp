@@ -15,9 +15,9 @@ XmlParsingTest::XmlParsingTest(QObject *parent) : QObject(parent)
 
 }
 
-void XmlParsingTest::f1()
+int XmlParsingTest::parse(QString fileName)
 {
-    QFile file(":/testdata/sample.xml");
+    QFile file(fileName);
     bool opened = file.open(QIODevice::ReadOnly);
 
     qDebug() << "file: " << opened << file.size();
@@ -40,6 +40,14 @@ void XmlParsingTest::f1()
     });
 
     parser.exec(&file);
+
+    return totalFrames;
+}
+
+void XmlParsingTest::f1()
+{
+    auto fileName = ":/testdata/sample.xml";
+    auto totalFrames = parse(fileName);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 
@@ -73,4 +81,23 @@ void XmlParsingTest::f1()
 void XmlParsingTest::f2()
 {
 
+}
+
+void XmlParsingTest::parseFile()
+{
+    auto totalFrames = parse(fileName());
+    qDebug() << "totalFrames: " << totalFrames;
+}
+
+QString XmlParsingTest::fileName() const
+{
+    return m_fileName;
+}
+
+void XmlParsingTest::setFileName(const QString &newFileName)
+{
+    if (m_fileName == newFileName)
+        return;
+    m_fileName = newFileName;
+    emit fileNameChanged();
 }
