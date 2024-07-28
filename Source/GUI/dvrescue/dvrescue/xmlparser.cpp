@@ -92,6 +92,8 @@ void XmlParser::parseMedia(QXmlStreamReader &xml)
             if(firstFrames)
                 firstFrames = false;
         }
+
+        xml.skipCurrentElement();
     }
 }
 
