@@ -1463,9 +1463,9 @@ bool dv_merge_private::Process(float Speed)
                 if (Input->F_Takes)
                 {
                     fclose(Input->F_Takes);
-                    remove((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
-                    rename((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
-                        (Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    remove((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    rename((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
+                        (Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
                     Input->F_Takes = nullptr;
                     Input->F_Takes_Start = -1;
                 }
@@ -1486,7 +1486,7 @@ bool dv_merge_private::Process(float Speed)
             if (!Input->F_Takes)
             {
                 Input->F_Takes_Start = Frame_Pos;
-                Input->F_Takes = fopen((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb");
+                Input->F_Takes = fopen((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb");
             }
             if (Input->F_Takes)
             {
@@ -1614,9 +1614,9 @@ void dv_merge_private::AddFrameAnalysis(size_t InputPos, const MediaInfo_Event_D
                 if (Input->F_Takes)
                 {
                     fclose(Input->F_Takes);
-                    remove((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
-                    rename((Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
-                           (Merge_OutputFileNames[0] + ".devrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    remove((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
+                    rename((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(),
+                           (Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(i) + ".frames" + to_string(Input->F_Takes_Start) + '-' + to_string(LastBadFrame) + ".dv").c_str());
                     Input->F_Takes = nullptr;
                     Input->F_Takes_Start = -1;
                 }
