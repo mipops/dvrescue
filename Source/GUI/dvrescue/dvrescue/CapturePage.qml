@@ -186,7 +186,7 @@ Rectangle {
 
                     if(indexOfAbst !== -1) {
                         prev_abst = abst;
-                        abst = entries[indexOfAbst];
+                        abst = Number(entries[indexOfAbst]);
 
                         abst_diff = abst - prev_abst;
                     }
