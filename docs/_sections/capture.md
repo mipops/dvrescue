@@ -41,16 +41,16 @@ Below is the order you should type the commands for capturing using the CLI.
 <details markdown=1>
   <summary markdown="span">Examples of frequently used capture commands</summary> <br />
   
-**Basic capture (with only one deck connected)**<br />
+**Basic capture (with only one deck connected)** <br />
 ```dvrescue -m filename.dv```
 
-**Capture to a specific device:**<br />
+**Capture to a specific device:** <br />
 ```dvrescue device://0 filename.dv```
 
-**Capture using rewind, recapture and merge:**<br />
+**Capture using rewind, recapture and merge:** <br />
 ```dvrescue --rewind-count 3 -m filename.dv -m```
 
-**Capture using rewind, recapture and merge (3 attempts), show a preview window (with only one deck connected):**<br />
+**Capture using rewind, recapture and merge (3 attempts), show a preview window (with only one deck connected):** <br />
 ```dvrescue --rewind-count 3 -m filename.dv -m - | ffplay -```
 </details>
 
@@ -59,50 +59,161 @@ Below is the order you should type the commands for capturing using the CLI.
   
 All of these flags and options can also be viewed by typing dvrescue -h into the command line window.
 
-**--capture** = Launch capture.<br />
-Is the default if no --cmd option is provided.<br />
-Usable only if input is a device.<br />
-Needs to be followed by the path and name for the output file.
+    --help, -h
+        Display this help and exit.
 
-**--in-control** = Include an integrated command line input for controling the input.<br />
-Usable only if input is a device.
+    --version
+        Display DVRescue version and exit.
 
-**--list_devices** = List detected devices and their indices.
+    --cc-format value
+        Set Closed Captions output format to value.
+        value can be 'scc', 'screen', 'srt'.
+        If there is more than one instance of this option,
+        this option is applied to the next --cc-output option.
 
-**--statusl** = Provide the status (playing, stop...) of the input.<br />
-By default device://0 is used.<br />
-Usable only if input is a device.
+    --cc-output value | -c value
+        Store Closed Captions output to value (file name).
+        File extension must be the format name (see above)
+        if --cc-format is not provided.
+        if content is different between Dseq and/or has more than 1 field,
+        extension is prefixed by 'dseq%dseq%.' and/or 'field%field%.'.
+        There can be more than one instance of this option.
 
-**--cmd [value]** = Send a command to the input.<br />
-By default device://0 is used.<br />
-Usable only if input is a device.	<br />
-Value may be:<br />
-play = Set speed to 1.0 and mode to play.<br />
-srew = Set speed to -1.0 and mode to play.<br />
-stop = Set speed to 0.0 and mode to no-play.<br />
-rew = Set speed to -2.0 and mode to play.<br />
-ff = Set speed to 2.0 and mode to play.
+    --cc-tc value
+        Set Closed Captions output start time code to value.
+        Used for SCC output.
+        value format is HH:MM:SS;FF, or 'dv' (for DV first frame time code).
 
-**--mode [value]** = Send a command to the input with the specified mode.<br />
-  By default device://0 is used.<br />
-  By default value is n if speed is 0 else p.<br />
-  Usable only if input is a device.<br />
-  Value may be:<br />
-  n = Set mode to no-play.<br />
-  p = Set mode to play.<br />
+    --webvtt-output value | -s value
+        Store WebVTT output to value (file name).
 
-**--speed [value]** = Send a command to the input with the specified speed (float).<br />
-By default device://0 is used.<br />
-By default value is 0 if mode is no-play else 1.<br />
-Usable only if input is a device.
+    --xml-output value | -x value
+        Store XML output to value (file name).
 
-****--rewind-count [value]** = Automatically rewind to last good frame and capture again, value times.<br />
-Usable only if input is a device.
+    --merge value | -m value
+        Merge all input files into value (file name),
+        picking the best part of each file.
 
-**--rewind** = Same as --rewind-count 1
+    --merge-log value
+        Store merge log to value (file name).
 
-**--rewind-basename [value]** = Base name of files storing buggy frames per take<br />
-Default is output file name.
+    --merge-output-speed
+        Report and merge frames having speed not meaning normal playback
+        Is default (it will change in the future).
+
+    --merge-ignore-speed
+        Do not report and do not merge frames having speed not
+        meaning normal playback.
+
+    --merge-output-concealed
+        Report and merge frames having all blocks concealed.
+        Is default (it will change in the future).
+
+    --merge-ignore-concealed
+        Do not report and do not merge frames having all blocks concealed.
+
+    --merge-log-missing
+        Report frames considered as missing (due to time code jump etc).
+        Is default if information output format is not CSV.
+
+    --merge-hide-missing
+        Do not report frames considered as missing (due to time code jump etc).
+        Is default if information output format is CSV.
+
+    --merge-log-intermediate
+        Display additional lines of information
+        about intermediate analysis during files merge.
+        Is default if information output format is not CSV.
+
+    --merge-hide-intermediate
+        Hide additional lines of information
+        about intermediate analysis during files merge.
+        Is default if information output format is CSV.
+
+    --csv
+        Output is in CSV format rather than human readable text.
+
+    --caption-presence-change value
+        Split XML "frames" elements when there is a caption presence
+        change (value = "y") or do not split (value = "n").
+        Default is "n".
+
+    --verbosity value | -v value
+        Verbosity of the output set to value:
+        0: no output.
+        5: summary only.
+        7: information per frame if there is a problem + summary.
+        9: information per frame + summary.
+
+    --timeout value
+        Time out limit for the device or pipe input ("-" file name) set to value (in seconds)
+
+    --capture
+        Launch capture.
+        Is the default if no --cmd option is provided.
+        Usable only if input is a device.
+
+    --in-control
+        Include an integrated command line input for controlling the input.
+        Usable only if input is a device.
+
+    --list_devices
+        List detected devices and their ID.
+
+    --list_devices_json
+        List detected devices and their ID (JSON output).
+
+    --status
+        Provide the status (playing, stop...) of the input.
+        By default device://0 is used.
+        Usable only if input is a device.
+
+    --cmd value
+        Send a command to the input.
+        By default device://0 is used.
+        Usable only if input is a device.
+        value may be:
+        play      Set speed to 1.0 and mode to play.
+        srew      Set speed to -1.0 and mode to play.
+        stop      Set speed to 0.0 and mode to no-play.
+        rew       Set speed to -2.0 and mode to play.
+        ff        Set speed to 2.0 and mode to play.
+
+    --foreground
+        With --cmd or --speed, wait for the device to stop.
+        Usable only if input is a device.
+
+    --mode value
+        Send a command to the input with the specified mode.
+        By default device://0 is used.
+        By default value is n if speed is 0 else p.
+        Usable only if input is a device.
+        value may be:
+        n         Set mode to no-play.
+        p         Set mode to play.
+
+    --speed value
+        Send a command to the input with the specified speed (float).
+        By default device://0 is used.
+        By default value is 0 if mode is no-play else 1.
+        Usable only if input is a device.
+
+    --rewind-count value
+        Automatically rewind to last good frame and capture again,
+        value times.
+        Usable only if input is a device.
+
+    --rewind
+        Same as --rewind-count 1
+
+    --rewind-basename value
+        Base name of files storing buggy frames per take
+        Default is output file name.
+
+If no output file name is provided, XML output is displayed on console output.
+
+libbyshopfauf@Libbys-MacBook-Pro-M2 ~ % 
+
 </details>
 
 ## How capture using vrecord
