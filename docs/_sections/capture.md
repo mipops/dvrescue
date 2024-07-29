@@ -3,7 +3,7 @@ layout: post
 title: Capture
 ---
 
-## DVRescue GUI
+# DVRescue GUI
 Step-by-step instructions for using the DVRescue graphic user interface to capture DV videotape formats. 
 
 This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this [screen recording]([url](https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing)) (version 2024-07-24). 
@@ -12,6 +12,8 @@ Please note: Currently, the DVRescue graphic user interface (GUI) only supports 
 
 <details markdown=1>
   <summary markdown="span">GUI Navigation</summary> <br />
+  
+## GUI Navigation
 
 In the “Capture” tab from the left-hand menu, you will see a large box in the center of the screen showing either your capture window:
 
@@ -19,6 +21,8 @@ In the “Capture” tab from the left-hand menu, you will see a large box in th
 
 
 Or (if you do not have a deck connected or if the deck is off) the following message:
+
+![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
 
   
 If the deck is successfully connected, the make and model of your DV deck should appear above the capture playback window. If you have more than one deck connected, multiple players will appear. Once you have specified a file location and name for your capture, the file name will also appear in the upper right hand corner of the corresponding deck being used to capture it.
@@ -42,11 +46,13 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 <details markdown=1>
   <summary markdown="span">How to capture using the DVRescue GUI</summary> <br />
+
+## GUI Capture
   
 1.) In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
 
 
-https://github.com/user-attachments/assets/a81aef99-5825-4acc-86d5-bbf8977efee7
+![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
 
 
 
@@ -118,7 +124,7 @@ Troubleshooting: If you are experiencing any issues capturing in the DVRescue GU
 
 </details>
 
-## How to capture using the DVRescue CLI
+# How to capture using the DVRescue CLI
 Commands and useage for capturing DV tapes using the dvrescue command line tools (CLI).
 <details markdown=1>
   <summary markdown="span">Useage of capture commands</summary> <br />
@@ -329,5 +335,5 @@ libbyshopfauf@Libbys-MacBook-Pro-M2 ~ %
 
 </details>
 
-## How capture using vrecord
+# How capture using vrecord
 To use dvcapture in vrecord, please see the [documentation]([url](https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md)) on the vrecord GitHub repository. 
