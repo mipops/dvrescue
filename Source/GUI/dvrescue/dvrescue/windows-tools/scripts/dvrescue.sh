@@ -23,7 +23,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 done
 
 echo ${args[@]} > dvrescue.args
-dvrescue ${args[@]}
+dvrescue "${args[@]}"
 
 #set "${args[@]}"
 
