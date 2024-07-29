@@ -25,7 +25,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 done
 
 echo ${args[@]} > xml.args
-xml ${args[@]}
+xml "${args[@]}"
 
 # set "${args[@]}"
 

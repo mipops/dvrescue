@@ -26,7 +26,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 done
 
 echo ${args[@]} > mediainfo.args
-mediainfo ${args[@]}
+mediainfo "${args[@]}"
 
 #set "${args[@]}"
 

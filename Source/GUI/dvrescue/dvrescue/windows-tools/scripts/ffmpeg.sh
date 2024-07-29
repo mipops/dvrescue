@@ -29,7 +29,7 @@ for (( i=0;i<$ELEMENTS;i++)); do
 done
 
 echo ${args[@]} > ffmpeg.args
-ffmpeg ${args[@]}
+ffmpeg "${args[@]}"
 
 #set "${args[@]}"
 
