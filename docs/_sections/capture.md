@@ -21,12 +21,12 @@ Below is the order you should type the commands for capturing using the CLI.
 1.) In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br />
 ```
 $ dvrescue --list_devices <br />
-90:a1838cb4:00000000: UltraStudio 4K Mini [DeckLink]
+0x80458280022265: Panasonic DV [DV]
 ```
 
 2.) You can either type ```dvrescue``` at the start of the command or include the path to the version of dvrescue you want to use. Example: ```/usr/local/bin/dvrescue```
 
-4.) If you only have one device connected, dvrescue will automatically select it. If you have more than one device connected, add the device number ```device://0x[device#]``` (for the corresponding deck you want to use for capture). Example (using the deck listed in step 1): ```dvrescue device://0x90:a1838cb4:00000000``` 
+4.) If you only have one device connected, dvrescue will automatically select it. If you have more than one device connected, add the device number ```device://0x[device#]``` (for the corresponding deck you want to use for capture). Example (using the deck listed in step 1): ```dvrescue device://0x0x80458280022265``` 
 
 5.) If you want dvrescue to rewind and recapture when it encounters an issue with a frame type ```--rewind-count``` and the number of attempts you want it to make before it moves on. Example if you wanted dvrescue to rewind and recapture 3 times: ```--rewind-count 3```
 
@@ -38,7 +38,7 @@ $ dvrescue --list_devices <br />
 
 9.) To open a playback window during capture add ```| ffplay -```
 
-10.) The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: ```dvrescue device://0x90:a1838cb4:00000000 --rewind-count 3 -m filename.dv -m - | ffplay -``` For more examples of frequently used dvcapture command strings, please see the section below. 
+10.) The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: ```dvrescue device://0x0x80458280022265 --rewind-count 3 -m filename.dv -m - | ffplay -``` For more examples of frequently used dvcapture command strings, please see the section below. 
 
 </details>
 
