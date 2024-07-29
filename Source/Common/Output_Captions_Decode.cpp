@@ -11,6 +11,7 @@
 #include "ccdecoder_line21.h"
 #include "ccdecoder_subrip.h"
 #include "ccdecoder_onscreen.h"
+#include <algorithm>
 #include <fstream>
 //---------------------------------------------------------------------------
 
@@ -172,7 +173,7 @@ struct decoded_data
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-static return_value Output_Captions_Decode(const string& ScreenOutName, const string& SrtOutName, const vector<file::captions_fielddata>& PerFrame_Captions, int Field, ostream* Err)
+static return_value Output_Captions_Decode(const string& ScreenOutName, const string& SrtOutName, const vector<file::captions_fielddata>& PerFrame_Captions, const vector<size_t>& IgnoredFrames, int Field, ostream* Err)
 {
     auto ToReturn = ReturnValue_OK;
 
@@ -185,6 +186,9 @@ static return_value Output_Captions_Decode(const string& ScreenOutName, const st
     // By Frame - For each line
     for (const auto& Frame : PerFrame_Captions)
     {
+        if (find(IgnoredFrames.begin(), IgnoredFrames.end(), Frame.StartFrameNumber) != IgnoredFrames.end())
+            continue;
+
         for (size_t i = 0; i < Frame.Captions.size(); i++)
         {
             const auto& Caption = Frame.Captions[i];
@@ -279,28 +283,60 @@ static return_value Output_Captions_Decode(const string& ScreenOutName, const st
 }
 
 //---------------------------------------------------------------------------
-return_value Output_Captions_Caption(const string& ScreenOutName, const string& SrtOutName, const TimeCode* OffsetTimeCode, std::vector<file*>& PerFile, ostream* Err)
+return_value Output_Captions_Caption(const Core::OutFile& ScreenOut, const Core::OutFile& SrtOut, const TimeCode* OffsetTimeCode, std::vector<file*>& PerFile, ostream* Err)
 {
     auto ToReturn = ReturnValue_OK;
+
+    bool OutputFrames_Speed = true;
+    bool OutputFrames_Concealed = true;
+
+    auto It = find(Merge_OutputFileNames.begin(), Merge_OutputFileNames.end(), ScreenOut.Merge_OutputFileName.size() ? ScreenOut.Merge_OutputFileName : SrtOut.Merge_OutputFileName);
+    if (It != Merge_OutputFileNames.end())
+    {
+        size_t Pos = It - Merge_OutputFileNames.begin();
+        OutputFrames_Speed = OutputFrames_Speeds[Pos];
+        OutputFrames_Concealed = OutputFrames_Concealeds[Pos];
+    }
 
     for (const auto& File : PerFile)
     {
         if (File->PerFrame_Captions_PerSeq_PerField.empty())
             continue; // Show the file only if there is some captions content
 
+        // filter
+        vector<size_t> IgnoredFrames;
+        if (!OutputFrames_Speed || !OutputFrames_Concealed)
+        {
+            for (auto Frame = File->PerFrame.begin(); Frame < File->PerFrame.end(); ++Frame)
+            {
+                coherency_flags Coherency(*Frame);
+                if (!OutputFrames_Concealed && Coherency.full_conceal())
+                {
+                    IgnoredFrames.push_back(Frame - File->PerFrame.begin());
+                    continue;
+                }
+
+                if (!OutputFrames_Speed && !GetDvSpeedIsNormalPlayback(GetDvSpeed(**Frame)))
+                {
+                    IgnoredFrames.push_back(Frame - File->PerFrame.begin());
+                    continue;
+                }
+            }
+        }
+
         // Per Dseq
         for (size_t i = 0; i < File->PerFrame_Captions_PerSeq_PerField.size(); i++) // Per Dseq
         {
             for (int j = 0; j < 2; j++) // Per field
             {
-                string ScreenOutNameWithDseq(ScreenOutName);
+                string ScreenOutNameWithDseq(ScreenOut.Name);
                 if (!ScreenOutNameWithDseq.empty() && File->PerFrame_Captions_PerSeq_PerField.size() > 1)
                     InjectBeforeExtension(ScreenOutNameWithDseq, ".dseq", i);
-                string SrtOutNameWithDseq(SrtOutName);
+                string SrtOutNameWithDseq(SrtOut.Name);
                 if (!SrtOutNameWithDseq.empty() && File->PerFrame_Captions_PerSeq_PerField.size() > 1)
                     InjectBeforeExtension(SrtOutNameWithDseq, ".dseq", i);
 
-                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Decode(ScreenOutNameWithDseq, SrtOutNameWithDseq, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], j, Err))
+                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Decode(ScreenOutNameWithDseq, SrtOutNameWithDseq, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], IgnoredFrames, j, Err))
                     ToReturn = ReturnValue_ERROR;
             }
         }

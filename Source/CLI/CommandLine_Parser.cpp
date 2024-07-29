@@ -172,15 +172,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
     return_value ReturnValue = ReturnValue_OK;
     bool ClearInput = false;
     caption_kind CaptionKind = Caption_Unknown;
-    const char* Xml_OutputFileName = nullptr;
     const char* Webvtt_OutputFileName = nullptr;
     const char* MergeInfo_OutputFileName = nullptr;
     const char* Merge_Rewind_BaseName = nullptr;
     bitset<Flag_Max> Flags;
-    bool OutputFrames_Speed = false;
-    bool OutputFrames_Speed_StdOut = false;
-    bool OutputFrames_Concealed = false;
-    bool OutputFrames_Concealed_StdOut = false;
+    bool OutputFrames_Speed = true;
+    bool OutputFrames_Speed_StdOut = true;
+    bool OutputFrames_Concealed = true;
+    bool OutputFrames_Concealed_StdOut = true;
 
     // Commands in priority
     for (int i = 1; i < argc; i++)
@@ -318,7 +317,9 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 CurrentCaptionKind = CaptionKind;
                 CaptionKind = Caption_Unknown;
             }
-            C.CaptionsFileNames[CurrentCaptionKind] = move(CurrentFileName);
+            Core::OutFile CaptionFile;
+            CaptionFile.Name = move(CurrentFileName);
+            C.CaptionsFileNames[CurrentCaptionKind].push_back(CaptionFile);
         }
         else if (!strcmp(argv_ansi[i], "--capture") || !strcmp(argv_ansi[i], "-capture"))
         {
@@ -356,6 +357,15 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 Merge_OutputFileNames.push_back(argv_ansi[i]);
                 OutputFrames_Speeds.push_back(OutputFrames_Speed);
                 OutputFrames_Concealeds.push_back(OutputFrames_Concealed);
+            }
+
+            if (!C.XmlFiles.empty() && C.XmlFiles.back().Merge_OutputFileName.empty())
+                C.XmlFiles.back().Merge_OutputFileName = argv_ansi[i];
+
+            for (auto& CaptionFileNames : C.CaptionsFileNames)
+            {
+                if (CaptionFileNames.second.back().Merge_OutputFileName.empty())
+                    CaptionFileNames.second.back().Merge_OutputFileName = argv_ansi[i];
             }
         }
         else if (!strcmp(argv_ansi[i], "--merge-log"))
@@ -719,7 +729,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                     *C.Err << "Error: missing XML output file name after " << argv_ansi[i-1] << ".\n";
                 return ReturnValue_ERROR;
             }
-            Xml_OutputFileName = argv_ansi[i];
+
+            Core::OutFile XmlFile;
+            XmlFile.Name = argv_ansi[i];
+            C.XmlFiles.push_back(XmlFile);
         }
         else if (!strcmp(argv_ansi[i], "-n"))
         {
@@ -779,7 +792,7 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         }
         else
         {
-            if (Webvtt_OutputFileName || Xml_OutputFileName || !Merge_OutputFileNames.empty() || Merge_OutputFileNames_IncludesStdOut)
+            if (Webvtt_OutputFileName || !C.XmlFiles.empty() || !Merge_OutputFileNames.empty() || Merge_OutputFileNames_IncludesStdOut)
             {
                 if (C.Err)
                     *C.Err << "Error: in order to avoid mistakes, provide output file names after input file names.\n";
@@ -904,16 +917,13 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             Merge_Out.push_back(Temp);
     }
 
+    for (Core::OutFile& OutputFile : C.XmlFiles)
+        OutputFiles_OpenError |= OpenTruncateFile(OutputFile.File, OutputFile.Name.c_str(), C, Flags);
+
     if ((OutputFiles_OpenError)
-     || (Xml_OutputFileName && OpenTruncateFile(C.XmlFile, Xml_OutputFileName, C, Flags))
      || (Webvtt_OutputFileName && OpenTruncateFile(C.WebvttFile, Webvtt_OutputFileName, C, Flags))
      || (MergeInfo_OutputFileName && OpenTruncateFile(MergeInfo_Out, MergeInfo_OutputFileName, C, Flags)))
     {
-        if (C.XmlFile)
-        {
-            delete C.XmlFile;
-            remove(Xml_OutputFileName);
-        }
         if (C.WebvttFile)
         {
             delete C.WebvttFile;
@@ -924,6 +934,14 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             delete MergeInfo_Out;
             remove(MergeInfo_OutputFileName);
         }
+
+        for (Core::OutFile& OutputFile : C.XmlFiles)
+        {
+            if (OutputFile.File && OutputFile.File != C.Out)
+                delete OutputFile.File;
+            remove(OutputFile.Name.c_str());
+        }
+        C.XmlFiles.clear();
 
         for (FILE* OutputFile : Merge_Out)
             fclose(OutputFile);
@@ -986,6 +1004,9 @@ void Clean(Core& C)
     // We previously set some output file pointers, deleting them
     if (C.WebvttFile != C.Out)
         delete C.WebvttFile;
-    if (C.XmlFile != C.Out)
-        delete C.XmlFile;
+    for (Core::OutFile& OutputFile : C.XmlFiles)
+    {
+        if (OutputFile.File && OutputFile.File != C.Out)
+            delete OutputFile.File;
+    }
 }

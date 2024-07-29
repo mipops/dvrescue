@@ -36,16 +36,26 @@ enum caption_kind
 class Core
 {
 public:
+    //Object
+    struct OutFile
+    {
+        ostream* File = nullptr;
+        string   Name;
+
+        // Reference file, input if empty
+        string   Merge_OutputFileName;
+    };
+
     // Constructor/Destructor
     Core();
     ~Core();
 
     // Input
     vector<String>  Inputs;
-    map<caption_kind, string> CaptionsFileNames; // We don't directly open an ostream because file name may change if cc are not same and/or 2nd field and/or no cc
+    map<caption_kind, vector<OutFile>> CaptionsFileNames; // We don't directly open an ostream because file name may change if cc are not same and/or 2nd field and/or no cc
     TimeCode*       OffsetTimeCode = nullptr;
     ostream*        WebvttFile = nullptr;
-    ostream*        XmlFile = nullptr;
+    vector<OutFile> XmlFiles;
     ostream*        Out = nullptr;
     ostream*        Err = nullptr;
     bitset<Option_Max> Options;

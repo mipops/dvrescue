@@ -8,9 +8,10 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "Common/Core.h"
 using namespace std;
 class file;
 class TimeCode;
 //---------------------------------------------------------------------------
 
-return_value Output_Captions_Scc(const string& OutName, const TimeCode* OffsetTimeCode, vector<file*>& PerFile, ostream* Err = nullptr);
+return_value Output_Captions_Scc(const Core::OutFile& Out, const TimeCode* OffsetTimeCode, vector<file*>& PerFile, ostream* Err = nullptr);

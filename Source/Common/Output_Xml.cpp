@@ -13,6 +13,7 @@
 #include "ZenLib/Ztring.h"
 #include <bitset>
 #include <cstddef>
+#include <algorithm>
 #include <map>
 #include <queue>
 using namespace ZenLib;
@@ -210,7 +211,7 @@ string decklink_timecodeformat_to_string(uint8_t value)
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err)
+return_value Output_Xml(Core::OutFile& Out, std::vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err)
 {
     string Text;
 
@@ -223,15 +224,27 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         "\t\t<library version=\"" + MediaInfo_Version() + "\">MediaInfoLib</library>\n"
         "\t</creator>\n";
 
+    bool OutputFrames_Speed = true;
+    bool OutputFrames_Concealed = true;
+
+    auto It = find(Merge_OutputFileNames.begin(), Merge_OutputFileNames.end(), Out.Merge_OutputFileName);
+    if (It != Merge_OutputFileNames.end())
+    {
+        size_t Pos = It - Merge_OutputFileNames.begin();
+        OutputFrames_Speed = OutputFrames_Speeds[Pos];
+        OutputFrames_Concealed = OutputFrames_Concealeds[Pos];
+    }
+
     for (const auto& File : PerFile)
     {
         // Media header
         if (File->CaptureMode == Capture_Mode_DV && !File->MI.Count_Get(Stream_General))
             continue; // Show the file only if it exists
         Text += "\t<media";
-        auto FileName = File->CaptureMode == Capture_Mode_DV ? File->MI.Get(Stream_General, 0, __T("CompleteName")) : __T("");
-        if (FileName.empty() && !Merge_OutputFileNames.empty())
-            FileName = Ztring().From_Local(Merge_OutputFileNames[0]);
+
+        auto FileName = Ztring().From_Local(Out.Merge_OutputFileName);
+        if (FileName.empty() && File->CaptureMode == Capture_Mode_DV)
+            FileName = File->MI.Get(Stream_General, 0, __T("CompleteName"));
         if (!FileName.empty())
         {
             Text += " ref=\"";
@@ -255,21 +268,47 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 Text += "/>\n";
                 continue; // Show the file only if there is some DV content
             }
-            auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
-            if (!Format.empty())
+
+            if (!Out.Merge_OutputFileName.empty())
             {
-                Text += " format=\"";
-                Text += Ztring(Format).To_UTF8();
-                Text += '\"';
+                MediaInfo tmpMI;
+                if (tmpMI.Open(Ztring().From_Local(Out.Merge_OutputFileName)))
+                {
+                    auto Format = tmpMI.Get(Stream_General, 0, __T("Format"));
+                    if (!Format.empty())
+                    {
+                        Text += " format=\"";
+                        Text += Ztring(Format).To_UTF8();
+                        Text += '\"';
+                    }
+
+                    auto FileSize = tmpMI.Get(Stream_General, 0, __T("FileSize"));
+                    if (!FileSize.empty())
+                    {
+                        Text += " size=\"";
+                        Text += Ztring(FileSize).To_UTF8();
+                        Text += '\"';
+                    }
+                }
             }
-            auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
-            if (FileSize.empty() && Merge_Out_Size != -1)
-                FileSize = Ztring::ToZtring(Merge_Out_Size);
-            if (!FileSize.empty())
+            else
             {
-                Text += " size=\"";
-                Text += Ztring(FileSize).To_UTF8();
-                Text += '\"';
+                auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
+                if (!Format.empty())
+                {
+                    Text += " format=\"";
+                    Text += Ztring(Format).To_UTF8();
+                 Text += '\"';
+                }
+                auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
+                if (FileSize.empty() && Merge_Out_Size != -1)
+                    FileSize = Ztring::ToZtring(Merge_Out_Size);
+                if (!FileSize.empty())
+                {
+                    Text += " size=\"";
+                    Text += Ztring(FileSize).To_UTF8();
+                    Text += '\"';
+                }
             }
         }
         #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
@@ -286,10 +325,10 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 continue; // Show the file only if there is some content
             }
 
-            if (!Merge_Out.empty())
+            if (!Out.Merge_OutputFileName.empty())
             {
                 MediaInfo tmpMI;
-                if (tmpMI.Open(Ztring().From_Local(Merge_OutputFileNames[0])))
+                if (tmpMI.Open(Ztring().From_Local(Out.Merge_OutputFileName)))
                 {
                     auto Format = tmpMI.Get(Stream_General, 0, __T("Format"));
                     if (!Format.empty())
@@ -486,18 +525,23 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         auto FrameNumber_Max = File->PerFrame.size() - 1;
         auto PerChange_Next = File->PerChange.begin();
         auto ShowFrames = true;
+        auto FramesElement = false;
         queue<size_t> Captions_Partial[2]; // 0 = Out, 1 = In
+
+        const MediaInfo_Event_DvDif_Analysis_Frame_1* FirstFrame = nullptr;
+        const MediaInfo_Event_DvDif_Analysis_Frame_1* LastFrame = nullptr;
+        vector<decltype(FrameNumber_Max)> IgnoredFrames;
+
         for (const auto& Frame : File->PerFrame)
         {
             decltype(FrameNumber_Max) FrameNumber = &Frame - &*File->PerFrame.begin();
-            auto ShowFrame = ShowFrames || FrameNumber == FrameNumber_Max || Frame_HasErrors(Frame);
 
             if (ShowFrames)
             {
                 ShowFrames = false;
-
-                if (FrameNumber)
-                    Text += "\t\t</frames>\n";
+                FirstFrame = nullptr;
+                LastFrame = nullptr;
+                IgnoredFrames.clear();
 
                 const auto Change = *PerChange_Next;
                 PerChange_Next++;
@@ -508,10 +552,23 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 {
                     coherency_flags Coherency(*Frame2);
                     if (Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud())
-                    {
                         no_sourceorcontrol_aud_Everywhere = false;
-                        break;
+
+                    if (!OutputFrames_Concealed && Coherency.full_conceal())
+                    {
+                        IgnoredFrames.push_back(Frame2 - File->PerFrame.begin());
+                        continue;
                     }
+
+                    if (!OutputFrames_Speed && !GetDvSpeedIsNormalPlayback(GetDvSpeed(**Frame2)))
+                    {
+                        IgnoredFrames.push_back(Frame2 - File->PerFrame.begin());
+                        continue;
+                    }
+
+                    if (!FirstFrame)
+                        FirstFrame = *Frame2;
+                    LastFrame = *Frame2;
                 }
 
                 if (!no_sourceorcontrol_aud_Everywhere)
@@ -548,21 +605,33 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                         }
                     }
                 }
+
+                if (!FirstFrame || !LastFrame)
+                {
+                    if (PerChange_Next != File->PerChange.end() && (*PerChange_Next)->FrameNumber == FrameNumber + 1)
+                        ShowFrames = true; // For next frame
+                    continue;
+                }
+
+                if (FramesElement)
+                    Text += "\t\t</frames>\n";
+
+                FramesElement = true;
                 Text += "\t\t<frames";
                 {
-                    auto FrameCount = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) - FrameNumber;
+                    auto FrameCount = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) - FrameNumber - IgnoredFrames.size();
                     Text += " count=\"";
                     Text += to_string(FrameCount);
                     Text += '\"';
                 }
                 {
-                    auto TimeStamp_Begin = Frame->PTS / 1000000000.0; // FrameNumber / File->FrameRate;
+                    auto TimeStamp_Begin = FirstFrame->PTS / 1000000000.0; // FrameNumber / File->FrameRate;
                     Text += " pts=\"";
                     seconds_to_timestamp(Text, TimeStamp_Begin, 6, true);
                     Text += '\"';
                 }
                 {
-                    auto TimeStamp_End = (PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->PTS : (File->PerFrame.back()->PTS + File->PerFrame.back()->DUR)) / 1000000000.0; //(PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) / File->FrameRate;
+                    auto TimeStamp_End = (LastFrame->PTS + LastFrame->DUR) / 1000000000.0; //(PerChange_Next != File->PerChange.end() ? (*PerChange_Next)->FrameNumber : (FrameNumber_Max + 1)) / File->FrameRate;
                     Text += " end_pts=\"";
                     seconds_to_timestamp(Text, TimeStamp_End, 6, true);
                     Text += '\"';
@@ -654,7 +723,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 {
                     Text += " no_sourceorcontrol_aud=\"1\"";
                 }
-                auto DvSpeed = GetDvSpeedIfNotPlayback(*Frame);
+                auto DvSpeed = GetDvSpeedIfNotPlayback(*FirstFrame);
                 if (DvSpeed != INT_MIN)
                 {
                     Text += " speed=\"";
@@ -665,15 +734,20 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             }
 
             if (PerChange_Next != File->PerChange.end() && (*PerChange_Next)->FrameNumber == FrameNumber + 1)
-            {
-                ShowFrame = true;
                 ShowFrames = true; // For next frame
-            }
 
-            if ((!Captions_Partial[0].empty() && FrameNumber == Captions_Partial[0].front())
-                || (!Captions_Partial[1].empty() && FrameNumber == Captions_Partial[1].front()))
+            if (!FirstFrame || !LastFrame)
+                continue;
+
+            auto ShowFrame = false;
+            if (find(IgnoredFrames.begin(), IgnoredFrames.end(), FrameNumber) == IgnoredFrames.end())
             {
-                ShowFrame = true;
+                if (Frame == FirstFrame || Frame == LastFrame || Frame_HasErrors(Frame))
+                    ShowFrame = true;
+
+                if ((!Captions_Partial[0].empty() && FrameNumber == Captions_Partial[0].front()) ||
+                    (!Captions_Partial[1].empty() && FrameNumber == Captions_Partial[1].front()))
+                    ShowFrame = true;
             }
 
             if (ShowFrame)
@@ -926,13 +1000,14 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += "/>\n";
 
                 // Write content to output
-                if (auto ToReturn = WriteIfBig(Out, Text, Err, Writer_Name))
+                if (auto ToReturn = WriteIfBig(*Out.File, Text, Err, Writer_Name))
                     return ToReturn;
             }
         }
 
         // Media footer
-        Text += "\t\t</frames>\n";
+        if (FramesElement)
+            Text += "\t\t</frames>\n";
         Text += "\t</media>\n";
     }
 
@@ -940,5 +1015,5 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
     Text += "</dvrescue>\n";
 
     // Write content to output
-    return Write(Out, Text, Err, Writer_Name);
+    return Write(*Out.File, Text, Err, Writer_Name);
 }
