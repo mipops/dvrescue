@@ -50,10 +50,10 @@ $ dvrescue --list_devices <br />
 ```dvrescue -m filename.dv```
 
 **Capture to a specific device:** <br />
-```dvrescue device://0 filename.dv```
+```dvrescue device://0 -m filename.dv```
 
 **Capture using rewind, recapture and merge:** <br />
-```dvrescue --rewind-count 3 -m filename.dv -m```
+```dvrescue --rewind-count 3 -m filename.dv -m -```
 
 **Capture using rewind, recapture and merge (3 attempts), show a preview window (with only one deck connected):** <br />
 ```dvrescue --rewind-count 3 -m filename.dv -m - | ffplay -```
