@@ -45,7 +45,7 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 </details>
 
 <details markdown=1>
-  <summary markdown="span">How to capture using the DVRescue GUI</summary> <br />
+  <summary markdown="span">Capture Instructions: DVRescue GUI</summary> <br />
 
 ## GUI Capture
   
