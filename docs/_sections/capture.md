@@ -331,5 +331,5 @@ All of these flags and options can also be viewed by typing dvrescue -h into the
 
 </details>
 
-# How capture using vrecord
+# How to capture using vrecord
 To use dvcapture in vrecord, please see the [documentation]([url](https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md)) on the vrecord GitHub repository. 
