@@ -6,9 +6,9 @@ title: Capture
 # How to capture using the DVRescue GUI
 Step-by-step instructions for using the DVRescue graphic user interface to capture DV videotape formats. 
 
-This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this [screen recording]([url](https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing)) (version 2024-07-24). 
+This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this <a href="https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing" target="_blank">version 2024-07-24</a>.
 
-Please note: Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). [dvcapture in vrecord]([url](https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md)) can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. 
+Please note: Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. 
 
 <details markdown=1>
   <summary markdown="span">GUI Navigation</summary> <br />
@@ -40,7 +40,7 @@ The graph underneath the counters tracks frames with error concealment for audio
 ![dvcapture_02B](https://github.com/user-attachments/assets/add62d5f-6b38-434c-9ff9-2c8728df800d)
 
 
-When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV LP, DVCAM, DVCPRO, or HDV) and display a pink indicator lamp to the left of the deck control buttons. Please note that transferring HDV is not supported by the DVRescue project. Please see [issue #53]([url](https://github.com/mipops/dvrescue/issues/53)) for more details. 
+When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV LP, DVCAM, DVCPRO, or HDV) and display a pink indicator lamp to the left of the deck control buttons. Please note that transferring HDV is not supported by the DVRescue project. Please see <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue #53</a> for more details. 
 
 </details>
 
@@ -66,7 +66,7 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 <img width="1422" alt="dvcapture_03_NEW" src="https://github.com/user-attachments/assets/42d560a4-fbfa-446d-98d9-084e8bcf4d28">
 
 
-4.) If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the [DV Deck Guide]([url](https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0)) for deck-specific information.
+4.) If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
 
 
 5.) You can use the player buttons to control the deck and preview the content on the tape.
@@ -118,9 +118,9 @@ If you hover your cursor over the graphic it will tell you how many frames have 
 
 13.) Once you are done capturing files, check the output folder to ensure the file contains all of the content that was recorded and that it plays back normally. 
 
-14.) You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the [dvanalysis documentation]([url](https://mipops.github.io/dvrescue/sections/analysis.html)) for instructions and tips for reviewing DV files.
+14.) You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the <a href="https://mipops.github.io/dvrescue/sections/analysis.html" target="_blank">dvanalysis documentation</a> for instructions and tips for reviewing DV files.
 
-Troubleshooting: If you are experiencing any issues capturing in the DVRescue GUI, please see our ["Troubleshooting" documentation]([url](https://mipops.github.io/dvrescue/sections/troubleshooting.html)). 
+Troubleshooting: If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">Troubleshooting documentation</a>. 
 
 </details>
 
@@ -332,4 +332,4 @@ All of these flags and options can also be viewed by typing dvrescue -h into the
 </details>
 
 # How to capture using vrecord
-To use dvcapture in vrecord, please see the [documentation]([url](https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md)) on the vrecord GitHub repository. 
+To use dvcapture in vrecord, please see the <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">documentation</a> on the vrecord GitHub repository. 
