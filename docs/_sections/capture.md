@@ -3,7 +3,7 @@ layout: post
 title: Capture
 ---
 
-# DVRescue GUI
+# How to capture using the DVRescue GUI
 Step-by-step instructions for using the DVRescue graphic user interface to capture DV videotape formats. 
 
 This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this [screen recording]([url](https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing)) (version 2024-07-24). 
@@ -328,10 +328,6 @@ All of these flags and options can also be viewed by typing dvrescue -h into the
     --rewind-basename value
         Base name of files storing buggy frames per take
         Default is output file name.
-
-If no output file name is provided, XML output is displayed on console output.
-
-libbyshopfauf@Libbys-MacBook-Pro-M2 ~ % 
 
 </details>
 
