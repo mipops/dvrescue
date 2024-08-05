@@ -8,7 +8,7 @@
 
 void help(BOOL full)
 {
-    NSString* version = @"22.12";
+    NSString* version = @"24.07";
     NSMutableString *output = [[NSMutableString alloc] init];
 
     [output appendString:@"avfctl - control and capture from DV tape players via AVFoundation\n"];

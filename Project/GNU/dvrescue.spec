@@ -4,9 +4,9 @@
 
 # norootforbuild
 
-%global dvrescue_version		22.12
-%global libmediainfo_version	21.09
-%global libzen_version			0.4.39
+%global dvrescue_version		24.07
+%global libmediainfo_version	24.06
+%global libzen_version			0.4.41
 
 Name:			dvrescue
 Version:		%dvrescue_version
@@ -223,5 +223,5 @@ popd
 %endif
 
 %changelog
-* Tue Jan 01 2019 Jerome Martinez <Info@MediaArea.net> - 22.12-0
+* Mon Jul 01 2024 Jerome Martinez <Info@MediaArea.net> - 24.07-0
 - See History.txt for more info and real dates
