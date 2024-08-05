@@ -52,6 +52,7 @@ AC_ARG_ENABLE(capture,          AC_HELP_STRING([--enable-capture],          [Use
 AC_ARG_ENABLE(decklink,         AC_HELP_STRING([--enable-decklink],         [Enable capture from Blackmagic capture devices]),            , enable_decklink=no)
 AC_ARG_ENABLE(sony9pin,         AC_HELP_STRING([--enable-sony9pin],         [Enable control through Sony9Pin serial interface]),          , enable_sony9pin=no)
 AC_ARG_ENABLE(simulator,        AC_HELP_STRING([--enable-simulator],        [Enable capture simulation for testing purposes]),            , enable_simulator=yes)
+AC_ARG_ENABLE(large_files,      AC_HELP_STRING([--disable-large_files],     [Disable large files support]),                              , enable_large_files=yes)
 
 dnl -------------------------------------------------------------------------
 dnl Arguments - With
@@ -77,6 +78,13 @@ else
 	else
 		AC_MSG_ERROR([libzen configuration is not found])
 	fi
+fi
+
+dnl -------------------------------------------------------------------------
+dnl Large files
+dnl
+if test "$enable_large_files" = "yes"; then
+	CXXFLAGS="$CXXFLAGS -D_LARGE_FILES -D_FILE_OFFSET_BITS=64"
 fi
 
 dnl #########################################################################
