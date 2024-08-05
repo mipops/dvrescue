@@ -2,7 +2,7 @@
 # Maintainer: MediaArea.net SARL <Info@MediaArea.net>
 
 pkgname=('dvrescue')
-pkgver=22.12
+pkgver=24.07
 pkgrel=1
 pkgdesc="Supplies technical and tag information about a video or audio file"
 url="http://MediaArea.net"
@@ -10,7 +10,7 @@ license=('BSD-3-Clause')
 source=(${pkgname}_${pkgver}.orig.tar.xz)
 md5sums=('00000000000000000000000000000000')
 arch=('i686' 'x86_64')
-makedepends=('libzen>=0.4.39' 'libmediainfo>=21.09')
+makedepends=('libzen>=0.4.41' 'libmediainfo>=24.06')
 
 prepare() {
     cd "${srcdir}"/dvrescue/Project/GNU/CLI
@@ -25,7 +25,7 @@ build() {
 
 package_dvrescue() {
     pkgdesc="${pkgdesc} (CLI)"
-    depends=('libzen>=0.4.39' 'libmediainfo>=21.09' 'xmlstarlet')
+    depends=('libzen>=0.4.41' 'libmediainfo>=24.06' 'xmlstarlet')
 
     cd "${srcdir}"/dvrescue/Project/GNU/CLI
     make DESTDIR="${pkgdir}" install
