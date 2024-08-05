@@ -16,6 +16,8 @@
 #include <mutex>
 #include <thread>
 #include <csignal>
+#include <chrono>
+#include <algorithm>
 using namespace ZenLib;
 using namespace std;
 
@@ -56,6 +58,7 @@ Core::~Core()
 
 //---------------------------------------------------------------------------
 vector<file*>   PerFile;
+atomic_bool     Terminate = false, Terminated = false;
 return_value Core::Process()
 {
     return_value ToReturn = ReturnValue_OK;
@@ -71,10 +74,27 @@ return_value Core::Process()
             return PerFile[index]->Parse(Input);
             }, PerFile.size()-1, Input));
     }
-    for (auto &future : futures) {
-        if (auto ToReturn2 = future.get())
-            ToReturn = ToReturn2;
+
+    while (!futures.empty())
+    {
+        auto it = futures.begin();
+        if (it->wait_for(100ms) != std::future_status::timeout)
+        {
+           if (auto ToReturn2 = it->get())
+                ToReturn = ToReturn2;
+
+            futures.erase(it);
+        }
+
+        if (Terminate && !Terminated)
+        {
+            for (auto& File : PerFile)
+                File->Terminate();
+
+            Terminated = true;
+        }
     }
+
     if (Device_Command)
         return ToReturn;
 
@@ -161,8 +181,7 @@ void Handle_Signal(int Signal)
     #if !defined(_WIN32) && !defined(WIN32)
     case SIGPIPE:
     #endif
-        for (auto& File : PerFile)
-            File->Terminate();
+        Terminate = true;
         break;
     default:
         ;
