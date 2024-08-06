@@ -81,18 +81,23 @@ return_value Core::Process()
     if (!Merge_Out.empty())
     {
         PerFile[0]->Merge_Finish();
-        if (!XmlFile)
+        if (XmlFiles.empty())
             return ToReturn;
     }
 
     // Set output defaults
-    if (!XmlFile)
-        XmlFile = Out;
+    if (XmlFiles.empty())
+    {
+        //TODO: select first output, last output or input in that case?
+        OutFile XmlFile;
+        XmlFile.File = Out;
+        XmlFiles.push_back(XmlFile);
+    }
 
     // XML
-    if (XmlFile)
+    for (OutFile& XmlFile : XmlFiles)
     {
-        if (auto ToReturn2 = Output_Xml(*XmlFile, PerFile, Options, Err))
+        if (auto ToReturn2 = Output_Xml(XmlFile, PerFile, Options, Err))
             ToReturn = ToReturn2;
     }
 
@@ -104,23 +109,23 @@ return_value Core::Process()
     }
 
     // Closed Captions
-    if (!CaptionsFileNames.empty())
+    for (const auto& Caption : CaptionsFileNames)
     {
-        // SCC
-        auto SccFileName = CaptionsFileNames.find(Caption_Scc);
-        if (SccFileName != CaptionsFileNames.end())
+        if (Caption.first == Caption_Scc)
         {
-            if (auto ToReturn2 = Output_Captions_Scc(SccFileName->second, OffsetTimeCode, PerFile, Err))
-                ToReturn = ToReturn2;
+            for (const auto& OutFile : Caption.second)
+            {
+                if (auto ToReturn2 = Output_Captions_Scc(OutFile, OffsetTimeCode, PerFile, Err))
+                    ToReturn = ToReturn2;
+            }
         }
-
-        // Decode (Screen or SRT)
-        auto ScreenFileName = CaptionsFileNames.find(Caption_Screen);
-        auto SrtFileName = CaptionsFileNames.find(Caption_Srt);
-        if (ScreenFileName != CaptionsFileNames.end() || SrtFileName != CaptionsFileNames.end())
+        else if (Caption.first == Caption_Screen || Caption.first == Caption_Srt)
         {
-            if (auto ToReturn2 = Output_Captions_Caption(ScreenFileName != CaptionsFileNames.end() ? ScreenFileName->second : string(), SrtFileName != CaptionsFileNames.end() ? SrtFileName->second : string(), OffsetTimeCode, PerFile, Err))
-                ToReturn = ToReturn2;
+            for (const auto& OutFile : Caption.second)
+            {
+                if (auto ToReturn2 = Output_Captions_Caption(Caption.first == Caption_Screen ? OutFile : Core::OutFile(), Caption.first == Caption_Srt ? OutFile : Core::OutFile(), OffsetTimeCode, PerFile, Err))
+                    ToReturn = ToReturn2;
+            }
         }
     }
 
