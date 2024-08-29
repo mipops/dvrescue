@@ -8,9 +8,7 @@ Step-by-step instructions for using the DVRescue graphic user interface to captu
 
 This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this <a href="https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing" target="_blank">version 2024-07-24</a>.
 
->[!NOTE]
->
->Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. 
+**Please note:** Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. 
 
 <details markdown=1>
   <summary markdown="span">GUI Navigation</summary> <br />
@@ -122,13 +120,9 @@ If you hover your cursor over the graphic it will tell you how many frames have 
 
 14. You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the <a href="https://mipops.github.io/dvrescue/sections/analysis.html" target="_blank">dvanalysis documentation</a> for instructions and tips for reviewing DV files.  <br />
 
-</details> 
+**Troubleshooting:** If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">troubleshooting</a> on the DVRescue documentation website.
 
->[!TIP]
->
->If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">troubleshooting</a> on the DVRescue documentation website.
-
- <br />
+</details>  <br />
 
 # How to capture using the DVRescue CLI
 Commands and useage for capturing DV tapes using the dvrescue command line tools (CLI).
