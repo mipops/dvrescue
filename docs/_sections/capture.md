@@ -51,29 +51,35 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 ## GUI Capture
   
-1. In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
+1.) In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
 
 ![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
 
-2. Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
+
+2.) Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
 
 <img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664">
 
-3. If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
+
+3.) If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
 
 <img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb">
 
-4. If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
 
-5. You can use the player buttons to control the deck and preview the content on the tape.
+4.) If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
+
+
+5.) You can use the player buttons to control the deck and preview the content on the tape.
 
 <img width="1422" alt="dvcapture_07" src="https://github.com/user-attachments/assets/df9bd62b-b89f-4db9-9270-d8becab6ca4a">
 
-6. If you would like to enable the deck to rewind and recapture a frame when it encounters an error, click on the Settings. When dvcapture encounters an error, it has the capability to automatically rewind and try to capture the frames containing errors again. You can enable this feature by setting a number of times to rewind and recapture under the "Settings" tab. Click on the “Settings” tab and enter a number in the field (between 0-20, with the default set as zero). We reccomend 3-4 as any more than that can cause damage to the tape and don't result in a better file. Please see the GUI Navigation section for more capture settings options. [more details on Capture settings coming soon.]
+
+6.) If you would like to enable the deck to rewind and recapture a frame when it encounters an error, click on the Settings. When dvcapture encounters an error, it has the capability to automatically rewind and try to capture the frames containing errors again. You can enable this feature by setting a number of times to rewind and recapture under the "Settings" tab. Click on the “Settings” tab and enter a number in the field (between 0-20, with the default set as zero). We reccomend 3-4 as any more than that can cause damage to the tape and don't result in a better file. Please see the GUI Navigation section for more capture settings options. [more details on Capture settings coming soon.]
 
 <img width="643" alt="Screenshot 2024-07-29 at 3 07 53 PM" src="https://github.com/user-attachments/assets/aab7a6bf-9e64-4d25-ab30-46aed70a6934">
 
-7. When ready, click the record button to initiate the transfer. Please note: For macOS set-ups, if you haven’t previously given DVRescue permission to use your camera, the following message will appear. Click “OK” to allow DVRescue to connect to the deck.
+
+7.) When ready, click the record button to initiate the transfer. Please note: For macOS set-ups, if you haven’t previously given DVRescue permission to use your camera, the following message will appear. Click “OK” to allow DVRescue to connect to the deck.
 
 <img width="665" alt="Screenshot 2024-07-29 at 3 06 08 PM" src="https://github.com/user-attachments/assets/adc84bb5-ef19-45d3-8a9d-31e6aed9fbe0">
 
