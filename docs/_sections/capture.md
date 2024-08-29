@@ -58,12 +58,14 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 2.) Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
 
-![dvcapture_02_NEW](https://github.com/user-attachments/assets/14cfe959-2d21-464d-9645-1972c05196b6)
+<img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664">
+
 
 
 3.) If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
 
-<img width="1422" alt="dvcapture_03_NEW" src="https://github.com/user-attachments/assets/42d560a4-fbfa-446d-98d9-084e8bcf4d28">
+<img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb">
+
 
 
 4.) If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
@@ -91,11 +93,7 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 9.) Type in the tape identifier as the file name and click OK.
 
-
 <img width="1496" alt="dvcapture_05_NEW" src="https://github.com/user-attachments/assets/a0ae0b71-0b4d-4ca5-8d2e-7d31479dfdb2">
-
-
-
 
 
 10.) Deck control will automatically start recording the tape. While it records, you can preview the video in the GUI player. The record time, frame number and record date will display the information being captured from the tape. The graph will populate with audio and video errors detected, as well as frame containing error concealment. 
@@ -104,14 +102,12 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 If you hover your cursor over the graphic it will tell you how many frames have been captured and how many of those frames contain error concealment. 
 
-![dvcapture_02B](https://github.com/user-attachments/assets/ddfb21b0-35e6-4723-9e06-8496932c8cbb)
-
+<img width="1512" alt="Screenshot 2024-08-28 at 6 38 57 PM" src="https://github.com/user-attachments/assets/15cb7a67-9e5b-4547-bc0d-69017e123cc9">
 
 
 11.) If you wish to start a second recording, click on the player in the GUI window and follow the steps above to begin recording. You can monitor all of your simultaneous recordings.
 
-![dvcapture_06_NEW](https://github.com/user-attachments/assets/d5c1af15-eaf8-44ae-85c1-ed0692a27cd7)
-
+<img width="1512" alt="Screenshot 2024-08-28 at 6 27 23 PM" src="https://github.com/user-attachments/assets/52536742-8996-4271-a8d2-f377f2ed6476">
 
 
 12.) When the recording ends or the deck reaches the end of the tape, DVRescue will stop capturing and automatically initiate rewinding the tape (if this function is available on your deck). If you would like to end the capture before the end of the tape or if there is a large chunk of recorded-over blank space, click “Stop” to end the capture. (DVRescue will continue to register blank tape as content if there is timecode or recording time left over from erasing or recording over previous content).
@@ -120,7 +116,7 @@ If you hover your cursor over the graphic it will tell you how many frames have 
 
 14.) You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the <a href="https://mipops.github.io/dvrescue/sections/analysis.html" target="_blank">dvanalysis documentation</a> for instructions and tips for reviewing DV files.
 
-Troubleshooting: If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">Troubleshooting documentation</a>. 
+Troubleshooting: If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">troubleshooting documentation</a>. 
 
 </details>
 
@@ -134,7 +130,7 @@ Below is the order you should type the commands for capturing using the CLI.
 
 1.) In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br />
 ```
-$ dvrescue --list_devices <br />
+$ dvrescue --list_devices
 0x80458280022265: Panasonic DV [DV]
 ```
 
@@ -182,7 +178,7 @@ For example:
 <details markdown=1>
   <summary markdown="span">Full list of capture commands</summary>
   
-All of these flags and options can also be viewed by typing dvrescue -h into the command line window.
+All of these flags and options can also be viewed by typing ```dvrescue -h``` into the command line window.
 
     --help, -h
         Display this help and exit.
