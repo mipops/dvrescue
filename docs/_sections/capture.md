@@ -138,7 +138,7 @@ $ dvrescue --list_devices
 
 4.) If you only have one device connected, dvrescue will automatically select it. If you have more than one device connected, add the device number ```device://0x[device#]``` (for the corresponding deck you want to use for capture). Example (using the deck listed in step 1): ```dvrescue device://0x0x80458280022265``` 
 
-5.) If you want dvrescue to rewind and recapture when it encounters an issue with a frame type ```--rewind-count``` and the number of attempts you want it to make before it moves on. Example if you wanted dvrescue to rewind and recapture 3 times: ```--rewind-count 3```
+5.) If you want dvrescue to rewind and recapture when it encounters an issue with a frame type ```-y --rewind-count``` and the number of attempts you want it to make before it moves on. Example if you wanted dvrescue to rewind and recapture 3 times: ```-y --rewind-count 3```
 
 6.) Type ```-m``` to note you want to create a file.
 
@@ -148,7 +148,11 @@ $ dvrescue --list_devices
 
 9.) To open a playback window during capture add ```| ffplay -```
 
-10.) The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: ```dvrescue device://0x0x80458280022265 --rewind-count 3 -m filename.dv -m - | ffplay -``` For more examples of frequently used dvcapture command strings, please see the section below. 
+10.) The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: ```dvrescue device://0x0x80458280022265 -y --rewind-count 3 -m filename.dv -m - | ffplay -``` <br />
+For example: ```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
+
+
+For more examples of frequently used dvcapture command strings, please see the section below. 
 
 </details>
 
@@ -167,12 +171,15 @@ For example:
 ```dvrescue device://0x800460104ce2bad -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
 
 **Capture from a specific device using rewind, recapture and merge (you can only specify a number of times to rewind and recapture if you specify a device):** <br />
-```dvrescue device://0xdevicename --rewind-count # -m filename.dv -m -```  <br />
+```dvrescue device://0xdevicename -y --rewind-count 3 -m filename.dv -m -```  <br />
 For example:
-```dvrescue device://0x800460104ce2bad --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m -```
+```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m -```
 
 **Capture from a specific device using rewind, recapture and merge (3 attempts), show a preview window (with only one deck connected):** <br />
-```dvrescue --rewind-count 3 -m filename.dv -m - | ffplay -```
+```dvrescue device://0xdevicename -y --rewind-count 3 -m filename.dv -m - | ffplay -```  <br />
+For example:
+```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
+
 </details>
 
 <details markdown=1>
