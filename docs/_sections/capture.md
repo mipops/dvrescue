@@ -8,11 +8,9 @@ Step-by-step instructions for using the DVRescue graphic user interface to captu
 
 This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this <a href="https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing" target="_blank">version 2024-07-24</a>.
 
-
-
 <div class="blockquote">
-**NOTE!** 
-*Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.* 
+**PLEASE NOTE:**
+_Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. _
 </div>
 <br/>
 
@@ -57,20 +55,11 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 ## GUI Capture
   
-1\. In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
+1\. In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. <br /> ![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038) <br /> 
 
-  ![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
+2\. Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening. <br /> <img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664"> <br /> 
 
-
-2\. Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
-
-  <img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664">
-
-
-3\. If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
-
-  <img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb">
-
+3\. If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck. <br /> <img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb"> <br /> 
 
 4\. If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
 
@@ -129,29 +118,27 @@ Commands and useage for capturing DV tapes using the dvrescue command line tools
 **Basic useage:** <br />
 Below is the order you should type the commands for capturing using the CLI.
 
-1.) In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br />
+1\. In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br />
 ```
 $ dvrescue --list_devices
 0x80458280022265: Panasonic DV [DV]
 ```
 
-2.) You can either type ```dvrescue``` at the start of the command or include the path to the version of dvrescue you want to use. Example: ```/usr/local/bin/dvrescue```
+2. You can either type ```dvrescue``` at the start of the command or include the path to the version of dvrescue you want to use. Example: ```/usr/local/bin/dvrescue```
 
-4.) If you only have one device connected, dvrescue will automatically select it. If you have more than one device connected, add the device number ```device://0x[device#]``` (for the corresponding deck you want to use for capture). Example (using the deck listed in step 1): ```dvrescue device://0x0x80458280022265``` 
+3. If you only have one device connected, dvrescue will automatically select it. If you have more than one device connected, add the device number ```device://0x[device#]``` (for the corresponding deck you want to use for capture). Example (using the deck listed in step 1): ```dvrescue device://0x0x80458280022265``` 
 
-5.) If you want dvrescue to rewind and recapture when it encounters an issue with a frame type ```-y --rewind-count``` and the number of attempts you want it to make before it moves on. Example if you wanted dvrescue to rewind and recapture 3 times: ```-y --rewind-count 3```
+4. If you want dvrescue to rewind and recapture when it encounters an issue with a frame type ```-y --rewind-count``` and the number of attempts you want it to make before it moves on. Example if you wanted dvrescue to rewind and recapture 3 times: ```-y --rewind-count 3```
 
-6.) Type ```-m``` to note you want to create a file.
+5. Type ```-m``` to note you want to create a file.
 
-7.) Type the files name. Add a space. Example: ```filename.dv```
+6. Type the files name. Add a space. Example: ```filename.dv```
 
-8.) Type ```-m -``` to note you want to merge the multiple capture attempts for problematic frames (dvrescue will automatically rewind and try to capture the frame again when it encouters a problematic frame).
+7. Type ```-m -``` to note you want to merge the multiple capture attempts for problematic frames (dvrescue will automatically rewind and try to capture the frame again when it encouters a problematic frame).
 
-9.) To open a playback window during capture add ```| ffplay -```
+8. To open a playback window during capture add ```| ffplay -```
 
-10.) The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: ```dvrescue device://0x0x80458280022265 -y --rewind-count 3 -m filename.dv -m - | ffplay -``` <br />
-For example: ```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
-
+9. The full string to capture to the example device, create a file named "filename", using the rewind and recapture feature (with 3 attempts) and view the playback during capture would be: <br /> ```dvrescue device://0x0x80458280022265 -y --rewind-count 3 -m filename.dv -m - | ffplay -``` <br /> For example:  <br />```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```  <br />
 
 For more examples of frequently used dvcapture command strings, please see the section below. 
 
