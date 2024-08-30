@@ -8,7 +8,13 @@ Step-by-step instructions for using the DVRescue graphic user interface to captu
 
 This portion of the DVRescue documentation will explain how to capture a DV videotape using DVRescue. For details on how to set-up your transfer station, installing DVRescue and troubleshooting connections, please see the [DV Transfer Station section]([url](https://mipops.github.io/dvrescue/sections/dv_transfer_station.html)). For a demonstration of the latest version of the GUI running dvcapture, see one of this <a href="https://drive.google.com/file/d/1kkACq_wFFds1r92vxFxAB6RDe1DQyr0p/view?usp=sharing" target="_blank">version 2024-07-24</a>.
 
-**Please note:** Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. 
+
+
+<div class="blockquote">
+**NOTE!** 
+*Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.* 
+</div>
+<br/>
 
 <details markdown=1>
   <summary markdown="span">GUI Navigation</summary> <br />
@@ -51,65 +57,65 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 ## GUI Capture
   
-1.) In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
+1\. In the dvrescue GUI, click on the “Capture” tab from the list on the left hand side. If you do not have a deck connected or if the deck is off, you will see the following message. 
 
-![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
-
-
-2.) Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
-
-<img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664">
+  ![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
 
 
-3.) If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
+2\. Turn on your DV deck. The make and model of the deck should appear above the capture playback window. While a tape is not playing, the screen will read "DECK CONNECTED" on the playback screening.
 
-<img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb">
-
-
-4.) If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
+  <img width="1512" alt="Screenshot 2024-08-28 at 6 35 49 PM" src="https://github.com/user-attachments/assets/b47c995d-8cca-4842-a9a6-4a001a003664">
 
 
-5.) You can use the player buttons to control the deck and preview the content on the tape.
+3\. If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck.
 
-<img width="1422" alt="dvcapture_07" src="https://github.com/user-attachments/assets/df9bd62b-b89f-4db9-9270-d8becab6ca4a">
-
-
-6.) If you would like to enable the deck to rewind and recapture a frame when it encounters an error, click on the Settings. When dvcapture encounters an error, it has the capability to automatically rewind and try to capture the frames containing errors again. You can enable this feature by setting a number of times to rewind and recapture under the "Settings" tab. Click on the “Settings” tab and enter a number in the field (between 0-20, with the default set as zero). We reccomend 3-4 as any more than that can cause damage to the tape and don't result in a better file. Please see the GUI Navigation section for more capture settings options. [more details on Capture settings coming soon.]
-
-<img width="643" alt="Screenshot 2024-07-29 at 3 07 53 PM" src="https://github.com/user-attachments/assets/aab7a6bf-9e64-4d25-ab30-46aed70a6934">
+  <img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb">
 
 
-7.) When ready, click the record button to initiate the transfer. Please note: For macOS set-ups, if you haven’t previously given DVRescue permission to use your camera, the following message will appear. Click “OK” to allow DVRescue to connect to the deck.
-
-<img width="665" alt="Screenshot 2024-07-29 at 3 06 08 PM" src="https://github.com/user-attachments/assets/adc84bb5-ef19-45d3-8a9d-31e6aed9fbe0">
+4\. If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
 
 
-8.) A pop-up window will open. Here you can navigate to the location where you would like to save the files created during capture, including the video file itself and all of the logs. Click the name listed in the field for the “output directory” and then select the directory. 
+5\. You can use the player buttons to control the deck and preview the content on the tape.
 
-9.) Type in the tape identifier as the file name and click OK.
-
-<img width="1496" alt="dvcapture_05_NEW" src="https://github.com/user-attachments/assets/a0ae0b71-0b4d-4ca5-8d2e-7d31479dfdb2">
+  <img width="1422" alt="dvcapture_07" src="https://github.com/user-attachments/assets/df9bd62b-b89f-4db9-9270-d8becab6ca4a">
 
 
-10.) Deck control will automatically start recording the tape. While it records, you can preview the video in the GUI player. The record time, frame number and record date will display the information being captured from the tape. The graph will populate with audio and video errors detected, as well as frame containing error concealment. 
+6\. If you would like to enable the deck to rewind and recapture a frame when it encounters an error, click on the Settings. When dvcapture encounters an error, it has the capability to automatically rewind and try to capture the frames containing errors again. You can enable this feature by setting a number of times to rewind and recapture under the "Settings" tab. Click on the “Settings” tab and enter a number in the field (between 0-20, with the default set as zero). We reccomend 3-4 as any more than that can cause damage to the tape and don't result in a better file. Please see the GUI Navigation section for more capture settings options. [more details on Capture settings coming soon.]
 
-<img width="720" alt="dvcapture-chart" src="https://github.com/user-attachments/assets/173700e9-58ab-4b30-b9ca-d1322ef5e296"> <br />
-
-If you hover your cursor over the graphic it will tell you how many frames have been captured and how many of those frames contain error concealment. 
-
-<img width="1512" alt="Screenshot 2024-08-28 at 6 38 57 PM" src="https://github.com/user-attachments/assets/15cb7a67-9e5b-4547-bc0d-69017e123cc9">
+  <img width="643" alt="Screenshot 2024-07-29 at 3 07 53 PM" src="https://github.com/user-attachments/assets/aab7a6bf-9e64-4d25-ab30-46aed70a6934">
 
 
-11.) If you wish to start a second recording, click on the player in the GUI window and follow the steps above to begin recording. You can monitor all of your simultaneous recordings.
+7\. When ready, click the record button to initiate the transfer. Please note: For macOS set-ups, if you haven’t previously given DVRescue permission to use your camera, the following message will appear. Click “OK” to allow DVRescue to connect to the deck.
 
-<img width="1512" alt="Screenshot 2024-08-28 at 6 27 23 PM" src="https://github.com/user-attachments/assets/52536742-8996-4271-a8d2-f377f2ed6476">
+  <img width="665" alt="Screenshot 2024-07-29 at 3 06 08 PM" src="https://github.com/user-attachments/assets/adc84bb5-ef19-45d3-8a9d-31e6aed9fbe0">
 
 
-12.) When the recording ends or the deck reaches the end of the tape, DVRescue will stop capturing and automatically initiate rewinding the tape (if this function is available on your deck). If you would like to end the capture before the end of the tape or if there is a large chunk of recorded-over blank space, click “Stop” to end the capture. (DVRescue will continue to register blank tape as content if there is timecode or recording time left over from erasing or recording over previous content).
+8\. A pop-up window will open. Here you can navigate to the location where you would like to save the files created during capture, including the video file itself and all of the logs. Click the name listed in the field for the “output directory” and then select the directory. 
 
-13.) Once you are done capturing files, check the output folder to ensure the file contains all of the content that was recorded and that it plays back normally. 
+9\. Type in the tape identifier as the file name and click OK.
 
-14.) You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the <a href="https://mipops.github.io/dvrescue/sections/analysis.html" target="_blank">dvanalysis documentation</a> for instructions and tips for reviewing DV files.  <br />
+  <img width="1496" alt="dvcapture_05_NEW" src="https://github.com/user-attachments/assets/a0ae0b71-0b4d-4ca5-8d2e-7d31479dfdb2">
+
+
+10\. Deck control will automatically start recording the tape. While it records, you can preview the video in the GUI player. The record time, frame number and record date will display the information being captured from the tape. The graph will populate with audio and video errors detected, as well as frame containing error concealment. 
+
+  <img width="720" alt="dvcapture-chart" src="https://github.com/user-attachments/assets/173700e9-58ab-4b30-b9ca-d1322ef5e296"> <br />
+
+  If you hover your cursor over the graphic it will tell you how many frames have been captured and how many of those frames contain error concealment. 
+
+  <img width="1512" alt="Screenshot 2024-08-28 at 6 38 57 PM" src="https://github.com/user-attachments/assets/15cb7a67-9e5b-4547-bc0d-69017e123cc9">
+
+
+11\. If you wish to start a second recording, click on the player in the GUI window and follow the steps above to begin recording. You can monitor all of your simultaneous recordings.
+
+  <img width="1512" alt="Screenshot 2024-08-28 at 6 27 23 PM" src="https://github.com/user-attachments/assets/52536742-8996-4271-a8d2-f377f2ed6476">
+
+
+12\. When the recording ends or the deck reaches the end of the tape, DVRescue will stop capturing and automatically initiate rewinding the tape (if this function is available on your deck). If you would like to end the capture before the end of the tape or if there is a large chunk of recorded-over blank space, click “Stop” to end the capture. (DVRescue will continue to register blank tape as content if there is timecode or recording time left over from erasing or recording over previous content).
+
+13\. Once you are done capturing files, check the output folder to ensure the file contains all of the content that was recorded and that it plays back normally. 
+
+14\. You can click on the “Analysis” tab to perform quality control on the files. All of the files captured during your current session will be populated in the list in the Analysis tab. Please see the <a href="https://mipops.github.io/dvrescue/sections/analysis.html" target="_blank">dvanalysis documentation</a> for instructions and tips for reviewing DV files.  <br />
 
 **Troubleshooting:** If you are experiencing any issues capturing in the DVRescue GUI, please see our <a href="https://mipops.github.io/dvrescue/sections/troubleshooting.htm" target="_blank">troubleshooting</a> on the DVRescue documentation website.
 
