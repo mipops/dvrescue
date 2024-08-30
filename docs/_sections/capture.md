@@ -10,7 +10,7 @@ This portion of the DVRescue documentation will explain how to capture a DV vide
 
 <div class="blockquote">
 **PLEASE NOTE:**
-_Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI. _
+*Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.*
 </div>
 <br/>
 
@@ -118,11 +118,11 @@ Commands and useage for capturing DV tapes using the dvrescue command line tools
 **Basic useage:** <br />
 Below is the order you should type the commands for capturing using the CLI.
 
-1\. In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br />
-```
-$ dvrescue --list_devices
-0x80458280022265: Panasonic DV [DV]
-```
+1. In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example:
+  ```
+  $ dvrescue --list_devices
+  0x80458280022265: Panasonic DV [DV]
+  ``` 
 
 2. You can either type ```dvrescue``` at the start of the command or include the path to the version of dvrescue you want to use. Example: ```/usr/local/bin/dvrescue```
 
@@ -144,28 +144,27 @@ For more examples of frequently used dvcapture command strings, please see the s
 
 </details>
 
-
 <details markdown=1>
   <summary markdown="span">Examples of frequently used capture commands</summary> <br />
 
 **Capture from a specific device:** <br />
 ```dvrescue device://0xdevicename -m /pathtofile/filename.dv``` <br />
-For example:
+For example: <br />
 ```dvrescue device://0x800460104ce2bad -m /Users/libbyshopfauf/Desktop/12345.dv```
 
 **Capture from a specific device and show a preview window:** <br />
 ```dvrescue device://0xdevicename -m /pathtofile/filename.dv -m - | ffplay -``` <br />
-For example:
+For example: <br />
 ```dvrescue device://0x800460104ce2bad -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
 
 **Capture from a specific device using rewind, recapture and merge (you can only specify a number of times to rewind and recapture if you specify a device):** <br />
 ```dvrescue device://0xdevicename -y --rewind-count 3 -m filename.dv -m -```  <br />
-For example:
+For example: <br />
 ```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m -```
 
 **Capture from a specific device using rewind, recapture and merge (3 attempts), show a preview window (with only one deck connected):** <br />
 ```dvrescue device://0xdevicename -y --rewind-count 3 -m filename.dv -m - | ffplay -```  <br />
-For example:
+For example: <br /> 
 ```dvrescue device://0x800460104ce2bad -y --rewind-count 3 -m /Users/libbyshopfauf/Desktop/12345.dv -m - | ffplay -```
 
 </details>
