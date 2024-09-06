@@ -57,6 +57,13 @@ static string to_hexstring(uint16_t value)
 //***************************************************************************
 
 //---------------------------------------------------------------------------
+enum format {
+    Format_Unknown,
+    Format_DV,
+    Format_DAT,
+};
+
+//---------------------------------------------------------------------------
 static void Dseq_Begin(string& Text, size_t o, int Dseq)
 {
     Text.append(o, '\t');
@@ -244,22 +251,30 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += Merge_InputFileNames[0];
             Text += '\"';
         }
+        auto Format_G = File->MI.Get(Stream_General, 0, __T("Format"));
+        auto Format_V = File->MI.Get(Stream_Video, 0, __T("Format"));
+        format Format;
+        if (Format_G == __T("DAT"))
+            Format = Format_DAT;
+        else if (Format_V == __T("DV"))
+            Format = Format_DV;
+        else
+            Format = Format_Unknown;
         if (File->CaptureMode == Capture_Mode_DV)
         {
-            if (File->PerFrame.empty() || File->PerChange.empty())
+            if (Format == Format_Unknown || File->PerFrame.empty() || File->PerChange.empty())
             {
-                if (File->MI.Get(Stream_Video, 0, __T("Format")) != __T("DV"))
-                    Text += " error=\"not DV\"";
+                if (Format == Format_Unknown)
+                    Text += " error=\"not supported\"";
                 else
                     Text += " error=\"no frame received\"";
                 Text += "/>\n";
                 continue; // Show the file only if there is some DV content
             }
-            auto Format = File->MI.Get(Stream_General, 0, __T("Format"));
-            if (!Format.empty())
+            if (!Format_G.empty())
             {
                 Text += " format=\"";
-                Text += Ztring(Format).To_UTF8();
+                Text += Ztring(Format_G).To_UTF8();
                 Text += '\"';
             }
             auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
@@ -489,8 +504,72 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         queue<size_t> Captions_Partial[2]; // 0 = Out, 1 = In
         for (const auto& Frame : File->PerFrame)
         {
+            string abst;
+            auto AbstBf = abst_bf(Frame->AbstBf);
+            if (AbstBf.HasAbsoluteTrackNumberValue())
+                abst = to_string(AbstBf.AbsoluteTrackNumber());
+            auto abst_r = AbstBf.Repeat();
+            auto abst_nc = AbstBf.NonConsecutive();
+            string tc;
+            auto TimeCode = timecode(Frame);
+            if (TimeCode.HasValue())
+                timecode_to_string(tc, TimeCode.TimeInSeconds(), TimeCode.DropFrame(), TimeCode.Frames());
+            auto tc_r = TimeCode.Repeat();
+            int tc_nc = TimeCode.NonConsecutive();
+            if (tc_nc && TimeCode.NonConsecutive_IsLess())
+                tc_nc++;
+
+            if (Frame->MoreData)
+            {
+                const auto MoreData = Frame->MoreData;
+                size_t MoreData_Offset = sizeof(size_t);
+                size_t MoreData_TotalSize = MoreData_Offset + *((size_t*)MoreData);
+                while (MoreData_Offset < MoreData_TotalSize)
+                {
+                    auto Size = MoreData[MoreData_Offset++];
+                    if (Size >= 0x80)
+                        break;
+                    auto Name = MoreData[MoreData_Offset++];
+                    if (Name >= 0x80)
+                        break;
+                    switch (Name)
+                    {
+                    case MediaInfo_Event_Analysis_Frame_TimeCode:
+                        if (Size >= 4)
+                        {
+                            uint32_t Value = *((int32_t*)(MoreData + MoreData_Offset));
+                            uint32_t MoreFlags = 0;
+                            bool IsAbst = false;
+                            if (Size >= 8)
+                            {
+                                MoreFlags = *((int32_t*)(MoreData + MoreData_Offset + 4));
+                                if (Size >= 9)
+                                {
+                                    IsAbst = MoreData[MoreData_Offset + 8] == 1;
+                                }
+                            }
+                            timecode TimeCode(Value, MoreFlags);
+                            if (IsAbst && abst.empty())
+                            {
+                                timecode_to_string(abst, TimeCode.TimeInSeconds(), TimeCode.DropFrame(), TimeCode.Frames());
+                                abst_r = TimeCode.Repeat();
+                                abst_nc = TimeCode.NonConsecutive();
+                            }
+                            else if (!IsAbst && tc.empty())
+                            {
+                                timecode_to_string(tc, TimeCode.TimeInSeconds(), TimeCode.DropFrame(), TimeCode.Frames());
+                                tc_r = TimeCode.Repeat();
+                                tc_nc = TimeCode.NonConsecutive();
+                            }
+                        }
+                        break;
+                    }
+                    MoreData_Offset += Size;
+                }
+            }
+
             decltype(FrameNumber_Max) FrameNumber = &Frame - &*File->PerFrame.begin();
-            auto ShowFrame = ShowFrames || FrameNumber == FrameNumber_Max || Frame_HasErrors(Frame);
+            auto ShowFrame = ShowFrames || FrameNumber == FrameNumber_Max || Frame_HasErrors(Frame) || abst_r || abst_nc || tc_r || tc_nc;
 
             if (ShowFrames)
             {
@@ -642,6 +721,12 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += to_string(Change->AudioChannels);
                     Text += '\"';
                 }
+                if (Change->AudioBitDepth)
+                {
+                    Text += " audio_bitdepth=\"";
+                    Text += to_string(Change->AudioBitDepth);
+                    Text += '\"';
+                }
                 if (!Captions_Partial[0].empty() || !Captions_Partial[1].empty())
                 {
                     Text += " captions=\"p\"";
@@ -660,6 +745,48 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += " speed=\"";
                     Text += to_string(DvSpeed);
                     Text += '\"';
+                }
+                if (Change->MoreData)
+                {
+                    const auto MoreData = Change->MoreData;
+                    size_t MoreData_Offset = sizeof(size_t);
+                    size_t MoreData_TotalSize = MoreData_Offset + *((size_t*)MoreData);
+                    while (MoreData_Offset < MoreData_TotalSize)
+                    {
+                        auto Size = MoreData[MoreData_Offset++];
+                        if (Size >= 0x80)
+                            break;
+                        auto Name = MoreData[MoreData_Offset++];
+                        if (Name >= 0x80)
+                            break;
+                        switch (Name)
+                        {
+                        case MediaInfo_Event_Change_MoreData_Emphasis:
+                            if (Size)
+                            {
+                                auto emphasis = MoreData[MoreData_Offset];
+                                if (emphasis < 2)
+                                {
+                                    Text += " emphasis=\"";
+                                    Text += emphasis ? "50/15 ms" : "off";
+                                    Text += '\"';
+                                }
+                            }
+                            break;
+                        case MediaInfo_Event_Change_MoreData_ProgramNumber:
+                            if (Size > 1)
+                            {
+                                auto program_number = to_hexstring(*((int16_t*)(MoreData + MoreData_Offset)));
+                                if (program_number.size() == 6 && program_number[0] == '0' && program_number[1] == 'x' && program_number[2] == '0')
+                                    program_number.erase(0, 3);
+                                Text += " program_number=\"";
+                                Text += program_number;
+                                Text += '\"';
+                            }
+                            break;
+                        }
+                        MoreData_Offset += Size;
+                    }
                 }
                 Text += ">\n";
             }
@@ -700,40 +827,37 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 }
 
                 // Absolute track number + Blank flag
-                auto AbstBf = abst_bf(Frame->AbstBf);
-                if (AbstBf.HasAbsoluteTrackNumberValue())
+                if (!abst.empty())
                 {
                     Text += " abst=\"";
-                    Text += to_string(AbstBf.AbsoluteTrackNumber());
+                    Text += abst;
                     Text += '\"';
                 }
-                if (AbstBf.Repeat())
+                if (abst_r)
                 {
                     Text += " abst_r=\"1\"";
                 }
-                if (AbstBf.NonConsecutive())
+                if (abst_nc)
                 {
                     Text += " abst_nc=\"1\"";
                 }
 
                 // TimeCode
-                auto TimeCode = timecode(Frame);
-                if (TimeCode.HasValue())
+                if (!tc.empty())
                 {
                     Text += " tc=\"";
-                    timecode_to_string(Text, TimeCode.TimeInSeconds(), TimeCode.DropFrame(), TimeCode.Frames());
+                    Text += tc;
                     Text += '\"';
                 }
-                if (TimeCode.Repeat())
+                if (tc_r)
                 {
                     Text += " tc_r=\"1\"";
                 }
-                if (TimeCode.NonConsecutive())
+                if (tc_nc)
                 {
-                    if (TimeCode.NonConsecutive_IsLess())
-                        Text += " tc_nc=\"2\"";
-                    else
-                        Text += " tc_nc=\"1\"";
+                    Text += " tc_nc=\"";
+                    Text += '0' + tc_nc;
+                    Text += '\"';
                 }
 
                 // RecDate/RecTime
@@ -884,6 +1008,14 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                                 Text += '\"';
                             }
                         }
+                    }
+                    else if (Coherency.conceal_aud_l())
+                    {
+                        Text += " conceal_aud_value=\"l\"";
+                    }
+                    else if (Coherency.conceal_aud_r())
+                    {
+                        Text += " conceal_aud_value=\"r\"";
                     }
                 }
 

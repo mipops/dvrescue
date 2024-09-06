@@ -173,9 +173,12 @@ bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
     rec_date_time RecDateTime(Frame);
     frame_seqn Seqn(Frame);
     abst_bf AbstBf = (Frame.AbstBf);
+    coherency_flags Coherency(Frame);
     return false
         || Frame.Video_STA_Errors
         || Frame.Audio_Data_Errors
+        || Coherency.conceal_aud_l()
+        || Coherency.conceal_aud_r()
         || TimeCode.NonConsecutive()
         || TimeCode.Repeat()
         || RecDateTime.NonConsecutive()
