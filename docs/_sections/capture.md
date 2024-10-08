@@ -13,6 +13,11 @@ PLEASE NOTE: Currently, the DVRescue graphic user interface (GUI) only supports 
 </div>
 <br/>
 
+<div class="blockquote">
+PLEASE NOTE: HDV tapes are not in the current scope of this project and cannot be captured using DVRescue. For more information, please see this <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue</a> discussing the differences between DV and HDV. 
+</div>
+<br/>
+
 <details markdown=1>
   <summary markdown="span">GUI Navigation</summary> <br />
   
