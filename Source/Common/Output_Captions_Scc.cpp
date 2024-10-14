@@ -10,6 +10,7 @@
 #include "Common/ProcessFile.h"
 #include "TimeCode.h"
 #include <cmath>
+#include <algorithm>
 #include <fstream>
 //---------------------------------------------------------------------------
 
@@ -41,7 +42,7 @@ static void InjectBeforeExtension(string& Name, const char* ToInject, size_t Ind
 //***************************************************************************
 
 //---------------------------------------------------------------------------
-static return_value Output_Captions_Scc(const string& OutName, const TimeCode& TC_Base, const vector<file::captions_fielddata>& PerFrame_Captions, ostream* Err)
+static return_value Output_Captions_Scc(const string& OutName, const TimeCode& TC_Base, const vector<file::captions_fielddata>& PerFrame_Captions, const vector<size_t>& IgnoredFrames, ostream* Err)
 {
     auto ToReturn = ReturnValue_OK;
 
@@ -65,6 +66,9 @@ static return_value Output_Captions_Scc(const string& OutName, const TimeCode& T
     // By Frame - For each line
     for (const auto& Frame : PerFrame_Captions)
     {
+        if (find(IgnoredFrames.begin(), IgnoredFrames.end(), Frame.StartFrameNumber) != IgnoredFrames.end())
+            continue;
+
         TimeCode TC = TC_Base + Frame.StartFrameNumber;
         Text += TC.ToString();
 
@@ -94,14 +98,46 @@ static return_value Output_Captions_Scc(const string& OutName, const TimeCode& T
 }
 
 //---------------------------------------------------------------------------
-return_value Output_Captions_Scc(const string& OutName, const TimeCode* OffsetTimeCode, std::vector<file*>& PerFile, ostream* Err)
+return_value Output_Captions_Scc(const Core::OutFile& Out, const TimeCode* OffsetTimeCode, std::vector<file*>& PerFile, ostream* Err)
 {
     auto ToReturn = ReturnValue_OK;
+
+    bool OutputFrames_Speed = true;
+    bool OutputFrames_Concealed = true;
+
+    auto It = find(Merge_OutputFileNames.begin(), Merge_OutputFileNames.end(), Out.Merge_OutputFileName);
+    if (It != Merge_OutputFileNames.end())
+    {
+        size_t Pos = It - Merge_OutputFileNames.begin();
+        OutputFrames_Speed = OutputFrames_Speeds[Pos];
+        OutputFrames_Concealed = OutputFrames_Concealeds[Pos];
+    }
 
     for (const auto& File : PerFile)
     {
         if (File->PerFrame_Captions_PerSeq_PerField.empty())
             continue; // Show the file only if there is some captions content
+
+        // filter
+        vector<size_t> IgnoredFrames;
+        if (!OutputFrames_Speed || !OutputFrames_Concealed)
+        {
+            for (auto Frame = File->PerFrame.begin(); Frame < File->PerFrame.end(); ++Frame)
+            {
+                coherency_flags Coherency(*Frame);
+                if (!OutputFrames_Concealed && Coherency.full_conceal())
+                {
+                    IgnoredFrames.push_back(Frame - File->PerFrame.begin());
+                    continue;
+                }
+
+                if (!OutputFrames_Speed && !GetDvSpeedIsNormalPlayback(GetDvSpeed(**Frame)))
+                {
+                    IgnoredFrames.push_back(Frame - File->PerFrame.begin());
+                    continue;
+                }
+            }
+        }
 
         // Init time code
         TimeCode TC_Base;
@@ -133,13 +169,13 @@ return_value Output_Captions_Scc(const string& OutName, const TimeCode* OffsetTi
         {
             for (size_t j = 0; j < 2; j++) // Per field
             {
-                string OutNameWithDseq(OutName);
+                string OutNameWithDseq(Out.Name);
                 if (File->PerFrame_Captions_PerSeq_PerField.size() > 1)
                     InjectBeforeExtension(OutNameWithDseq, ".dseq", i);
                 if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[0].empty() && !File->PerFrame_Captions_PerSeq_PerField[i].FieldData[1].empty())
                     InjectBeforeExtension(OutNameWithDseq, ".field", i + 1);
 
-                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Scc(OutNameWithDseq, TC_Base, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], Err))
+                if (!File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j].empty() && !Output_Captions_Scc(OutNameWithDseq, TC_Base, File->PerFrame_Captions_PerSeq_PerField[i].FieldData[j], IgnoredFrames, Err))
                     ToReturn = ReturnValue_ERROR;
             }
         }
