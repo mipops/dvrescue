@@ -6,6 +6,33 @@
 
 #import "Common/AvfCtl.h"
 #import <AVFoundation/AVFoundation.h>
+#import <IOKit/IOKitLib.h>
+#import <IOKit/IOCFPlugIn.h>
+#import <IOKit/avc/IOFireWireAVCLib.h>
+
+#define VCR_CTL                      0x00
+
+#define VCR_0                        0x20
+
+#define VCR_CMD_PLAY                 0xC3
+#define VCR_CMD_WIND                 0xC4
+
+#define VCR_OPE_PLAY_FORWARD         0x38
+#define VCR_OPE_PLAY_FORWARD_PAUSE   0x7D
+#define VCR_OPE_PLAY_REVERSE         0x48
+#define VCR_OPE_PLAY_REVERSE_PAUSE   0x6D
+
+#define VCR_OPE_WIND_STOP            0x60
+#define VCR_OPE_WIND_REWIND          0x65
+#define VCR_OPE_WIND_FAST_FORWARD    0x75
+
+#define VCR_SPD_X1                   0x01
+#define VCR_SPD_X2                   0x02
+#define VCR_SPD_X3                   0x03
+#define VCR_SPD_X4                   0x04
+#define VCR_SPD_X5                   0x05
+#define VCR_SPD_X6                   0x06
+#define VCR_SPD_X7                   0x07
 
 @implementation AVFCtlFileReceiver
 - (void) setLastInput: (NSDate*) toDate
@@ -56,7 +83,10 @@
 }
 @end
 
-@implementation AVFCtl
+@implementation AVFCtl {
+    IOFireWireAVCLibUnitInterface **avcDevice;
+}
+
 + (NSUInteger) getDeviceCount
 {
     return [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count];
@@ -152,6 +182,37 @@
     return [[[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:index] transportControlsSupported];
 }
 
+- (void) setupAVCDevice
+{
+    if (!_device)
+        return;
+
+    UInt64 uniqueID = 0;
+    NSScanner *scanner = [NSScanner scannerWithString:[_device uniqueID]];
+    [scanner scanHexLongLong:&uniqueID];
+
+    if (!uniqueID)
+        return;
+
+    CFMutableDictionaryRef matchingDict = IOServiceMatching("IOFireWireAVCUnit");
+    CFNumberRef uniqueIDRef = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt64Type, &uniqueID);
+    CFDictionarySetValue(matchingDict, CFSTR("GUID"), uniqueIDRef);
+    io_service_t service = IOServiceGetMatchingService(kIOMainPortDefault, matchingDict);
+    CFRelease(uniqueIDRef);
+
+    if (service) {
+        IOCFPlugInInterface **plugInInterface = NULL;
+        SInt32 score;
+        HRESULT result = IOCreatePlugInInterfaceForService(service, kIOFireWireAVCLibUnitTypeID, kIOCFPlugInInterfaceID, &plugInInterface, &score);
+
+        if (result == S_OK && plugInInterface) {
+            result = (*plugInInterface)->QueryInterface(plugInInterface, CFUUIDGetUUIDBytes(kIOFireWireAVCLibUnitInterfaceID), (LPVOID*)&avcDevice);
+            (*plugInInterface)->Release(plugInInterface);
+        }
+        IOObjectRelease(service);
+    }
+}
+
 - (id) initWithDeviceIndex:(NSUInteger) index controller:(id) extCtl
 {
     if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
@@ -159,6 +220,7 @@
 
     self = [super init];
     if (self) {
+        avcDevice = NULL;
         _device = [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] objectAtIndex:index];
         _old_mode  = [_device transportControlsPlaybackMode];
         _old_speed = [_device transportControlsSpeed];
@@ -174,6 +236,13 @@
         [_device addObserver:self forKeyPath:keyPath options:options context:nil];
 
         externalController = extCtl;
+
+        if (!externalController)
+            [self setupAVCDevice];
+
+        if (!avcDevice || !*avcDevice) {
+            NSLog(@"Warning could not setup AVC device, falling back to known buggy AVFoundation transport controls");
+        }
     }
     return self;
 }
@@ -195,6 +264,7 @@
         if (!_device)
             return nil;
 
+        avcDevice = NULL;
         _old_mode  = [_device transportControlsPlaybackMode];
         _old_speed = [_device transportControlsSpeed];
         _log_changes = NO;
@@ -209,6 +279,13 @@
         [_device addObserver:self forKeyPath:keyPath options:options context:nil];
 
         externalController = extCtl;
+
+        if (!externalController)
+            [self setupAVCDevice];
+
+        if (!avcDevice || !*avcDevice) {
+            NSLog(@"Warning could not setup AVC device, falling back to known buggy AVFoundation transport controls");
+        }
     }
     return self;
 }
@@ -222,6 +299,10 @@
 
     keyPath = NSStringFromSelector(@selector(transportControlsSpeed));
     [_device removeObserver:self forKeyPath:keyPath];
+
+    if (avcDevice && *avcDevice) {
+        (*avcDevice)->Release(avcDevice);
+    }
 }
 
 - (void) observeValueForKeyPath:(NSString *)keyPath
@@ -350,9 +431,58 @@
 
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed
 {
-    if (externalController)
-    {
+    if (externalController) {
         [externalController setPlaybackMode:theMode speed:theSpeed];
+        return;
+    }
+
+    if (avcDevice && *avcDevice)
+    {
+        UInt8 command[4] = {VCR_CTL, VCR_0, 0, 0};
+
+        switch (theMode) {
+            case AVCaptureDeviceTransportControlsPlayingMode:
+                command[2] = VCR_CMD_PLAY;
+                if (theSpeed >= 2.0f)
+                    command[3] = VCR_OPE_PLAY_FORWARD + VCR_SPD_X7;
+                else if (theSpeed > 1.0f)
+                    command[3] = VCR_OPE_PLAY_FORWARD + VCR_SPD_X6;
+                else if (theSpeed == 1.0f)
+                    command[3] = VCR_OPE_PLAY_FORWARD;
+                else if (theSpeed > 0.0f)
+                    command[3] = VCR_OPE_PLAY_FORWARD - VCR_SPD_X6;
+                else if (theSpeed == 0.0f)
+                    command[3] = VCR_OPE_PLAY_FORWARD_PAUSE;
+                else if (theSpeed > -1.0f)
+                    command[3] = VCR_OPE_PLAY_REVERSE + VCR_SPD_X6;
+                else if (theSpeed == -1.0f)
+                    command[3] = VCR_OPE_PLAY_REVERSE;
+                else if (theSpeed > -2.0f)
+                    command[3] = VCR_OPE_PLAY_REVERSE - VCR_SPD_X6;
+                else if (theSpeed <= -2.0f)
+                    command[3] = VCR_OPE_PLAY_REVERSE - VCR_SPD_X7;
+                break;
+            case AVCaptureDeviceTransportControlsNotPlayingMode:
+                command[2] = VCR_CMD_WIND;
+                if (theSpeed == 0.0f)
+                    command[3] = VCR_OPE_WIND_STOP;
+                else if (theSpeed > 0.0f)
+                    command[3] = VCR_OPE_WIND_FAST_FORWARD;
+                else if (theSpeed < 0.0f)
+                    command[3] = VCR_OPE_WIND_REWIND;
+                break;
+            default:
+                return;
+        }
+
+        UInt8 response[4] = {0, 0, 0, 0};
+        UInt32 responseLen = 4;
+        @synchronized(self) {
+            IOReturn result = (*avcDevice)->AVCCommand(avcDevice, command, sizeof(command), response, &responseLen);
+            if (result != kIOReturnSuccess) {
+                NSLog(@"Error: Failed to send AVC command");
+            }
+        }
         return;
     }
 
@@ -375,7 +505,9 @@
     if (externalController)
         return [externalController getSpeed];
 
-    return [_device transportControlsSpeed];
+    @synchronized(self) {
+        return [_device transportControlsSpeed];
+    }
 }
 
 - (AVCaptureDeviceTransportControlsPlaybackMode) getMode
@@ -383,11 +515,21 @@
     if (externalController)
         return [externalController getMode];
 
-    return [_device transportControlsPlaybackMode];
+    @synchronized(self) {
+        return [_device transportControlsPlaybackMode];
+    }
 }
 
 - (BOOL) waitForSessionEnd:(NSUInteger) timeout
 {
+    // Wait for the device to start playing
+    NSUInteger counter = 0;
+    while ([self getSpeed] == 0.0f && counter < 20)
+    {
+        [NSThread sleepForTimeInterval:0.5f];
+        counter++;
+    }
+
     // Initialize reveiver's last input timestamp to current time
     if (receiverInstance)
         [receiverInstance setLastInput: [NSDate date]];
@@ -403,7 +545,7 @@
             return TRUE;
         }
 
-        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.5f]];
+        [NSThread sleepForTimeInterval:0.5f];
     }
 
     return FALSE;
