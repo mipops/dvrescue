@@ -51,7 +51,7 @@ table {
   max-width: fit-content;
   margin: 0 auto;
   overflow-x: auto;
-  white-space: nowrap;
+  border-collapse: collapse;
   border: 2px solid black;
 }
 
@@ -59,8 +59,7 @@ th,
 td {
   padding: 10px;
   border: 1px solid black;
-  word-wrap: break-word;
-  max-width: 150px;}
+  max-width: 300px;}
 
 .separator {
     color: #555;
