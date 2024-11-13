@@ -139,50 +139,6 @@ If the device **is** detected in hardware, but you are unable to establish a con
 </details>
 &nbsp;
 
-### Verify Permissions, Security Policy, & System Integrity Protection
-
-DVRescue requires some special permissions to access to operate and to capture DV videotape. These are all outlined in the <a href="{{ site.baseurl }}/sections/installation.html">Installation guide</a>. If any of these are not set correctly, they may block DVRescue from accessing connected devices to capture DV. Some of these settings may change or revert if your system has been updated.
-
-<details markdown="1">
-
-#### Permissions
-
-Both dvrescue and vrecord require permission to access your computer’s camera and screen recording in order to capture DV.
-
-If for any reason the dvrescue installation does not prompt you to grant permission, you can fix the permissions manually for both programs:
-
-- Ensure you are logged into your computer as an Administrator
-- Open System Preferences
-- Click on Security and Privacy
-- Select the Privacy tab
-- Fix Camera Permissions
-  - Select Camera from the list
-  - To make changes to the settings, you will need to unlock the lock located in the bottom left hand corner of the window. Click the lock and enter your password.
-  - If not already included, add both of these items to the list. You can do so by clicking on the + button and selecting each from the applications list:
-    - Terminal
-    - dvrescue
-  - If the Camera menu does not have the +/-...
-    - Drag and drop DVRescue from the Applications folder into the permissions window.
-    - You can add the Terminal and dvrescue to the Full Disk Access list instead.
-    - Alternatively, you can disable the permissions settings automatically in place with most macOS software by following the steps below for disabling system integrity protection. (This is advised in order to prevent additional permissions related errors or limitations.) 
-- Fix Screen Recording permissions
-  - Select Screen Recording from the list on the left hand side of the Privacy window.
-  - If not already included, add dvrescue to the list.
-  - Make sure the checkbox is checked.
-
-Finally, reboot your Mac for all changes to take effect.
-
-#### Security Policy, & System Integrity Protection
-
-PLEASE NOTE: after any automatic or manual updates to macOS (including security updates), check to see if the security policy was changed even if you have previously changed it.
-
-Follow the steps outlined in the <a href="{{ site.baseurl }}/sections/installation.html">Installation guide</a> under “Recovery Mode Changes”.
-
-In the majority of cases, following the preceding steps will fix the issue. But if, after following all of this, your system still will not detect your DV deck, move onto the below steps to determine if third party extensions are not being allowed.
-
-</details>
-&nbsp;
-
 ### Check for Issues with BlackMagic
 
 If all of the previous steps have failed, there may be an issue with your Blackmagic drivers. Even though you only directly use a BlackMagic video card for analog videotape captures, it is still required to run vrecord and dvrescue in general.
@@ -265,14 +221,180 @@ For most of these tips, the assumption is that you have additional cables, adapt
 
 If none of these components can be pinpointed as the source of the issue, consider whether there might be a problem with your computer’s FireWire port. If you can, attach a different FireWire device. Alternatively, test the same setup using another computer.
 
+</details>
+&nbsp;
+
 ## Last resort
 If none of this works, your problem may be more complicated. You can always visit the <a href="https://github.com/mipops/dvrescue" target="_blank">DVRescue GitHub page</a> as a resource to see if anyone else is having similar problems or to ask questions and report issues. If you do want to report an issue, provide as much information as possible, including the devices and operating system you are using!
 
 </details>
 &nbsp;
 
+# Permissions, Security Policy, & System Integrity Protection (Mac)
+
+DVRescue requires some special permissions to access to operate and to capture DV videotape. (These are all also outlined in the <a href="{{ site.baseurl }}/sections/installation.html" target="_blank">Installation guide</a>.) If any of these are not set correctly, they may block DVRescue from accessing connected devices to capture DV.
+
+<div class="blockquote">
+PLEASE NOTE: after any automatic or manual updates to macOS (including security updates), check to see if the security policy and permissions have changed, even if you have previously set them.
+</div>
+<br/>
+
+<details markdown="1">
+
+<summary markdown="span">Guide</summary>
+
+## Recovery Mode Changes
+
+DVRescue requires some special permissions to operate and to capture DV videotape.<br>*Example images taken from a M1 Mac Mini 2020+ running Monterey 12.4+*
+
+<details markdown="1">
+
+### Disable System Integrity Protection
+
+<details markdown="1">
+
+To disable SIP, do the following:
+- Restart your computer in <a href="https://support.apple.com/en-us/102518" target="_blank">Recovery mode</a>. Methods will vary based on Mac model:
+  - <a href="https://support.apple.com/guide/mac-help/use-macos-recovery-on-an-intel-based-mac-mchl338cf9a8/mac" target="_blank">Intel-based Mac computers</a>
+  - <a href="https://support.apple.com/guide/mac-help/macos-recovery-a-mac-apple-silicon-mchl82829c17/mac" target="_blank">Mac with Apple Silicon</a>
+- Launch Terminal from the Utilities menu.
+- Run the command `csrutil disable`
+- Enter password if requested
+- Restart your computer
+
 </details>
 &nbsp;
+
+### Change the security policy
+
+<details markdown="1">
+
+- Restart your computer in <a href="https://support.apple.com/en-us/102518" target="_blank">Recovery mode</a>. Methods will vary based on Mac model:
+  - <a href="https://support.apple.com/guide/mac-help/use-macos-recovery-on-an-intel-based-mac-mchl338cf9a8/mac" target="_blank">Intel-based Mac computers</a>
+  - <a href="https://support.apple.com/guide/mac-help/macos-recovery-a-mac-apple-silicon-mchl82829c17/mac" target="_blank">Mac with Apple Silicon</a>
+
+- In the Recovery app, choose Utilities > Startup Security Utility.
+- Select the system you want to use to set the security policy.
+- If the disk is encrypted with FileVault, click Unlock, enter the password, then click Unlock.
+- Click Security Policy
+- Depending on the model of your computer, the Security Policy might be slightly different. Select your model:
+
+<details markdown="1">
+
+<summary markdown="span">M1 Mac</summary>
+
+- Select **Reduced Security**: Allows any version of signed operating system software ever trusted by Apple to run.
+- Under Reduced Security, there are two additional options. Ensure the box next to the first option is checked. If needed for remote access, check the second box as well:
+  - **Allow user management of kernel extensions from identified developers**: Allow installation of software that uses legacy kernel extensions.
+  - **Allow remote management of kernel extensions and automatic software updates**: Authorize remote management of legacy kernel extensions and software updates using a mobile device management (MDM) solution.
+- Click OK.
+- *If applicable for multiple users/your computer settings*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
+
+</details>
+&nbsp;
+
+<details markdown="1">
+
+<summary markdown="span">2019 Macbook Pro</summary>
+
+- Select **Medium Security**: Allows any version of signed operating system software ever trusted by Apple to run.
+- Under Medium Security, there are two additional options. Ensure the box next to the first option is checked. If needed for remote access, check the second box as well:
+  - **Allow user management of kernel extensions from identified developers**: Allow installation of software that uses legacy kernel extensions.
+  - **Allow remote management of kernel extensions and automatic software updates**: Authorize remote management of legacy kernel extensions and software updates using a mobile device management (MDM) solution.
+- Click OK.
+- *Only if the computer has multiple users and you are not logged in as an admin*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
+
+</details>
+&nbsp;
+
+<details markdown="1">
+
+<summary markdown="span">2017 Mac Pro</summary>
+
+- Select **Reduced Security**: Allows any version of signed operating system software ever trusted by Apple to run.
+- Under Reduced Security, there are two additional options. Ensure the box next to the first option is checked. If needed for remote access, check the second box as well:
+  - **Allow user management of kernel extensions from identified developers**: Allow installation of software that uses legacy kernel extensions.
+  - **Allow remote management of kernel extensions and automatic software updates**: Authorize remote management of legacy kernel extensions and software updates using a mobile device management (MDM) solution.
+- Click OK.
+- *Only if the computer has multiple users and you are not logged in as an admin*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
+
+</details>
+&nbsp;
+
+- For all models, you must restart your Mac for the changes to take effect. Choose Apple menu  > Restart. Allow the computer to restart as normal.
+- Once the computer is fully restarted, go to System Preferences again: System Preferences/Security Preferences
+- Click on the General tab. If the system software message is still present, complete the following steps.
+  - If it’s not already unlocked, click on the lock icon in the lower left hand corner of the window. Enter your password when prompted.
+  - Click “Allow” near the bottom of the window.
+  - Make sure to relock the lock to save the changes you have made to your Security Preferences.
+- Restart your computer again.
+
+Once the computer has restarted again, connect a DV device and turn it on. Open DVRescue and navigate to the Capture tab. See if the program detects your device and continue to follow the steps below.
+
+</details>
+&nbsp;
+
+</details>
+&nbsp;
+
+## Pop-up permissions
+
+<details markdown="1">
+
+### Rosetta (M1 only)
+
+The first time you open the DVRescue GUI, a pop-up window may open that prompts you to install Rosetta.
+(This depends on your computer’s hardware and whether you have already downloaded Rosetta for another program.)
+Click “install” in the pop-up window.
+
+### Camera and screen recording access
+
+- Click on the “Capture” tab.
+- Plug in the deck you wish to use.
+- Turn on the deck.
+- When prompted, grant DVRescue permission to access your camera.
+- You should get a similar prompt asking for permission for dvrescue to record your screen the first time you capture DV.
+
+After granting these permissions, you will then be able to use all of the DVRescue tools in the GUI.
+
+</details>
+&nbsp;
+
+## System Preferences permissions
+
+Both dvrescue and vrecord require permission to access your computer’s camera and screen recording in order to capture DV.
+
+If for any reason the dvrescue installation does not prompt you to grant permission, you can fix the permissions manually for both programs:
+
+<details markdown="1">
+
+- Ensure you are logged into your computer as an Administrator
+- Open System Preferences
+- Click on Security and Privacy
+- Select the Privacy tab
+- Fix Camera Permissions
+  - Select Camera from the list
+  - To make changes to the settings, you will need to unlock the lock located in the bottom left hand corner of the window. Click the lock and enter your password.
+  - If not already included, add both of these items to the list. You can do so by clicking on the + button and selecting each from the applications list:
+    - Terminal
+    - dvrescue
+  - If the Camera menu does not have the +/-...
+    - Drag and drop DVRescue from the Applications folder into the permissions window.
+    - You can add the Terminal and dvrescue to the Full Disk Access list instead.
+    - Alternatively, you can disable the permissions settings automatically in place with most macOS software by following the steps below for disabling system integrity protection. (This is advised in order to prevent additional permissions related errors or limitations.) 
+- Fix Screen Recording permissions
+  - Select Screen Recording from the list on the left hand side of the Privacy window.
+  - If not already included, add dvrescue to the list.
+  - Make sure the checkbox is checked.
+
+Finally, reboot your Mac for all changes to take effect.
+
+</details>
+&nbsp;
+
+</details>
+&nbsp;
+
 
 # dvcapture via vrecord
 
