@@ -3,6 +3,11 @@ layout: post
 title: Capture
 ---
 
+<div class="blockquote">
+PLEASE NOTE: HDV tapes are not in the current scope of this project and cannot be captured using DVRescue. For more information, please see this <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue</a> discussing the differences between DV and HDV. 
+</div>
+<br/>
+
 # How to capture using the DVRescue GUI
 Step-by-step instructions for using the DVRescue graphic user interface to capture DV videotape formats. 
 
@@ -10,11 +15,6 @@ This portion of the DVRescue documentation will explain how to capture a DV vide
 
 <div class="blockquote">
 PLEASE NOTE: Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.
-</div>
-<br/>
-
-<div class="blockquote">
-PLEASE NOTE: HDV tapes are not in the current scope of this project and cannot be captured using DVRescue. For more information, please see this <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue</a> discussing the differences between DV and HDV. 
 </div>
 <br/>
 
