@@ -47,8 +47,6 @@ a:hover {
 }
 
 table {
-  display: block;
-  max-width: fit-content;
   margin: 0 auto;
   overflow-x: auto;
   border-collapse: collapse;
