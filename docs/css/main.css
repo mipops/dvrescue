@@ -46,6 +46,10 @@ a:hover {
     border: none;
 }
 
+details > *:not(summary){
+  margin-left: 2em;
+}
+
 table {
   max-width: fit-content;
   display: block;
