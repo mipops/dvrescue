@@ -291,7 +291,6 @@ To disable SIP, do the following:
 - *If applicable for multiple users/your computer settings*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
 
 </details>
-&nbsp;
 
 <details markdown="1">
 
@@ -305,7 +304,6 @@ To disable SIP, do the following:
 - *Only if the computer has multiple users and you are not logged in as an admin*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
 
 </details>
-&nbsp;
 
 <details markdown="1">
 
@@ -319,7 +317,6 @@ To disable SIP, do the following:
 - *Only if the computer has multiple users and you are not logged in as an admin*: If you changed the security policy, click the User pop-up menu, choose an administrator account, enter the password for the administrator account, then click OK.
 
 </details>
-&nbsp;
 
 - For all models, you must restart your Mac for the changes to take effect. Choose Apple menu  > Restart. Allow the computer to restart as normal.
 - Once the computer is fully restarted, go to System Preferences again: System Preferences/Security Preferences
