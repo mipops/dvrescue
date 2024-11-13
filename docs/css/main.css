@@ -59,6 +59,11 @@ td {
   border: 1px solid black;
   max-width: 300px;}
 
+table th:nth-of-type(14),
+table th:nth-of-type(15) {
+    width: 500px;
+}
+
 .separator {
     color: #555;
 }
