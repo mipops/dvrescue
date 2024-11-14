@@ -32,7 +32,7 @@ img {
 }
 
 a {
-    color: #e98c94;
+    color: #ec202f;
     text-decoration: none;
     border: none;
 }
@@ -42,7 +42,7 @@ a img {
 }
 
 a:hover {
-    color: #ec202f;
+    color: #e98c94;
     border: none;
 }
 
