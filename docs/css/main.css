@@ -282,6 +282,8 @@ table th:nth-of-type(15) {
 
 .post ul,
 .post ol {
+    font-family: 'Source Sans Pro', Arial, sans-serif;
+    font-size: 17px;
     margin-left: 2.35em;
     margin-bottom: 1.25em;
 }
