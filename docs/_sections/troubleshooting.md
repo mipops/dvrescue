@@ -3,13 +3,46 @@ layout: post
 title: Troubleshooting
 ---
 
-# Known Issues
+If you run into bugs or other trouble while using DVRescue, check whether your issue matches any of the common issues below and follow the troubleshooting steps.
+
+When troubleshooting any issue, ensure that you are using the most current version of DVRescue, <a href="https://mediaarea.net/DVRescue" target="blank">which you can download here</a>. 
+
+## Don't see your issue anywhere?
+
+Read below about how to use GitHub to search and report new issues.
+
+<details markdown="1">
+
+<summary markdown="span">Guide</summary>
+
+The GitHub issues page is where you can report, discuss, and resolve problems you are experiencing with DVRescue.
+
+Search for a few keywords to see whether your issue, or something similar, has been reported already. You can contribute to that existing discussion if desired, or follow any steps currently being developed to fix the problem.
+
+To report a new issue, first do the following:
+- Make sure you are using the most current version of DVRescue. Open the program and select "about DVRescue" in the top left menu. Make a note of the version date.
+- Also make a note of your machine and OS version under "About this Mac"
+- Open the Terminal.app and launch DVRescue by running this command: `/Applications/dvrescue.app/Contents/MacOS/dvrescue --log`
+- Recreate the issue using the fewest number of steps possible
+- Quit DVRescue
+- Go back to Terminal and run this command: `cat ~/Library/Containers/net.MediaArea.dvrescue.mac-gui/Data/dvrescue-gui_logs/dvrescue-gui.log`
+- Either copy the contents or go to `Shell -> Export Text As` to save as a text document
+- In GitHub, you will need to be logged into your account. Select the "New issue" button and give your issue a succinct and specific title
+- Describe your issue as clearly as you can. Attach or copy-paste the log you just saved. Make sure to specify your computer, its OS, and the version of DVRescue
+
+You should be automatically subscribed to receive notifications when others reply or add to your issue. Keep an eye on it because the developers may ask follow up questions, ask you to try to replicate your issue with different steps, or ask you whether new DVRescue updates have fixed the issue.
+
+</details>
+
+## Known Issues
 
 Below is a list of known issues for the recent builds of DVRescue. Please see the linked issues on GitHub for more details.
 
 - Windows/Linux connection with adapters doesn’t work (<a href="https://github.com/mipops/dvrescue/issues/718" target="_blank">Issue 1</a>, <a href="https://github.com/mipops/dvrescue/issues/725" target="_blank">Issue 2</a>)
-- <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/746" target="_blank">Deck control in the DVRescue GUI is buggy</a>
+- <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
+- <a href="https://github.com/mipops/dvrescue/issues/930" target="_blank">DVRescue crashing when merging files</a>
+- <a href="https://github.com/mipops/dvrescue/issues/950" target="_blank">DVpackager Rewrapped MOV Files Broken Header</a>
 &nbsp;
 
 # No DV Deck Detected
@@ -359,9 +392,7 @@ After granting these permissions, you will then be able to use all of the DVResc
 
 ## System Preferences permissions
 
-Both dvrescue and vrecord require permission to access your computer’s camera and screen recording in order to capture DV.
-
-If for any reason the dvrescue installation does not prompt you to grant permission, you can fix the permissions manually for both programs:
+Both dvrescue and vrecord require permission to access your computer’s camera and screen recording in order to capture DV. If for any reason the dvrescue installation does not prompt you to grant permission, you can fix the permissions manually for both programs:
 
 <details markdown="1">
 
@@ -429,5 +460,4 @@ You will need to change the OS camera permissions by following these steps:
 
 </details>
 &nbsp;
-
 
