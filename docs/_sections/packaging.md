@@ -18,7 +18,7 @@ A file list will populate containing any files you have already been working on 
 In this section you can also select the segmentation rules, selecting the markers around which you would like to split the file. These different markers, and when they might be useful, are listed below.
 
 ### Segmentation Markers
-<br />
+
 - **Record start markers:** flags indicating the beginning of a recording.<br />
   This can be helpful for finding the beginning or end of segments that were recorded separately. It can also help with packaging, if you prefer the segments of content in separate files. Some camcorders use both start and stop markers, but most only use one or the other. 
 
@@ -57,7 +57,7 @@ The output queue list all the files that have been processed or are in queue to 
 
 <div class="blockquote">
 Note: we recommend previewing files and segmenting options in the Analysis tab prior to packaging in order to perform quality control and review any artifacts, recapture if needed, and merge files to get the best possible copy prior to packaging. Analysis also serves as a good way to test various segmentation rules and determine the best one(s) for each file based on the recording data and content.
-</div><br />
+</div>
 
 1. In the DVRescue GUI, navigate to “Package” from the menu on the left side.
 2. Under Input Files, a file list will populate containing any files you have already been working on in other tabs.
@@ -78,7 +78,7 @@ Note: we recommend previewing files and segmenting options in the Analysis tab p
 11. As each file processes, an icon to the right will show the status of the file.
 
 </details> 
-
+<br />
 # How to package files using the DVRescue CLI
 Commands and useage for capturing DV tapes using the dvrescue command line tools (CLI).
 
