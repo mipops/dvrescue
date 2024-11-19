@@ -94,9 +94,9 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 # How to capture using the DVRescue CLI
 Commands and useage for capturing DV tapes using the dvrescue command line tools (CLI).
 <details markdown=1>
-  <summary markdown="span">Useage of capture commands</summary> <br />
+  <summary markdown="span">Usage of capture commands</summary> <br />
   
-**Basic useage:** <br />
+**Basic usage:** <br />
 Below is the order you should type the commands for capturing using the CLI.
 
 1. In the Terminal run ```dvrescue --list_devices``` to display the names of the devices connected to your computer. Note the name and device number of the one you want to use for capture. For example: <br /> ```$ dvrescue --list_devices``` <br /> ```0x80458280022265: Panasonic DV [DV]``` 
