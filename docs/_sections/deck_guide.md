@@ -6,6 +6,7 @@ title: Deck Guide
 
 # Decks (Overview)
 
+[View this table in Google Sheets[(https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit?usp=sharing)
 
 | Image | Make | Model | Compatible Formats | Compatible Sizes | Non-compatible Formats | Standard | SP/LP modes | Operation Manual | Service Manual | Power | Cable/Output | Remote 9-pin? | Known Issues/<br/>Unique Characteristics | Known Issues/<br/>Unique Characteristics |
 | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | 
