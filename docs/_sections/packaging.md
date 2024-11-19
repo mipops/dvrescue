@@ -63,18 +63,18 @@ Note: we recommend previewing files and segmenting options in the Analysis tab p
 
 1. In the DVRescue GUI, navigate to “Package” from the menu on the left side.
 2. Under Input Files, a file list will populate containing any files you have already been working on in other tabs.
-  1. You can remove any of these files with the X next to the file name.
-  2. You can import other files by clicking the folder icon with a plus symbol or by dragging and dropping the files into the window.
+    1. You can remove any of these files with the X next to the file name.
+    2. You can import other files by clicking the folder icon with a plus symbol or by dragging and dropping the files into the window.
 3. If Input Files shows more than one file, make sure to select the one you want to be working with by clicking on it. The file will be highlighted in green when selected. 
 4. Below the file list, select any of the segmentation rules you want to use to divide the file.
-  1. Read more about these in the section above.
-  2. If you are unsure, you may want to first explore more in the Analysis tab.
+    1. Read more about these in the section above.
+    2. If you are unsure, you may want to first explore more in the Analysis tab.
 5. Be sure to click Apply once you have selected the rules.
 6. The list in the Segmentation Rules window will show the number of segments that will be output. Make sure this list matches your expectations and no issues are apparent.
 7. Choose the file format you would like for the output files: .mov or .mkv.
 8. Determine the location to save the files:
-  1. If you want to save the packaged files in the same location as the original file, select the “package into same folder” option. This will also keep the same name as the original file with numbers appended as necessary.
-  2. If you want to save the files to a separate location, select the “specify path” option and enter the path. Here you may also rename the file.
+    1. If you want to save the packaged files in the same location as the original file, select the “package into same folder” option. This will also keep the same name as the original file with numbers appended as necessary.
+    2. If you want to save the files to a separate location, select the “specify path” option and enter the path. Here you may also rename the file.
 9. Click the “Add to queue” button. The file will appear in the Output Queue below and will begin processing immediately.
 10. While it processes, you can continue working on other files. Repeat steps 3-9 for all files you want to package.
 11. As each file processes, an icon to the right will show the status of the file.
@@ -300,3 +300,4 @@ All of these flags and options can also be viewed by typing `dvrescue -h` into t
     will show a table of the outputs for file.dv with the provided options (-s -a c).
 
 </details> 
+<br />
