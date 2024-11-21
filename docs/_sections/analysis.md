@@ -14,7 +14,7 @@ Using a combination of the dvrescue tools in both the GUI and command line, you 
 
 ## GUI Navigation
 
-![dvanalysis_02](https://mipops.github.io/dvrescue/images/dvanalysis_02.png)
+![dvanalysis_02](https://mipops.github.io/dvrescue/images/dvanalysis_02.png){:width="600px"}
 
 ### Viewer
 
@@ -26,7 +26,7 @@ These graph views plot the frames throughout the video file. There is one interf
 
 If there are more than 100 frames with errors, the graph will only depict the first 100, to avoid crashing the program.
 
-![dvanalysis_03](https://mipops.github.io/dvrescue/images/dvanalysis_03.png)
+![dvanalysis_03](https://mipops.github.io/dvrescue/images/dvanalysis_03.png){:width="600px"}
 
 Below the graphs you can zoom in and out to focus on certain parts of the timeline.
 
@@ -42,7 +42,7 @@ The frame number on the far left is a link. Clicking it opens the dvloupe pop-up
 
 In the table, a variety of icons will appear next to frames to flag various errors, markers and changes for the user. Below is a list of the icons, with corresponding images and descriptions.
 
-[![dvanalysis_04](https://mipops.github.io/dvrescue/images/dvanalysis_04.png){:width="300px"}]
+![dvanalysis_04](https://mipops.github.io/dvrescue/images/dvanalysis_04.png){:width="300px"}
 
 - **substantial change:** this icon will appear next to a frame marking a significant change in recording settings such as aspect ratio or audio rate change. Consider using these as potential ways to package your file to accommodate a variety of playback settings. 
 - **repeat frame:** a frame is a repeat of the one prior to or after it. 
@@ -50,11 +50,11 @@ In the table, a variety of icons will appear next to frames to flag various erro
   - **ahead:** a break in the recording time occurred, with the flagged non-continuous part starting after the previous continuous content of the tape. 
   - **back:**  a break in the recording occurred, with the flagged non-continuous part starting prior the previous continuous content of the tape.
  
-[![dvanalysis_05](https://mipops.github.io/dvrescue/images/dvanalysis_05.png){:width="300px"}]
+![dvanalysis_05](https://mipops.github.io/dvrescue/images/dvanalysis_05.png){:width="300px"}
 
 - **Record markers:** flags indicating the beginning or end of a recording. Some camcorders use both stop and start flags, but most use one or the other. This can be helpful for finding the beginning or end of segments that were recorded separately. It can also help with packaging, if you prefer the segments of content in separate files.
 
-[![dvanalysis_06](https://mipops.github.io/dvrescue/images/dvanalysis_06.png){:width="300px"}]
+![dvanalysis_06](https://mipops.github.io/dvrescue/images/dvanalysis_06.png){:width="300px"}
 
 - **Closed caption flags:** if closed caption tracks are present in the DV file data, these will appear next to the associated frames in the table list. If there are errors in the caption track, it will be red. If the caption track is fine, they will be gray.
 
@@ -73,7 +73,7 @@ Here, all of the files you have loaded into dvanalysis are listed. Each file is 
 
 Instead of seeing the file list, you can toggle to the Segment tab in the same corner of the interface. This is a section for breaking up a single video into parts based on the presence of specific markers.
 
-![dvanalysis_07](https://mipops.github.io/dvrescue/images/dvanalysis_07.png)
+![dvanalysis_07](https://mipops.github.io/dvrescue/images/dvanalysis_07.png){:width="600px"}
 
 - **Record start markers:** flags indicating the beginning of a recording.<br />
   This can be helpful for finding the beginning or end of segments that were recorded separately. It can also help with packaging, if you prefer the segments of content in separate files. Some camcorders use both start and stop markers, but most only use one or the other. 
@@ -103,7 +103,7 @@ If you just captured a tape, the file will automatically load into the Analysis 
 
 A spinning pink wheel will appear while the file loads. The more errors contained in a video, the longer the files will take to load. Total running time (TRT) and overall file size are also factors, the greatest effect on loading time is the number of errors. The tool is gathering all of the frames that contain errors and generating the table and graphs, so the more errors present, the longer it will take to generate.
 
-![dvanalysis_01](https://mipops.github.io/dvrescue/images/dvanalysis_01.png)
+![dvanalysis_01](https://mipops.github.io/dvrescue/images/dvanalysis_01.png){:width="600px"}
 
 Once it is finished, it will also have created an .xml file summarizing the video file and its errors. This will be saved to the folder containing the video file, as well as a sub-folder containing image files for all of the frames that contained errors. Keeping this .xml file will make the process of loading the video into dvanalysis in the future, if necessary, nearly instantaneous.
 
