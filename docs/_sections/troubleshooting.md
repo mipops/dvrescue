@@ -43,6 +43,7 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 - <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/930" target="_blank">DVRescue crashing when merging files</a>
 - <a href="https://github.com/mipops/dvrescue/issues/950" target="_blank">DVpackager Rewrapped MOV Files Broken Header</a>
+- <a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">Firewire permissions issue in Ubuntu 22.04</a>
 &nbsp;
 
 # No DV Deck Detected
