@@ -95,7 +95,7 @@ For more information on segments and how they can be useful, please refer to <a 
 </details>
 
 <details markdown=1>
-  <summary markdown="span">Analyze Instructions</summary>
+  <summary markdown="span">Analysis Instructions</summary>
 
 ## GUI Analysis
 
@@ -108,6 +108,7 @@ A spinning pink wheel will appear while the file loads. The more errors containe
 Once it is finished, it will also have created an .xml file summarizing the video file and its errors. This will be saved to the folder containing the video file, as well as a sub-folder containing image files for all of the frames that contained errors. Keeping this .xml file will make the process of loading the video into dvanalysis in the future, if necessary, nearly instantaneous.
 
 </details>
+<br />
 
 # How to analyze files using the DVRescue CLI
 
