@@ -202,7 +202,7 @@
     <ResourceCompile Include="..\..\..\Source\CLI\DVRescue.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\MediaInfoLib\Project\MSVC2017\Library\MediaInfoLib.vcxproj">
+    <ProjectReference Include="..\..\..\..\MediaInfoLib\Project\MSVC2022\Library\MediaInfoLib.vcxproj">
       <Project>{20e0f8d6-213c-460b-b361-9c725cb375c7}</Project>
     </ProjectReference>
   </ItemGroup>
