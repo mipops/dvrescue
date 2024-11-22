@@ -14,7 +14,7 @@ PLEASE NOTE: HDV tapes are not in the current scope of this project and cannot b
 Step-by-step instructions for using the DVRescue graphic user interface to capture DV videotape formats. 
 
 <div class="blockquote">
-PLEASE NOTE: Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs required a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.
+PLEASE NOTE: Currently, the DVRescue graphic user interface (GUI) only supports capture on macOS (not Windows or Linux). The command line interface (CLI) supports capture on Linux and Windows (Windows PCs require a dual boot with Ubuntu to work with dvcapture). <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">dvcapture in vrecord</a> can also capture DV on Linux and Windows (Windows PCs require a dual boot with Ubuntu to work with dvcapture). The other tools (dvanalysis, dvmerge, and dvpackager) are supported on all three platforms via the GUI and the CLI.
 </div>
 <br/>
 
@@ -27,19 +27,15 @@ In the “Capture” tab from the left-hand menu, you will see a large box in th
 
 ![dvcapture_02_NEW](https://github.com/user-attachments/assets/1abbbc94-682b-4232-a814-8aa24f2dcf4a)
 
-
 Or (if you do not have a deck connected or if the deck is off) the following message:
 
 ![no-deck-detected_small](https://github.com/user-attachments/assets/d5d3aabc-c84b-4680-b6f0-b777e3674038)
 
-  
 If the deck is successfully connected, the make and model of your DV deck should appear above the capture playback window. If you have more than one deck connected, multiple players will appear. Once you have specified a file location and name for your capture, the file name will also appear in the upper right hand corner of the corresponding deck being used to capture it.
-
 
 The player buttons below the capture window can control the deck, and the icon to the right of the player buttons indicates the current status of the deck.
 
 <img width="1422" alt="dvcapture_07" src="https://github.com/user-attachments/assets/b6fffc81-feca-4c71-b01c-ca7564c6aa8c">
-
 
 Counters underneath the player buttons track video by frame number, timecode, and the actual record time that has elapsed.
 
@@ -47,10 +43,9 @@ The graph underneath the counters tracks frames with error concealment for audio
 
 ![dvcapture_02B](https://github.com/user-attachments/assets/add62d5f-6b38-434c-9ff9-2c8728df800d)
 
-
 When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV LP, DVCAM, DVCPRO, or HDV) and display a pink indicator lamp to the left of the deck control buttons. 
 
-**Please note:** that transferring HDV is not supported by the DVRescue project. Please see <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue #53</a> for more details. 
+**Please note:** Transferring HDV is not supported by the DVRescue project. Please see <a href="https://github.com/mipops/dvrescue/issues/53" target="_blank">issue #53</a> for more details. 
 
 </details>
 
@@ -306,3 +301,20 @@ All of these flags and options can also be viewed by typing ```dvrescue -h``` in
 
 # How to capture using vrecord
 To use dvcapture in vrecord, please see the <a href="https://github.com/amiaopensource/vrecord/blob/main/Resources/Documentation/dv_info.md" target="_blank">documentation</a> on the vrecord GitHub repository. 
+
+# Capture alternative for Windows PCs
+
+<details markdown=1>
+
+  If you are running into trouble capturing on Windows, don't have the necessary setup, or prefer not to use the command line, <a href="https://github.com/mipops/dvrescue/issues/897#issuecomment-2264765485" target="_blank"> one user on GitHub has shared a workaround</a>.
+
+1. Use the old WinDV tool to capture the tape to an AVI file. Settings are as follows:
+    1. Capture to Type 1 AVI file
+    2. Discontinuity threshold: 0 (always capture to a single file; ignore timecode discontinuities)
+    3. Max AVI size: 1000000 (the highest possible value; this is several hours of NTSC video)
+    4. Every N-th frame: 1
+2. Unwrap the avi file using FFmpeg to a bare DV file:<br />
+  `ffmpeg -nostdin -i <name of input AVI file> -map 0:v:0 -c copy -f rawvideo <name of output DV file>.dv`
+3. Now you have a bare DV file that you can load into DVRescue for analysis, merging, packaging, etc.
+
+</details>  <br />
