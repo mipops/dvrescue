@@ -92,7 +92,7 @@ If you’re still not connected to the deck, move onto further troubleshooting s
 </details>
 &nbsp;
 
-## MacOS Steps
+## macOS Steps
 
 <details markdown="1">
 &nbsp;
@@ -101,7 +101,7 @@ If you’re still not connected to the deck, move onto further troubleshooting s
 
 <details markdown="1">
 
-Check whether the deck is detected through the command line by opening Terminal and running <code>dvrescue --list_devices</code>
+Check whether the deck is detected through the command line by opening Terminal and running `dvrescue --list_devices`
 
 This is more comprehensive and accurate than what is displayed in the GUI. If your deck is listed, then DVRescue is connected to it. Restart the DVRescue GUI and wait a few minutes to see if it shows up.
 
@@ -120,7 +120,7 @@ This helps to know if the issue is with the connection between your computer and
 
 #### vrecord
 
-- In the Terminal, run <code>vrecord -e</code>
+- In the Terminal, run `vrecord -e`
 - Select the “DV” tab
 - The device should appear in the list under the “Select a DV Device” section at the top of the window.
 - If the device does not click the “Rescan” button (located below the list of the devices).
@@ -151,12 +151,12 @@ There are two ways you can access the list of connected devices to see if the Fi
 #### Terminal
 
 - Open the Terminal
-- Run <code>avfctl -list_devices</code>
+- Run `avfctl -list_devices`
 - This should generate a list of devices connected to your computer via FireWire.
 
 <a href="{{ site.baseurl }}/images/terminal-avfctl.png"><img alt="Terminal avfctl" src="{{ site.baseurl }}/images/terminal-avfctl.png"></a>
 
-Alternatively, you can run <code>ioreg -l</code> which will generate a list of all of the devices connected to your computer through various means. This list will be longer, but very comprehensive.
+Alternatively, you can run `ioreg -l` which will generate a list of all of the devices connected to your computer through various means. This list will be longer, but very comprehensive.
 
 #### System Settings
 
@@ -212,11 +212,13 @@ If there are no logged issues, then follow the next steps.
 
 <details markdown="1">
 
-At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot.
+Note that capture is not supported at this time in the GUI on windows/Linux/Ubuntu. In order to capture on Windows, you will need a dual boot of Windows/Ubuntu and you will need to use the CLI or dvcapture via vrecord.
+
+Check for your device in the command line with `dvrescue --list_devices` and in vrecord with `vrecord -e`, selecting the “DV” tab. If the device is detected there, you should be able to capture.
 
 Some versions of Ubuntu might need permissions to be edited to allow DVRescue access. See <a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">this issue</a> on the project page for a possible solution.
 
-If you suspect a hardware rather than a software issue, review the Failed Component troubleshooting section for general advice. Also peruse the <a href="https://github.com/mipops/dvrescue/issues" target="_blank">GitHub Issues page</a> for any discussions that might relate to your issue.
+At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot. You can start by perusing the <a href="https://github.com/mipops/dvrescue/issues" target="_blank">GitHub Issues page</a> for any discussions that might relate to your issue. Search "windows," "ubuntu" or other keywords as appropriate to locate relevate issues.
 
 </details>
 &nbsp;
@@ -264,7 +266,7 @@ If none of this works, your problem may be more complicated. You can always visi
 </details>
 &nbsp;
 
-# Permissions, Security Policy, & System Integrity Protection (Mac)
+# Permissions, Security Policy, & System Integrity Protection (macOS)
 
 DVRescue requires some special permissions to access to operate and to capture DV videotape. (These are all also outlined in the <a href="{{ site.baseurl }}/sections/installation.html" target="_blank">Installation guide</a>.) If any of these are not set correctly, they may block DVRescue from accessing connected devices to capture DV.
 
