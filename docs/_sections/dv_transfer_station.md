@@ -9,9 +9,10 @@ To set up a DV transfer station, you’ll need the following items:
 - **Computer:**
   - **Mac:** the following computers and operating systems are compatible with DVRescue.
     - Models: MacMini (2014 and up), M1, M2
-    - macOS: Big Sur, Ventura, Sonoma,
+    - macOS: Big Sur, Monterey, Ventura, Sonoma 14, Sequoia
       - Please note: computers running macOS Mojave 10.14.6 and below do not seem to be compatible with DVRescue.
   - **Windows/Linux:** this section of the documentation is under development and will be updated once the Windows/Linux version of the tools have been fully established.
+    - Note that in order to capture dv, **you will need a dual boot of Windows/Ubuntu**. **Capture is not currently supported in the GUI**, but with a dual boot should be functional in both the dvrescue command line interface and through dvcapture in vrecord.
     - Please see our <a href="{{ site.baseurl }}/sections/development_updates.html" target="blank">development update videos</a> and <a href="https://github.com/mipops/dvrescue/issues" target="blank">GitHub issues</a> (search for “Windows” or “Linux” to filter for relevant issues) for more information.
     - Please see the <a href="{{ site.baseurl }}/sections/installation.html" target="blank">Windows/Linux set-up guide</a> for specifics of building a transfer station suitable to that environment.
 - **DV Device:** A DV deck, player or camcorder with a functioning Firewire connection. You’ll need to ensure that the device you are using is compatible with the DV format you are working with. For more information on DV videotape formats and various models of videotape recorders, please see the <a href="{{ site.baseurl }}/sections/dv_formats.html" target="blank">format</a> and <a href="{{ site.baseurl }}/sections/deck_guide.html" target="blank">deck guides</a> on our website. If you would like to add any tips or tricks to either guide, please post an issue on <a href="https://github.com/mipops/dvrescue/issues" target="blank">the DVRescue GitHub page</a>.
