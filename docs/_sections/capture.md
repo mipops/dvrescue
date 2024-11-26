@@ -60,7 +60,14 @@ When a tape is playing, DVRescue will detect the DV format recorded (DV SP, DV L
 
 3. If you have more than one deck connected, multiple players will appear in the Capture tab. Please select the one you want to use by clicking on the name of the deck. <br /> <img width="1512" alt="Screenshot 2024-08-28 at 6 24 50 PM" src="https://github.com/user-attachments/assets/2b5391d1-2ee4-43ff-a8a3-5c7b7be08edb"> <br /> 
 
-4. If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. See the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
+Please note: If you have two decks of the same make and model connected, you will need to determine the corresponding identifier for each (the number listed before the make and model of each deck). 
+   - To determine the device identifier numbers for two or more decks of the same make and model, turn all but one of the decks off.
+   - Check the name of the device in the dvrescue GUI. 
+   - Note the device identifier number displayed. 
+   - Repeat this for all decks of the same make and model.
+
+4. If your deck has a Remote/Local setting, make sure it is set to “Remote” before initiating the capture. Please note that some decks are known to have different behavior. For specific settings re
+ee the <a href="https://docs.google.com/spreadsheets/d/1HvNsC110aBH8WjfnNJrF6KlT2STgCT5KRBaf1g6MxGQ/edit#gid=0" target="_blank">DV Deck Guide</a> for deck-specific information.
 
 5. You can use the player buttons to control the deck and preview the content on the tape. <br /> <img width="1422" alt="dvcapture_07" src="https://github.com/user-attachments/assets/df9bd62b-b89f-4db9-9270-d8becab6ca4a"> <br /> 
 
