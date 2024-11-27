@@ -1,14 +1,14 @@
 !macro Install_VC_Runtime
   SetOutPath "$INSTDIR"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\concrt140.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\msvcp140.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\msvcp140_1.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\msvcp140_2.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\msvcp140_atomic_wait.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\msvcp140_codecvt_ids.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\vccorlib140.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\vcruntime140.dll"
-  File "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\14.28.29910\X64\Microsoft.VC142.CRT\vcruntime140_1.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\concrt140.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\msvcp140.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\msvcp140_1.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\msvcp140_2.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\msvcp140_atomic_wait.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\msvcp140_codecvt_ids.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\vccorlib140.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\vcruntime140.dll"
+  File "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\14.42.34433\X64\Microsoft.VC143.CRT\vcruntime140_1.dll"
 !macroend
 
 !macro Uninstall_VC_Runtime
