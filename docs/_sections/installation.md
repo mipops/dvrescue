@@ -77,8 +77,6 @@ Please note that if you download the GUI, you do not need to download the CLI se
 
 </details>
 
-</details>
-
 ## Setting Up
 
 DVRescue requires some special permissions to operate and to capture DV videotape.
@@ -170,9 +168,6 @@ Once the computer has restarted again, connect a DV device and turn it on. Open 
 </details>
 &nbsp;
 
-</details>
-&nbsp;
-
 ### Rosetta (M1 only)
 
 <a href="{{ site.baseurl }}/images/Rosetta.png"><img alt="rosetta" src="{{ site.baseurl }}/images/Rosetta.png" style="float: right; margin-left: 15px; width: 300px"></a>
@@ -198,5 +193,48 @@ After granting these permissions, you will then be able to use all of the DVResc
 If for any reason the dvrescue installation does not prompt you to grant permission for either the camera or screen recording, you can fix the permissions manually for both programs through System Preferences. Refer to the <a href="{{ site.baseurl }}/sections/troubleshooting.html" target="_blank">Troubleshooting documentation</a> for detailed instructions.
 
 # Linux/Windows Installation Guide
+
+## Installing DVRescue
+
+You can install either the GUI version of the program or the Command Line Interface (CLI) <a href="https://mediaarea.net/DVRescue" target="_blank">directly from MediaArea.</a>
+
+**Graphical User Interface (GUI)**
+
+- Visit the <a href="https://mediaarea.net/DVRescue" target="_blank">MediaArea DVRescue page</a>
+- Below the “Download” button, click “GUI” next to “very latest snapshots”
+  - You can also access the most recent snapshots by going to the <a href="https://mediaarea.net/download/snapshots/binary/dvrescue/" target="_blank">MediaArea daily builds page</a>, clicking on “Parent Directory,” scrolling down to “dvrescue-gui,” and clicking on the folder.
+- Click on the topmost folder (underneath the “ParentDirectory” folder), which should have the most recent date. Look for a file appropriate to your system.
+  - For Windows: This will be a file ending in Windows.exe or Windows_x64.zip
+- If you do not see a file of the necessary type, go back to the last folder and try the next-most recent date. Continue this until you find a folder with a file of the correct type.
+- Follow prompts for selecting the download location
+- Navigate to where you saved the file
+- Double-click on the file to open it
+- Follow prompts for installation
+
+**Command Line Tools (CLI)**
+
+- Visit the <a href="https://mediaarea.net/DVRescue" target="_blank">MediaArea DVRescue page</a>
+- Below the “Download” button, click “CLI” next to “very latest snapshots”
+  - You can also access the most recent snapshots by going to the <a href="https://mediaarea.net/download/snapshots/binary/dvrescue/" target="_blank">MediaArea daily builds page</a>, clicking on “Parent Directory,” scrolling down to “dvrescue,” and clicking on the folder.
+- Click on the topmost folder (underneath the “ParentDirectory” folder), which should have the most recent date. Look for a file appropriate to your system.
+  - For Windows: This will be a file ending in Windows.exe or Windows_x64.zip
+- If you do not see a file of the necessary type, go back to the last folder and try the next-most recent date. Continue this until you find a folder with a file of the correct type.
+- Follow prompts for selecting the download location
+- Navigate to where you saved the file
+- Double-click on the file to open it
+- Follow prompts for installation.
+
+It also is possible to download the most up to date development versions of the tool via the MediaArea daily builds pages. These are available at the following locations:
+
+- CLI daily builds: <a href="https://mediaarea.net/download/snapshots/binary/dvrescue/" target="_blank">https://mediaarea.net/download/snapshots/binary/dvrescue/</a>
+- GUI daily builds: <a href="https://mediaarea.net/download/snapshots/binary/dvrescue-gui/" target="_blank">https://mediaarea.net/download/snapshots/binary/dvrescue-gui/</a>
+
+Linux users also have the option of activating the MediaArea repositories via the instructions on <a href="https://mediaarea.net/en/Repos" target="_blank">this page</a>. This enables installing and updating dvrescue and dvrescue-gui through the system package manager.
+
+## Dependencies
+
+For DVRescue to function it needs FFmpeg, mediainfo, xmlstarlet to be installed and present. These are bundled in the GUI installer, so if you are running the GUI you shouldn’t need to worry about this. For the CLI install you may need to install missing dependencies yourself if they are not present on your system.
+
+Also - some Linux systems may have older versions of FFmpeg installed that do not support full DVRescue functionality. It is recommended on Linux to install both the GUI and the CLI for this reason, even if you are just intending to use the CLI as the CLI will be able to use the FFmpeg version packaged inside the GUI.
 
 <iframe class="embed-doc" src="https://docs.google.com/document/d/e/2PACX-1vQ-A2LHFSMbbjwW5dBfxUW2LXVDPTzmRV8to48DtzsvZjodG4ZtmJifqIOuaIatUaZRD4OMLBInqEnS/pub?embedded=true"></iframe>
