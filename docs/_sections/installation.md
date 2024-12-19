@@ -5,6 +5,8 @@ title: Installation
 
 # Mac Installation Guide
 
+<details markdown="1">
+
 ## Installing DVRescue
 
 <details markdown="1">
@@ -190,7 +192,11 @@ After granting these permissions, you will then be able to use all of the DVResc
 
 If for any reason the dvrescue installation does not prompt you to grant permission for either the camera or screen recording, you can fix the permissions manually for both programs through System Preferences. Refer to the <a href="{{ site.baseurl }}/sections/troubleshooting.html" target="_blank">Troubleshooting documentation</a> for detailed instructions.
 
+</details>
+
 # Linux/Windows Installation Guide
+
+<details markdown="1">
 
 ## Installing DVRescue
 
@@ -234,5 +240,7 @@ Linux users also have the option of activating the MediaArea repositories via th
 For DVRescue to function it needs FFmpeg, mediainfo, xmlstarlet to be installed and present. These are bundled in the GUI installer, so if you are running the GUI you shouldn’t need to worry about this. For the CLI install you may need to install missing dependencies yourself if they are not present on your system.
 
 Also - some Linux systems may have older versions of FFmpeg installed that do not support full DVRescue functionality. It is recommended on Linux to install both the GUI and the CLI for this reason, even if you are just intending to use the CLI as the CLI will be able to use the FFmpeg version packaged inside the GUI.
+
+</details>
 
 &nbsp;
