@@ -205,7 +205,10 @@ If there are no logged issues, then follow the next steps.
 - Make sure to relock the lock to save the changes you have made to your Security Preferences.
 - Shut down your computer (don’t restart if prompted). 
 
-| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> | 
+<p float="left">
+<a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a>
+<a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a>
+</p>
 
 </details>
 &nbsp;
