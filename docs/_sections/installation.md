@@ -79,9 +79,7 @@ Please note that if you download the GUI, you do not need to download the CLI se
 
 ## Setting Up
 
-DVRescue requires some special permissions to operate and to capture DV videotape.
-
-*Example images taken from a M1 Mac Mini 2020+ running Monterey 12.4+*
+DVRescue requires some special permissions to operate and to capture DV videotape.<br>*Example images taken from a M1 Mac Mini 2020+ running Monterey 12.4+*
 
 ### Recovery Mode Changes
 Please note: in order for your computer to allow DVRescue to interact with your camera and microphone (which allows it to record and detect the connection via FireWire), you **need** to change the following settings for your security policy and permissions.
@@ -237,4 +235,4 @@ For DVRescue to function it needs FFmpeg, mediainfo, xmlstarlet to be installed 
 
 Also - some Linux systems may have older versions of FFmpeg installed that do not support full DVRescue functionality. It is recommended on Linux to install both the GUI and the CLI for this reason, even if you are just intending to use the CLI as the CLI will be able to use the FFmpeg version packaged inside the GUI.
 
-<iframe class="embed-doc" src="https://docs.google.com/document/d/e/2PACX-1vQ-A2LHFSMbbjwW5dBfxUW2LXVDPTzmRV8to48DtzsvZjodG4ZtmJifqIOuaIatUaZRD4OMLBInqEnS/pub?embedded=true"></iframe>
+&nbsp;
