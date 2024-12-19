@@ -194,6 +194,8 @@ If for any reason the dvrescue installation does not prompt you to grant permiss
 
 </details>
 
+&nbsp;
+
 # Linux/Windows Installation Guide
 
 <details markdown="1">
