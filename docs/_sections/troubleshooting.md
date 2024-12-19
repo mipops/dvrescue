@@ -183,7 +183,12 @@ If all of the previous steps have failed, there may be an issue with your Blackm
 
 First check BlackMagic as well. Open BlackMagic Media Express. In the menu, choose Device. If it says “No device is connected” then this is further confirmation of the issue.
 
-| <a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a> | <a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a> |
+<p float="left">
+<a href="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_01.png"></a>
+<a href="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"><img alt="Blackmagic No Device" src="{{ site.baseurl }}/images/blackmagic_device_connection_02.png"></a>
+</p>
+
+<br />
 
 #### Reinstall BlackMagic Drivers
 
@@ -200,7 +205,7 @@ If there are no logged issues, then follow the next steps.
 - Make sure to relock the lock to save the changes you have made to your Security Preferences.
 - Shut down your computer (don’t restart if prompted). 
 
-| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.jpg"></a> | 
+| <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_01.jpg"></a> | <a href="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"><img alt="Blackmagic Drivers Installation" src="{{ site.baseurl }}/images/blackmagic_drivers_install_02.png"></a> | 
 
 </details>
 &nbsp;
