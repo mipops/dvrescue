@@ -43,7 +43,6 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 - <a href="https://github.com/mipops/dvrescue/issues/760" target="_blank">DVCPRO will not capture via dvrescue GUI, CLI or vrecord</a>
 - <a href="https://github.com/mipops/dvrescue/issues/930" target="_blank">DVRescue crashing when merging files</a>
 - <a href="https://github.com/mipops/dvrescue/issues/950" target="_blank">DVpackager Rewrapped MOV Files Broken Header</a>
-- <a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">Firewire permissions issue in Ubuntu 22.04</a>
 &nbsp;
 
 # No DV Deck Detected
@@ -434,6 +433,31 @@ Finally, reboot your Mac for all changes to take effect.
 </details>
 &nbsp;
 
+# Firewire permissions (Ubuntu)
+
+<details markdown="1">
+
+<summary markdown="span">Guide</summary>
+
+<a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">Github Issue: Firewire permissions issue in Ubuntu 22.04</a>
+
+After upgrading to 22.04, there may be a change in levels of permission that disables Firewire devices for a user. This blocks dvrescue components such as dvcont and FFmpeg from communicating with the deck.
+
+Solution was found in <a href="https://superuser.com/questions/236562/permanently-changing-permission-of-firewire-device" target="_blank"> another forum</a>:
+
+Make a `/etc/udev/rules.d` directory:
+
+`sudo mkdir /etc/udev/rules.d`
+
+Next define a new rule:
+
+`sudo -s
+echo 'KERNEL=="fw*", GROUP="video", MODE="0664"' > /etc/udev/rules.d/80-firewire.rules
+exit`
+
+Then user needs to be added to the video group with `usermod -a -G video USERNAME`
+
+</details>
 
 # dvcapture via vrecord
 
