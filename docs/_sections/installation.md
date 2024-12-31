@@ -200,6 +200,8 @@ If for any reason the dvrescue installation does not prompt you to grant permiss
 
 <details markdown="1">
 
+<blockquote>Note that in order to capture dv, **you will need a dual boot of Windows/Ubuntu. Capture is not currently supported in the GUI**, but with a dual boot should be functional in both the dvrescue command line interface and through dvcapture in vrecord.</blockquote>
+
 ## Installing DVRescue
 
 You can install either the GUI version of the program or the Command Line Interface (CLI) <a href="https://mediaarea.net/DVRescue" target="_blank">directly from MediaArea.</a>
@@ -242,6 +244,12 @@ Linux users also have the option of activating the MediaArea repositories via th
 For DVRescue to function it needs FFmpeg, mediainfo, xmlstarlet to be installed and present. These are bundled in the GUI installer, so if you are running the GUI you shouldn’t need to worry about this. For the CLI install you may need to install missing dependencies yourself if they are not present on your system.
 
 Also - some Linux systems may have older versions of FFmpeg installed that do not support full DVRescue functionality. It is recommended on Linux to install both the GUI and the CLI for this reason, even if you are just intending to use the CLI as the CLI will be able to use the FFmpeg version packaged inside the GUI.
+
+## Troubleshooting
+
+While DVRescue currently has less robust support for Windows and Linux, please still <a href="https://github.com/mipops/dvrescue/issues" target="_blank">report any new issues through GitHub<a/>.
+
+Browsing the current known issues for <a href="https://github.com/mipops/dvrescue/issues?q=is%3Aissue+is%3Aopen+label%3Awindows" target="_blank">Windows</a> and <a href="https://github.com/mipops/dvrescue/issues?q=is%3Aissue+is%3Aopen+label%3Alinux" target="_blank">Linux</a> may also help you to identify or troubleshoot any problems you are having.
 
 </details>
 
