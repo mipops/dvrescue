@@ -458,6 +458,7 @@ exit`
 Then user needs to be added to the video group with `usermod -a -G video USERNAME`
 
 </details>
+&nbsp;
 
 # dvcapture via vrecord
 
@@ -492,6 +493,24 @@ You will need to change the OS camera permissions by following these steps:
 - If not already included, add the Terminal to the list, by clicking on the + button and selecting it from from the applications list.
 - If the Camera menu does not have the +/- you can add the Terminal to the Full Disk Access list instead. 
 - Reboot your Mac for the changes to take effect.
+
+</details>
+&nbsp;
+
+# Packaged .mov file will not open in QuickTime
+
+<details markdown="1">
+
+<summary markdown="span">Guide</summary>
+
+After packaging your .dv files into .mov, you may try to open them and get an error like "The document “[filename].mov” could not be opened.
+The file isn't compatible with QuickTime Player." .mkv files should still work fine. This may occur most consistently when using the CLI, but may also happen in the GUI.
+
+The issue arises from ffmpeg misdetecting the frame rate of the .dv file. <a href="https://trac.ffmpeg.org/ticket/11339" target="_blank"> This issue was reported to ffmpeg</a>, but cannot be directly fixed by dvrescue's developers.
+
+Until it is resolved, you can downgrade your ffmpeg version to 6.0_1. Hold off on updating to a more recent version until the problem has been resolved by ffmpeg.
+
+You can read more about this issue in <a href="https://github.com/mipops/dvrescue/labels/MOV-ffmpeg" target="_blank">the MOV-ffmpeg tag in DVRescue issues on GitHub.</a>
 
 </details>
 &nbsp;
