@@ -23,9 +23,13 @@ During capture, DVRescue will automatically rewind and try to recapture segments
 
 <a href="{{ site.baseurl }}/images/settings_2.png"><img alt="Settings 2" src="{{ site.baseurl }}/images/settings_2.png"></a>
 
+The frame table appears on the bottom right of the Analysis screen. The simple display shows the default pieces of information in the table.
+
 ## Frame Table Display - Advanced
 
 <a href="{{ site.baseurl }}/images/settings_3.png"><img alt="Settings 3" src="{{ site.baseurl }}/images/settings_3.png"></a>
+
+Here you can customize fewer or more options to see in the frame table.
 
 # Advanced
 
