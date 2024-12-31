@@ -112,4 +112,55 @@ Once it is finished, it will also have created an .xml file summarizing the vide
 
 # How to analyze files using the DVRescue CLI
 
+<details markdown=1>
+  <summary markdown="span">Usage of capture commands</summary> <br />
+
+dvplay visually displays and/or generates xml and sidecars of errors in DV file. In visual display, error concealment data in frames will be displayed as yellow.
+
+The basic synxax looks like<br>
+`dvplay [options] file.dv`
+
+To generate a list of options or for additional information, run the following command:<br>
+`dvplay -h`
+
+</details>
+
+<details markdown=1>
+  <summary markdown="span">dvplay Flags and Options</summary> <br />
+
+All of these flags and options can also be viewed by typing `dvplay -h` into the command line window.
+
+    Options:
+     -m         (Inverse of standard display)
+     -x         (create output xml and jpgs)
+     -g         (create gif from error jpgs)
+     -o OUTPUT  (select a custom location for output files)
+    
+     -O FILE    (provide a path to a single output file. When set a single frame will be exported, depending on
+                 if -b or -t is set. If 'FILE' is set to '-', dvplay will output a jpeg to stdout.)
+     -b OFFSET  (provide a byte offset of the frame to examine, otherwise the first frame is default)
+     -t PTS     (provide a timestamp to examine, otherwise the first frame is default. Ignored if '-b OFFSET' is set)
+    
+     -h         (Displays this help)
+     -B BLOCKS  (draw a box around a specific DIF Block(s). Use a comma-delimited list for more than one,
+                 such as '-B 0,1348,1349')
+    
+     -F <path> (provide a custom ffmpeg path)
+     -M <path> (provide a custom mediainfo path)
+     -D <path> (provide a custom dvrescue path)
+     -X <path> (provide a custom xmlstarlet path)
+     -d <path> (provide a custom path to a DVRescue XML that corresponds to the
+                input file)
+    
+    To vizualize the relationship between inputs and a merged output (-s, -S, and -b are required):
+     -s <list> (provide a pipe-delimited list of the input files for the merge)
+     -S <list> (provide a pipe-delimited list of the offsets to the input files listed in '-s')
+    
+     For example 'dvplay -s 'file1.dv|file2.dv' -S '120000|240000' -b 240000 output.dv' would show
+     an image that depicts the input frames (at the corresponding offsets of the corresponding input
+     file) with the corresponding merged output frame at the corresponding offset.
+    
+     -z       (disable colored terminal output)
+
+</details>
 <br />
