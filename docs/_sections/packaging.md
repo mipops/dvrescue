@@ -52,9 +52,9 @@ The output queue list all the files that have been processed or are in queue to 
 </details> 
 
 <details markdown=1>
-  <summary markdown="span">Merge Instructions</summary>
+  <summary markdown="span">Packaging Instructions</summary>
 
-## GUI Merge
+## GUI Package
 
 <div class="blockquote">
 Note: we recommend previewing files and segmenting options in the Analysis tab prior to packaging in order to perform quality control and review any artifacts, recapture if needed, and merge files to get the best possible copy prior to packaging. Analysis also serves as a good way to test various segmentation rules and determine the best one(s) for each file based on the recording data and content.
@@ -88,8 +88,6 @@ Commands and useage for capturing DV tapes using the dvrescue command line tools
 <details markdown=1>
   <summary markdown="span">Usage of package commands</summary>
 
-## Basic Syntax
-
 The basic packaging syntax looks like this:<br />
   `dvpackager [options] file.dv`
 
@@ -101,9 +99,7 @@ To generate a list of options or for additional information, run the following c
   </details> 
 
 <details markdown=1>
-  <summary markdown="span">Flags and Options</summary>
-
-## Flags and Options
+  <summary markdown="span">Flags and options</summary>
 
 An up-to-date and exhaustive list of flags and options can be viewed by typing `dvpackager -h` into the command line window. However, these are some common ones you may need to use.
 
@@ -153,7 +149,7 @@ By default, dvpackager will preserve the sampling rate of the input DV stream; h
 
 <details markdown=1>
   <summary markdown="span">Unpackager</summary>
-<br />
+
 dvpackager also has an 'unpackage' mode (currently only available in the CLI):<br />
 **-u** = export the dv stream from each provided file into a single dv stream. 
 
