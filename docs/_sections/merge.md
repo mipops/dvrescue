@@ -90,6 +90,7 @@ This part of the GUI displays the results of a merge by providing a problem fram
 	6. frames with the exact same errors for various captures (a result of tape damage/breakdown)
 
 </details>
+<br />
 
 # Command line interface
 
