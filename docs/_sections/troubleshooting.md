@@ -51,9 +51,11 @@ Below is a list of known issues for the recent builds of DVRescue. Please see th
 
 <summary markdown="span">Guide</summary>
 
-<a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif"></a>
+<a href="{{ site.baseurl }}/images/no-deck-detected_small.gif"><img alt="No Deck Detected" src="{{ site.baseurl }}/images/no-deck-detected_small.gif" style="float: right; margin-left: 15px; width: 300px"></a>
 
 If your deck does not show up, try the following troubleshooting. There is also [a video guide](https://www.youtube.com/watch?t=232&v=7FaZw3RoVbA&feature=youtu.be) related to this troubleshooting.
+
+Before troubleshooting, ensure that your permissions are allowing dvrescue to connect to DV decks and record your screen. Refer to the section below.
 
 After every step, re-launch DVRescue and check the capture tab to see if the device is detected. Restarting your computer and deck after major changes is also helpful.
 
@@ -223,7 +225,7 @@ Note that capture is not supported at this time in the GUI on windows/Linux/Ubun
 
 Check for your device in the command line with `dvrescue --list_devices` and in vrecord with `vrecord -e`, selecting the “DV” tab. If the device is detected there, you should be able to capture.
 
-Some versions of Ubuntu might need permissions to be edited to allow DVRescue access. See <a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">this issue</a> on the project page for a possible solution.
+Some versions of Ubuntu might need permissions to be edited to allow DVRescue access. See <a href="https://github.com/mipops/dvrescue/issues/514" target="_blank">this issue</a> on the project page for more details. A possible solution is outlined below.
 
 At this time, DVRescue offers limited support for non-OSX systems, although we hope to expand in the future. If you are using Windows, Linux, or Ubuntu and DVRescue still isn’t able to interact with your DV deck, or if you have any other trouble with the software, you may need to do some research in order to troubleshoot. You can start by perusing the <a href="https://github.com/mipops/dvrescue/issues" target="_blank">GitHub Issues page</a> for any discussions that might relate to your issue. Search "windows," "ubuntu" or other keywords as appropriate to locate relevate issues.
 
@@ -287,8 +289,6 @@ PLEASE NOTE: after any automatic or manual updates to macOS (including security 
 <summary markdown="span">Guide</summary>
 
 ## Recovery Mode Changes
-
-DVRescue requires some special permissions to operate and to capture DV videotape.<br>*Example images taken from a M1 Mac Mini 2020+ running Monterey 12.4+*
 
 <details markdown="1">
 
@@ -406,6 +406,8 @@ Both dvrescue and vrecord require permission to access your computer’s camera 
 
 <details markdown="1">
 
+<summary markdown="span">MacOS 13 (Ventura) and older</summary>
+
 - Ensure you are logged into your computer as an Administrator
 - Open System Preferences
 - Click on Security and Privacy
@@ -424,6 +426,49 @@ Both dvrescue and vrecord require permission to access your computer’s camera 
   - Select Screen Recording from the list on the left hand side of the Privacy window.
   - If not already included, add dvrescue to the list.
   - Make sure the checkbox is checked.
+
+Finally, reboot your Mac for all changes to take effect.
+
+</details>
+&nbsp;
+
+<details markdown="1">
+
+<summary markdown="span">MacOS 14 (Sonoma) and newer</summary>
+
+- Ensure you are logged into your computer as an Administrator
+- Open System Preferences
+- Click on Privacy & Security in the left menu
+- Choose Camera
+  - You should have dvrescue and Terminal on the list
+	- If dvrescue is not listed, you must open dvrescue
+	- You should get a pop-up message as dvrescue requests access to the camera. Grant permission
+	- You should now see dvrescue listed in the Camera preferences and it should be toggled on
+	- Click the back button to return to Privacy & Security
+	- If for any reson the above doesn't work (for example, Terminal is not on to the Camera list or dvrescue does not prompt for permission to access the camera) you may grant both programs full disk access instead
+		- Select Full Disk Access
+		- If dvrescue is not listed, choose the plus sign button at the bottom of the list
+		- Enter your password to authorize the changes
+		- Choose dvrescue from the Applications folder and open it
+		- Make sure it is added to the list and toggled on
+		- To add Terminal to full disk access, do the same steps. Terminal is located in the Utilities folder with Applications
+		- Return again to Privacy & Security
+- Choose Screen & System Audio Recording
+  - Choose the plus sign button at the bottom of the list
+  - If dvrescue is not listed, choose the plus sign button at the bottom of the list
+	- Choose dvrescue from the Applications folder and open it
+	- Make sure it is added to the list and toggled on
+
+### Blackmagic settings
+
+If you have Blackmagic Desktop Video, in Sonoma and newer operating systems, you may need to take extra steps to grant it permission to record. When you first install and open Blackmagic, it will prompt you to approve access in a pop-up, but **this alone will not correct the settings**.
+
+- Add Blackmagic Media Express to Screen & System Audio Recording in the same manner as dvrescue, above
+- Go to General in the left menu
+- Click on Login Items & Extensions
+- Under Extensions, locate Driver Extensions. Click the info circle on the right side
+- Toggle Blackmagic Desktop Video on, toggle on, and click Done to save
+- Do the same with Camera Extensions
 
 Finally, reboot your Mac for all changes to take effect.
 
