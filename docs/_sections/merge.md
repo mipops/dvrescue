@@ -44,7 +44,7 @@ This part of the GUI displays the results of a merge by providing a problem fram
 <details markdown=1>
   <summary markdown="span">Merge Instructions</summary>
 
-## Merge Instructions
+## GUI Merge
 
 ### Additional Captures & Review
 
@@ -139,3 +139,4 @@ All of these options can also be viewed by typing `dvrescue -h` into the command
                                       9: information per frame + summary.
 
 </details>
+<br />
