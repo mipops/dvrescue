@@ -5,7 +5,7 @@ title: Settings
 
 # Capture
 
-<a href="{{ site.baseurl }}/images/settings_1.png"><img alt="Settings 1" src="{{ site.baseurl }}/images/settings_1.png"></a>\\
+<a href="{{ site.baseurl }}/images/settings_1.png"><img alt="Settings 1" src="{{ site.baseurl }}/images/settings_1.png"></a>
 
 ## Frame Filtering
 
