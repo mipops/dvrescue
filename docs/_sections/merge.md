@@ -12,6 +12,8 @@ dvmerge is part of the dvrescue toolkit. It is used to combine two or more trans
 
 ## GUI Navigation
 
+<a href="{{ site.baseurl }}/images/merge_gui.png"><img alt="Merge GUI" src="{{ site.baseurl }}/images/merge_gui.png"></a>
+
 ### Input files
 
 A file list will populate containing any files you have already been working on in other tabs. 
