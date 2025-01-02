@@ -113,7 +113,7 @@ Once it is finished, it will also have created an .xml file summarizing the vide
 # How to analyze files using the DVRescue CLI
 
 <details markdown=1>
-  <summary markdown="span">Usage of capture commands</summary> <br />
+  <summary markdown="span">Usage of capture commands</summary>
 
 dvplay visually displays and/or generates xml and sidecars of errors in DV file. In visual display, error concealment data in frames will be displayed as yellow.
 
@@ -126,7 +126,7 @@ To generate a list of options or for additional information, run the following c
 </details>
 
 <details markdown=1>
-  <summary markdown="span">dvplay Flags and Options</summary> <br />
+  <summary markdown="span">dvplay flags and options</summary>
 
 All of these flags and options can also be viewed by typing `dvplay -h` into the command line window.
 
