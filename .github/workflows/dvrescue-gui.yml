@@ -11,7 +11,7 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@13
+            packages: llvm@15
             env: { 'CC': 'clang', 'CXX': 'clang++' }
 
     runs-on: macos-latest
@@ -72,7 +72,7 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@13
+            packages: llvm@15
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
           - qt_version: "6.5.*"
             qt_modules: "qtmultimedia"
@@ -140,7 +140,7 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@13
+            packages: llvm@15
             env: { 'CC': 'clang', 'CXX': 'clang++' }
 
     runs-on: macos-latest
@@ -218,7 +218,7 @@ jobs:
         compiler: ['clang-9']
         include:
           - compiler: clang-9
-            packages: llvm@13
+            packages: llvm@15
             env: { 'CC': 'clang-9', 'CXX': 'clang++-9', 'HOMEBREW_NO_INSTALL_CLEANUP': '1', 'HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK': '1' }
           - qt_version: "6.5.*"
             qt_modules: "qtmultimedia"
@@ -327,10 +327,10 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Python 3.7 version
+    - name: Install Python 3.10 version
       uses: actions/setup-python@v1
       with:
-        python-version: '3.7'
+        python-version: '3.10'
         architecture: 'x64'
 
     - name: Install compiler and FFmpeg dependencies
@@ -411,10 +411,10 @@ jobs:
             -c protocol.version=2 \
             submodule update --init --force --recursive --depth=1
 
-    - name: Install Python 3.7 version
+    - name: Install Python 3.10 version
       uses: actions/setup-python@v1
       with:
-        python-version: '3.7'
+        python-version: '3.10'
         architecture: 'x64'
 
     - name: Install compiler and FFmpeg dependencies
