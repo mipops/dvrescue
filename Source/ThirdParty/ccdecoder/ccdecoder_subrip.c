@@ -54,8 +54,11 @@ void to_timestamp(double Value_Double, wchar_t Result[20])
 
     /* Hours */
     Hours=value/(60*60*1000);
-    if (Hours>=1000)
-        return; /* Not supported */
+    if (Hours>=1000) /* Not supported */
+    {
+        memcpy(Result, L"??:??:??.???", 13*sizeof(wchar_t));
+        return;
+    }
     if (Hours>=100)
     {
         Result[pos]=L'0'+(wchar_t)Hours/100;
@@ -160,7 +163,7 @@ wchar_t* ccdecoder_subrip_parse(ccdecoder_subrip_handle* handle, ccdecoder_capti
         to_timestamp(priv->pts, pts_In);
         to_timestamp(pts, pts_Out);
         swprintf(ToReturn_Current, ToReturn_size, L"%i\n", (int)priv->Number); ToReturn_Current+=wcslen(ToReturn_Current);
-        swprintf(ToReturn_Current, ToReturn_size, L"%ls --> %ls\n", pts_In, pts_Out); ToReturn_Current+=wcslen(ToReturn_Current);
+        swprintf(ToReturn_Current, ToReturn_size-(ToReturn_Current-ToReturn), L"%ls --> %ls\n", pts_In, pts_Out); ToReturn_Current+=wcslen(ToReturn_Current);
         for (Output_Y=0; priv->Characters[Output_Y][0].value; Output_Y++)
         {
             uint8_t attributes=ccdecoder_noattribute;
