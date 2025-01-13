@@ -8,8 +8,9 @@
 #pragma once
 #include <vector>
 #include <ostream>
+#include "Common/Core.h"
 using namespace std;
 class file;
 //---------------------------------------------------------------------------
 
-return_value Output_Captions_Caption(const string& ScreenOutName, const string& SrtOutName, const TimeCode* OffsetTimeCode, vector<file*>& PerFile, ostream* Err = nullptr);
+return_value Output_Captions_Caption(const Core::OutFile& ScreenOut, const Core::OutFile& SrtOut, const TimeCode* OffsetTimeCode, vector<file*>& PerFile, ostream* Err = nullptr);

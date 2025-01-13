@@ -8,11 +8,12 @@
 #pragma once
 #include <vector>
 #include <ostream>
+#include "Common/Core.h"
 using namespace std;
 class file;
 //---------------------------------------------------------------------------
 
-return_value Output_Xml(ostream& Out, vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err = nullptr);
+return_value Output_Xml(Core::OutFile& Out, vector<file*>& PerFile, bitset<Option_Max> Options, ostream* Err = nullptr);
 
 //---------------------------------------------------------------------------
 #if defined(ENABLE_DECKLINK) || defined(ENABLE_SIMULATOR)
