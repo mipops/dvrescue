@@ -668,10 +668,17 @@ _report(){
 }
 
 _get_ffmpeg_path(){
-if [[ -x '/usr/lib/dvrescue/bin/ffmpeg' ]] ; then
+if [[ -x '/Applications/dvrescue.app/Contents/Helpers/ffmpeg' ]] ; then
+    FFMPEG_PATH='/Applications/dvrescue.app/Contents/Helpers/ffmpeg'
+elif [[ -x '/usr/lib64/dvrescue/bin/ffmpeg' ]] ; then
+    FFMPEG_PATH='/usr/lib64/dvrescue/bin/ffmpeg'
+elif [[ -x '/usr/lib/dvrescue/bin/ffmpeg' ]] ; then
     FFMPEG_PATH='/usr/lib/dvrescue/bin/ffmpeg'
+elif [[ -x '/cygdrive/c/Program Files/dvrescue/ffmpeg.exe' ]] ; then
+    FFMPEG_PATH='/cygdrive/c/Program Files/dvrescue/ffmpeg.exe'
 else
     FFMPEG_PATH="$(which ffmpeg)"
+    _report "dvpackager would prefer to use an ffmpeg bundled with the DVRescue GUI, but can't find one. We'll use ${FFMPEG_PATH} for now, but suggest installing/updating the DVRescue GUI."
 fi
 if [[ ! -x "${FFMPEG_PATH}" ]] ; then
     _report "ffmpeg can't be found, please install of rerun by ffmpeg's path specified with -F"
