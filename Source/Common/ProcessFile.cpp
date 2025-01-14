@@ -579,6 +579,7 @@ file::~file()
     }
     for (auto& Change : PerChange)
     {
+        delete[] Change->MoreData;
         delete Change;
     }
 }
@@ -647,7 +648,8 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
             && Current->AudioRate_D == FrameData->AudioRate_D
             && Current->AudioChannels == FrameData->AudioChannels
             && Current->AudioBitDepth == FrameData->AudioBitDepth
-            && Current->Captions_Flags == FrameData->Captions_Flags)
+            && Current->Captions_Flags == FrameData->Captions_Flags
+            && (!Current->MoreData && !FrameData->MoreData) || (Current->MoreData && FrameData->MoreData && *((size_t*)Current->MoreData) == *((size_t*)FrameData->MoreData) && !memcmp(Current->MoreData, FrameData->MoreData, *((size_t*)FrameData->MoreData))))
         {
             return;
         }
@@ -656,6 +658,13 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
     MediaInfo_Event_DvDif_Change_0* ToPush = new MediaInfo_Event_DvDif_Change_0();
     std::memcpy(ToPush, FrameData, sizeof(MediaInfo_Event_DvDif_Change_0));
     ToPush->FrameNumber = FrameNumber - 1; // Event FrameCount is currently wrong
+    if (FrameData->MoreData)
+    {
+        size_t SizeToCopy = *((size_t*)FrameData->MoreData) + sizeof(size_t);
+        auto MoreData = new uint8_t[SizeToCopy];
+        std::memcpy(MoreData, FrameData->MoreData, SizeToCopy);
+        ToPush->MoreData = MoreData;
+    }
     PerChange.push_back(ToPush);
 }
 

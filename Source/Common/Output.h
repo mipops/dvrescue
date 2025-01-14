@@ -68,6 +68,7 @@ struct timecode
 {
 public:
     timecode() {}
+    timecode(decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::TimeCode) Value, decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::MoreFlags) Value2) : _Value(Value), _Value2(Value2) {}
     timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame) : _Value(Frame.TimeCode), _Value2(Frame.MoreFlags) {}
     timecode(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) : _Value(Frame->TimeCode), _Value2(Frame->MoreFlags) {}
     inline bool HasValue() { return ((_Value >> 8) & 0x1FFFF) != 0x1FFFF; }
@@ -122,7 +123,10 @@ public:
     inline bool no_sourceorcontrol_aud() { return ((_Value >> 6) & 0x1); }          // 6
     inline bool no_pack() { return no_pack_sub() && no_pack_vid() && no_pack_aud() ; }
     inline bool full_conceal() { return full_conceal_vid() && full_conceal_aud(); }
-    inline bool no_data() { return (_Value2 >> 3) & 0x1; }                          //
+    inline bool no_data() { return (_Value2 >> 3) & 0x1; }                          // 3
+    inline bool conceal_aud_l() { return (_Value2 >> 4) & 0x1; }                    // 4
+    inline bool conceal_aud_r() { return (_Value2 >> 5) & 0x1; }                    // 5
+    inline bool conceal_aud() { return full_conceal_aud() || conceal_aud_l() || conceal_aud_r(); }
 
 private:
     decltype(MediaInfo_Event_DvDif_Analysis_Frame_1::Coherency_Flags) _Value;
