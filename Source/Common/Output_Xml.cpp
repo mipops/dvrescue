@@ -1011,11 +1011,11 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     }
                     else if (Coherency.conceal_aud_l())
                     {
-                        Text += " conceal_aud_value=\"l\"";
+                        Text += " full_conceal_aud=\"l\"";
                     }
                     else if (Coherency.conceal_aud_r())
                     {
-                        Text += " conceal_aud_value=\"r\"";
+                        Text += " full_conceal_aud=\"r\"";
                     }
                 }
 
