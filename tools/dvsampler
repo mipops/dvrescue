@@ -38,6 +38,9 @@ elif [[ -f "/Library/Fonts/Microsoft/Lucida Console.ttf" ]] ; then
   DEFAULTFONT="/Library/Fonts/Microsoft/Lucida\Console.ttf"
 elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
   DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
+elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+else
 else
   _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/mipops/dvrescue/issues"
 fi
