@@ -430,7 +430,9 @@ _get_iso8601(){
 }
 
 # font selection
-if [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
+if [[ -n "${DVRESCUE_FONT}" ]] ; then
+    DEFAULTFONT="${DVRESCUE_FONT}"
+elif [[ -f "/Library/Fonts/Andale Mono.ttf" ]] ; then
     DEFAULTFONT="/Library/Fonts/Andale Mono.ttf"
 elif [[ -f "/System/Library/Fonts/Supplemental/Andale Mono.ttf" ]] ; then
     DEFAULTFONT="/System/Library/Fonts/Supplemental/Andale Mono.ttf"
