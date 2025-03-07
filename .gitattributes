@@ -1,12 +1,9 @@
-dvgraph binary
-dvloupe binary
-dvmap binary
-dvpackager binary
-dvplay binary
-dvsampler binary
-dvloupe.sh binary
-dvplay.sh binary
-dvrescue.sh binary
-ffmpeg.sh binary
-mediainfo.sh binary
-xml.sh binary
+# Prevent bash scripts from being checked out with
+# CRLF line endings on Windows
+dvgraph text eol=lf
+dvloupe text eol=lf
+dvmap text eol=lf
+dvpackager text eol=lf
+dvplay text eol=lf
+dvsampler text eol=lf
+*.sh text eol=lf
