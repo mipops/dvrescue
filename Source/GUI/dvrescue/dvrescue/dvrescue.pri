@@ -82,6 +82,8 @@ SOURCES += \
 
 macx:SOURCES += $$PWD/machelpers.mm
 
+win32:QMAKE_CXXFLAGS += -utf-8 # needed by spdlog and set only for CFLAGS by qmake
+
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/3rdparty
 
