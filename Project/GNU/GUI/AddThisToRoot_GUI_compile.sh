@@ -341,7 +341,7 @@ if test -e dvrescue/Source/GUI/dvrescue/dvrescue.pro; then
  Q_Make ..
  if test -e Makefile; then
   Zen_Make
-  if test -e dvrescue/dvrescue || test -e dvrescue/dvrescue.app; then
+  if test -e dvrescue/dvrescue || test -e dvrescue/dvrescue.app/Contents/MacOS/dvrescue ; then
     if [ "$OS" = "mac" ] && ! macdeployqt dvrescue/dvrescue.app -qmldir=../dvrescue ; then
       echo Problem while bundling qt frameworks
       exit 1
