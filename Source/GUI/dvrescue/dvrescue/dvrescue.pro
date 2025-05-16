@@ -13,6 +13,7 @@ macx {
 
 win32 {
     RC_ICONS = icons/icon.ico
+    QMAKE_CXXFLAGS += -utf-8 # needed by spdlog and set only for CFLAGS by qmake
 }
 
 SOURCES += main.cpp
