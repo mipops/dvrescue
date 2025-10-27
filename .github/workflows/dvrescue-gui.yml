@@ -39,8 +39,10 @@ jobs:
 
     - name: Install qwt-qt5
       run: |
-        wget https://raw.githubusercontent.com/Homebrew/homebrew-core/56cd02e96876d1fb5b9ae951d605585fe8d614de/Formula/qwt.rb
-        brew install ./qwt.rb
+        curl -L https://raw.githubusercontent.com/Homebrew/homebrew-core/56cd02e96876d1fb5b9ae951d605585fe8d614de/Formula/qwt.rb -o /opt/homebrew/Library/Taps/homebrew/homebrew-core/Formula/q/qwt.rb
+        git -C /opt/homebrew/Library/Taps/homebrew/homebrew-core add Formula/q/qwt.rb
+        git -C /opt/homebrew/Library/Taps/homebrew/homebrew-core commit -m "Formula/q/qwt.rb 6.2.0 for Qt5"
+        HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_FROM_API=1 brew install qwt
 
     - name: Set Qt5 environment path
       run: |
@@ -506,33 +508,36 @@ jobs:
       with:
         arch: win64_mingw81
         version: ${{ matrix.qt_version }}
+        tools: 'tools_mingw81,qt.tools.win64_mingw810'
+        add-tools-to-path: true
 
     - name: Install FFmpeg
       shell: pwsh
       run: |
         Set-Location ..
         $json = $(curl -L -H "Accept: application/vnd.github+json" https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest)
-        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).name | sub("\\.zip$";"")')
-        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).browser_download_url')
+        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).name | sub("\\.zip$";"")')
+        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).browser_download_url')
         Invoke-WebRequest -Uri "$ffmpeg_url" -OutFile "$ffmpeg_name.zip"
         Expand-Archive -Path "$ffmpeg_name.zip" -DestinationPath .
         Rename-Item -Path "$ffmpeg_name" -NewName "ffmpeg"
 
     - name: Download and configure qwt
+      shell: bash
       run: |
         git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
-        copy .github\workflows\qwtconfig.pri ..\qwt
+        cp .github/workflows/qwtconfig.pri ../qwt
         cd ../qwt
         qmake -r
 
     - name: Build qwt
-      shell: cmd
+      shell: bash
       run: |
         cd ../qwt
         mingw32-make -j4
 
     - name: Configure dvrescue-gui
-      shell: cmd
+      shell: bash
       run: |
         cd Source/GUI/dvrescue/
         qmake
@@ -544,7 +549,7 @@ jobs:
 #        SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - name: Build dvrescue-gui
-      shell: cmd
+      shell: bash
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make
@@ -601,33 +606,36 @@ jobs:
         arch: win64_mingw
         version: ${{ matrix.qt_version }}
         modules: ${{ matrix.qt_modules }}
+        tools: 'tools_mingw81,qt.tools.win64_mingw810'
+        add-tools-to-path: true
 
     - name: Install FFmpeg
       shell: pwsh
       run: |
         Set-Location ..
         $json = $(curl -L -H "Accept: application/vnd.github+json" https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest)
-        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).name | sub("\\.zip$";"")')
-        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).browser_download_url')
+        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).name | sub("\\.zip$";"")')
+        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).browser_download_url')
         Invoke-WebRequest -Uri "$ffmpeg_url" -OutFile "$ffmpeg_name.zip"
         Expand-Archive -Path "$ffmpeg_name.zip" -DestinationPath .
         Rename-Item -Path "$ffmpeg_name" -NewName "ffmpeg"
 
     - name: Download and configure qwt
+      shell: bash
       run: |
         git clone --branch qwt-6.2 --depth 1 https://git.code.sf.net/p/qwt/git ../qwt
-        copy .github\workflows\qwtconfig.pri ..\qwt
+        cp .github/workflows/qwtconfig.pri ../qwt
         cd ../qwt
         qmake -r
 
     - name: Build qwt
-      shell: cmd
+      shell: bash
       run: |
         cd ../qwt
         mingw32-make -j4
 
     - name: Configure dvrescue-gui
-      shell: cmd
+      shell: bash
       run: |
         cd Source/GUI/dvrescue/
         qmake
@@ -639,7 +647,7 @@ jobs:
 #        SSH_PASS: ${{ secrets.SSH_PASS }}
 
     - name: Build dvrescue-gui
-      shell: cmd
+      shell: bash
       run: |
         cd Source/GUI/dvrescue/
         mingw32-make
@@ -647,8 +655,6 @@ jobs:
     - name: Launch dvrescue-gui
       run: |
         cd Source/GUI/dvrescue/
-        ls
-        ls ./dvrescue
         ./dvrescue/release/dvrescue
 
   build-windows-vs:
@@ -703,8 +709,8 @@ jobs:
       run: |
         Set-Location ..
         $json = $(curl -L -H "Accept: application/vnd.github+json" https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest)
-        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).name | sub("\\.zip$";"")')
-        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).browser_download_url')
+        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).name | sub("\\.zip$";"")')
+        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).browser_download_url')
         Invoke-WebRequest -Uri "$ffmpeg_url" -OutFile "$ffmpeg_name.zip"
         Expand-Archive -Path "$ffmpeg_name.zip" -DestinationPath .
         Rename-Item -Path "$ffmpeg_name" -NewName "ffmpeg"
@@ -797,8 +803,8 @@ jobs:
       run: |
         Set-Location ..
         $json = $(curl -L -H "Accept: application/vnd.github+json" https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest)
-        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).name | sub("\\.zip$";"")')
-        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-6.1.zip")).browser_download_url')
+        $ffmpeg_name = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).name | sub("\\.zip$";"")')
+        $ffmpeg_url = $($json | jq -r '.assets[] | select(.name | endswith("-win64-gpl-shared-7.1.zip")).browser_download_url')
         Invoke-WebRequest -Uri "$ffmpeg_url" -OutFile "$ffmpeg_name.zip"
         Expand-Archive -Path "$ffmpeg_name.zip" -DestinationPath .
         Rename-Item -Path "$ffmpeg_name" -NewName "ffmpeg"
