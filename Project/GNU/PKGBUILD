@@ -9,27 +9,65 @@ url="http://MediaArea.net"
 license=('BSD-3-Clause')
 source=(${pkgname}_${pkgver}.orig.tar.xz)
 md5sums=('00000000000000000000000000000000')
-arch=('i686' 'x86_64')
-makedepends=('libzen>=0.4.41' 'libmediainfo>=24.06')
-
-prepare() {
-    cd "${srcdir}"/dvrescue/Project/GNU/CLI
-    sh ./autogen
-    ./configure --prefix=/usr
-}
+arch=('x86_64')
+makedepends=('libzen>=0.4.41' 'libmediainfo>=24.06' 'qt5-base' 'qt5-multimedia' 'qt5-quickcontrols' 'qt5-quickcontrols2' 'qt5-graphicaleffects' 'qt5-svg' 'qt5-xmlpatterns' 'qwt' 'qt5-tools' 'yasm' 'alsa-lib' 'libraw1394' 'libavc1394' 'libiec61883')
 
 build() {
-    cd "${srcdir}"/dvrescue/Project/GNU/CLI
+    cd "${srcdir}"/dvrescue/dvrescue/Project/GNU/CLI
+    autoreconf -if
+    ./configure --prefix=/usr
+
+    cd "${srcdir}"/dvrescue/ZenLib/Project/GNU/Library
+    ./configure --enable-static --disable-shared
+    make
+
+    cd "${srcdir}"/dvrescue/MediaInfoLib/Project/GNU/Library
+    ./configure --enable-static --disable-shared --enable-staticlibs
+    make
+
+    cd "${srcdir}"/dvrescue/MediaInfo/Project//GNU/CLI
+    ./configure --enable-staticlibs
+    make
+
+    cd "${srcdir}"/dvrescue/ffmpeg
+    ./configure --enable-gpl --disable-autodetect --enable-alsa --enable-libfreetype --disable-doc --disable-debug --enable-pic --enable-static --enable-lto --disable-shared --prefix=`pwd`
+    make install
+
+    cd "${srcdir}"/dvrescue/dvrescue/Project/GNU/CLI
+    make
+
+    mkdir "${srcdir}"/dvrescue/dvrescue/Source/GUI/dvrescue/build
+    cd "${srcdir}"/dvrescue/dvrescue/Source/GUI/dvrescue/build
+    export USE_SYSTEM=true
+    qmake-qt5 BINDIR=/usr/bin ..
     make
 }
 
 package_dvrescue() {
     pkgdesc="${pkgdesc} (CLI)"
-    depends=('libzen>=0.4.41' 'libmediainfo>=24.06' 'xmlstarlet')
+    depends=('libzen>=0.4.41' 'libmediainfo>=24.06' 'xmlstarlet' 'libraw1394' 'libavc1394' 'libiec61883')
 
-    cd "${srcdir}"/dvrescue/Project/GNU/CLI
+    cd "${srcdir}"/dvrescue/dvrescue/Project/GNU/CLI
     make DESTDIR="${pkgdir}" install
 
-    install -D -m 0644 "${srcdir}"/dvrescue/LICENSE.txt "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE.txt
-    install -D -m 0644 "${srcdir}"/dvrescue/History.txt "${pkgdir}"/usr/share/doc/${pkgname}/History.txt
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/LICENSE.txt "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE.txt
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/History.txt "${pkgdir}"/usr/share/doc/${pkgname}/History.txt
+}
+
+package_dvrescue-gui() {
+    pkgdesc="${pkgdesc} (GUI)"
+    depends=('qt5-base' 'qt5-multimedia' 'qt5-quickcontrols' 'qt5-quickcontrols2' 'qt5-graphicaleffects' 'qt5-svg' 'qt5-xmlpatterns' 'qwt' 'alsa-lib' 'xmlstarlet' 'libraw1394' 'libavc1394' 'libiec61883')
+
+    install -D -m 0755 "${srcdir}"/dvrescue/dvrescue/Source/GUI/dvrescue/build/dvrescue/dvrescue "${pkgdir}"/usr/bin/dvrescue-gui
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/LICENSE.txt "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE.txt
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/History.txt "${pkgdir}"/usr/share/doc/${pkgname}/History.txt
+
+
+    install -D -m 0755 "${srcdir}"/dvrescue/ffmpeg/ffmpeg "${pkgdir}"/usr/lib/dvrescue/bin/ffmpeg
+    install -D -m 0755 "${srcdir}"/dvrescue/dvrescue/Project/GNU/CLI/dvrescue "${pkgdir}"/usr/lib/dvrescue/bin/dvrescue
+    install -D -m 0755 "${srcdir}"/dvrescue/MediaInfo/Project/GNU/CLI/mediainfo "${pkgdir}"/usr/lib/dvrescue/bin/mediainfo
+
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/Source/GUI/dvrescue/dvrescue/icons/icon.png "${pkgdir}"/usr/share/pixmaps/dvrescue.png
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/Project/GNU/GUI/dvrescue-gui.desktop "${pkgdir}"/usr/share/applications/dvrescue-gui.desktop
+    install -D -m 0644 "${srcdir}"/dvrescue/dvrescue/Project/GNU/GUI/dvrescue-gui.metainfo.xml "${pkgdir}"/usr/share/metainfo/dvrescue-gui.metainfo.xml
 }
