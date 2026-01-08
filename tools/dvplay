@@ -527,6 +527,7 @@ fi
 }
 
 _play_dv(){
+    _get_filters
     if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
         "${FFMPEG_PATH}" "${INPUT_OPTS[@]}" -i "${1}" -bsf dv_error_marker -c:v copy -f rawvideo - | \
         "${FFPLAY_PATH}" - -vf "${FILTER}"
