@@ -41,6 +41,11 @@ SetCompressor /FINAL /SOLID lzma
 !define MUI_ABORTWARNING
 !define MUI_ICON "..\..\Source\GUI\dvrescue\dvrescue\icons\icon.ico"
 
+; Uninstaller signing
+!ifdef EXPORT_UNINST
+  !uninstfinalize 'copy /Y "%1" "../../Release/${PRODUCT_NAME}_GUI_${PRODUCT_VERSION}_Windows-uninst.exe"'
+!endif
+
 ; Language Selection Dialog Settings
 !define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
 !define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
@@ -73,7 +78,7 @@ BrandingText " "
 ; Modern UI end
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "..\..\${PRODUCT_NAME}_GUI_${PRODUCT_VERSION}_Windows.exe"
+OutFile "..\..\Release\${PRODUCT_NAME}_GUI_${PRODUCT_VERSION}_Windows.exe"
 InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails nevershow
@@ -90,12 +95,11 @@ Section "SectionPrincipale" SEC01
   SetOutPath "$SMPROGRAMS"
   CreateShortCut "$SMPROGRAMS\dvrescue.lnk" "$INSTDIR\dvrescue-gui.exe" "" "$INSTDIR\dvrescue-gui.exe" 0 "" "" "dvrescue"
   SetOutPath "$INSTDIR"
-  File "..\..\..\..\xmlstarlet-1.6.1\xml.exe"
+  File "..\..\Release\xmlstarlet-1.6.1\xml.exe"
   File "..\..\..\ffmpeg\ffmpeg.exe"
-  File "..\..\..\MediaInfo\Project\MSVC2022\CLI\x64\Release\mediainfo.exe"
+  File "..\..\..\MediaInfo\Project\MSVC2022\x64\Release\mediainfo.exe"
   File "/oname=dvrescue-gui.exe" "..\..\Source\GUI\dvrescue\build\dvrescue\release\dvrescue.exe"
-  File "..\..\Project\MSVC2022\CLI\x64\Release\dvrescue.exe"
-  File "..\..\Source\GUI\dvrescue\build\dvrescue\release\QtAVPlayer.dll"
+  File "..\..\Project\MSVC2022\x64\Release\dvrescue.exe"
   File "..\..\Source\GUI\dvrescue\build\dvrescue\release\qwt.dll"
   File "..\..\History.txt"
   File "..\..\LICENSE.txt"
@@ -125,7 +129,11 @@ Section "SectionPrincipale" SEC01
 SectionEnd
 
 Section -Post
-  WriteUninstaller "$INSTDIR\uninst.exe"
+  !if /FileExists "..\..\Release\${PRODUCT_NAME}_GUI_${PRODUCT_VERSION}_Windows-uninst.exe"
+    File "/oname=$INSTDIR\uninst.exe" "..\..\Release\${PRODUCT_NAME}_GUI_${PRODUCT_VERSION}_Windows-uninst.exe"
+  !else
+    WriteUninstaller "$INSTDIR\uninst.exe"
+  !endif
   WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\dvrescue-gui.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName"     "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher"       "${PRODUCT_PUBLISHER}"
@@ -152,7 +160,6 @@ Section Uninstall
   Delete "$INSTDIR\mediainfo.exe"
   Delete "$INSTDIR\ffmpeg.exe"
   Delete "$INSTDIR\xml.exe"
-  Delete "$INSTDIR\QtAVPlayer.dll"
   Delete "$INSTDIR\qwt.dll"
   Delete "$INSTDIR\History.txt"
   Delete "$INSTDIR\LICENSE.txt"
@@ -172,6 +179,7 @@ Section Uninstall
   RMDir  "$INSTDIR\scripts"
 
   ; Old QtAV files
+  Delete "$INSTDIR\QtAVPlayer.dll"
   Delete "$INSTDIR\QtAV1.dll"
   Delete "$INSTDIR\QtAV\plugins.qmltypes"
   Delete "$INSTDIR\QtAV\QmlAV.dll"

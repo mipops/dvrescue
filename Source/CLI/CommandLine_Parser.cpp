@@ -150,7 +150,12 @@ static bool OpenTruncateFile(FILE*& F, const char* FileName, Core& C, bitset<Fla
     }
     if (Verbosity == 10)
         *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"..." << endl;
+#ifdef _WIN32
+    if (fopen_s(&F, FileName, "wb"))
+        F = nullptr;
+#else
     F = fopen(FileName, "wb");
+#endif
     if (Verbosity == 10)
         *C.Err << "Debug: opening (out, trunc) \"" << FileName << "\"... Done." << endl;
     if (!F)
