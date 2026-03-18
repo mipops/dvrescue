@@ -387,7 +387,12 @@ bool dv_merge_private::Init()
         {
             if (Verbosity == 10)
                 cerr << "Debug: opening (in) \"" << Inputs_FileName << "\"..." << endl;
+#ifdef _WIN32
+            if (fopen_s(&Input->F, Inputs_FileName.c_str(), "rb"))
+                Input->F = nullptr;
+#else
             Input->F = fopen(Inputs_FileName.c_str(), "rb");
+#endif
             if (Verbosity == 10)
                 cerr << "Debug: opening (in) \"" << Inputs_FileName << "\"... Done." << endl;
         }
@@ -1486,7 +1491,12 @@ bool dv_merge_private::Process(float Speed)
             if (!Input->F_Takes)
             {
                 Input->F_Takes_Start = Frame_Pos;
+#ifdef _WIN32
+                if (fopen_s(&Input->F_Takes, (Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb"))
+                    Input->F_Takes = nullptr;
+#else
                 Input->F_Takes = fopen((Merge_OutputFileNames[0] + ".dvrescue.take" + to_string(Input_Rewind_Pos) + ".frames" + to_string(Input->F_Takes_Start) + "-.dv").c_str(), "wb");
+#endif
             }
             if (Input->F_Takes)
             {

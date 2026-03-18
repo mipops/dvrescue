@@ -23,7 +23,6 @@
     <ProjectGuid>{E7E8DDAE-AC1E-454A-A7E4-D37E56C5B7A1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleApplication1</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -87,6 +86,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;ENABLE_SIMULATOR%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
@@ -102,6 +102,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;ENABLE_SIMULATOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
@@ -119,6 +120,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;ENABLE_SIMULATOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
@@ -138,6 +140,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;ENABLE_SIMULATOR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\..\Source;..\..\..\Source\ThirdParty\TimeCode;..\..\..\Source\ThirdParty\ccdecoder;..\..\..\..\MediaInfoLib\Source;..\..\..\..\ZenLib\Source</AdditionalIncludeDirectories>
