@@ -650,6 +650,19 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             Merge_Rewind_Capture = true;
             if (!Merge_Rewind_Count)
                 Merge_Rewind_Count = 1;
+            if (!Merge_Rewind_Overshoot)
+                Merge_Rewind_Overshoot = 30; // Default: 30 frames pre-roll
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-overshoot"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_Overshoot = atoi(argv_ansi[i]);
         }
         else if (!strcmp(argv_ansi[i], "--rewind-basename"))
         {

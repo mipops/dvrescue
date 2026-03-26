@@ -33,6 +33,7 @@ extern uint8_t DeckLinkTimecodeFormat;
 #endif
 extern size_t Merge_Rewind_Count;
 extern bool Merge_Rewind_Capture;
+extern size_t Merge_Rewind_Overshoot;
 extern uint8_t MergeInfo_Format;
 extern uint8_t Verbosity;
 extern uint64_t Timeout;

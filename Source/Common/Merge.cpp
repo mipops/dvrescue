@@ -33,6 +33,7 @@ ofstream Out;
 static ostream* Log;
 size_t Merge_Rewind_Count = 0;
 bool Merge_Rewind_Capture = false;
+size_t Merge_Rewind_Overshoot = 0;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint64_t Timeout = 0;
@@ -1469,11 +1470,21 @@ bool dv_merge_private::Process(float Speed)
                 *Log << "Rewind to frame " << Frame_Pos << endl;
             }
 
-            // Rewind
+            // Rewind — apply overshoot to go further back for head stabilization
             auto& Input0 = Inputs[0];
             auto& Frames0 = Input0->Segments[Segment_Pos].Frames;
             auto& Frame0 = Frames0[Frame_Pos];
             RewindToTimeCode = Frame0.TC;
+            if (Merge_Rewind_Overshoot && RewindToTimeCode.HasValue())
+            {
+                auto TargetFrames = RewindToTimeCode.ToFrames();
+                if (TargetFrames > (int64_t)Merge_Rewind_Overshoot)
+                    RewindToTimeCode += -(int64_t)Merge_Rewind_Overshoot;
+                else
+                    RewindToTimeCode = TimeCode(0, 0, 0, 0, RewindToTimeCode.FramesPerSecond, RewindToTimeCode.DropFrame);
+                if (Verbosity >= 5 && !MergeInfo_Format)
+                    *Log << "Rewind overshoot: targeting " << Merge_Rewind_Overshoot << " frames before error region (" << RewindToTimeCode.ToString() << ")" << endl;
+            }
 
             for (size_t i = 0; i < Inputs.size() - 1; i++)
             {

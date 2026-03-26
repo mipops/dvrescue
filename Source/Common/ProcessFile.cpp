@@ -615,7 +615,22 @@ void file::RewindToTimeCode(TimeCode TC)
 {
     RewindMode=Rewind_Mode_TimeCode;
     RewindTo_TC=TC;
-    Capture->SetPlaybackMode(Playback_Mode_Playing, -1.0);
+    RewindPassNumber++;
+
+    // Multi-speed rewind: alternate speeds across passes for different
+    // head-tape contact angles, improving block recovery diversity.
+    // Pass 1: -1.0x (normal reverse)
+    // Pass 2: -0.5x (slow — better head tracking)
+    // Pass 3+: -1.0x again, etc.
+    float RewindSpeed = -1.0f;
+    if (Merge_Rewind_Capture && RewindPassNumber > 1)
+    {
+        // Alternate between normal and slow reverse
+        RewindSpeed = (RewindPassNumber % 2 == 0) ? -0.5f : -1.0f;
+    }
+    if (Verbosity >= 5)
+        cerr << "Rewind pass " << RewindPassNumber << " at speed " << RewindSpeed << "x" << endl;
+    Capture->SetPlaybackMode(Playback_Mode_Playing, RewindSpeed);
 }
 #endif
 
@@ -751,6 +766,13 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                 cerr << to_string(GetDvSpeed(*FrameData));
                 cerr << '\n';
             }
+            // Capture settling frames — the transport has just switched
+            // direction and these frames are from the transition zone
+            if (Merge_Rewind_Capture && !Merge_Out.empty())
+            {
+                auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
+                Merge.AddFrameAnalysis(Merge_FilePos, FrameData, Speed);
+            }
         }
         DelayedPlay--;
         if (!DelayedPlay)
@@ -863,6 +885,14 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                     }
                     RF->TC = TC;
                     ReverseFrameBuffer.push_back(RF);
+                }
+                // Forward-settling frames (TimeCode2): inject directly
+                // into merge — these are ascending-TC forward-play frames
+                // approaching the error region
+                if (Merge_Rewind_Capture && RewindMode==Rewind_Mode_TimeCode2 && !Merge_Out.empty())
+                {
+                    auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
+                    Merge.AddFrameAnalysis(Merge_FilePos, FrameData, Speed);
                 }
                 return; //Continue in rewind mode
             }
@@ -1027,24 +1057,40 @@ void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
 {
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
     if (DelayedPlay)
-        return;
-    if (RewindMode!=Rewind_Mode_None)
     {
-        // Buffer raw frame data during reverse playback if enabled
-        if (Merge_Rewind_Capture && RewindMode==Rewind_Mode_TimeCode
+        // Forward raw data for settling frames into merge
+        if (Merge_Rewind_Capture && !Merge_Out.empty()
             && (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
             && FrameData->Content && FrameData->Content_Size)
         {
-            // Attach content to the most recently buffered reverse frame
-            if (!ReverseFrameBuffer.empty())
+            Merge.AddFrameData(Merge_FilePos, FrameData->Content, FrameData->Content_Size);
+        }
+        return;
+    }
+    if (RewindMode!=Rewind_Mode_None)
+    {
+        if (Merge_Rewind_Capture
+            && (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
+            && FrameData->Content && FrameData->Content_Size)
+        {
+            if (RewindMode==Rewind_Mode_TimeCode)
             {
-                auto* RF = ReverseFrameBuffer.back();
-                if (!RF->Content) // Only attach once per frame
+                // Buffer raw frame data during reverse playback
+                if (!ReverseFrameBuffer.empty())
                 {
-                    RF->Content = new uint8_t[FrameData->Content_Size];
-                    std::memcpy(RF->Content, FrameData->Content, FrameData->Content_Size);
-                    RF->Content_Size = FrameData->Content_Size;
+                    auto* RF = ReverseFrameBuffer.back();
+                    if (!RF->Content) // Only attach once per frame
+                    {
+                        RF->Content = new uint8_t[FrameData->Content_Size];
+                        std::memcpy(RF->Content, FrameData->Content, FrameData->Content_Size);
+                        RF->Content_Size = FrameData->Content_Size;
+                    }
                 }
+            }
+            else if (RewindMode==Rewind_Mode_TimeCode2 && !Merge_Out.empty())
+            {
+                // Forward raw data for forward-settling frames into merge
+                Merge.AddFrameData(Merge_FilePos, FrameData->Content, FrameData->Content_Size);
             }
         }
         return;

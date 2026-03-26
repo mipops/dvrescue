@@ -197,6 +197,7 @@ public:
     bool TerminateRequested = false;
     bool TimeOutReached = false;
     capture_mode CaptureMode = Capture_Mode_DV;
+    size_t RewindPassNumber = 0;
 
     // Reverse-playback frame capture buffer
     struct reverse_frame
