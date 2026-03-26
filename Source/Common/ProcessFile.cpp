@@ -568,6 +568,9 @@ file::~file()
     if (Capture)
         delete Capture;
 
+    if (Controller)
+        delete Controller;
+
     if (Wrapper)
         delete Wrapper;
 
@@ -779,6 +782,8 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         if (!DelayedPlay)
         {
             RewindMode = Rewind_Mode_TimeCode2;
+            TimeCode2_FrameCount = 0;
+            TimeCode2_PrevTC = -1;
             Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
         }
         return;
@@ -815,24 +820,46 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                 }
                 return; //Continue in forward mode
             }
-            else if (RewindMode==Rewind_Mode_TimeCode2 && TC.ToFrames()>=RewindTo_TC.ToFrames()-1) // TEMP: do not do minus 1
+            else if (RewindMode==Rewind_Mode_TimeCode2)
             {
-                if (Verbosity == 10)
+                auto CurrentFrames = TC.ToFrames();
+                TimeCode2_FrameCount++;
+
+                // Detect timecode discontinuity: backward jump or stalled TC
+                bool TC_Discontinuity = false;
+                if (TimeCode2_PrevTC >= 0 && CurrentFrames < TimeCode2_PrevTC - 1)
+                    TC_Discontinuity = true;
+                TimeCode2_PrevTC = CurrentFrames;
+
+                // Exit conditions: target reached, TC discontinuity, or frame limit exceeded
+                bool TargetReached = (CurrentFrames >= RewindTo_TC.ToFrames() - 1);
+                bool FrameLimitHit = (TimeCode2_FrameCount > 1000);
+
+                if (TargetReached || TC_Discontinuity || FrameLimitHit)
                 {
-                    cerr << "Rewind ";
-                    string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
-                    if (AbstString.size() < 6)
-                        AbstString.insert(0, 6 - AbstString.size(), ' ');
-                    cerr << AbstString;
-                    cerr << ' ';
-                    cerr << TC.ToString();
-                    cerr << setw(Merge_Rewind_Count + 5) << ' ';
-                    cerr << to_string(GetDvSpeed(*FrameData));
-                    cerr << '\n';
+                    if (Verbosity == 10)
+                    {
+                        cerr << "Rewind ";
+                        string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
+                        if (AbstString.size() < 6)
+                            AbstString.insert(0, 6 - AbstString.size(), ' ');
+                        cerr << AbstString;
+                        cerr << ' ';
+                        cerr << TC.ToString();
+                        cerr << setw(Merge_Rewind_Count + 5) << ' ';
+                        cerr << to_string(GetDvSpeed(*FrameData));
+                        cerr << '\n';
+                    }
+                    if (TC_Discontinuity && Verbosity >= 5)
+                        cerr << "Rewind: timecode discontinuity detected in forward-settle phase, exiting rewind" << endl;
+                    if (FrameLimitHit && Verbosity >= 5)
+                        cerr << "Rewind: frame limit exceeded in forward-settle phase, exiting rewind" << endl;
+                    RewindTo_TC = TimeCode();
+                    RewindMode = Rewind_Mode_None;
+                    TimeCode2_FrameCount = 0;
+                    TimeCode2_PrevTC = -1;
+                    return; //Last one
                 }
-                RewindTo_TC = TimeCode();
-                RewindMode = Rewind_Mode_None;
-                return; //Last one
             }
             else
             {

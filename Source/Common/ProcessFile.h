@@ -194,6 +194,8 @@ public:
     TimeCode RewindTo_TC;
     int RewindTo_Abst = 0;
     int DelayedPlay = 0;
+    size_t TimeCode2_FrameCount = 0;
+    int64_t TimeCode2_PrevTC = -1;
     bool TerminateRequested = false;
     bool TimeOutReached = false;
     capture_mode CaptureMode = Capture_Mode_DV;

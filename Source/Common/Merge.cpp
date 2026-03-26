@@ -613,7 +613,7 @@ bool dv_merge_private::TcSyncStart()
         return false;
 
     // Look for first time code presence per input and minimum theoritical time code
-    vector<size_t> StartPos;
+    map<size_t, size_t> StartPos; // input index -> first frame with valid TC
     int64_t TC_Min = numeric_limits<int64_t>::max();
     for (size_t i = 0; i < Input_Count; i++)
     {
@@ -627,7 +627,7 @@ bool dv_merge_private::TcSyncStart()
             Frames_Pos++;
         if (Frames_Pos >= Frames.size())
             return true;
-        StartPos.push_back(Frames_Pos);
+        StartPos[i] = Frames_Pos;
         int64_t TC_Min_ThisInput = Frames[Frames_Pos].TC.ToFrames() - Frames_Pos;
         if (TC_Min > TC_Min_ThisInput)
             TC_Min = TC_Min_ThisInput;
@@ -638,6 +638,8 @@ bool dv_merge_private::TcSyncStart()
     {
         auto& Input = Inputs[i];
         if (Segment_Pos >= Input->Segments.size())
+            continue;
+        if (StartPos.find(i) == StartPos.end())
             continue;
         auto& Frames = Input->Segments[Segment_Pos].Frames;
 
@@ -1231,29 +1233,49 @@ bool dv_merge_private::Process(float Speed)
         Log_Line << Log_Separator;
     if (!IsMissing && !IsOK)
     {
-        if (!MergeInfo_Format)
+        if (MergeInfo_Format)
+        {
+            // CSV mode: output a single aggregated status character
+            char AggStatus = ' ';
+            for (size_t i = 0; i < Input_Count; i++)
+            {
+                auto& Input = Inputs[i];
+                if (Input->DoNotUseFile)
+                    continue;
+                auto& Frames = Input->Segments[Segment_Pos].Frames;
+                auto& Frame = Frames[Frame_Pos];
+                if (Frame.Status[Status_BlockIssue])
+                    AggStatus = 'P';
+                else if (Frame.Status[Status_FrameMissing] && AggStatus != 'P')
+                    AggStatus = 'M';
+                else if (Frame.Status[Status_TimeCodeIssue] && AggStatus == ' ')
+                    AggStatus = 'T';
+            }
+            Log_Line << AggStatus;
+        }
+        else
         {
             Text_Status_ToFill = 1;
             Log_Line << Log_Separator;
-        }
-        for (size_t i = 0; i < Input_Count; i++)
-        {
-            auto& Input = Inputs[i];
-            if (Input->DoNotUseFile)
+            for (size_t i = 0; i < Input_Count; i++)
             {
-                Log_Line << ' ';
-                continue;
+                auto& Input = Inputs[i];
+                if (Input->DoNotUseFile)
+                {
+                    Log_Line << ' ';
+                    continue;
+                }
+                auto& Frames = Input->Segments[Segment_Pos].Frames;
+                auto& Frame = Frames[Frame_Pos];
+                if (Frame.Status[Status_FrameMissing])
+                    Log_Line << 'M';
+                else if (Frame.Status[Status_BlockIssue])
+                    Log_Line << 'P';
+                else if (Frame.Status[Status_TimeCodeIssue])
+                    Log_Line << 'T';
+                else
+                    Log_Line << ' ';
             }
-            auto& Frames = Input->Segments[Segment_Pos].Frames;
-            auto& Frame = Frames[Frame_Pos];
-            if (Frame.Status[Status_FrameMissing])
-                Log_Line << 'M';
-            else if (Frame.Status[Status_BlockIssue])
-                Log_Line << 'P';
-            else if (Frame.Status[Status_TimeCodeIssue])
-                Log_Line << 'T';
-            else
-                Log_Line << ' ';
         }
     }
     else

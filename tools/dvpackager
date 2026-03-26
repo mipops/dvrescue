@@ -996,6 +996,10 @@ if [[ -f "${DVFILE}" ]] ; then
     fi
     DV_FRAME_COUNT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -v "sum(/d:dvrescue/d:media[1]/d:frames/@count)" "${DVRESCUE_XML}" 2>/dev/null)"
     _report -v "DV_FRAME_COUNT=(${DV_FRAME_COUNT})"
+    if [[ -z "${DV_FRAME_COUNT}" ]] || [[ "${DV_FRAME_COUNT}" = "0" ]] ; then
+        _report -w "Error: dvrescue XML contains no frames. Nothing to package."
+        exit 1
+    fi
     SOURCE_FORMAT="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media[1]" -v "@format" "${DVRESCUE_XML}" 2>/dev/null)"
     _report -v "SOURCE_FORMAT=(${SOURCE_FORMAT})"
     if [[ "${SOURCE_FORMAT}" == "QuickTime" || "${SOURCE_FORMAT}" == "MPEG-4" ]] ; then
