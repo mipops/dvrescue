@@ -907,7 +907,20 @@ fi
 if [[ "${UNPACKAGER}" == "Y" ]] ; then
     OUTPUTNAME="unpackaged_$(uuidgen).dv"
     echo "Unpackaging mode. Unpackaging the input files into ${OUTPUTNAME}."
+    # Expand directory inputs to their contained files (#96)
+    _UNPACK_FILES=()
     for i in "${DVFILE}" "${@}" ; do
+        if [[ -d "$i" ]] ; then
+            while IFS= read -r -d '' f ; do
+                _UNPACK_FILES+=("$f")
+            done < <(find "$i" -maxdepth 1 -type f \( -iname "*.dv" -o -iname "*.dif" -o -iname "*.mov" -o -iname "*.mkv" \) -print0 | sort -z)
+        elif [[ -f "$i" ]] ; then
+            _UNPACK_FILES+=("$i")
+        else
+            _report -w "Warning: ${i} not found, skipping."
+        fi
+    done
+    for i in "${_UNPACK_FILES[@]}" ; do
         "${FFMPEG_PATH}" -nostdin "${FFMPEG_VERBOSE[@]}" -i "$i" -map 0:v:0 -c copy -f rawvideo - >> "${OUTPUTNAME}"
     done
     exit
