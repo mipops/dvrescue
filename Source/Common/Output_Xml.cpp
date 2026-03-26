@@ -61,6 +61,8 @@ enum format {
     Format_Unknown,
     Format_DV,
     Format_DAT,
+    Format_HDV,
+    Format_MicroMV,
 };
 
 //---------------------------------------------------------------------------
@@ -258,9 +260,123 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Format = Format_DAT;
         else if (Format_V == __T("DV"))
             Format = Format_DV;
+        else if (Format_G == __T("MPEG-TS") || Format_G == __T("BDAV"))
+            Format = (Format_V == __T("MPEG Video")) ? Format_HDV : Format_Unknown;
+        else if (Format_V == __T("MPEG Video"))
+            Format = Format_MicroMV;
         else
             Format = Format_Unknown;
-        if (File->CaptureMode == Capture_Mode_DV)
+        if (Format == Format_HDV || Format == Format_MicroMV)
+        {
+            // HDV/MicroMV: generate XML from MediaInfoLib general stream info
+            if (!Format_G.empty())
+            {
+                Text += " format=\"";
+                Text += Ztring(Format_G).To_UTF8();
+                Text += '\"';
+            }
+            auto FileSize = File->MI.Get(Stream_General, 0, __T("FileSize"));
+            if (!FileSize.empty())
+            {
+                Text += " size=\"";
+                Text += Ztring(FileSize).To_UTF8();
+                Text += '\"';
+            }
+            Text += ">\n";
+
+            // Video stream info
+            auto VideoFormat = File->MI.Get(Stream_Video, 0, __T("Format"));
+            auto VideoCodecID = File->MI.Get(Stream_Video, 0, __T("CodecID"));
+            auto Width = File->MI.Get(Stream_Video, 0, __T("Width"));
+            auto Height = File->MI.Get(Stream_Video, 0, __T("Height"));
+            auto FrameRate = File->MI.Get(Stream_Video, 0, __T("FrameRate"));
+            auto ScanType = File->MI.Get(Stream_Video, 0, __T("ScanType"));
+            auto ChromaSub = File->MI.Get(Stream_Video, 0, __T("ChromaSubsampling"));
+            auto BitRate = File->MI.Get(Stream_Video, 0, __T("BitRate"));
+            auto Duration = File->MI.Get(Stream_Video, 0, __T("Duration"));
+            auto FrameCount = File->MI.Get(Stream_Video, 0, __T("FrameCount"));
+
+            Text += "\t\t<frames";
+            if (!FrameCount.empty())
+            {
+                Text += " count=\"";
+                Text += Ztring(FrameCount).To_UTF8();
+                Text += '\"';
+            }
+            if (!Width.empty() && !Height.empty())
+            {
+                Text += " size=\"";
+                Text += Ztring(Width).To_UTF8();
+                Text += 'x';
+                Text += Ztring(Height).To_UTF8();
+                Text += '\"';
+            }
+            if (!FrameRate.empty())
+            {
+                Text += " video_rate=\"";
+                Text += Ztring(FrameRate).To_UTF8();
+                Text += '\"';
+            }
+            if (!ScanType.empty())
+            {
+                Text += " scan_type=\"";
+                Text += Ztring(ScanType).To_UTF8();
+                Text += '\"';
+            }
+            if (!ChromaSub.empty())
+            {
+                Text += " chroma_subsampling=\"";
+                Text += Ztring(ChromaSub).To_UTF8();
+                Text += '\"';
+            }
+            if (!BitRate.empty())
+            {
+                Text += " bitrate=\"";
+                Text += Ztring(BitRate).To_UTF8();
+                Text += '\"';
+            }
+            if (!VideoFormat.empty())
+            {
+                Text += " codec=\"";
+                Text += Ztring(VideoFormat).To_UTF8();
+                Text += '\"';
+            }
+
+            // Audio stream info
+            auto AudioRate = File->MI.Get(Stream_Audio, 0, __T("SamplingRate"));
+            auto AudioChannels = File->MI.Get(Stream_Audio, 0, __T("Channels"));
+            auto AudioFormat = File->MI.Get(Stream_Audio, 0, __T("Format"));
+            if (!AudioRate.empty())
+            {
+                Text += " audio_rate=\"";
+                Text += Ztring(AudioRate).To_UTF8();
+                Text += '\"';
+            }
+            if (!AudioChannels.empty())
+            {
+                Text += " channels=\"";
+                Text += Ztring(AudioChannels).To_UTF8();
+                Text += '\"';
+            }
+            if (!AudioFormat.empty())
+            {
+                Text += " audio_codec=\"";
+                Text += Ztring(AudioFormat).To_UTF8();
+                Text += '\"';
+            }
+
+            if (!Duration.empty())
+            {
+                Text += " duration=\"";
+                Text += Ztring(Duration).To_UTF8();
+                Text += '\"';
+            }
+            Text += "/>\n";
+
+            Text += "\t</media>\n";
+            continue; // HDV/MicroMV analysis complete — skip DV-specific processing
+        }
+        else if (File->CaptureMode == Capture_Mode_DV)
         {
             if (Format == Format_Unknown || File->PerFrame.empty() || File->PerChange.empty())
             {

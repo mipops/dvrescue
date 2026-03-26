@@ -215,6 +215,34 @@
         </xsd:documentation>
       </xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="bitrate" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Video bitrate in bits per second. Used for MPEG-2 based formats (HDV, MicroMV).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="codec" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Video codec name. Used for MPEG-2 based formats (HDV, MicroMV).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="audio_codec" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Audio codec name. Used for MPEG-2 based formats (HDV, MicroMV).
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="duration" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Duration of the frames sequence in milliseconds. Used for MPEG-2 based formats.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:simpleType name="sizeType">
@@ -227,6 +255,7 @@
       <xsd:enumeration value="720x480"/>
       <xsd:enumeration value="720x486"/>
       <xsd:enumeration value="720x576"/>
+      <xsd:enumeration value="1280x720"/>
       <xsd:enumeration value="1280x1080"/>
       <xsd:enumeration value="1440x1080"/>
       <xsd:enumeration value="960x720"/>

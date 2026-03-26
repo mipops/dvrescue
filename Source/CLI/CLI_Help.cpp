@@ -19,7 +19,9 @@ using namespace std;
 return_value Help(ostream& Out, const char* Name, bool Full)
 {
     Out <<
-    "Usage: \"" << Name << " FileName1 [Filename2...] [Options...]\"\n";
+    "Usage: \"" << Name << " FileName1 [Filename2...] [Options...]\"\n"
+    "\n"
+    "Supported formats: DV, DVCAM, DVCPRO, Digital8, DAT, HDV (.m2t), MicroMV.\n";
     if (!Full)
     {
         Out << "\"" << Name << " --help\" for displaying more information.\n"
@@ -294,6 +296,9 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "\n"
         "    Query device capabilities:\n"
         "        dvrescue device://0 --device-info\n"
+        "\n"
+        "    Analyze an HDV file (.m2t) and save XML:\n"
+        "        dvrescue input.m2t -x output.dvrescue.xml\n"
         "\n"
         "    Extract closed captions as SRT:\n"
         "        dvrescue input.dv --cc-format srt -c captions.srt\n"
