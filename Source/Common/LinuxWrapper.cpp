@@ -7,6 +7,7 @@
 //---------------------------------------------------------------------------
 #include "Common/LinuxWrapper.h"
 
+#include <cerrno>
 #include <condition_variable>
 #include <ctime>
 #include <queue>
@@ -69,7 +70,7 @@ void LinuxWrapper::Init()
 
     raw1394handle_t Handle = raw1394_new_handle();
     if (!Handle)
-        throw error("unable to create raw1394 handle");
+        throw error("unable to create raw1394 handle; check that the raw1394/firewire modules are loaded and you have permission to access /dev/fw* or /dev/raw1394");
 
     int Ports = raw1394_get_port_info(Handle, nullptr, 0);
     raw1394_destroy_handle(Handle);
@@ -412,8 +413,22 @@ void LinuxWrapper::StartCaptureSession()
                 {
                     const lock_guard<mutex> Lock(ProcessFrameLock);
                 }
-                if (poll(&Desc, 1, 100) > 0 && (Desc.revents & POLLIN))
-                    Result = raw1394_loop_iterate(CaptureHandle);
+                int PollResult = poll(&Desc, 1, 100);
+                if (PollResult > 0)
+                {
+                    if (Desc.revents & POLLIN)
+                        Result = raw1394_loop_iterate(CaptureHandle);
+                    if (Desc.revents & (POLLERR | POLLHUP)) // Bus error (#668)
+                    {
+                        cerr << "Error: FireWire bus error during capture." << endl;
+                        break;
+                    }
+                }
+                else if (PollResult < 0 && errno != EINTR) // Poll failure (#668)
+                {
+                    cerr << "Error: poll() failed during capture: " << strerror(errno) << endl;
+                    break;
+                }
             }
             while (Result == 0 && !Raw1394PoolingThread_Terminate);
         });
