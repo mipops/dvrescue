@@ -197,5 +197,22 @@ public:
     bool TerminateRequested = false;
     bool TimeOutReached = false;
     capture_mode CaptureMode = Capture_Mode_DV;
+
+    // Reverse-playback frame capture buffer
+    struct reverse_frame
+    {
+        MediaInfo_Event_DvDif_Analysis_Frame_1* Analysis = nullptr;
+        uint8_t* Content = nullptr;
+        size_t Content_Size = 0;
+        TimeCode TC;
+
+        ~reverse_frame()
+        {
+            delete Analysis;
+            delete[] Content;
+        }
+    };
+    std::vector<reverse_frame*> ReverseFrameBuffer;
+    void FlushReverseBuffer();
     #endif
 };

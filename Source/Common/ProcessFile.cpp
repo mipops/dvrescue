@@ -570,6 +570,10 @@ file::~file()
 
     if (Wrapper)
         delete Wrapper;
+
+    for (auto* RF : ReverseFrameBuffer)
+        delete RF;
+    ReverseFrameBuffer.clear();
     #endif
 
     for (auto& Frame : PerFrame)
@@ -622,6 +626,58 @@ void file::RewindToAbst(int Abst)
     RewindMode=Rewind_Mode_Abst;
     RewindTo_Abst=Abst;
     Capture->SetPlaybackMode(Playback_Mode_Playing, -1.0);
+}
+
+//---------------------------------------------------------------------------
+void file::FlushReverseBuffer()
+{
+    if (ReverseFrameBuffer.empty())
+        return;
+
+    // Reverse the buffer so frames are in ascending TC order
+    std::reverse(ReverseFrameBuffer.begin(), ReverseFrameBuffer.end());
+
+    // Deduplicate: keep only the first frame per TC value (best quality
+    // from the pass closest to the error region)
+    std::vector<reverse_frame*> Unique;
+    Unique.reserve(ReverseFrameBuffer.size());
+    int64_t LastTC = -1;
+    for (auto* RF : ReverseFrameBuffer)
+    {
+        int64_t ThisTC = RF->TC.HasValue() ? RF->TC.ToFrames() : -1;
+        if (ThisTC >= 0 && ThisTC != LastTC)
+        {
+            Unique.push_back(RF);
+            LastTC = ThisTC;
+        }
+        else
+        {
+            delete RF; // Duplicate TC, discard
+        }
+    }
+    ReverseFrameBuffer.clear();
+
+    if (Unique.empty())
+        return;
+
+    if (Verbosity >= 5)
+        cerr << "Reverse capture: flushing " << Unique.size() << " frames into merge" << endl;
+
+    // Inject each frame into the merge system
+    for (auto* RF : Unique)
+    {
+        if (RF->Analysis)
+        {
+            auto Speed = abs(Speed_Before) > abs(Speed_After) ? Speed_Before : Speed_After;
+            Merge.AddFrameAnalysis(Merge_FilePos, RF->Analysis, Speed);
+        }
+        if (RF->Content && RF->Content_Size && !Merge_Out.empty())
+        {
+            Merge.AddFrameData(Merge_FilePos, RF->Content, RF->Content_Size);
+        }
+        delete RF;
+    }
+    Unique.clear();
 }
 #endif
 
@@ -725,6 +781,9 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                     cerr << to_string(GetDvSpeed(*FrameData));
                     cerr << '\n';
                 }
+                // Flush any collected reverse frames before switching direction
+                if (Merge_Rewind_Capture)
+                    FlushReverseBuffer();
                 DelayedPlay = 4;
                 if (!DelayedPlay)
                 {
@@ -756,7 +815,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
             {
                 if (Verbosity == 10)
                 {
-                    cerr << "Rewind ";
+                    cerr << "Rewind" << (Merge_Rewind_Capture ? "+" : " ");
                     string AbstString = to_string(AbstBf_Temp.AbsoluteTrackNumber());
                     if (AbstString.size() < 6)
                         AbstString.insert(0, 6 - AbstString.size(), ' ');
@@ -766,6 +825,44 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                     cerr << setw(Merge_Rewind_Count + 5) << ' ';
                     cerr << to_string(GetDvSpeed(*FrameData));
                     cerr << '\n';
+                }
+                // Buffer reverse-play frames for merge if enabled
+                if (Merge_Rewind_Capture && RewindMode==Rewind_Mode_TimeCode)
+                {
+                    auto* RF = new reverse_frame();
+                    RF->Analysis = new MediaInfo_Event_DvDif_Analysis_Frame_1();
+                    std::memcpy(RF->Analysis, FrameData, sizeof(MediaInfo_Event_DvDif_Analysis_Frame_1));
+                    // Deep copy error strings
+                    if (FrameData->Errors)
+                    {
+                        size_t SizeToCopy = std::strlen(FrameData->Errors) + 1;
+                        auto Errors = new char[SizeToCopy];
+                        std::memcpy(Errors, FrameData->Errors, SizeToCopy);
+                        RF->Analysis->Errors = Errors;
+                    }
+                    if (FrameData->Video_STA_Errors)
+                    {
+                        size_t SizeToCopy = FrameData->Video_STA_Errors_Count * sizeof(size_t);
+                        auto Video_STA_Errors = new size_t[SizeToCopy];
+                        std::memcpy(Video_STA_Errors, FrameData->Video_STA_Errors, SizeToCopy);
+                        RF->Analysis->Video_STA_Errors = Video_STA_Errors;
+                    }
+                    if (FrameData->Audio_Data_Errors)
+                    {
+                        size_t SizeToCopy = FrameData->Audio_Data_Errors_Count * sizeof(size_t);
+                        auto Audio_Data_Errors = new size_t[SizeToCopy];
+                        std::memcpy(Audio_Data_Errors, FrameData->Audio_Data_Errors, SizeToCopy);
+                        RF->Analysis->Audio_Data_Errors = Audio_Data_Errors;
+                    }
+                    if (FrameData->MoreData)
+                    {
+                        size_t SizeToCopy = *((size_t*)FrameData->MoreData) + sizeof(size_t);
+                        auto MoreData = new uint8_t[SizeToCopy];
+                        std::memcpy(MoreData, FrameData->MoreData, SizeToCopy);
+                        RF->Analysis->MoreData = MoreData;
+                    }
+                    RF->TC = TC;
+                    ReverseFrameBuffer.push_back(RF);
                 }
                 return; //Continue in rewind mode
             }
@@ -932,7 +1029,26 @@ void file::AddFrameData(const MediaInfo_Event_Global_Demux_4* FrameData)
     if (DelayedPlay)
         return;
     if (RewindMode!=Rewind_Mode_None)
+    {
+        // Buffer raw frame data during reverse playback if enabled
+        if (Merge_Rewind_Capture && RewindMode==Rewind_Mode_TimeCode
+            && (!FrameData->StreamIDs_Size || FrameData->StreamIDs[FrameData->StreamIDs_Size-1]==-1)
+            && FrameData->Content && FrameData->Content_Size)
+        {
+            // Attach content to the most recently buffered reverse frame
+            if (!ReverseFrameBuffer.empty())
+            {
+                auto* RF = ReverseFrameBuffer.back();
+                if (!RF->Content) // Only attach once per frame
+                {
+                    RF->Content = new uint8_t[FrameData->Content_Size];
+                    std::memcpy(RF->Content, FrameData->Content, FrameData->Content_Size);
+                    RF->Content_Size = FrameData->Content_Size;
+                }
+            }
+        }
         return;
+    }
     #endif
 
     // DV frame

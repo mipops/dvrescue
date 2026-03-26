@@ -645,6 +645,12 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             Merge_Rewind_Count = atoi(argv_ansi[i]);
         }
+        else if (!strcmp(argv_ansi[i], "--rewind-capture"))
+        {
+            Merge_Rewind_Capture = true;
+            if (!Merge_Rewind_Count)
+                Merge_Rewind_Count = 1;
+        }
         else if (!strcmp(argv_ansi[i], "--rewind-basename"))
         {
             if (++i >= argc)

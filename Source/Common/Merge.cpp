@@ -32,6 +32,7 @@ ostream* MergeInfo_Out = nullptr;
 ofstream Out;
 static ostream* Log;
 size_t Merge_Rewind_Count = 0;
+bool Merge_Rewind_Capture = false;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint64_t Timeout = 0;
