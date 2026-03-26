@@ -244,6 +244,10 @@ namespace
     const int Formating_BlockCount_Width = 9;
     const int Formating_FrameBlockCount_Width = 4;
     const int Formating_Precision = 6;
+    // Maximum number of missing frames to insert for a timecode gap before
+    // treating it as a segment break (1 hour at 30fps). Prevents OOM when
+    // rewind operations cause large timecode discontinuities.
+    const size_t MaxMissingFrameGap = 108000;
     void ShowFrames(size_t Count, size_t Total, const char* Next = nullptr, bool AlwaysShow = false)
     {
         if (!Count && !AlwaysShow)
@@ -524,6 +528,14 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
             }
             if (CurrentFrame.TC.ToFrames() != TC_Previous.ToFrames()) // Accept repeated frames
                 TC_Previous++;
+            auto Gap = CurrentFrame.TC.ToFrames() - TC_Previous.ToFrames();
+            if (Gap > 0 && (size_t)Gap > MaxMissingFrameGap)
+            {
+                // Timecode gap too large, treat as a new segment to avoid excessive memory use
+                Input->Segments.resize(Input->Segments.size() + 1);
+                Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
+                return false;
+            }
             while (TC_Previous != CurrentFrame.TC)
             {
                 Frames.emplace_back(Status_FrameMissing, TC_Previous, nullptr, BlockStatus_Count);

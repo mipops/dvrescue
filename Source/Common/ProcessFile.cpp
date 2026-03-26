@@ -537,6 +537,9 @@ return_value file::Parse(const String& FileName)
 //---------------------------------------------------------------------------
 void file::Parse_Buffer(const uint8_t* Buffer, size_t Buffer_Size)
 {
+    if (!Buffer || !Buffer_Size)
+        return;
+
     MI.Open_Buffer_Continue(Buffer, Buffer_Size);
 }
 

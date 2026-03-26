@@ -53,16 +53,28 @@ using namespace std;
          fromConnection:(AVCaptureConnection *)connection
 {
     _last_input = [NSDate date];
-    if (_output_wrapper != nil) {
+    FileWrapper *wrapper = _output_wrapper;
+    if (wrapper != nil) {
         CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sampleBuffer); // raw, DV data only
+        if (block_buffer == nil) {
+            return;
+        }
         size_t bb_len = CMBlockBufferGetDataLength(block_buffer);
+        if (bb_len == 0) {
+            return;
+        }
         if (_output_data.length != bb_len) {
             _output_data.length = bb_len;
         }
         CMBlockBufferCopyDataBytes(block_buffer, 0, _output_data.length, _output_data.mutableBytes);
-        
-        _output_wrapper->Parse_Buffer((const uint8_t*)_output_data.bytes, (size_t)_output_data.length);
+
+        wrapper->Parse_Buffer((const uint8_t*)_output_data.bytes, (size_t)_output_data.length);
     }
+}
+
+- (void) invalidateWrapper
+{
+    _output_wrapper = nil;
 }
 
 - (void) captureOutput:(AVCaptureOutput *)captureOutput

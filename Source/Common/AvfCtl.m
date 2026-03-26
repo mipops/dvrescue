@@ -426,6 +426,11 @@
 
 - (void) stopCaptureSession
 {
+    // Invalidate the wrapper before stopping to prevent callbacks from accessing
+    // freed memory during shutdown (see GitHub issue #989)
+    if (receiverInstance && [receiverInstance respondsToSelector:@selector(invalidateWrapper)]) {
+        [receiverInstance performSelector:@selector(invalidateWrapper)];
+    }
     [_session stopRunning];
 }
 

@@ -178,11 +178,21 @@ void Handle_Signal(int Signal)
     switch (Signal)
     {
     case SIGINT:
+        if (Terminate)
+        {
+            // Second Ctrl-C: restore default handler so a third one kills immediately
+            std::signal(SIGINT, SIG_DFL);
+            return;
+        }
+        Terminate = true;
+        // Re-register so that a second Ctrl-C is caught (some platforms reset to SIG_DFL)
+        std::signal(SIGINT, Handle_Signal);
+        break;
     #if !defined(_WIN32) && !defined(WIN32)
     case SIGPIPE:
-    #endif
         Terminate = true;
         break;
+    #endif
     default:
         ;
     }
