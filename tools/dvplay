@@ -672,6 +672,10 @@ while [[ "${@}" != "" ]] ; do
         fi
         _report -d "Making jpegs of errors within $(basename "${DVFILE}")..."
         TOTAL_FRAMES="$("${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media" -v "sum(d:frames/@count)" -n "${DVRESCUE_XML}")"
+        if [[ -z "${TOTAL_FRAMES}" ]] || [[ "${TOTAL_FRAMES}" = "0" ]] ; then
+            _report -w "Error: dvrescue XML contains no frames. Nothing to process."
+            exit 1
+        fi
         COUNTER=1
         "${XMLSTARLET_PATH}" sel -N d="https://mediaarea.net/dvrescue" -t -m "d:dvrescue/d:media/d:frames/d:frame[d:sta]" -v @n -o "," -v @pts -o "," -v @tc -n "${DVRESCUE_XML}" | while read error_frame ; do
             N="$(echo "${error_frame}" | cut -d "," -f1)"

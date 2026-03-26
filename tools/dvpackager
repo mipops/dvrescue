@@ -1086,6 +1086,10 @@ if [[ -f "${DVFILE}" ]] ; then
                 MOV_INPUT_RATE_OPT=(-r "${VIDEO_RATE}") # apply input framerate after pts offset coherency check
             fi
             if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+                if [[ -z "${PKT_POS}" ]] || [[ "${PKT_POS}" = "0" && -z "${PKT_POS_END}" ]] ; then
+                    _report -w "Warning: invalid byte range (PKT_POS=${PKT_POS}, PKT_POS_END=${PKT_POS_END}), skipping segment (#943)."
+                    continue
+                fi
                 _report -v "Reading from DV stream input at byte range ${PKT_POS}-${PKT_POS_END}"
                 DV_INPUT=(-probesize 10M -i "subfile,,start,${PKT_POS},end,${PKT_POS_END:-0},,:${DVFILE}")
             else
@@ -1337,8 +1341,12 @@ if [[ -f "${DVFILE}" ]] ; then
                         if [[ -n "${VID_DUR}" ]] && [[ -n "${AUD_DUR}" ]] ; then
                             DUR_DIFF=($(echo "${VID_DUR} - ${AUD_DUR}" | bc 2>/dev/null | awk '{printf "%f", $0}'))
                             _report -v "VID_DUR=(${VID_DUR}), AUD_DUR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
-                            if [[ -n "${DUR_DIFF}" ]] && (( $( echo "${DUR_DIFF} >= -100" |bc -l 2>/dev/null) )) && (( $(echo "${DUR_DIFF} <= 100" |bc -l 2>/dev/null) )); then
-                                _report -v "DUR_DIFF is within an acceptable range."
+                            if [[ -n "${DUR_DIFF}" ]] && (( $( echo "${DUR_DIFF} >= -500" |bc -l 2>/dev/null) )) && (( $(echo "${DUR_DIFF} <= 500" |bc -l 2>/dev/null) )); then
+                                if (( $( echo "${DUR_DIFF} >= -100" |bc -l 2>/dev/null) )) && (( $(echo "${DUR_DIFF} <= 100" |bc -l 2>/dev/null) )); then
+                                    _report -v "DUR_DIFF is within an acceptable range."
+                                else
+                                    _report -d "FYI: audio-video duration difference of ${DUR_DIFF}ms in ${OUTPUT_FILE_BASENAME} (within DV tolerance)."
+                                fi
                             else
                                 OUTPUT_ERROR+=("audio-video-duration-mismatch")
                                 OUTPUT_ERROR_NOTE+="In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync. "
