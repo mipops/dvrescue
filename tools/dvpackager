@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DVPACKAGER_VERSION="24.07.1"
+
 # dependencies: dvrescue, ffmpeg, mediainfo, xmlstarlet
 
 _usage(){
@@ -147,6 +149,10 @@ EOF
 }
 if [ "${#}" = 0 ] ; then
     _usage
+    exit 0
+fi
+if [ "${1}" = "--version" ] || [ "${1}" = "-version" ] ; then
+    echo "dvpackager ${DVPACKAGER_VERSION}"
     exit 0
 fi
 
@@ -1144,6 +1150,11 @@ if [[ -f "${DVFILE}" ]] ; then
                             AUDIO_FILTER=(-filter_complex "[0:a:0]aresample=async=1:min_hard_comp=0.01${APAD}[aud1];[0:a:1]aresample=async=1:min_hard_comp=0.01${APAD}[aud2]")
                             AUDIO_MAP=(-map "[aud1]" -map "[aud2]")
                         fi
+                    elif [[ -z "${CH}" ]] || [[ "${CH}" = "0" ]] ; then
+                        # No audio channels — clear audio mapping to avoid ffmpeg errors (#726)
+                        AUDIO_MAP=()
+                        AUDIO_FILTER=()
+                        _report -d "FYI: segment has no audio channels (CH=${CH}), packaging without audio."
                     fi
                 else
                     AUDIO_INPUT_COUNT="0"

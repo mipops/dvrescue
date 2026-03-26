@@ -96,7 +96,7 @@ void LinuxWrapper::Init()
 
                  Devices.push_back(device(Port, (nodeid_t)Node, UUID, Vendor, Model));
                  rom1394_free_directory(&Directory);
-                 break; //TODO: Handle more than one vcr device per port?
+                 // Continue scanning for more VCR devices on this port (#935)
              }
              rom1394_free_directory(&Directory);
         }

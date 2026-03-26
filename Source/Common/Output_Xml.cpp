@@ -498,6 +498,11 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
         #endif
 
         // By Frame - For each line
+        if (File->PerFrame.empty()) // Guard against underflow (#982)
+        {
+            Text += "\t</media>\n";
+            continue;
+        }
         auto FrameNumber_Max = File->PerFrame.size() - 1;
         auto PerChange_Next = File->PerChange.begin();
         auto ShowFrames = true;
