@@ -70,6 +70,8 @@
 - (AVCaptureDeviceTransportControlsSpeed) getSpeed;
 - (BOOL) waitForSessionEnd:(NSUInteger) timeout;
 - (BOOL) probeAvcCommand:(UInt8)command operand:(UInt8)operand;
+- (BOOL) probeAvcGeneral:(UInt8)command;
+- (UInt8) queryAvcStatus:(UInt8)command operand:(UInt8)operand;
 - (NSString*) getDeviceVendor;
 - (NSString*) getDeviceModel;
 @end

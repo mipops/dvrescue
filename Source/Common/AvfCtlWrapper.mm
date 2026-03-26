@@ -290,9 +290,27 @@ device_capabilities AVFCtlWrapper::GetCapabilities()
     Caps.CanWind = [(id)Ctl probeAvcCommand:0xC4 operand:0x65]; // WIND_REWIND
 
     // Shuttle (highest speeds)
-    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3F] && // PLAY_FORWARD + SPD_X7
-        [(id)Ctl probeAvcCommand:0xC3 operand:0x41])    // PLAY_REVERSE - SPD_X7
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3F] && // PLAY_FASTEST_FORWARD
+        [(id)Ctl probeAvcCommand:0xC3 operand:0x41])    // PLAY_FASTEST_REVERSE
         Caps.CanShuttle = true;
+
+    // Reverse frame output: PLAY reverse (0xC3) = outputs DV frames in reverse;
+    // WIND rewind (0xC4) = mechanical only, no frames. If PLAY reverse is
+    // supported, the device outputs frames during reverse per AV/C VCR spec.
+    Caps.CanOutputReverse = Caps.CanReverse;
+
+    // Probe RECORD capability (GENERAL_INQUIRY on RECORD opcode 0xC2)
+    Caps.CanRecord = [(id)Ctl probeAvcGeneral:0xC2];
+
+    // Query OUTPUT SIGNAL MODE (opcode 0x78) with STATUS
+    Caps.OutputSignalMode = [(id)Ctl queryAvcStatus:0x78 operand:0xFF];
+    if (Caps.OutputSignalMode != 0xFF)
+        Caps.SignalMode = device_capabilities::SignalModeName(Caps.OutputSignalMode);
+
+    // Query MEDIUM INFO (opcode 0xDA) for cassette type
+    Caps.CassetteType = [(id)Ctl queryAvcStatus:0xDA operand:0xFF];
+    if (Caps.CassetteType != 0xFF)
+        Caps.HasTape = (Caps.CassetteType != 0x60);
 
     Caps.Probed = true;
     return Caps;

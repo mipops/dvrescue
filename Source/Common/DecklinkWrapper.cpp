@@ -757,6 +757,8 @@ device_capabilities DecklinkWrapper::GetCapabilities()
         Caps.CanWind = true;
         Caps.CanSlowForward = true;
         Caps.CanSlowReverse = true;
+        Caps.CanOutputReverse = true; // DeckLink captures frames at all shuttle speeds
+        Caps.CanRecord = true;
 
         Caps.SupportedForwardSpeeds = {0.5f, 1.0f, 2.0f};
         Caps.SupportedReverseSpeeds = {-2.0f, -1.0f, -0.5f};

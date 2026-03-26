@@ -527,6 +527,48 @@
     return (response[0] & 0x0F) == 0x0C;
 }
 
+// GENERAL_INQUIRY: ask if the device supports a command opcode at all
+- (BOOL) probeAvcGeneral:(UInt8)command
+{
+    if (!avcDevice || !*avcDevice)
+        return NO;
+
+    UInt8 inquiry[4] = {0x04, VCR_0, command, 0xFF}; // ctype=GENERAL_INQUIRY
+    UInt8 response[4] = {0, 0, 0, 0};
+    UInt32 responseLen = 4;
+
+    @synchronized(self) {
+        IOReturn result = (*avcDevice)->AVCCommand(avcDevice, inquiry, sizeof(inquiry), response, &responseLen);
+        if (result != kIOReturnSuccess)
+            return NO;
+    }
+
+    return (response[0] & 0x0F) == 0x0C;
+}
+
+// STATUS query: send a STATUS command and return the response operand byte
+// Returns 0xFF on failure
+- (UInt8) queryAvcStatus:(UInt8)command operand:(UInt8)operand
+{
+    if (!avcDevice || !*avcDevice)
+        return 0xFF;
+
+    UInt8 statusCmd[4] = {0x01, VCR_0, command, operand}; // ctype=STATUS
+    UInt8 response[4] = {0, 0, 0, 0};
+    UInt32 responseLen = 4;
+
+    @synchronized(self) {
+        IOReturn result = (*avcDevice)->AVCCommand(avcDevice, statusCmd, sizeof(statusCmd), response, &responseLen);
+        if (result != kIOReturnSuccess)
+            return 0xFF;
+    }
+
+    // Check for STABLE response (0x0C)
+    if ((response[0] & 0x0F) == 0x0C)
+        return response[3]; // operand[0] in response
+    return 0xFF;
+}
+
 - (NSString*) getDeviceVendor
 {
     if (!_device)

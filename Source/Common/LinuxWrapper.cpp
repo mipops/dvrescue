@@ -677,6 +677,51 @@ device_capabilities LinuxWrapper::GetCapabilities()
         probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FASTEST_REVERSE))
         Caps.CanShuttle = true;
 
+    // Reverse frame output detection:
+    //   PLAY reverse (opcode 0xC3 + reverse operand) = outputs DV frames in reverse
+    //   WIND rewind  (opcode 0xC4 + rewind operand)  = mechanical only, no frames
+    // If PLAY reverse is IMPLEMENTED, the device outputs frames during reverse.
+    Caps.CanOutputReverse = Caps.CanReverse;
+
+    // Probe record capability (GENERAL_INQUIRY on RECORD opcode 0xC2)
+    {
+        CtlHandleMutex.lock();
+        quadlet_t resp = avc1394_transaction(CtlHandle, Node,
+            AVC1394_CTYPE_GENERAL_INQUIRY | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0
+            | AVC1394_VCR_COMMAND_RECORD | 0x7F /*RECORD_AREA_OPEN*/, 2);
+        CtlHandleMutex.unlock();
+        Caps.CanRecord = (resp & 0xF0000000) == AVC1394_RESP_IMPLEMENTED;
+    }
+
+    // Query OUTPUT SIGNAL MODE (opcode 0x78) with STATUS ctype
+    // Response operand[0] contains the signal mode byte
+    {
+        CtlHandleMutex.lock();
+        quadlet_t resp = avc1394_transaction(CtlHandle, Node,
+            AVC1394_CTYPE_STATUS | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0
+            | (0x78 << 8) | 0xFF, 2);
+        CtlHandleMutex.unlock();
+        if ((resp & 0xF0000000) == AVC1394_RESP_STABLE)
+        {
+            Caps.OutputSignalMode = resp & 0xFF;
+            Caps.SignalMode = device_capabilities::SignalModeName(Caps.OutputSignalMode);
+        }
+    }
+
+    // Query MEDIUM INFO (opcode 0xDA) for cassette type and write-protect
+    {
+        CtlHandleMutex.lock();
+        quadlet_t resp = avc1394_transaction(CtlHandle, Node,
+            AVC1394_CTYPE_STATUS | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0
+            | (0xDA << 8) | 0xFF, 2);
+        CtlHandleMutex.unlock();
+        if ((resp & 0xF0000000) == AVC1394_RESP_STABLE)
+        {
+            Caps.CassetteType = resp & 0xFF;
+            Caps.HasTape = (Caps.CassetteType != 0x60); // 0x60 = no cassette
+        }
+    }
+
     #undef INQUIRY_VCR0
 
     Caps.Probed = true;

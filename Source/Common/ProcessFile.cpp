@@ -453,38 +453,55 @@ return_value file::Parse(const String& FileName)
                 cout << "Device Information" << '\n';
                 cout << "==================" << '\n';
                 if (!Caps.Vendor.empty())
-                    cout << "Vendor:    " << Caps.Vendor << '\n';
+                    cout << "Vendor:       " << Caps.Vendor << '\n';
                 if (!Caps.Model.empty())
-                    cout << "Model:     " << Caps.Model << '\n';
-                cout << "Interface: " << Caps.Interface << '\n';
+                    cout << "Model:        " << Caps.Model << '\n';
+                cout << "Interface:    " << Caps.Interface << '\n';
+                if (!Caps.UniqueID.empty())
+                    cout << "Unique ID:    " << Caps.UniqueID << '\n';
                 if (!Caps.SignalMode.empty())
-                    cout << "Signal:    " << Caps.SignalMode << '\n';
+                    cout << "Signal mode:  " << Caps.SignalMode << '\n';
+                cout << "Record:       " << (Caps.CanRecord ? "yes (recorder)" : "no (player only)") << '\n';
+                cout << '\n';
+                cout << "Media" << '\n';
+                cout << "-----" << '\n';
+                cout << "Tape loaded:  " << (Caps.HasTape ? "yes" : "no") << '\n';
+                if (Caps.CassetteType && Caps.CassetteType != 0xFF)
+                    cout << "Cassette:     " << device_capabilities::CassetteTypeName(Caps.CassetteType) << '\n';
+                if (Caps.IsProtected)
+                    cout << "Protected:    yes" << '\n';
                 cout << '\n';
                 cout << "Transport Capabilities" << '\n';
                 cout << "----------------------" << '\n';
-                cout << "Play:           " << (Caps.CanPlay ? "yes" : "no") << '\n';
-                cout << "Pause:          " << (Caps.CanPause ? "yes" : "no") << '\n';
-                cout << "Reverse:        " << (Caps.CanReverse ? "yes" : "no") << '\n';
-                cout << "Slow forward:   " << (Caps.CanSlowForward ? "yes" : "no") << '\n';
-                cout << "Fast forward:   " << (Caps.CanFastForward ? "yes" : "no") << '\n';
-                cout << "Slow reverse:   " << (Caps.CanSlowReverse ? "yes" : "no") << '\n';
-                cout << "Fast reverse:   " << (Caps.CanFastReverse ? "yes" : "no") << '\n';
-                cout << "Wind (FF/REW):  " << (Caps.CanWind ? "yes" : "no") << '\n';
-                cout << "Shuttle:        " << (Caps.CanShuttle ? "yes" : "no") << '\n';
-                cout << "Jog:            " << (Caps.CanJog ? "yes" : "no") << '\n';
+                cout << "Play:            " << (Caps.CanPlay ? "yes" : "no") << '\n';
+                cout << "Pause:           " << (Caps.CanPause ? "yes" : "no") << '\n';
+                cout << "Reverse play:    " << (Caps.CanReverse ? "yes" : "no") << '\n';
+                cout << "Reverse output:  " << (Caps.CanOutputReverse ? "yes (outputs DV frames)" : "no (mechanical only)") << '\n';
+                cout << "Slow forward:    " << (Caps.CanSlowForward ? "yes" : "no") << '\n';
+                cout << "Fast forward:    " << (Caps.CanFastForward ? "yes" : "no") << '\n';
+                cout << "Slow reverse:    " << (Caps.CanSlowReverse ? "yes" : "no") << '\n';
+                cout << "Fast reverse:    " << (Caps.CanFastReverse ? "yes" : "no") << '\n';
+                cout << "Wind (FF/REW):   " << (Caps.CanWind ? "yes" : "no") << '\n';
+                cout << "Shuttle:         " << (Caps.CanShuttle ? "yes" : "no") << '\n';
+                cout << "Jog:             " << (Caps.CanJog ? "yes" : "no") << '\n';
                 if (!Caps.SupportedForwardSpeeds.empty())
                 {
-                    cout << '\n' << "Forward speeds: ";
+                    cout << '\n' << "Forward speeds:  ";
                     for (size_t s = 0; s < Caps.SupportedForwardSpeeds.size(); s++)
                         cout << (s ? ", " : "") << Caps.SupportedForwardSpeeds[s] << "x";
                     cout << '\n';
                 }
                 if (!Caps.SupportedReverseSpeeds.empty())
                 {
-                    cout << "Reverse speeds: ";
+                    cout << "Reverse speeds:  ";
                     for (size_t s = 0; s < Caps.SupportedReverseSpeeds.size(); s++)
                         cout << (s ? ", " : "") << Caps.SupportedReverseSpeeds[s] << "x";
                     cout << '\n';
+                }
+                if (Caps.CanReverse && !Caps.CanOutputReverse)
+                {
+                    cout << '\n' << "NOTE: This device supports reverse transport but does NOT output" << '\n';
+                    cout << "DV frames during reverse. Rewind-capture will not work on this device." << '\n';
                 }
             }
             if (Device_Command == 3)
@@ -675,16 +692,27 @@ void file::RewindToTimeCode(TimeCode TC)
     {
         RewindSpeed = (RewindPassNumber % 2 == 0) ? -0.5f : -1.0f;
     }
-    // Validate speed against device capabilities; fall back to -1.0x if unsupported
+    // Validate speed against device capabilities
     if (Capture)
     {
         auto Caps = Capture->GetCapabilities();
-        if (Caps.Probed && !Caps.SupportsSpeed(RewindSpeed))
+        if (Caps.Probed)
         {
-            if (Verbosity >= 3)
-                cerr << "Warning: device does not support speed " << RewindSpeed
-                     << "x, falling back to -1.0x" << endl;
-            RewindSpeed = -1.0f;
+            // Check if the device can output frames during reverse at all
+            if (!Caps.CanReverseWithOutput())
+            {
+                if (Verbosity >= 1)
+                    cerr << "Warning: device does not output DV frames during reverse playback. "
+                         << "Rewind-capture may not produce usable data." << endl;
+            }
+            // Fall back to -1.0x if the specific speed is unsupported
+            if (!Caps.SupportsSpeed(RewindSpeed))
+            {
+                if (Verbosity >= 3)
+                    cerr << "Warning: device does not support speed " << RewindSpeed
+                         << "x, falling back to -1.0x" << endl;
+                RewindSpeed = -1.0f;
+            }
         }
     }
 
