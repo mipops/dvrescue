@@ -714,6 +714,7 @@ while [[ "${@}" != "" ]] ; do
             xsltproc "${DVPLAY_DISPLAY_TEMP}" "${DVRESCUE_XML}" > "${DVRESCUE_HTML}"
         fi
     else
+        _get_filters
         _play_dv "${DVFILE}"
     fi
 done
