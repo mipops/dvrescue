@@ -34,6 +34,9 @@ static ostream* Log;
 size_t Merge_Rewind_Count = 0;
 bool Merge_Rewind_Capture = false;
 size_t Merge_Rewind_Overshoot = 0;
+float Merge_Rewind_Threshold = 0;
+size_t Merge_Rewind_Margin = 0;
+vector<float> Merge_Rewind_Speeds;
 uint8_t MergeInfo_Format = 0;
 uint8_t Verbosity = 5;
 uint64_t Timeout = 0;
@@ -334,6 +337,11 @@ namespace
         size_t LastBadFrame = -1;
         count Count_Blocks_Sav;
         count Count_Frames_Sav;
+        size_t Region_IssueBlocks = 0;
+        size_t Region_TotalBlocks = 0;
+
+        // Per-pass block recovery tracking
+        vector<size_t> Count_Blocks_Recovered_Per_Input;
 
     public:
         TimeCode RewindToTimeCode;
@@ -517,7 +525,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
     if (TC_Temp.HasValue())
-        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), BlockStatus_Count <= 1500 ? 30 : 25, TC_Temp.DropFrame());
     if (!Frames.empty() && Frames.back().TC.HasValue())
     {
         TimeCode TC_Previous(Frames.back().TC);
@@ -724,6 +732,8 @@ bool dv_merge_private::SyncEnd(bool Force)
 bool dv_merge_private::Process(float Speed)
 {
     auto Input_Count = Inputs.size();
+    if (Count_Blocks_Recovered_Per_Input.empty())
+        Count_Blocks_Recovered_Per_Input.resize(Input_Count, 0);
     size_t Frames_Status_Max;
     for (int i = 0; i < 2; i++)
     {
@@ -976,9 +986,13 @@ bool dv_merge_private::Process(float Speed)
                 if (Frame.Status[Status_FrameMissing] || !Frame.Buffer.Data)
                     continue;
 
-                // Compare blocks that are OK in both frames
-                size_t CompareCount = 0;
-                size_t MismatchCount = 0;
+                // Compare blocks that are OK in both frames, weighted by DIF section type.
+                // Structural blocks (header/subcode) must match exactly; content blocks
+                // (VAUX/audio/video) use a >50% mismatch threshold.
+                // DIF section type is encoded in byte[0] top 3 bits:
+                //   0=header, 1=subcode, 2=VAUX, 3=audio, 4+=video
+                size_t StructCompare = 0, StructMismatch = 0;
+                size_t ContentCompare = 0, ContentMismatch = 0;
                 auto MinBlocks = min(RefFrame.BlockStatus_Count, Frame.BlockStatus_Count);
                 for (size_t b = 0; b < MinBlocks; b++)
                 {
@@ -988,23 +1002,36 @@ bool dv_merge_private::Process(float Speed)
                                   || (Frame.BlockStatus && Frame.BlockStatus[b] != BlockStatus_NOK);
                     if (RefOK && ThisOK)
                     {
-                        CompareCount++;
-                        if (memcmp(RefFrame.Buffer.Data + b * 80, Frame.Buffer.Data + b * 80, 80) != 0)
-                            MismatchCount++;
+                        uint8_t section = RefFrame.Buffer.Data[b * 80] >> 5;
+                        bool mismatch = memcmp(RefFrame.Buffer.Data + b * 80, Frame.Buffer.Data + b * 80, 80) != 0;
+                        if (section <= 1) // Header or subcode
+                        {
+                            StructCompare++;
+                            if (mismatch) StructMismatch++;
+                        }
+                        else // VAUX, audio, video
+                        {
+                            ContentCompare++;
+                            if (mismatch) ContentMismatch++;
+                        }
                     }
                 }
 
-                // If we have enough overlapping blocks to judge and >50% mismatch,
-                // this frame is misaligned — exclude it from merge
-                if (CompareCount >= 10 && MismatchCount * 2 > CompareCount)
+                // Structural blocks: any mismatch with >=2 comparable = reject
+                bool structFail = (StructCompare >= 2 && StructMismatch > 0);
+                // Content blocks: >50% mismatch with >=8 comparable = reject
+                bool contentFail = (ContentCompare >= 8 && ContentMismatch * 2 > ContentCompare);
+
+                if (structFail || contentFail)
                 {
                     Frame.Status.set(Status_FrameMissing);
                     Input->Count_Frames_Misaligned++;
                     if (Verbosity >= 5)
                         *Log << "Reverse-capture frame " << Frame_Pos
-                             << " from input " << i << " failed fingerprint ("
-                             << MismatchCount << "/" << CompareCount
-                             << " blocks mismatched), excluding" << endl;
+                             << " from input " << i << " failed fingerprint (struct "
+                             << StructMismatch << "/" << StructCompare
+                             << ", content " << ContentMismatch << "/" << ContentCompare
+                             << "), excluding" << endl;
                 }
             }
         }
@@ -1304,9 +1331,31 @@ bool dv_merge_private::Process(float Speed)
             Prefered_Frame = Priorities[0];
             Inputs[Prefered_Frame]->Count_Blocks_Used += BlockStatus_Count;
             memcpy(Output.OutputBuffer, Inputs[Priorities[0]]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data, BlockStatus_Count * 80); // Copy the content of the file having the less issues
+
+            // Build per-input OK block count for consensus-based selection
+            vector<size_t> InputOkCount(Input_Count, 0);
+            if (Input_Count > 1)
+            {
+                for (int b = 0; b < BlockStatus_Count; b++)
+                {
+                    for (size_t i = 0; i < Input_Count; i++)
+                    {
+                        auto& Inp = Inputs[i];
+                        if (Inp->DoNotUseFile)
+                            continue;
+                        auto& Fr = Inp->Segments[Segment_Pos].Frames[Frame_Pos];
+                        if (!Fr.Status[Status_BlockIssue] ||
+                            (Fr.BlockStatus && Fr.BlockStatus[b] == BlockStatus_OK))
+                            InputOkCount[i]++;
+                    }
+                }
+            }
+
             for (int b = 0; b < BlockStatus_Count; b++)
             {
                 bool NoIssue = false;
+                size_t BestInput = Priorities[0];
+                size_t BestScore = 0;
                 for (int i = 0; i < Input_Count; i++)
                 {
                     auto p = Priorities[i];
@@ -1322,11 +1371,20 @@ bool dv_merge_private::Process(float Speed)
                         case 1:
                             if (!NoIssue)
                             {
-                                if (i)
-                                    memcpy(Output.OutputBuffer + b * 80, Frame.Buffer.Data + b * 80, 80);
+                                // First OK block found — use consensus scoring
+                                BestInput = p;
+                                BestScore = InputOkCount[p];
+                                ThisFrame_Count_Blocks_Used[p]++;
+                                NoIssue = true;
+                            }
+                            else if (InputOkCount[p] > BestScore)
+                            {
+                                // Better source found — switch to it
+                                ThisFrame_Count_Blocks_Used[BestInput]--;
+                                BestInput = p;
+                                BestScore = InputOkCount[p];
                                 ThisFrame_Count_Blocks_Used[p]++;
                             }
-                            NoIssue = true;
                             break;
                         case 2:
                             break;
@@ -1334,6 +1392,14 @@ bool dv_merge_private::Process(float Speed)
                             NoIssue = true;
                         }
                     }
+                }
+                // Copy block from best source if it differs from the base frame
+                if (NoIssue && BestInput != (size_t)Priorities[0])
+                {
+                    memcpy(Output.OutputBuffer + b * 80,
+                           Inputs[BestInput]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data + b * 80, 80);
+                    if (BestInput < Count_Blocks_Recovered_Per_Input.size())
+                        Count_Blocks_Recovered_Per_Input[BestInput]++;
                 }
                 if (!NoIssue)
                 {
@@ -1393,6 +1459,16 @@ bool dv_merge_private::Process(float Speed)
                     Count_Frames_Sav = Count_Frames;
                     for (const auto Input : Inputs)
                         Input->Count_Blocks_Used_Sav = Input->Count_Blocks_Used;
+
+                    // Reset region error tracking for adaptive threshold
+                    Region_IssueBlocks = 0;
+                    Region_TotalBlocks = 0;
+                }
+                // Accumulate error density in the current error region
+                if (FirstBadFrame != -1)
+                {
+                    Region_IssueBlocks += IssueCount;
+                    Region_TotalBlocks += BlockStatus_Count;
                 }
 
                 Count_Frames.NOK++;
@@ -1512,6 +1588,20 @@ bool dv_merge_private::Process(float Speed)
     if (CanRewind && FirstBadFrame != -1)
     {
         bool ShouldRewind = Input_Rewind_Pos + 1 < Inputs.size() && (Frame_Pos > LastBadFrame || (LastBadFrame == (size_t)-1 && !IssueCount));
+        // Adaptive threshold: skip rewind if error density is below threshold
+        if (ShouldRewind && Merge_Rewind_Threshold > 0 && Region_TotalBlocks > 0)
+        {
+            float density = (float)Region_IssueBlocks / Region_TotalBlocks * 100;
+            if (density < Merge_Rewind_Threshold)
+            {
+                if (Verbosity >= 5 && !MergeInfo_Format)
+                    *Log << "Skipping rewind: error density " << fixed << setprecision(2) << density
+                         << "% below threshold " << Merge_Rewind_Threshold << "%" << endl;
+                ShouldRewind = false;
+                FirstBadFrame = -1;
+                LastBadFrame = -1;
+            }
+        }
         if (ShouldRewind)
         {
             // Reset stats
@@ -1523,6 +1613,21 @@ bool dv_merge_private::Process(float Speed)
             // Prepare rewind
             if (LastBadFrame == (size_t)-1)
                 LastBadFrame = Frame_Pos - 1;
+
+            // Expand error region by margin to cover adjacent marginal frames
+            if (Merge_Rewind_Margin)
+            {
+                auto& Seg = Inputs[0]->Segments[Segment_Pos];
+                if (FirstBadFrame > Merge_Rewind_Margin)
+                    FirstBadFrame -= Merge_Rewind_Margin;
+                else
+                    FirstBadFrame = 0;
+                if (LastBadFrame + Merge_Rewind_Margin < Seg.Frames.size())
+                    LastBadFrame += Merge_Rewind_Margin;
+                else
+                    LastBadFrame = Seg.Frames.size() - 1;
+            }
+
             Frame_Pos = FirstBadFrame;
             FirstBadFrame = -1;
             Input_Rewind_Pos++;
@@ -1907,6 +2012,18 @@ bool dv_merge_private::Stats()
         *Log << std::setw(Formating_BlockCount_Width + 2) << ' ';
         ShowFrames(Output.Count_Frames_Ignored_Concealed, Count_Frames_Total, " discarded for full concealment.");
         *Log << '\n';
+    }
+    if (Merge_Rewind_Count && Count_Blocks_Recovered_Per_Input.size() > 1)
+    {
+        *Log << '\n';
+        *Log << "Per-pass block recovery:\n";
+        for (size_t i = 1; i < Count_Blocks_Recovered_Per_Input.size(); i++)
+        {
+            if (Count_Blocks_Recovered_Per_Input[i])
+            {
+                *Log << "  Pass " << i << ": recovered " << Count_Blocks_Recovered_Per_Input[i] << " blocks\n";
+            }
+        }
     }
     if (Merge_Rewind_Capture)
     {

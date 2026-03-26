@@ -26,6 +26,7 @@ struct IUnknown; // Workaround for "combaseapi.h(229): error C2187: syntax error
 #include <ZenLib/Ztring.h>
 #endif
 #include <cfloat>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -674,6 +675,51 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
             Merge_Rewind_BaseName = argv_ansi[i];
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-threshold"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_Threshold = (float)atof(argv_ansi[i]);
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-margin"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_Margin = atoi(argv_ansi[i]);
+        }
+        else if (!strcmp(argv_ansi[i], "--rewind-speeds"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing value after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            Merge_Rewind_Speeds.clear();
+            const char* p = argv_ansi[i];
+            while (*p)
+            {
+                char* end;
+                float val = strtof(p, &end);
+                if (end == p)
+                    break;
+                Merge_Rewind_Speeds.push_back(val);
+                p = end;
+                if (*p == ',')
+                    p++;
+            }
         }
         else if (!strcmp(argv_ansi[i], "--speed") || !strcmp(argv_ansi[i], "-speed"))
         {

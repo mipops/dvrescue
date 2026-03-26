@@ -617,15 +617,15 @@ void file::RewindToTimeCode(TimeCode TC)
     RewindTo_TC=TC;
     RewindPassNumber++;
 
-    // Multi-speed rewind: alternate speeds across passes for different
-    // head-tape contact angles, improving block recovery diversity.
-    // Pass 1: -1.0x (normal reverse)
-    // Pass 2: -0.5x (slow — better head tracking)
-    // Pass 3+: -1.0x again, etc.
+    // Multi-speed rewind: cycle through configured speeds across passes
+    // for different head-tape contact angles, improving block recovery diversity.
     float RewindSpeed = -1.0f;
-    if (Merge_Rewind_Capture && RewindPassNumber > 1)
+    if (!Merge_Rewind_Speeds.empty())
     {
-        // Alternate between normal and slow reverse
+        RewindSpeed = Merge_Rewind_Speeds[(RewindPassNumber - 1) % Merge_Rewind_Speeds.size()];
+    }
+    else if (Merge_Rewind_Capture && RewindPassNumber > 1)
+    {
         RewindSpeed = (RewindPassNumber % 2 == 0) ? -0.5f : -1.0f;
     }
     if (Verbosity >= 5)
@@ -752,7 +752,8 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            uint8_t fps = (FrameRate > 26.0) ? 30 : 25;
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), fps, TC_Temp.DropFrame());
             if (Verbosity == 10)
             {
                 cerr << "Rewind ";
@@ -787,7 +788,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), (FrameRate > 26.0) ? 30 : 25, TC_Temp.DropFrame());
             if (RewindMode==Rewind_Mode_TimeCode && TC.ToFrames()<RewindTo_TC.ToFrames())
             {
                 if (Verbosity == 10)
@@ -921,7 +922,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), (FrameRate > 26.0) ? 30 : 25, TC_Temp.DropFrame());
             if (TC.ToFrames()<RewindTo_TC.ToFrames())
                 return;
             RewindTo_TC = TimeCode();
@@ -1014,7 +1015,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), (FrameRate > 26.0) ? 30 : 25, TC_Temp.DropFrame());
             Text += ' ';
             Text += TC.ToString();
         }
