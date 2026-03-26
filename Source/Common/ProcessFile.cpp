@@ -726,7 +726,7 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
             && Current->AudioChannels == FrameData->AudioChannels
             && Current->AudioBitDepth == FrameData->AudioBitDepth
             && Current->Captions_Flags == FrameData->Captions_Flags
-            && (!Current->MoreData && !FrameData->MoreData) || (Current->MoreData && FrameData->MoreData && *((size_t*)Current->MoreData) == *((size_t*)FrameData->MoreData) && !memcmp(Current->MoreData, FrameData->MoreData, *((size_t*)FrameData->MoreData))))
+            && ((!Current->MoreData && !FrameData->MoreData) || (Current->MoreData && FrameData->MoreData && *((size_t*)Current->MoreData) == *((size_t*)FrameData->MoreData) && !memcmp(Current->MoreData, FrameData->MoreData, *((size_t*)FrameData->MoreData)))))
         {
             return;
         }

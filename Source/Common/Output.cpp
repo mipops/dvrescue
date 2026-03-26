@@ -177,6 +177,8 @@ bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
     return false
         || Frame.Video_STA_Errors
         || Frame.Audio_Data_Errors
+        || Coherency.full_conceal_vid()
+        || Coherency.full_conceal_aud()
         || Coherency.conceal_aud_l()
         || Coherency.conceal_aud_r()
         || TimeCode.NonConsecutive()

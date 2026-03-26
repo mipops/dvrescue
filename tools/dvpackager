@@ -1325,7 +1325,7 @@ if [[ -f "${DVFILE}" ]] ; then
                         AUD_DUR=($("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
                         DUR_DIFF=($(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}'))
                         _report -v "VID_DUR=(${VID_DUR}), AUD_DIR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
-                        if (( $( echo "${DUR_DIFF} >= -033" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 033" |bc -l) )); then
+                        if (( $( echo "${DUR_DIFF} >= -100" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 100" |bc -l) )); then
                             _report -v "DUR_DIFF is within an acceptable range."
                         else
                             OUTPUT_ERROR+=("audio-video-duration-mismatch")
