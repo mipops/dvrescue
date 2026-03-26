@@ -744,7 +744,7 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 {
                     Text += " no_sourceorcontrol_aud=\"1\"";
                 }
-                auto DvSpeed = GetDvSpeedIfNotPlayback(*Frame);
+                auto DvSpeed = GetDvSpeed(*Frame);
                 if (DvSpeed != INT_MIN)
                 {
                     Text += " speed=\"";

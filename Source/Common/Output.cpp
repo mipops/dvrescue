@@ -333,13 +333,12 @@ int GetDvSpeedIfNotPlayback(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame)
 
 bool GetDvSpeedHasChanged(const MediaInfo_Event_DvDif_Analysis_Frame_1* PreviousFrame, const MediaInfo_Event_DvDif_Analysis_Frame_1* CurrentFrame)
 {
-    auto CurrentSpeed = GetDvSpeedIfNotPlayback(*CurrentFrame);
-    //if (CurrentSpeed == INT_MIN) // Considering unknown speed as no change
-    //    return false;
-    auto PreviousSpeed = GetDvSpeedIfNotPlayback(*PreviousFrame);
-    if (PreviousSpeed != CurrentSpeed)
-        return true;
-    return false;
+    // Compare raw speeds so SP/LP transitions (31 vs 32) are detected (#671)
+    auto CurrentSpeed = GetDvSpeed(*CurrentFrame);
+    auto PreviousSpeed = GetDvSpeed(*PreviousFrame);
+    if (PreviousSpeed == INT_MIN || CurrentSpeed == INT_MIN) // Unknown speed: no change
+        return false;
+    return PreviousSpeed != CurrentSpeed;
 }
 
 bool GetDvSpeedHasChanged(const std::vector<MediaInfo_Event_DvDif_Analysis_Frame_1*>& PerFrame)

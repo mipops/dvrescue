@@ -507,12 +507,14 @@ bool LinuxWrapper::WaitForSessionEnd(uint64_t Timeout)
     LastInput = time(NULL);
     do
     {
+        if (TerminateFlag && *TerminateFlag) // Responsive Ctrl-C (#783)
+            return false;
         if (Timeout)
         {
             if (difftime(time(NULL), LastInput) > Timeout)
                 return true;
         }
-        this_thread::sleep_for(std::chrono::milliseconds(500));
+        this_thread::sleep_for(std::chrono::milliseconds(50));
     }
     while (GetSpeed() != 0.0f);
 

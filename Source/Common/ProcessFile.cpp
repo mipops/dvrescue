@@ -548,6 +548,7 @@ return_value file::Parse(const String& FileName)
         #endif
             Wrapper = new FileWrapper(this);
         MI.Open_Buffer_Init();
+        Capture->TerminateFlag = &TerminateRequested; // Enable responsive Ctrl-C (#783)
         Capture->CreateCaptureSession(Wrapper);
         for (;;)
         {

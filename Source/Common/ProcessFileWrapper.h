@@ -235,6 +235,9 @@ public:
     virtual void SetPlaybackMode(playback_mode Mode, float Speed) = 0;
     virtual bool WaitForSessionEnd(uint64_t Timeout) = 0;
     virtual device_capabilities GetCapabilities() { return device_capabilities(); }
+
+    // Termination flag for responsive Ctrl-C (#783)
+    bool* TerminateFlag = nullptr;
 };
 inline BaseWrapper::~BaseWrapper() {}
 

@@ -675,6 +675,9 @@ bool SimulatorWrapper::WaitForSessionEnd(uint64_t Timeout)
 
     for (;;)
     {
+        if (TerminateFlag && *TerminateFlag) // Responsive Ctrl-C (#783)
+            break;
+
         P->Mutex.lock();
 
         // I/O
