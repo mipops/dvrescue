@@ -200,6 +200,7 @@ namespace
         size_t              Count_Frames_Repeated = 0;
         size_t              Count_Frames_Ignored_Speed = 0;
         size_t              Count_Frames_Ignored_Concealed = 0;
+        size_t              Count_Frames_Misaligned = 0;
         bool                DoNotUseFile = false;
         bool                FirstTimeCodeFound = false;
         vector<per_segment> Segments;
@@ -939,6 +940,73 @@ bool dv_merge_private::Process(float Speed)
         else
         {
             Input_Previous_F_Pos.push_back((uint64_t) - 1);
+        }
+    }
+
+    // Validate rewind-capture frames by fingerprinting overlapping OK blocks
+    // against the primary (forward) pass. If the byte content doesn't match,
+    // the frame's timecode was likely wrong and the data is from a different
+    // tape position — using it would corrupt the output.
+    if (Merge_Rewind_Capture && Input_Count > 1)
+    {
+        // Use the first active input as the reference
+        size_t RefInput = -1;
+        for (size_t i = 0; i < Input_Count; i++)
+        {
+            auto& Input = Inputs[i];
+            if (Input->DoNotUseFile)
+                continue;
+            auto& Frame = Input->Segments[Segment_Pos].Frames[Frame_Pos];
+            if (!Frame.Status[Status_FrameMissing] && Frame.Buffer.Data)
+            {
+                RefInput = i;
+                break;
+            }
+        }
+
+        if (RefInput != (size_t)-1)
+        {
+            auto& RefFrame = Inputs[RefInput]->Segments[Segment_Pos].Frames[Frame_Pos];
+            for (size_t i = RefInput + 1; i < Input_Count; i++)
+            {
+                auto& Input = Inputs[i];
+                if (Input->DoNotUseFile)
+                    continue;
+                auto& Frame = Input->Segments[Segment_Pos].Frames[Frame_Pos];
+                if (Frame.Status[Status_FrameMissing] || !Frame.Buffer.Data)
+                    continue;
+
+                // Compare blocks that are OK in both frames
+                size_t CompareCount = 0;
+                size_t MismatchCount = 0;
+                auto MinBlocks = min(RefFrame.BlockStatus_Count, Frame.BlockStatus_Count);
+                for (size_t b = 0; b < MinBlocks; b++)
+                {
+                    bool RefOK = !RefFrame.Status[Status_BlockIssue]
+                                 || (RefFrame.BlockStatus && RefFrame.BlockStatus[b] != BlockStatus_NOK);
+                    bool ThisOK = !Frame.Status[Status_BlockIssue]
+                                  || (Frame.BlockStatus && Frame.BlockStatus[b] != BlockStatus_NOK);
+                    if (RefOK && ThisOK)
+                    {
+                        CompareCount++;
+                        if (memcmp(RefFrame.Buffer.Data + b * 80, Frame.Buffer.Data + b * 80, 80) != 0)
+                            MismatchCount++;
+                    }
+                }
+
+                // If we have enough overlapping blocks to judge and >50% mismatch,
+                // this frame is misaligned — exclude it from merge
+                if (CompareCount >= 10 && MismatchCount * 2 > CompareCount)
+                {
+                    Frame.Status.set(Status_FrameMissing);
+                    Input->Count_Frames_Misaligned++;
+                    if (Verbosity >= 5)
+                        *Log << "Reverse-capture frame " << Frame_Pos
+                             << " from input " << i << " failed fingerprint ("
+                             << MismatchCount << "/" << CompareCount
+                             << " blocks mismatched), excluding" << endl;
+                }
+            }
         }
     }
 
@@ -1839,6 +1907,18 @@ bool dv_merge_private::Stats()
         *Log << std::setw(Formating_BlockCount_Width + 2) << ' ';
         ShowFrames(Output.Count_Frames_Ignored_Concealed, Count_Frames_Total, " discarded for full concealment.");
         *Log << '\n';
+    }
+    if (Merge_Rewind_Capture)
+    {
+        size_t Total_Misaligned = 0;
+        for (size_t i = 1; i < Inputs.size(); i++)
+            Total_Misaligned += Inputs[i]->Count_Frames_Misaligned;
+        if (Total_Misaligned)
+        {
+            *Log << '\n';
+            ShowFrames(Total_Misaligned, Count_Frames_Total, " reverse-capture frames excluded (fingerprint mismatch).");
+            *Log << '\n';
+        }
     }
     *Log << flush;
 
