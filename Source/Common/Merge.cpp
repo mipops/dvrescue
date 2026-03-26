@@ -1231,6 +1231,8 @@ bool dv_merge_private::Process(float Speed)
             && (ShowFrames_Missing || !IsMissing)
             )
         {
+            if (MergeInfo_Format)
+                Log_Line << ",M,,,,"; // Status,Comments,BlockErrors,BlockErrors_Even,IssueFixed (#608)
             *Log << Log_Line.str() << endl;
         }
         return false;
@@ -1301,8 +1303,8 @@ bool dv_merge_private::Process(float Speed)
     size_t IssueCount = 0;
     size_t IssueCount_Even = 0;
     size_t IssueFixed = 0;
-    if (Verbosity > 5 && MergeInfo_Format)
-        Log_Line << ',';
+    if (MergeInfo_Format)
+        Log_Line << ','; // Comments column (empty in CSV mode) (#608)
     if (Prefered_Frame != -1)
     {
         auto& Input = Inputs[Prefered_Frame];
@@ -1633,7 +1635,7 @@ bool dv_merge_private::Process(float Speed)
     auto& Frames = Input->Segments[Segment_Pos].Frames;
     auto& Frame = Frames[Frame_Pos];
     auto DvSpeed = Frame.Speed;
-    if (MergeInfo_Format)
+    if (MergeInfo_Format && Verbosity > 5) // Match header condition (#608)
     {
         Log_Line << ',';
         Log_Line << ::to_string(Speed);
@@ -1652,12 +1654,12 @@ bool dv_merge_private::Process(float Speed)
         Log_Line << ',';
         if (Prefered_Frame != -1 && FirstBadFrame == -1)
             Log_Line << Output.F_Pos;
-        if (ShowFrames_Intermediate)
-        {
-            Log_Line << ',';
-            if (FirstBadFrame != -1)
-                Log_Line << 'R';
-        }
+    }
+    if (MergeInfo_Format && ShowFrames_Intermediate)
+    {
+        Log_Line << ',';
+        if (FirstBadFrame != -1)
+            Log_Line << 'R';
     }
 
     // Auto-rewind
