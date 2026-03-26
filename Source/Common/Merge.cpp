@@ -1358,30 +1358,37 @@ bool dv_merge_private::Process(float Speed)
             Inputs[Prefered_Frame]->Count_Blocks_Used += BlockStatus_Count;
             memcpy(Output.OutputBuffer, Inputs[Priorities[0]]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data, BlockStatus_Count * 80); // Copy the content of the file having the less issues
 
-            // Build per-input OK block count for consensus-based selection
+            // Build per-input OK block count for consensus-based selection.
             // Separate counts for audio vs non-audio blocks, since audio errors
-            // cause audible artifacts and need preferential recovery (#209)
+            // cause audible artifacts and need preferential recovery (#209).
+            // Cache DIF section types per block for reuse in the selection loop.
             vector<size_t> InputOkCount(Input_Count, 0);
             vector<size_t> InputAudioOkCount(Input_Count, 0);
+            vector<bool> BlockIsAudio(BlockStatus_Count, false);
             if (Input_Count > 1)
             {
-                for (int b = 0; b < BlockStatus_Count; b++)
+                // Find a reference buffer for DIF section type detection
+                const uint8_t* RefData = nullptr;
+                for (size_t i = 0; i < Input_Count; i++)
                 {
-                    // Determine DIF section type from byte[0] of this block position
-                    uint8_t section_type = 0xFF;
-                    for (size_t i = 0; i < Input_Count; i++)
+                    auto& Inp = Inputs[i];
+                    if (!Inp->DoNotUseFile)
                     {
-                        auto& Inp = Inputs[i];
-                        if (Inp->DoNotUseFile)
-                            continue;
                         auto& Fr = Inp->Segments[Segment_Pos].Frames[Frame_Pos];
                         if (Fr.Buffer.Data)
                         {
-                            section_type = Fr.Buffer.Data[b * 80] >> 5;
+                            RefData = Fr.Buffer.Data;
                             break;
                         }
                     }
-                    bool isAudio = (section_type == 3);
+                }
+
+                for (int b = 0; b < BlockStatus_Count; b++)
+                {
+                    // DIF section type from byte[0] top 3 bits:
+                    //   0=header, 1=subcode, 2=VAUX, 3=audio, 4+=video
+                    if (RefData)
+                        BlockIsAudio[b] = ((RefData[b * 80] >> 5) == 3);
 
                     for (size_t i = 0; i < Input_Count; i++)
                     {
@@ -1393,7 +1400,7 @@ bool dv_merge_private::Process(float Speed)
                             (Fr.BlockStatus && Fr.BlockStatus[b] == BlockStatus_OK))
                         {
                             InputOkCount[i]++;
-                            if (isAudio)
+                            if (BlockIsAudio[b])
                                 InputAudioOkCount[i]++;
                         }
                     }
@@ -1402,19 +1409,8 @@ bool dv_merge_private::Process(float Speed)
 
             for (int b = 0; b < BlockStatus_Count; b++)
             {
-                // Determine if this block is an audio block for scoring
-                bool isAudioBlock = false;
-                for (size_t i = 0; i < Input_Count; i++)
-                {
-                    auto& Inp = Inputs[i];
-                    if (!Inp->DoNotUseFile && Inp->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data)
-                    {
-                        isAudioBlock = (Inp->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data[b * 80] >> 5) == 3;
-                        break;
-                    }
-                }
                 // Use audio-specific scores for audio blocks to prioritize clean audio sources
-                auto& ScoreRef = isAudioBlock ? InputAudioOkCount : InputOkCount;
+                auto& ScoreRef = BlockIsAudio[b] ? InputAudioOkCount : InputOkCount;
 
                 bool NoIssue = false;
                 size_t BestInput = Priorities[0];

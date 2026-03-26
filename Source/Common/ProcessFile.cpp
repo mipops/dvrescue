@@ -892,16 +892,14 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                     }
                     if (FrameData->Video_STA_Errors)
                     {
-                        size_t SizeToCopy = FrameData->Video_STA_Errors_Count * sizeof(size_t);
-                        auto Video_STA_Errors = new size_t[SizeToCopy];
-                        std::memcpy(Video_STA_Errors, FrameData->Video_STA_Errors, SizeToCopy);
+                        auto Video_STA_Errors = new size_t[FrameData->Video_STA_Errors_Count];
+                        std::memcpy(Video_STA_Errors, FrameData->Video_STA_Errors, FrameData->Video_STA_Errors_Count * sizeof(size_t));
                         RF->Analysis->Video_STA_Errors = Video_STA_Errors;
                     }
                     if (FrameData->Audio_Data_Errors)
                     {
-                        size_t SizeToCopy = FrameData->Audio_Data_Errors_Count * sizeof(size_t);
-                        auto Audio_Data_Errors = new size_t[SizeToCopy];
-                        std::memcpy(Audio_Data_Errors, FrameData->Audio_Data_Errors, SizeToCopy);
+                        auto Audio_Data_Errors = new size_t[FrameData->Audio_Data_Errors_Count];
+                        std::memcpy(Audio_Data_Errors, FrameData->Audio_Data_Errors, FrameData->Audio_Data_Errors_Count * sizeof(size_t));
                         RF->Analysis->Audio_Data_Errors = Audio_Data_Errors;
                     }
                     if (FrameData->MoreData)

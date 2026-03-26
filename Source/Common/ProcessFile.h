@@ -211,7 +211,15 @@ public:
 
         ~reverse_frame()
         {
-            delete Analysis;
+            if (Analysis)
+            {
+                // Free deep-copied sub-allocations (C struct has no destructor)
+                delete[] Analysis->Errors;
+                delete[] Analysis->Video_STA_Errors;
+                delete[] Analysis->Audio_Data_Errors;
+                delete[] (uint8_t*)Analysis->MoreData;
+                delete Analysis;
+            }
             delete[] Content;
         }
     };
