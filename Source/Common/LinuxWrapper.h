@@ -89,12 +89,16 @@ private:
     // mi
     FileWrapper* Wrapper = nullptr;
 
+    // Format detection
+    bool IsHDV = false;  // True if device is outputting HDV (MPEG-TS) signal
+
     // iec61883
     int InPlug = -1;
     int OutPlug = -1;
     int Channel = -1;
     int Bandwidth = -1;
     iec61883_dv_fb_t Frame = nullptr;
+    iec61883_mpeg2_t Mpeg2 = nullptr;  // HDV capture handle
     raw1394handle_t CaptureHandle = nullptr;
     std::thread* Raw1394PoolingThread = nullptr;
     std::atomic_bool Raw1394PoolingThread_Terminate { false };

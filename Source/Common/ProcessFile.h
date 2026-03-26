@@ -59,6 +59,10 @@ enum capture_mode {
 enum decklink_video_mode {
     Decklink_Video_Mode_NTSC,
     Decklink_Video_Mode_PAL,
+    Decklink_Video_Mode_HD1080i5994,
+    Decklink_Video_Mode_HD1080i50,
+    Decklink_Video_Mode_HD720p5994,
+    Decklink_Video_Mode_HD720p50,
     Decklink_Video_Mode_Max
 };
 

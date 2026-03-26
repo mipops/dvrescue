@@ -547,16 +547,15 @@ return_value file::Parse(const String& FileName)
         else
         #endif
             Wrapper = new FileWrapper(this);
-        // Check if device is outputting HDV/MicroMV signal (not capturable in DV mode)
+        // Report HDV/MicroMV signal detection
         {
             auto Caps = Capture->GetCapabilities();
             if (Caps.Probed && Caps.CassetteType == 0x41) // MicroMV cassette
-                cerr << "Warning: MicroMV cassette detected. DVRescue captures DV streams only." << endl
-                     << "MicroMV capture is not yet supported. Use external tools to capture." << endl;
+                cerr << "Note: MicroMV cassette detected. Capture will proceed but merge is not available for MPEG-2 streams." << endl;
             // OUTPUT_SIGNAL_MODE: 0x02=HD-DVCR/1125-60, 0x06=HD-DVCR/1250-50
             if (Caps.Probed && (Caps.OutputSignalMode == 0x02 || Caps.OutputSignalMode == 0x06))
-                cerr << "Warning: Device reports HD signal mode (" << Caps.SignalMode << ")." << endl
-                     << "HDV capture is not yet supported. Switch deck to DV playback mode if available." << endl;
+                cerr << "Note: Device reports HD signal mode (" << Caps.SignalMode << ")." << endl
+                     << "HDV capture mode active. Merge is not available for MPEG-2 streams." << endl;
         }
         MI.Open_Buffer_Init();
         Capture->TerminateFlag = &TerminateRequested; // Enable responsive Ctrl-C (#783)

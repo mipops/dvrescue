@@ -61,6 +61,33 @@ static int ReceiveFrame(unsigned char* Data, int Lenght, int, void *UserData)
 }
 
 //---------------------------------------------------------------------------
+// HDV (MPEG-TS) receive callback for iec61883_mpeg2
+// Receives raw MPEG-TS packets; MediaInfoLib handles demuxing
+static int ReceiveMpeg2Packet(unsigned char* Data, int Length, unsigned int Dropped, void* UserData)
+{
+    const lock_guard<mutex> Lock(ProcessFrameLock);
+    LastInput = time(NULL);
+
+    if (Dropped > 0)
+        cerr << "Warning: " << Dropped << " MPEG-TS packet(s) dropped during HDV capture." << endl;
+
+    if (Length > 0)
+    {
+        frame Cur;
+        Cur.Size = Length;
+        Cur.Data = new uint8_t[Length];
+
+        memcpy((void*)Cur.Data, (const void*)Data, Length);
+        FrameBufferLock.lock();
+        FrameBuffer.push(Cur);
+        FrameBufferLock.unlock();
+        FrameBufferCondition.notify_all();
+    }
+
+    return 0;
+}
+
+//---------------------------------------------------------------------------
 const string LinuxWrapper::Interface = "DV";
 
 //---------------------------------------------------------------------------
@@ -384,6 +411,27 @@ void LinuxWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
 {
     Wrapper = Wrapper_;
 
+    // Detect HDV vs DV by querying OUTPUT_SIGNAL_MODE before setting up capture
+    IsHDV = false;
+    if (CtlHandle && Node != (nodeid_t)-1)
+    {
+        CtlHandleMutex.lock();
+        quadlet_t resp = avc1394_transaction(CtlHandle, Node,
+            AVC1394_CTYPE_STATUS | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0
+            | (0x78 << 8) | 0xFF, 2);
+        CtlHandleMutex.unlock();
+        if ((resp & 0xF0000000) == AVC1394_RESP_STABLE)
+        {
+            uint8_t SignalMode = resp & 0xFF;
+            // 0x02 = HD-DVCR/1125-60, 0x06 = HD-DVCR/1250-50 → HDV territory
+            if (SignalMode == 0x02 || SignalMode == 0x06)
+            {
+                IsHDV = true;
+                cerr << "Info: HDV signal detected (" << device_capabilities::SignalModeName(SignalMode) << "), using MPEG-TS capture." << endl;
+            }
+        }
+    }
+
     CaptureHandle = raw1394_new_handle_on_port(Port);
     if (CaptureHandle)
     {
@@ -392,14 +440,24 @@ void LinuxWrapper::CreateCaptureSession(FileWrapper* Wrapper_)
         Channel = iec61883_cmp_connect(CaptureHandle, Node, &OutPlug, raw1394_get_local_id(CaptureHandle), &InPlug, &Bandwidth);
         if (Channel < 0) // try broadcast channel if connect failed
             Channel = 63;
-        Frame = iec61883_dv_fb_init(CaptureHandle, ReceiveFrame, nullptr);
+
+        if (IsHDV)
+            Mpeg2 = iec61883_mpeg2_recv_init(CaptureHandle, ReceiveMpeg2Packet, nullptr);
+        else
+            Frame = iec61883_dv_fb_init(CaptureHandle, ReceiveFrame, nullptr);
     }
 }
 
 //---------------------------------------------------------------------------
 void LinuxWrapper::StartCaptureSession()
 {
-    if (Frame && iec61883_dv_fb_start(Frame, Channel) == 0)
+    bool Started = false;
+    if (IsHDV && Mpeg2)
+        Started = (iec61883_mpeg2_recv_start(Mpeg2, Channel) == 0);
+    else if (Frame)
+        Started = (iec61883_dv_fb_start(Frame, Channel) == 0);
+
+    if (Started)
     {
         Raw1394PoolingThread = new thread([this]() {
             struct pollfd Desc = {
@@ -496,7 +554,14 @@ void LinuxWrapper::StopCaptureSession()
      if (Frame)
      {
          iec61883_dv_fb_close(Frame);
-         Frame = 0;
+         Frame = nullptr;
+     }
+
+     if (Mpeg2)
+     {
+         iec61883_mpeg2_recv_stop(Mpeg2);
+         iec61883_mpeg2_close(Mpeg2);
+         Mpeg2 = nullptr;
      }
 
     if (Channel >= 0 && Channel != 63)

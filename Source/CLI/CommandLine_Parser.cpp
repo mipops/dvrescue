@@ -464,9 +464,17 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
             if (!strcmp(argv_ansi[i], "ntsc"))
-                DeckLinkVideoMode = 0;
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
             else if (!strcmp(argv_ansi[i], "pal"))
-                DeckLinkVideoMode = 1;
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_PAL;
+            else if (!strcmp(argv_ansi[i], "1080i5994"))
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_HD1080i5994;
+            else if (!strcmp(argv_ansi[i], "1080i50"))
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_HD1080i50;
+            else if (!strcmp(argv_ansi[i], "720p5994"))
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_HD720p5994;
+            else if (!strcmp(argv_ansi[i], "720p50"))
+                DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_HD720p50;
             else
             {
                 if (C.Err)

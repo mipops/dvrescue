@@ -18,7 +18,11 @@ using namespace std;
 static uint32_t decklink_video_modes[Decklink_Video_Mode_Max] =
 {
     bmdModeNTSC,
-    bmdModePAL
+    bmdModePAL,
+    bmdModeHD1080i5994,
+    bmdModeHD1080i50,
+    bmdModeHD720p5994,
+    bmdModeHD720p50
 };
 
 //---------------------------------------------------------------------------
