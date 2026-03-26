@@ -1294,7 +1294,12 @@ if [[ -f "${DVFILE}" ]] ; then
                 fi
             fi
             MAP_OUTPUT=("${VIDEO_MAP[@]}" "${AUDIO_MAP[@]}" "${SUBTITLE_MAP[@]}")
-            if [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
+            if [[ "${SOURCE_FORMAT}" == "DV" ]] && [[ "${EXTENSION}" == "dv" ]] ; then
+                # Raw DV to DV: simple stream copy without audio/subtitle processing
+                _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} -map 0 -c copy -f rawvideo ${DURATION_ARG[@]} ${OUTPUT_FILE}"
+                "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" \
+                    -map 0 -c copy -f rawvideo "${DURATION_ARG[@]}" "${OUTPUT_FILE}"
+            elif [[ "${SOURCE_FORMAT}" == "DV" ]] ; then
                 _report -v "Trying to run: ${FFMPEG_PATH} ${FFMPEG_VERBOSE[@]} ${OPT_INPUT[@]} ${DV_INPUT[@]} ${AUDIO_INPUTS[@]} ${SUB_INPUT[@]} ${CHAPTER_PROCESS[@]} ${AUDIO_FILTER[@]} ${DURATION_ARG[@]} ${OPT_OUTPUT[@]} ${MAP_OUTPUT[@]} ${METADATA[@]} ${OUTPUT_FILE}"
                 "${FFMPEG_PATH}" "${FFMPEG_VERBOSE[@]}" "${OPT_INPUT[@]}" "${DV_INPUT[@]}" "${AUDIO_INPUTS[@]}" \
                     "${SUB_INPUT[@]}" "${CHAPTER_PROCESS[@]}" "${AUDIO_FILTER[@]}" "${DURATION_ARG[@]}" "${OPT_OUTPUT[@]}" "${MAP_OUTPUT[@]}" "${METADATA[@]}" "${OUTPUT_FILE}"

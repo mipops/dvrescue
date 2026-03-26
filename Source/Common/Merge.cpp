@@ -626,12 +626,16 @@ bool dv_merge_private::TcSyncStart()
         while (Frames_Pos < Frames.size() && !Frames[Frames_Pos].TC.HasValue())
             Frames_Pos++;
         if (Frames_Pos >= Frames.size())
-            return true;
+            continue; // Skip inputs with no valid timecode instead of blocking all alignment
         StartPos[i] = Frames_Pos;
         int64_t TC_Min_ThisInput = Frames[Frames_Pos].TC.ToFrames() - Frames_Pos;
         if (TC_Min > TC_Min_ThisInput)
             TC_Min = TC_Min_ThisInput;
     }
+
+    // If no inputs have valid timecodes, no alignment possible
+    if (StartPos.empty())
+        return false;
 
     // Align inputs
     for (size_t i = 0; i < Input_Count; i++)
@@ -1355,11 +1359,30 @@ bool dv_merge_private::Process(float Speed)
             memcpy(Output.OutputBuffer, Inputs[Priorities[0]]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data, BlockStatus_Count * 80); // Copy the content of the file having the less issues
 
             // Build per-input OK block count for consensus-based selection
+            // Separate counts for audio vs non-audio blocks, since audio errors
+            // cause audible artifacts and need preferential recovery (#209)
             vector<size_t> InputOkCount(Input_Count, 0);
+            vector<size_t> InputAudioOkCount(Input_Count, 0);
             if (Input_Count > 1)
             {
                 for (int b = 0; b < BlockStatus_Count; b++)
                 {
+                    // Determine DIF section type from byte[0] of this block position
+                    uint8_t section_type = 0xFF;
+                    for (size_t i = 0; i < Input_Count; i++)
+                    {
+                        auto& Inp = Inputs[i];
+                        if (Inp->DoNotUseFile)
+                            continue;
+                        auto& Fr = Inp->Segments[Segment_Pos].Frames[Frame_Pos];
+                        if (Fr.Buffer.Data)
+                        {
+                            section_type = Fr.Buffer.Data[b * 80] >> 5;
+                            break;
+                        }
+                    }
+                    bool isAudio = (section_type == 3);
+
                     for (size_t i = 0; i < Input_Count; i++)
                     {
                         auto& Inp = Inputs[i];
@@ -1368,13 +1391,31 @@ bool dv_merge_private::Process(float Speed)
                         auto& Fr = Inp->Segments[Segment_Pos].Frames[Frame_Pos];
                         if (!Fr.Status[Status_BlockIssue] ||
                             (Fr.BlockStatus && Fr.BlockStatus[b] == BlockStatus_OK))
+                        {
                             InputOkCount[i]++;
+                            if (isAudio)
+                                InputAudioOkCount[i]++;
+                        }
                     }
                 }
             }
 
             for (int b = 0; b < BlockStatus_Count; b++)
             {
+                // Determine if this block is an audio block for scoring
+                bool isAudioBlock = false;
+                for (size_t i = 0; i < Input_Count; i++)
+                {
+                    auto& Inp = Inputs[i];
+                    if (!Inp->DoNotUseFile && Inp->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data)
+                    {
+                        isAudioBlock = (Inp->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data[b * 80] >> 5) == 3;
+                        break;
+                    }
+                }
+                // Use audio-specific scores for audio blocks to prioritize clean audio sources
+                auto& ScoreRef = isAudioBlock ? InputAudioOkCount : InputOkCount;
+
                 bool NoIssue = false;
                 size_t BestInput = Priorities[0];
                 size_t BestScore = 0;
@@ -1395,16 +1436,16 @@ bool dv_merge_private::Process(float Speed)
                             {
                                 // First OK block found — use consensus scoring
                                 BestInput = p;
-                                BestScore = InputOkCount[p];
+                                BestScore = ScoreRef[p];
                                 ThisFrame_Count_Blocks_Used[p]++;
                                 NoIssue = true;
                             }
-                            else if (InputOkCount[p] > BestScore)
+                            else if (ScoreRef[p] > BestScore)
                             {
                                 // Better source found — switch to it
                                 ThisFrame_Count_Blocks_Used[BestInput]--;
                                 BestInput = p;
-                                BestScore = InputOkCount[p];
+                                BestScore = ScoreRef[p];
                                 ThisFrame_Count_Blocks_Used[p]++;
                             }
                             break;
