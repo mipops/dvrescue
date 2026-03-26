@@ -578,17 +578,23 @@ bool dv_merge_private::ManagePartialFrame(size_t InputPos, const MediaInfo_Event
     // Mergeable blocks
     CurrentFrame.BlockStatus_Count = BlockStatus_Count;
     size_t Count_Blocks[BlockStatus_Max] = {};
-    for (int i = 0; i < BlockStatus_Count; i++)
+    if (FrameData->BlockStatus) // Guard against null BlockStatus (#388)
     {
-        auto BlockStatus = FrameData->BlockStatus[i];
-        if (BlockStatus < BlockStatus_Max)
-            Count_Blocks[BlockStatus]++;
+        for (int i = 0; i < BlockStatus_Count; i++)
+        {
+            auto BlockStatus = FrameData->BlockStatus[i];
+            if (BlockStatus < BlockStatus_Max)
+                Count_Blocks[BlockStatus]++;
+        }
     }
     if (Count_Blocks[BlockStatus_NOK])
     {
         CurrentFrame.Status.set(Status_BlockIssue);
         CurrentFrame.BlockStatus = new uint8_t[BlockStatus_Count];
-        memcpy(CurrentFrame.BlockStatus, FrameData->BlockStatus, BlockStatus_Count);
+        if (FrameData->BlockStatus)
+            memcpy(CurrentFrame.BlockStatus, FrameData->BlockStatus, BlockStatus_Count);
+        else
+            memset(CurrentFrame.BlockStatus, BlockStatus_NOK, BlockStatus_Count);
         Input->Count_Frames_NOK++;
     }
     else
@@ -983,6 +989,12 @@ bool dv_merge_private::Process(float Speed)
         if (RefInput != (size_t)-1)
         {
             auto& RefFrame = Inputs[RefInput]->Segments[Segment_Pos].Frames[Frame_Pos];
+            if (!RefFrame.Buffer.Data) // Guard against null buffer (#388)
+                RefInput = (size_t)-1;
+        }
+        if (RefInput != (size_t)-1)
+        {
+            auto& RefFrame = Inputs[RefInput]->Segments[Segment_Pos].Frames[Frame_Pos];
             for (size_t i = RefInput + 1; i < Input_Count; i++)
             {
                 auto& Input = Inputs[i];
@@ -1321,7 +1333,7 @@ bool dv_merge_private::Process(float Speed)
                 }
                 auto& Frames = Input->Segments[Segment_Pos].Frames;
                 auto& Frame = Frames[Frame_Pos];
-                if (Frame.Status[Status_BlockIssue])
+                if (Frame.Status[Status_BlockIssue] && Frame.BlockStatus)
                 {
                     switch (Frame.BlockStatus[b])
                     {
@@ -1356,7 +1368,11 @@ bool dv_merge_private::Process(float Speed)
             }
             Prefered_Frame = Priorities[0];
             Inputs[Prefered_Frame]->Count_Blocks_Used += BlockStatus_Count;
-            memcpy(Output.OutputBuffer, Inputs[Priorities[0]]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data, BlockStatus_Count * 80); // Copy the content of the file having the less issues
+            auto* PrefData = Inputs[Priorities[0]]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data;
+            if (PrefData) // Guard against null-filled frames (#388)
+                memcpy(Output.OutputBuffer, PrefData, BlockStatus_Count * 80);
+            else
+                memset(Output.OutputBuffer, 0, BlockStatus_Count * 80);
 
             // Build per-input OK block count for consensus-based selection.
             // Separate counts for audio vs non-audio blocks, since audio errors
@@ -1423,7 +1439,7 @@ bool dv_merge_private::Process(float Speed)
                         continue;
                     auto& Frames = Input->Segments[Segment_Pos].Frames;
                     auto& Frame = Frames[Frame_Pos];
-                    if (Frame.Status[Status_BlockIssue])
+                    if (Frame.Status[Status_BlockIssue] && Frame.BlockStatus)
                     {
                         switch (Frame.BlockStatus[b])
                         {
@@ -1455,8 +1471,9 @@ bool dv_merge_private::Process(float Speed)
                 // Copy block from best source if it differs from the base frame
                 if (NoIssue && BestInput != (size_t)Priorities[0])
                 {
-                    memcpy(Output.OutputBuffer + b * 80,
-                           Inputs[BestInput]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data + b * 80, 80);
+                    auto* BestData = Inputs[BestInput]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data;
+                    if (BestData) // Guard against null buffer (#388)
+                        memcpy(Output.OutputBuffer + b * 80, BestData + b * 80, 80);
                     if (BestInput < Count_Blocks_Recovered_Per_Input.size())
                         Count_Blocks_Recovered_Per_Input[BestInput]++;
                 }

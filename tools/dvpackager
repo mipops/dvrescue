@@ -1323,13 +1323,17 @@ if [[ -f "${DVFILE}" ]] ; then
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
                         VID_DUR=($("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
                         AUD_DUR=($("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
-                        DUR_DIFF=($(echo "${VID_DUR}" - "${AUD_DUR}" | bc | awk '{printf "%f", $0}'))
-                        _report -v "VID_DUR=(${VID_DUR}), AUD_DIR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
-                        if (( $( echo "${DUR_DIFF} >= -100" |bc -l) )) && (( $(echo "${DUR_DIFF} <= 100" |bc -l) )); then
-                            _report -v "DUR_DIFF is within an acceptable range."
+                        if [[ -n "${VID_DUR}" ]] && [[ -n "${AUD_DUR}" ]] ; then
+                            DUR_DIFF=($(echo "${VID_DUR} - ${AUD_DUR}" | bc 2>/dev/null | awk '{printf "%f", $0}'))
+                            _report -v "VID_DUR=(${VID_DUR}), AUD_DUR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
+                            if [[ -n "${DUR_DIFF}" ]] && (( $( echo "${DUR_DIFF} >= -100" |bc -l 2>/dev/null) )) && (( $(echo "${DUR_DIFF} <= 100" |bc -l 2>/dev/null) )); then
+                                _report -v "DUR_DIFF is within an acceptable range."
+                            else
+                                OUTPUT_ERROR+=("audio-video-duration-mismatch")
+                                OUTPUT_ERROR_NOTE+="In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync. "
+                            fi
                         else
-                            OUTPUT_ERROR+=("audio-video-duration-mismatch")
-                            OUTPUT_ERROR_NOTE+="In ${OUTPUT_FILE_BASENAME} the video track is ${VID_DUR} milliseconds and the audio track is ${AUD_DUR}. These tracks may lose sync. "
+                            _report -d "FYI: could not determine duration for ${OUTPUT_FILE_BASENAME} (VID_DUR=${VID_DUR}, AUD_DUR=${AUD_DUR})."
                         fi
                     else
                         _report -d "FYI: ${OUTPUT_FILE_BASENAME} has no audio track."

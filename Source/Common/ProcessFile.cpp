@@ -564,6 +564,15 @@ return_value file::Parse(const String& FileName)
             }
             TimeOutReached = Capture->WaitForSessionEnd(Timeout);
             Capture->StopCaptureSession();
+            if (TerminateRequested) // Ctrl-C: exit capture loop (#615)
+            {
+                if (InputHelper)
+                {
+                    InputHelper->join();
+                    delete InputHelper;
+                }
+                break;
+            }
             if (!InputHelper)
                 break;
             if (!PauseRequested) // If stop was not requested, it is end of stream
@@ -572,10 +581,12 @@ return_value file::Parse(const String& FileName)
                 delete InputHelper;
                 break;
             }
-            while (PauseRequested)
+            while (PauseRequested && !TerminateRequested)
                 this_thread::yield();
+            if (TerminateRequested)
+                break;
         }
-        MI.Open_Buffer_Finalize();
+        MI.Open_Buffer_Finalize(); // Always finalize, even on Ctrl-C (#615)
     }
     else
     #endif
@@ -996,6 +1007,19 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                     }
                     RF->TC = TC;
                     ReverseFrameBuffer.push_back(RF);
+
+                    // Prevent unbounded memory growth (#987): flush when buffer
+                    // exceeds a safe limit. A 1-hour NTSC tape is ~108,000 frames;
+                    // 10,000 frames ~= 1.4GB RAM (144KB content + metadata each).
+                    // Flush early to avoid OOM on long captures with rewind.
+                    const size_t MaxReverseBufferSize = 10000;
+                    if (ReverseFrameBuffer.size() >= MaxReverseBufferSize)
+                    {
+                        if (Verbosity >= 3)
+                            cerr << "Warning: reverse buffer reached " << MaxReverseBufferSize
+                                 << " frames, flushing to prevent OOM" << endl;
+                        FlushReverseBuffer();
+                    }
                 }
                 // Forward-settling frames (TimeCode2): inject directly
                 // into merge — these are ascending-TC forward-play frames
