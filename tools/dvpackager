@@ -318,8 +318,12 @@ _ranges_2_output_table(){
         if [[ "$(_check_if_in_list "${SEG_INPUT}" "${SEGMENT_SKIPS}")" != "x" ]] ; then
 
             # generate output files (this code is reused in the output section)
-            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME%.*}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
-            COLLECTED_OUTPUTS+=(${APPLIED_PATTERN})
+            BASENAME_SED_SAFE="${BASENAME%.*}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//\\/\\\\}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//&/\\&}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//|/\\|}"
+            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME_SED_SAFE}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
+            COLLECTED_OUTPUTS+=("${APPLIED_PATTERN}")
             MATCH_NAME_COUNT=0
             for OUTPUT_FILENAME in "${COLLECTED_OUTPUTS[@]}" ; do
                 if [[ "${OUTPUT_FILENAME}" = "${APPLIED_PATTERN}" ]]; then
@@ -955,6 +959,16 @@ if [[ -f "${DVFILE}" ]] ; then
         # if dvrescue outputs are needed then let's make them
         echo ", making dvrescue outputs"
         "${DVRESCUE_PATH}" "${DVFILE}" "${OUTPUTOPTS[@]}"
+        DVRESCUE_EXIT="$?"
+        if [[ "${DVRESCUE_EXIT}" -ne 0 ]] ; then
+            if [[ "${DVRESCUE_EXIT}" -gt 128 ]] ; then
+                _report -w "Error: dvrescue crashed (signal $((DVRESCUE_EXIT - 128))) while processing ${BASENAME}."
+            else
+                _report -w "Error: dvrescue exited with code ${DVRESCUE_EXIT} while processing ${BASENAME}."
+            fi
+            _report -w "The XML output may be missing or incomplete. Skipping packaging."
+            exit 1
+        fi
     fi
     ERROR="$("${XMLSTARLET_PATH}" sel -N "d=https://mediaarea.net/dvrescue" -t -m "/d:dvrescue/d:media" -v "@error" "${XML_TO_CHECK}")"
     if [[ -n "${ERROR}" ]] ; then
@@ -1031,8 +1045,12 @@ if [[ -f "${DVFILE}" ]] ; then
             APAD_NOTICE="0"
 
             # generate output files (this code section is in the table part too)
-            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME%.*}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
-            COLLECTED_OUTPUTS+=(${APPLIED_PATTERN})
+            BASENAME_SED_SAFE="${BASENAME%.*}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//\\/\\\\}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//&/\\&}"
+            BASENAME_SED_SAFE="${BASENAME_SED_SAFE//|/\\|}"
+            APPLIED_PATTERN="$(echo "${OUTPUTPATTERN}" | sed "s|%FILENAME%|${BASENAME_SED_SAFE}|g;s|%RECDATE%|${RDT:0:4}-${RDT:5:2}-${RDT:8:2}|g;s|%RECTIME%|${RDT:11:2}-${RDT:14:2}-${RDT:17:2}|g;s|%TC%|${TC//[:;]/-}|g;s|%PARTNO%|${SEG_OUTPUT}|g")"
+            COLLECTED_OUTPUTS+=("${APPLIED_PATTERN}")
             MATCH_NAME_COUNT=0
             for OUTPUT_FILENAME in "${COLLECTED_OUTPUTS[@]}" ; do
                 if [[ "${OUTPUT_FILENAME}" = "${APPLIED_PATTERN}" ]]; then

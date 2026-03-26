@@ -94,8 +94,8 @@ FFMPEG_VERBOSE=(-v quiet -stats)
 DV_VERBOSE=false
 while getopts ":t:b:mxgF:M:D:X:d:hvzB:o:O:s:S:" OPT ; do
     case "${OPT}" in
-        t) FFMPEG_INPUT_OPTS=(-ss ${OPTARG}) ; PTS="$OPTARG" ;;
-        b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes ${OPTARG}) ; OFFSET="$OPTARG" ;;
+        t) FFMPEG_INPUT_OPTS=(-ss "${OPTARG}") ; PTS="$OPTARG" ;;
+        b) FFMPEG_INPUT_OPTS=(-skip_initial_bytes "${OPTARG}") ; OFFSET="$OPTARG" ;;
         m) MASK_ONLY="Y" ;;
         x) ERROR_REVIEW="Y" ;;
         g) GIF_OUTPUT="Y" ;;
