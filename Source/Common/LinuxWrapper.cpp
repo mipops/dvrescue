@@ -585,3 +585,100 @@ void LinuxWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
         }
     }
 }
+
+//---------------------------------------------------------------------------
+device_capabilities LinuxWrapper::GetCapabilities()
+{
+    device_capabilities Caps;
+    Caps.Interface = Interface;
+
+    // Find device info from cached list
+    for (const auto& Dev : Devices)
+    {
+        if (Dev.UUID == UUID)
+        {
+            Caps.Vendor = Dev.Vendor;
+            Caps.Model = Dev.Model;
+            stringstream ss;
+            ss << hex << Dev.UUID;
+            Caps.UniqueID = ss.str();
+            break;
+        }
+    }
+
+    if (!CtlHandle || Node == (nodeid_t)-1)
+        return Caps;
+
+    // Use AV/C SPECIFIC_INQUIRY (ctype=0x20) to probe transport capabilities.
+    // Per AV/C General Specification 4.1 (1394TA Document 2001012), section 7:
+    //   SPECIFIC_INQUIRY asks "is this command with these operands supported?"
+    //   Response: IMPLEMENTED (0x0C) = yes, NOT_IMPLEMENTED (0x08) = no
+    //
+    // Command quadlet format:
+    //   [31:28] ctype  [27:23] subunit_type  [22:20] subunit_id
+    //   [19:12] opcode [11:4] operand0       [3:0] operand1
+
+    #define INQUIRY_VCR0 (AVC1394_CTYPE_SPECIFIC_INQUIRY | AVC1394_SUBUNIT_TYPE_TAPE_RECORDER | AVC1394_SUBUNIT_ID_0)
+
+    auto probe = [&](uint32_t opcode_operand) -> bool {
+        CtlHandleMutex.lock();
+        quadlet_t resp = avc1394_transaction(CtlHandle, Node,
+            INQUIRY_VCR0 | opcode_operand, 2);
+        CtlHandleMutex.unlock();
+        return (resp & 0xF0000000) == AVC1394_RESP_IMPLEMENTED;
+    };
+
+    // Probe play speeds
+    // Forward speeds
+    Caps.CanPlay = probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FORWARD);
+    if (Caps.CanPlay)
+        Caps.SupportedForwardSpeeds.push_back(1.0f);
+
+    Caps.CanPause = probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FORWARD_PAUSE);
+
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_SLOW_FORWARD_6))
+    {
+        Caps.CanSlowForward = true;
+        Caps.SupportedForwardSpeeds.push_back(0.5f);
+    }
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FAST_FORWARD_6))
+    {
+        Caps.CanFastForward = true;
+        Caps.SupportedForwardSpeeds.push_back(2.0f);
+    }
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_NEXT_FRAME))
+        Caps.CanJog = true;
+
+    // Reverse speeds
+    Caps.CanReverse = probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_REVERSE);
+    if (!Caps.CanReverse)
+        Caps.CanReverse = probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_X1_REVERSE);
+    if (Caps.CanReverse)
+        Caps.SupportedReverseSpeeds.push_back(-1.0f);
+
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_SLOW_REVERSE_6))
+    {
+        Caps.CanSlowReverse = true;
+        Caps.SupportedReverseSpeeds.push_back(-0.5f);
+    }
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FAST_REVERSE_6))
+    {
+        Caps.CanFastReverse = true;
+        Caps.SupportedReverseSpeeds.push_back(-2.0f);
+    }
+
+    // Probe wind capabilities
+    Caps.CanWind = probe(AVC1394_VCR_COMMAND_WIND | AVC1394_VCR_OPERAND_WIND_REWIND);
+    if (probe(AVC1394_VCR_COMMAND_WIND | AVC1394_VCR_OPERAND_WIND_FAST_FORWARD))
+        Caps.CanWind = true;
+
+    // Probe shuttle (variable-speed play via fastest forward/reverse)
+    if (probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FASTEST_FORWARD) &&
+        probe(AVC1394_VCR_COMMAND_PLAY | AVC1394_VCR_OPERAND_PLAY_FASTEST_REVERSE))
+        Caps.CanShuttle = true;
+
+    #undef INQUIRY_VCR0
+
+    Caps.Probed = true;
+    return Caps;
+}

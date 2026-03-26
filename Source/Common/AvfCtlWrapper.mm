@@ -235,3 +235,65 @@ bool AVFCtlWrapper::WaitForSessionEnd(uint64_t Timeout)
 {
     return (bool)[(id)Ctl waitForSessionEnd: Timeout];
 }
+
+device_capabilities AVFCtlWrapper::GetCapabilities()
+{
+    device_capabilities Caps;
+    Caps.Interface = Interface;
+
+    // Device identification from IOKit FireWire registry
+    NSString* vendor = [(id)Ctl getDeviceVendor];
+    NSString* model = [(id)Ctl getDeviceModel];
+    if (vendor) Caps.Vendor = string([vendor UTF8String]);
+    if (model) Caps.Model = string([model UTF8String]);
+
+    // Use AV/C SPECIFIC_INQUIRY to probe transport capabilities
+    // VCR_CMD_PLAY = 0xC3, VCR_CMD_WIND = 0xC4
+    // Operands match those defined in AvfCtl.m
+
+    // Forward play
+    Caps.CanPlay = [(id)Ctl probeAvcCommand:0xC3 operand:0x38]; // PLAY_FORWARD
+    if (Caps.CanPlay) Caps.SupportedForwardSpeeds.push_back(1.0f);
+    Caps.CanPause = [(id)Ctl probeAvcCommand:0xC3 operand:0x7D]; // PLAY_FORWARD_PAUSE
+
+    // Slow forward (PLAY_FORWARD - SPD_X6 = 0x38 - 0x06 = 0x32)
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x32])
+    {
+        Caps.CanSlowForward = true;
+        Caps.SupportedForwardSpeeds.push_back(0.5f);
+    }
+    // Fast forward play (PLAY_FORWARD + SPD_X6 = 0x38 + 0x06 = 0x3E)
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3E])
+    {
+        Caps.CanFastForward = true;
+        Caps.SupportedForwardSpeeds.push_back(2.0f);
+    }
+
+    // Reverse play
+    Caps.CanReverse = [(id)Ctl probeAvcCommand:0xC3 operand:0x48]; // PLAY_REVERSE
+    if (Caps.CanReverse) Caps.SupportedReverseSpeeds.push_back(-1.0f);
+
+    // Slow reverse (PLAY_REVERSE + SPD_X6 = 0x48 + 0x06 = 0x4E)
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x4E])
+    {
+        Caps.CanSlowReverse = true;
+        Caps.SupportedReverseSpeeds.push_back(-0.5f);
+    }
+    // Fast reverse (PLAY_REVERSE - SPD_X6 = 0x48 - 0x06 = 0x42)
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x42])
+    {
+        Caps.CanFastReverse = true;
+        Caps.SupportedReverseSpeeds.push_back(-2.0f);
+    }
+
+    // Wind capabilities
+    Caps.CanWind = [(id)Ctl probeAvcCommand:0xC4 operand:0x65]; // WIND_REWIND
+
+    // Shuttle (highest speeds)
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3F] && // PLAY_FORWARD + SPD_X7
+        [(id)Ctl probeAvcCommand:0xC3 operand:0x41])    // PLAY_REVERSE - SPD_X7
+        Caps.CanShuttle = true;
+
+    Caps.Probed = true;
+    return Caps;
+}

@@ -138,6 +138,13 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "    --list_devices_json\n"
         "        List detected devices and their ID (JSON output).\n"
         "\n"
+        "    --device-info\n"
+        "        Query the device for its transport capabilities via AV/C\n"
+        "        SPECIFIC_INQUIRY and display supported features (play, reverse,\n"
+        "        shuttle, jog, supported speeds, etc.).\n"
+        "        By default device://0 is used.\n"
+        "        Usable only if input is a device.\n"
+        "\n"
         #ifdef ENABLE_SONY9PIN
         "    --list_controls\n"
         "        List detected serial ports.\n"

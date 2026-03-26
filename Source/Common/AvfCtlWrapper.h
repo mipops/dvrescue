@@ -37,6 +37,7 @@ public:
     void StopCaptureSession();
     void SetPlaybackMode(playback_mode Mode, float Speed);
     bool WaitForSessionEnd(uint64_t Timeout);
+    device_capabilities GetCapabilities() override;
 
     // Attributes
     static const std::string Interface;

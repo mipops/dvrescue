@@ -69,4 +69,7 @@
 - (AVCaptureDeviceTransportControlsPlaybackMode) getMode;
 - (AVCaptureDeviceTransportControlsSpeed) getSpeed;
 - (BOOL) waitForSessionEnd:(NSUInteger) timeout;
+- (BOOL) probeAvcCommand:(UInt8)command operand:(UInt8)operand;
+- (NSString*) getDeviceVendor;
+- (NSString*) getDeviceModel;
 @end

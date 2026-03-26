@@ -736,3 +736,51 @@ void DecklinkWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
 
     PlaybackMode=Mode;
 }
+
+//---------------------------------------------------------------------------
+device_capabilities DecklinkWrapper::GetCapabilities()
+{
+    device_capabilities Caps;
+    Caps.Interface = Interface;
+
+    // DeckLink devices support all standard transport operations
+    // when a DeckControl connection is active
+    if (DeckLinkDeckControl)
+    {
+        Caps.CanPlay = true;
+        Caps.CanPause = true;
+        Caps.CanReverse = true;     // via Shuttle(-speed)
+        Caps.CanFastForward = true; // via FastForward()
+        Caps.CanFastReverse = true; // via Rewind()
+        Caps.CanShuttle = true;     // via Shuttle()
+        Caps.CanJog = true;         // via Jog()
+        Caps.CanWind = true;
+        Caps.CanSlowForward = true;
+        Caps.CanSlowReverse = true;
+
+        Caps.SupportedForwardSpeeds = {0.5f, 1.0f, 2.0f};
+        Caps.SupportedReverseSpeeds = {-2.0f, -1.0f, -0.5f};
+    }
+    else if (Controller)
+    {
+        // If using external controller (Sony9Pin), query it
+        // Basic capabilities assumed
+        Caps.CanPlay = true;
+        Caps.CanWind = true;
+        Caps.SupportedForwardSpeeds = {1.0f};
+        Caps.SupportedReverseSpeeds = {-1.0f};
+    }
+
+    // Find device name from cached list
+    for (const auto& Dev : Devices)
+    {
+        if (!Dev.Name.empty())
+        {
+            Caps.Model = Dev.Name;
+            break;
+        }
+    }
+
+    Caps.Probed = true;
+    return Caps;
+}

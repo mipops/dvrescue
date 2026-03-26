@@ -426,6 +426,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
         {
             Device_Command = 4;
         }
+        else if (!strcmp(argv_ansi[i], "--device-info") || !strcmp(argv_ansi[i], "-device-info"))
+        {
+            Device_Command = 7;
+        }
         #ifdef ENABLE_SONY9PIN
         else if (!strcmp(argv_ansi[i], "--list_controls") || !strcmp(argv_ansi[i], "-list_controls"))
         {

@@ -443,6 +443,50 @@ return_value file::Parse(const String& FileName)
                 Capture->StopCaptureSession();
                 cout << Status << '\n';
             }
+            if (Device_Command == 7)
+            {
+                auto Caps = Capture->GetCapabilities();
+                if (!Caps.Probed)
+                {
+                    cerr << "Warning: device did not respond to capability queries." << '\n';
+                }
+                cout << "Device Information" << '\n';
+                cout << "==================" << '\n';
+                if (!Caps.Vendor.empty())
+                    cout << "Vendor:    " << Caps.Vendor << '\n';
+                if (!Caps.Model.empty())
+                    cout << "Model:     " << Caps.Model << '\n';
+                cout << "Interface: " << Caps.Interface << '\n';
+                if (!Caps.SignalMode.empty())
+                    cout << "Signal:    " << Caps.SignalMode << '\n';
+                cout << '\n';
+                cout << "Transport Capabilities" << '\n';
+                cout << "----------------------" << '\n';
+                cout << "Play:           " << (Caps.CanPlay ? "yes" : "no") << '\n';
+                cout << "Pause:          " << (Caps.CanPause ? "yes" : "no") << '\n';
+                cout << "Reverse:        " << (Caps.CanReverse ? "yes" : "no") << '\n';
+                cout << "Slow forward:   " << (Caps.CanSlowForward ? "yes" : "no") << '\n';
+                cout << "Fast forward:   " << (Caps.CanFastForward ? "yes" : "no") << '\n';
+                cout << "Slow reverse:   " << (Caps.CanSlowReverse ? "yes" : "no") << '\n';
+                cout << "Fast reverse:   " << (Caps.CanFastReverse ? "yes" : "no") << '\n';
+                cout << "Wind (FF/REW):  " << (Caps.CanWind ? "yes" : "no") << '\n';
+                cout << "Shuttle:        " << (Caps.CanShuttle ? "yes" : "no") << '\n';
+                cout << "Jog:            " << (Caps.CanJog ? "yes" : "no") << '\n';
+                if (!Caps.SupportedForwardSpeeds.empty())
+                {
+                    cout << '\n' << "Forward speeds: ";
+                    for (size_t s = 0; s < Caps.SupportedForwardSpeeds.size(); s++)
+                        cout << (s ? ", " : "") << Caps.SupportedForwardSpeeds[s] << "x";
+                    cout << '\n';
+                }
+                if (!Caps.SupportedReverseSpeeds.empty())
+                {
+                    cout << "Reverse speeds: ";
+                    for (size_t s = 0; s < Caps.SupportedReverseSpeeds.size(); s++)
+                        cout << (s ? ", " : "") << Caps.SupportedReverseSpeeds[s] << "x";
+                    cout << '\n';
+                }
+            }
             if (Device_Command == 3)
             {
                 Capture->SetPlaybackMode((playback_mode)Device_Mode, Device_Speed);
@@ -631,6 +675,19 @@ void file::RewindToTimeCode(TimeCode TC)
     {
         RewindSpeed = (RewindPassNumber % 2 == 0) ? -0.5f : -1.0f;
     }
+    // Validate speed against device capabilities; fall back to -1.0x if unsupported
+    if (Capture)
+    {
+        auto Caps = Capture->GetCapabilities();
+        if (Caps.Probed && !Caps.SupportsSpeed(RewindSpeed))
+        {
+            if (Verbosity >= 3)
+                cerr << "Warning: device does not support speed " << RewindSpeed
+                     << "x, falling back to -1.0x" << endl;
+            RewindSpeed = -1.0f;
+        }
+    }
+
     if (Verbosity >= 5)
         cerr << "Rewind pass " << RewindPassNumber << " at speed " << RewindSpeed << "x" << endl;
     Capture->SetPlaybackMode(Playback_Mode_Playing, RewindSpeed);

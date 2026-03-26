@@ -103,6 +103,66 @@ public:
 };
 
 //***************************************************************************
+// Device Capabilities
+//***************************************************************************
+
+// Transport capabilities reported by the device via AV/C SPECIFIC_INQUIRY
+// or detected from the device interface
+struct device_capabilities {
+    // Device identification
+    std::string Vendor;
+    std::string Model;
+    std::string Interface;          // "DV" (FireWire), "DeckLink", "AVFoundation"
+    std::string UniqueID;
+
+    // Transport capabilities
+    bool CanPlay = false;           // Normal forward play
+    bool CanRecord = false;         // Has record capability
+    bool CanReverse = false;        // X1 reverse play (-1.0x)
+    bool CanSlowReverse = false;    // Slow reverse play (-0.5x)
+    bool CanFastReverse = false;    // Fast reverse play (-2.0x)
+    bool CanSlowForward = false;    // Slow forward play (0.5x)
+    bool CanFastForward = false;    // Fast forward play (2.0x)
+    bool CanShuttle = false;        // Variable-speed shuttle
+    bool CanJog = false;            // Frame-by-frame jog
+    bool CanPause = false;          // Play-pause (still frame)
+    bool CanWind = false;           // Non-play fast-forward/rewind
+
+    // Supported reverse play speeds (negative values)
+    std::vector<float> SupportedReverseSpeeds;
+    // Supported forward play speeds
+    std::vector<float> SupportedForwardSpeeds;
+
+    // Media info
+    bool HasTape = false;           // Tape loaded
+    bool IsProtected = false;       // Write-protected
+
+    // Format info
+    std::string SignalMode;         // "SD-DVCR/525-60", "SD-DVCR/625-50", etc.
+
+    bool Probed = false;            // True if capabilities were actually queried
+
+    // Check if a specific speed is supported
+    bool SupportsSpeed(float Speed) const
+    {
+        if (!Probed)
+            return true; // Assume supported if not probed
+        auto& Speeds = (Speed < 0) ? SupportedReverseSpeeds : SupportedForwardSpeeds;
+        for (auto S : Speeds)
+            if (S == Speed)
+                return true;
+        // Check generic capabilities
+        if (Speed == 1.0f) return CanPlay;
+        if (Speed == -1.0f) return CanReverse;
+        if (Speed > 0 && Speed < 1.0f) return CanSlowForward;
+        if (Speed < 0 && Speed > -1.0f) return CanSlowReverse;
+        if (Speed > 1.0f) return CanFastForward;
+        if (Speed < -1.0f) return CanFastReverse;
+        return false;
+    }
+};
+
+//***************************************************************************
 // Class BaseWrapper
 //***************************************************************************
 
@@ -120,6 +180,7 @@ public:
     virtual void StopCaptureSession() = 0;
     virtual void SetPlaybackMode(playback_mode Mode, float Speed) = 0;
     virtual bool WaitForSessionEnd(uint64_t Timeout) = 0;
+    virtual device_capabilities GetCapabilities() { return device_capabilities(); }
 };
 inline BaseWrapper::~BaseWrapper() {}
 

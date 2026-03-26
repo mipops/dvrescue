@@ -505,6 +505,100 @@
     }
 }
 
+// AV/C SPECIFIC_INQUIRY: ask the device if it supports a specific command+operand
+// Per AV/C General Specification 4.1, ctype=0x02 (SPECIFIC_INQUIRY)
+// Response 0x0C (IMPLEMENTED) = supported, 0x08 (NOT_IMPLEMENTED) = not supported
+- (BOOL) probeAvcCommand:(UInt8)command operand:(UInt8)operand
+{
+    if (!avcDevice || !*avcDevice)
+        return NO;
+
+    UInt8 inquiry[4] = {0x02, VCR_0, command, operand}; // ctype=SPECIFIC_INQUIRY
+    UInt8 response[4] = {0, 0, 0, 0};
+    UInt32 responseLen = 4;
+
+    @synchronized(self) {
+        IOReturn result = (*avcDevice)->AVCCommand(avcDevice, inquiry, sizeof(inquiry), response, &responseLen);
+        if (result != kIOReturnSuccess)
+            return NO;
+    }
+
+    // Response ctype 0x0C = IMPLEMENTED/STABLE
+    return (response[0] & 0x0F) == 0x0C;
+}
+
+- (NSString*) getDeviceVendor
+{
+    if (!_device)
+        return @"";
+
+    NSString* uniqueID = [_device uniqueID];
+    if ([uniqueID length] > 2 && [uniqueID hasPrefix:@"0x"])
+        uniqueID = [uniqueID substringFromIndex:2];
+
+    io_iterator_t iterator;
+    io_object_t service;
+    io_name_t location;
+    NSString* vendor = @"";
+
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceNameMatching("IOFireWireDevice"), &iterator) == KERN_SUCCESS) {
+        while ((service = IOIteratorNext(iterator)) != 0) {
+            if (IORegistryEntryGetLocationInPlane(service, kIOServicePlane, location) == KERN_SUCCESS
+                && strcmp(location, [uniqueID UTF8String]) == 0) {
+                CFMutableDictionaryRef properties = NULL;
+                if (IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS && properties) {
+                    NSDictionary* dict = (__bridge NSDictionary*)properties;
+                    id v = dict[@"FireWire Vendor Name"];
+                    if ([v isKindOfClass:[NSString class]])
+                        vendor = v;
+                    CFRelease(properties);
+                }
+                IOObjectRelease(service);
+                break;
+            }
+            IOObjectRelease(service);
+        }
+        IOObjectRelease(iterator);
+    }
+    return vendor;
+}
+
+- (NSString*) getDeviceModel
+{
+    if (!_device)
+        return @"";
+
+    NSString* uniqueID = [_device uniqueID];
+    if ([uniqueID length] > 2 && [uniqueID hasPrefix:@"0x"])
+        uniqueID = [uniqueID substringFromIndex:2];
+
+    io_iterator_t iterator;
+    io_object_t service;
+    io_name_t location;
+    NSString* model = @"";
+
+    if (IOServiceGetMatchingServices(kIOMasterPortDefault, IOServiceNameMatching("IOFireWireDevice"), &iterator) == KERN_SUCCESS) {
+        while ((service = IOIteratorNext(iterator)) != 0) {
+            if (IORegistryEntryGetLocationInPlane(service, kIOServicePlane, location) == KERN_SUCCESS
+                && strcmp(location, [uniqueID UTF8String]) == 0) {
+                CFMutableDictionaryRef properties = NULL;
+                if (IORegistryEntryCreateCFProperties(service, &properties, kCFAllocatorDefault, 0) == KERN_SUCCESS && properties) {
+                    NSDictionary* dict = (__bridge NSDictionary*)properties;
+                    id m = dict[@"FireWire Product Name"];
+                    if ([m isKindOfClass:[NSString class]])
+                        model = m;
+                    CFRelease(properties);
+                }
+                IOObjectRelease(service);
+                break;
+            }
+            IOObjectRelease(service);
+        }
+        IOObjectRelease(iterator);
+    }
+    return model;
+}
+
 - (AVCaptureDeviceTransportControlsSpeed) getSpeed
 {
     if (externalController)
