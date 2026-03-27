@@ -42,9 +42,27 @@ To vizualize the relationship between inputs and a merged output (-s, -S, and -b
  file) with the corresponding merged output frame at the corresponding offset.
 
  -z       (disable colored terminal output)
+
+ --loupe [loupe-options] file.dv
+          (inspect DV frame hex data with color-coded DIF block display.
+           Equivalent to running dvloupe. Run 'dvloupe -h' for loupe-specific
+           options: -H, -S, -X, -A, -V, -E, -O for section filtering,
+           -f FMT for output format (txt/html/json), -T for mediatrace.)
 EOF
 exit
 }
+
+# Dispatch to dvloupe if --loupe is the first argument
+if [[ "${1}" == "--loupe" ]] ; then
+    shift
+    DVLOUPE="$(dirname "${BASH_SOURCE[0]}")/dvloupe"
+    if [[ -x "${DVLOUPE}" ]] ; then
+        exec "${DVLOUPE}" "$@"
+    else
+        echo "Error: dvloupe not found at ${DVLOUPE}" >&2
+        exit 1
+    fi
+fi
 
 _report(){
     local RED="$(tput setaf 1)"    # Red      - For Warnings

@@ -5,9 +5,26 @@
  */
 
 #include "Common/AvfCtlWrapper.h"
-#import "Common/AvfCtl.h"
+
+// Import the Swift-generated Objective-C header.
+// When building with swiftc, this header is emitted via -emit-objc-header.
+// The module name defaults to "DVRescue" but can be overridden by the build system.
+#if __has_include("DVRescue-Swift.h")
+    #import "DVRescue-Swift.h"
+#elif __has_include("dvrescue-Swift.h")
+    #import "dvrescue-Swift.h"
+#else
+    // Fallback: import the legacy Objective-C header directly.
+    // This path is used when the Swift module header isn't available
+    // (e.g., non-Swift builds or mixed build systems).
+    #import "Common/AvfCtl.h"
+#endif
 
 using namespace std;
+
+// MARK: - AVFCtlBufferReceiver (Obj-C++ bridge for C++ FileWrapper)
+// This class must remain in Obj-C++ because it holds a raw C++ pointer
+// (FileWrapper*) and calls C++ methods from an AVFoundation callback.
 
 @interface AVFCtlBufferReceiver : NSObject <ReceiverTimer>
 @property (retain,nonatomic) NSMutableData *output_data;
@@ -44,7 +61,7 @@ using namespace std;
         _output_wrapper = wrapper;
         _output_data = [NSMutableData dataWithLength:1000];
     }
-    
+
     return self;
 }
 
@@ -55,7 +72,7 @@ using namespace std;
     _last_input = [NSDate date];
     FileWrapper *wrapper = _output_wrapper;
     if (wrapper != nil) {
-        CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sampleBuffer); // raw, DV data only
+        CMBlockBufferRef block_buffer = CMSampleBufferGetDataBuffer(sampleBuffer);
         if (block_buffer == nil) {
             return;
         }
@@ -84,6 +101,8 @@ using namespace std;
     NSLog(@"Frame dropped.");
 }
 @end
+
+// MARK: - AVFCtlExternalController (bridges C++ ControllerBaseWrapper to Obj-C)
 
 @interface AVFCtlExternalController : NSObject
 @property (assign,nonatomic) ControllerBaseWrapper *controller;
@@ -136,6 +155,8 @@ using namespace std;
     return (AVCaptureDeviceTransportControlsSpeed)0.0f;
 }
 @end
+
+// MARK: - C++ AVFCtlWrapper implementation
 
 const string AVFCtlWrapper::Interface = "DV";
 
@@ -248,66 +269,48 @@ device_capabilities AVFCtlWrapper::GetCapabilities()
     if (model) Caps.Model = string([model UTF8String]);
 
     // Use AV/C SPECIFIC_INQUIRY to probe transport capabilities
-    // VCR_CMD_PLAY = 0xC3, VCR_CMD_WIND = 0xC4
-    // Operands match those defined in AvfCtl.m
-
-    // Forward play
-    Caps.CanPlay = [(id)Ctl probeAvcCommand:0xC3 operand:0x38]; // PLAY_FORWARD
+    Caps.CanPlay = [(id)Ctl probeAvcCommand:0xC3 operand:0x38];
     if (Caps.CanPlay) Caps.SupportedForwardSpeeds.push_back(1.0f);
-    Caps.CanPause = [(id)Ctl probeAvcCommand:0xC3 operand:0x7D]; // PLAY_FORWARD_PAUSE
+    Caps.CanPause = [(id)Ctl probeAvcCommand:0xC3 operand:0x7D];
 
-    // Slow forward (PLAY_FORWARD - SPD_X6 = 0x38 - 0x06 = 0x32)
     if ([(id)Ctl probeAvcCommand:0xC3 operand:0x32])
     {
         Caps.CanSlowForward = true;
         Caps.SupportedForwardSpeeds.push_back(0.5f);
     }
-    // Fast forward play (PLAY_FORWARD + SPD_X6 = 0x38 + 0x06 = 0x3E)
     if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3E])
     {
         Caps.CanFastForward = true;
         Caps.SupportedForwardSpeeds.push_back(2.0f);
     }
 
-    // Reverse play
-    Caps.CanReverse = [(id)Ctl probeAvcCommand:0xC3 operand:0x48]; // PLAY_REVERSE
+    Caps.CanReverse = [(id)Ctl probeAvcCommand:0xC3 operand:0x48];
     if (Caps.CanReverse) Caps.SupportedReverseSpeeds.push_back(-1.0f);
 
-    // Slow reverse (PLAY_REVERSE + SPD_X6 = 0x48 + 0x06 = 0x4E)
     if ([(id)Ctl probeAvcCommand:0xC3 operand:0x4E])
     {
         Caps.CanSlowReverse = true;
         Caps.SupportedReverseSpeeds.push_back(-0.5f);
     }
-    // Fast reverse (PLAY_REVERSE - SPD_X6 = 0x48 - 0x06 = 0x42)
     if ([(id)Ctl probeAvcCommand:0xC3 operand:0x42])
     {
         Caps.CanFastReverse = true;
         Caps.SupportedReverseSpeeds.push_back(-2.0f);
     }
 
-    // Wind capabilities
-    Caps.CanWind = [(id)Ctl probeAvcCommand:0xC4 operand:0x65]; // WIND_REWIND
+    Caps.CanWind = [(id)Ctl probeAvcCommand:0xC4 operand:0x65];
 
-    // Shuttle (highest speeds)
-    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3F] && // PLAY_FASTEST_FORWARD
-        [(id)Ctl probeAvcCommand:0xC3 operand:0x41])    // PLAY_FASTEST_REVERSE
+    if ([(id)Ctl probeAvcCommand:0xC3 operand:0x3F] &&
+        [(id)Ctl probeAvcCommand:0xC3 operand:0x41])
         Caps.CanShuttle = true;
 
-    // Reverse frame output: PLAY reverse (0xC3) = outputs DV frames in reverse;
-    // WIND rewind (0xC4) = mechanical only, no frames. If PLAY reverse is
-    // supported, the device outputs frames during reverse per AV/C VCR spec.
     Caps.CanOutputReverse = Caps.CanReverse;
-
-    // Probe RECORD capability (GENERAL_INQUIRY on RECORD opcode 0xC2)
     Caps.CanRecord = [(id)Ctl probeAvcGeneral:0xC2];
 
-    // Query OUTPUT SIGNAL MODE (opcode 0x78) with STATUS
     Caps.OutputSignalMode = [(id)Ctl queryAvcStatus:0x78 operand:0xFF];
     if (Caps.OutputSignalMode != 0xFF)
         Caps.SignalMode = device_capabilities::SignalModeName(Caps.OutputSignalMode);
 
-    // Query MEDIUM INFO (opcode 0xDA) for cassette type
     Caps.CassetteType = [(id)Ctl queryAvcStatus:0xDA operand:0xFF];
     if (Caps.CassetteType != 0xFF)
         Caps.HasTape = (Caps.CassetteType != 0x60);

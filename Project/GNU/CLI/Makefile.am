@@ -40,14 +40,26 @@ bin_SCRIPTS = \
     ../../../tools/dvsampler
 
 if BUILD_AVFCTL
+    # Swift source compiled to object file; Obj-C++ wrapper bridges Swift to C++
+    SWIFT_MODULE_NAME = DVRescue
+    SWIFT_HEADER = DVRescue-Swift.h
+    SWIFT_SRC = ../../../Source/Common/AvfCtl.swift
+    SWIFT_OBJ = AvfCtl_swift.o
+
+    $(SWIFT_OBJ) $(SWIFT_HEADER): $(SWIFT_SRC)
+	swiftc -c -parse-as-library -emit-objc-header \
+		-emit-objc-header-path $(SWIFT_HEADER) \
+		-module-name $(SWIFT_MODULE_NAME) -o $(SWIFT_OBJ) $(SWIFT_SRC)
+
     dvrescue_SOURCES += \
-        ../../../Source/Common/AvfCtl.m \
         ../../../Source/Common/AvfCtlWrapper.mm
+    dvrescue_LDADD = $(SWIFT_OBJ)
     dvrescue_LDFLAGS = -framework IOKit -framework Foundation -framework AVFoundation -framework CoreMedia
+    BUILT_SOURCES = $(SWIFT_HEADER)
 
     AVFCTL = ../../../tools/avfctl/avfctl
     $(AVFCTL):
-	$(MAKE) -C ../../../tools/avfctl OBJCFLAGS="$(OBJCFLAGS)" OBJCXXFLAGS="$(OBJCXXFLAGS)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)"
+	$(MAKE) -C ../../../tools/avfctl LDFLAGS="$(LDFLAGS)"
     all: $(AVFCTL)
 
     bin_SCRIPTS += ../../../tools/avfctl/avfctl
@@ -83,7 +95,7 @@ endif
 
 AM_TESTS_FD_REDIRECT = 9>&2
 
-TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/captions.sh test/framediscontinuity.sh
+TESTS = test/simple.sh test/xml.sh test/webvtt.sh test/captions.sh test/framediscontinuity.sh test/tools.sh
 
 TESTING_DIR = test/TestingFiles
 

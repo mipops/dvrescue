@@ -80,6 +80,8 @@ SOURCES += \
     $$PWD/plotdata.cpp \
     $$PWD/sortfiltertablemodel.cpp
 
+# machelpers: Swift implementation available at machelpers.swift
+# The .mm file provides the C++ bridge and can import Swift-generated header
 macx:SOURCES += $$PWD/machelpers.mm
 
 win32:QMAKE_CXXFLAGS += -utf-8 # needed by spdlog and set only for CFLAGS by qmake
