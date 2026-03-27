@@ -78,7 +78,14 @@ TimeCode::TimeCode (int64_t Frames_, uint8_t FramesPerSecond_, bool DropFrame_, 
 //---------------------------------------------------------------------------
 void TimeCode::PlusOne()
 {
-    //TODO: negative values
+    if (IsNegative)
+    {
+        // Negative TC: +1 moves towards zero, so decrement the absolute value
+        int64_t F = ToFrames(); // Returns negative value
+        F++;
+        FromFrames(F);
+        return;
+    }
 
     if (FramesPerSecond==0)
         return;
@@ -122,7 +129,22 @@ void TimeCode::PlusOne()
 //---------------------------------------------------------------------------
 void TimeCode::MinusOne()
 {
-    //TODO: negative values
+    if (IsNegative)
+    {
+        // Negative TC: -1 moves away from zero, so increment the absolute value
+        int64_t F = ToFrames(); // Returns negative value
+        F--;
+        FromFrames(F);
+        return;
+    }
+
+    // Going below zero: become negative
+    if (Hours == 0 && Minutes == 0 && Seconds == 0 && Frames == 0)
+    {
+        IsNegative = true;
+        Frames = 1; // Absolute value is 1 frame
+        return;
+    }
 
     if (FramesPerSecond==0)
         return;
@@ -166,7 +188,14 @@ TimeCode& TimeCode::operator +=(int64_t Value)
 //---------------------------------------------------------------------------
 bool TimeCode::FromString(const char* Value)
 {
-    //TODO: negative values
+    // Handle negative timecodes (leading '-')
+    if (Value[0] == '-')
+    {
+        IsNegative = true;
+        Value++; // Skip the '-' and parse the rest normally
+    }
+    else
+        IsNegative = false;
 
     if (Value[ 0] < '0' || Value[ 0] > '9'
      || Value[ 1] < '0' || Value[ 1] > '9'
@@ -181,7 +210,7 @@ bool TimeCode::FromString(const char* Value)
      || Value[10] < '0' || Value[10] > '9'
      || Value[11])
         return true;
-    
+
     Hours       = (Value[ 0]-'0') * 10 + Value[ 1]-'0';
     Minutes     = (Value[ 3]-'0') * 10 + Value[ 4]-'0';
     Seconds     = (Value[ 6]-'0') * 10 + Value[ 7]-'0';
