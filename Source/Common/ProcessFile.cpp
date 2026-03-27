@@ -558,6 +558,19 @@ return_value file::Parse(const String& FileName)
         }
         MI.Open_Buffer_Init();
         Capture->TerminateFlag = &TerminateRequested; // Enable responsive Ctrl-C (#783)
+        // VTR wake-up: briefly play to establish communication handshake (#968).
+        // Some decks (e.g. certain Sony models) need an initial play command to
+        // "wake up" the FireWire transport before capture data flows reliably.
+        {
+            auto Caps = Capture->GetCapabilities();
+            if (Caps.Probed)
+            {
+                Capture->SetPlaybackMode(Playback_Mode_Playing, 1.0);
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                Capture->SetPlaybackMode(Playback_Mode_NotPlaying, 0.0);
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            }
+        }
         Capture->CreateCaptureSession(Wrapper);
         for (;;)
         {

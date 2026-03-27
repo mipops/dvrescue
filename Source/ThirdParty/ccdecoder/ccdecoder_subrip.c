@@ -156,7 +156,7 @@ wchar_t* ccdecoder_subrip_parse(ccdecoder_subrip_handle* handle, ccdecoder_capti
         size_t Output_Y, Output_X;
 
         /* Init of returned string */
-        ToReturn_size=100+priv->MaxLine*(priv->MaxColumn+1); /* 100 for extra data, +1 for \n */
+        ToReturn_size=150+priv->MaxLine*(priv->MaxColumn+1); /* 150 for extra data incl. font tags, +1 for \n */
         ToReturn=ToReturn_Current=(wchar_t*)malloc(ToReturn_size*sizeof(wchar_t));
         ToReturn_Current[0]=L'\0';
 
@@ -164,6 +164,8 @@ wchar_t* ccdecoder_subrip_parse(ccdecoder_subrip_handle* handle, ccdecoder_capti
         to_timestamp(pts, pts_Out);
         swprintf(ToReturn_Current, ToReturn_size, L"%i\n", (int)priv->Number); ToReturn_Current+=wcslen(ToReturn_Current);
         swprintf(ToReturn_Current, ToReturn_size-(ToReturn_Current-ToReturn), L"%ls --> %ls\n", pts_In, pts_Out); ToReturn_Current+=wcslen(ToReturn_Current);
+        /* Wrap in monospace font tag for e608 styling (#845) */
+        swprintf(ToReturn_Current, ToReturn_size-(ToReturn_Current-ToReturn), L"<font face=\"Monospace\">"); ToReturn_Current+=wcslen(ToReturn_Current);
         for (Output_Y=0; priv->Characters[Output_Y][0].value; Output_Y++)
         {
             uint8_t attributes=ccdecoder_noattribute;
@@ -230,6 +232,8 @@ wchar_t* ccdecoder_subrip_parse(ccdecoder_subrip_handle* handle, ccdecoder_capti
             *ToReturn_Current=L'\n'; ToReturn_Current++;
         }
 
+        /* Close monospace font tag (#845) */
+        swprintf(ToReturn_Current, ToReturn_size-(ToReturn_Current-ToReturn), L"</font>"); ToReturn_Current+=wcslen(ToReturn_Current);
         /* Additional carriage return and \0 at the end */
         *ToReturn_Current=L'\n'; ToReturn_Current++;
         *ToReturn_Current=L'\0'; ToReturn_Current++;

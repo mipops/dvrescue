@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Force C locale for numeric formatting to avoid comma-as-decimal issues (#943)
+export LC_NUMERIC=C
+
 DVPACKAGER_VERSION="24.07.1"
 
 # dependencies: dvrescue, ffmpeg, mediainfo, xmlstarlet
