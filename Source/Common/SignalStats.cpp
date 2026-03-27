@@ -53,9 +53,18 @@ void ComputeSatUYVY422(const decklink_frame* Frame, size_t* Sats)
 }
 
 //---------------------------------------------------------------------------
+// V210 byte-swap helper for big-endian platforms
+static inline uint32_t v210_le32(uint32_t v)
+{
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+    return ((v >> 24) & 0xFF) | ((v >> 8) & 0xFF00) | ((v << 8) & 0xFF0000) | ((v << 24) & 0xFF000000);
+#else
+    return v; // Little-endian: V210 is already in native order
+#endif
+}
+
 void ComputeSatV210(const decklink_frame* Frame, size_t* Sats)
 {
-    //TODO: Indianness
     size_t LineSize = (((Frame->Width + 47) / 48) * 128) / sizeof(uint32_t);
     if (Frame->Video_Buffer_Size < Frame->Height * (LineSize / 6 * 4) * 4)
         return;
@@ -68,16 +77,21 @@ void ComputeSatV210(const decklink_frame* Frame, size_t* Sats)
             size_t Buffer_Offset = Height * LineSize + (Width / 6 * 4);
             int32_t U, V;
 
-            U = (((Buffer[Buffer_Offset]          ) & 0x3FF) - BITDEPTH_10_OFFSET);
-            V = (((Buffer[Buffer_Offset]     >> 20) & 0x3FF) - BITDEPTH_10_OFFSET);
+            uint32_t w0 = v210_le32(Buffer[Buffer_Offset]);
+            uint32_t w1 = v210_le32(Buffer[Buffer_Offset + 1]);
+            uint32_t w2 = v210_le32(Buffer[Buffer_Offset + 2]);
+            uint32_t w3 = v210_le32(Buffer[Buffer_Offset + 3]);
+
+            U = ((w0       ) & 0x3FF) - BITDEPTH_10_OFFSET;
+            V = ((w0  >> 20) & 0x3FF) - BITDEPTH_10_OFFSET;
             Sats[(uint16_t)sqrt(U * U + V * V)]++;
 
-            U = (((Buffer[Buffer_Offset + 1] >> 10) & 0x3FF) - BITDEPTH_10_OFFSET);
-            V = (((Buffer[Buffer_Offset + 2]      ) & 0x3FF) - BITDEPTH_10_OFFSET);
+            U = ((w1  >> 10) & 0x3FF) - BITDEPTH_10_OFFSET;
+            V = ((w2       ) & 0x3FF) - BITDEPTH_10_OFFSET;
             Sats[(uint16_t)sqrt(U * U + V * V)]++;
 
-            U = (((Buffer[Buffer_Offset + 2] >> 20) & 0x3FF) - BITDEPTH_10_OFFSET);
-            V = (((Buffer[Buffer_Offset + 3] >> 10) & 0x3FF) - BITDEPTH_10_OFFSET);
+            U = ((w2  >> 20) & 0x3FF) - BITDEPTH_10_OFFSET;
+            V = ((w3  >> 10) & 0x3FF) - BITDEPTH_10_OFFSET;
             Sats[(uint16_t)sqrt(U * U + V * V)]++;
         }
     }

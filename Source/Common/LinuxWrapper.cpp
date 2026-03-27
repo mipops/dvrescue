@@ -143,7 +143,7 @@ LinuxWrapper::LinuxWrapper(size_t DeviceIndex)
     Node = Devices[DeviceIndex].Node;
     UUID = Devices[DeviceIndex].UUID;
 
-    //TODO: make code handle bus-reset
+    // Bus-reset is handled via Raw1394ControlBusResetHandler
     (CtlHandle = raw1394_new_handle());
     if (!CtlHandle)
         throw error("Unable to create raw1394 handle.");
@@ -192,7 +192,7 @@ LinuxWrapper::LinuxWrapper(string DeviceID)
     Node = Devices[DeviceIndex].Node;
     UUID = Devices[DeviceIndex].UUID;
 
-    //TODO: make code handle bus-reset
+    // Bus-reset is handled via Raw1394ControlBusResetHandler
     (CtlHandle = raw1394_new_handle());
     if (!CtlHandle)
         throw error("Unable to create raw1394 handle.");
@@ -601,16 +601,20 @@ bool LinuxWrapper::WaitForSessionEnd(uint64_t Timeout)
 }
 
 //---------------------------------------------------------------------------
-int LinuxWrapper::Raw1394CaptureBusResetHandler(raw1394handle_t, unsigned int)
+int LinuxWrapper::Raw1394CaptureBusResetHandler(raw1394handle_t Handle, unsigned int Generation)
 {
-    cerr << "Error: Capture bus was reset."  << endl;
+    cerr << "Warning: FireWire bus reset detected during capture. "
+         << "Updating generation to " << Generation << "." << endl;
+    raw1394_update_generation(Handle, Generation);
     return 0;
 }
 
 //---------------------------------------------------------------------------
 int LinuxWrapper::Raw1394ControlBusResetHandler(raw1394handle_t Handle, unsigned int Generation)
 {
-    cerr << "Error: Capture bus was reset."  << endl;
+    cerr << "Warning: FireWire bus reset detected on control channel. "
+         << "Updating generation to " << Generation << "." << endl;
+    raw1394_update_generation(Handle, Generation);
     return 0;
 }
 
