@@ -416,6 +416,43 @@ bool dv_merge_private::Init()
 #endif
             if (Verbosity == 10)
                 cerr << "Debug: opening (in) \"" << Inputs_FileName << "\"... Done." << endl;
+
+            // Detect container-wrapped files (MOV, AVI, MKV) — merge requires raw DV (#677)
+            if (Input->F)
+            {
+                uint8_t Header[12] = {};
+                auto HeaderRead = fread(Header, 1, 12, Input->F);
+                fseek(Input->F, 0, SEEK_SET);
+                if (HeaderRead >= 12)
+                {
+                    bool IsContainer = false;
+                    const char* ContainerName = nullptr;
+                    if (!memcmp(Header + 4, "ftyp", 4) || !memcmp(Header + 4, "moov", 4)
+                        || !memcmp(Header + 4, "free", 4) || !memcmp(Header + 4, "wide", 4)
+                        || !memcmp(Header + 4, "mdat", 4))
+                    {
+                        IsContainer = true;
+                        ContainerName = "MOV/MP4";
+                    }
+                    else if (!memcmp(Header, "RIFF", 4))
+                    {
+                        IsContainer = true;
+                        ContainerName = "AVI";
+                    }
+                    else if (!memcmp(Header, "\x1A\x45\xDF\xA3", 4))
+                    {
+                        IsContainer = true;
+                        ContainerName = "MKV";
+                    }
+                    if (IsContainer)
+                    {
+                        cerr << "Warning: \"" << Inputs_FileName << "\" appears to be a " << ContainerName
+                             << " container. Merge requires raw DV input." << endl
+                             << "  Workaround: extract raw DV first with:" << endl
+                             << "    ffmpeg -i \"" << Inputs_FileName << "\" -f rawvideo -c:v copy output.dv" << endl;
+                    }
+                }
+            }
         }
         Input->Segments.resize(1);
         Inputs.push_back(Input);
