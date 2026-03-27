@@ -206,6 +206,7 @@ namespace
         size_t              Count_Frames_Misaligned = 0;
         bool                DoNotUseFile = false;
         bool                FirstTimeCodeFound = false;
+        size_t              BlockStatus_Count_Established = 0;
         vector<per_segment> Segments;
         dv_data*            DV_Data = nullptr;
 
@@ -507,6 +508,15 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     auto BlockStatus_Count = FrameData->BlockStatus_Count;
     per_frame CurrentFrame;
 
+    // Establish the expected block count for this input on the first valid frame
+    if (Input->BlockStatus_Count_Established == 0 && BlockStatus_Count > 0)
+        Input->BlockStatus_Count_Established = BlockStatus_Count;
+
+    // Use the established block count for format decisions (NTSC vs PAL)
+    // to avoid misdiagnosis from corrupted frames with wrong block counts
+    auto BlockStatus_Count_ForFormat = Input->BlockStatus_Count_Established > 0
+        ? Input->BlockStatus_Count_Established : BlockStatus_Count;
+
     // Absolute track number
     abst_bf AbstBf_Temp(FrameData->AbstBf);
     if (AbstBf_Temp.HasAbsoluteTrackNumberValue())
@@ -525,7 +535,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
     if (TC_Temp.HasValue())
-        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), BlockStatus_Count <= 1500 ? 30 : 25, TC_Temp.DropFrame());
+        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), BlockStatus_Count_ForFormat <= 1500 ? 30 : 25, TC_Temp.DropFrame());
     if (!Frames.empty() && Frames.back().TC.HasValue())
     {
         TimeCode TC_Previous(Frames.back().TC);

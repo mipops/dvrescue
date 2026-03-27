@@ -253,6 +253,20 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
             Text += Merge_InputFileNames[0];
             Text += '\"';
         }
+        auto File_Modified = File->MI.Get(Stream_General, 0, __T("File_Modified_Date"));
+        if (!File_Modified.empty())
+        {
+            Text += " fileModifiedDate=\"";
+            Text += Ztring(File_Modified).To_UTF8();
+            Text += '\"';
+        }
+        auto File_Created = File->MI.Get(Stream_General, 0, __T("File_Created_Date"));
+        if (!File_Created.empty())
+        {
+            Text += " fileCreatedDate=\"";
+            Text += Ztring(File_Created).To_UTF8();
+            Text += '\"';
+        }
         auto Format_G = File->MI.Get(Stream_General, 0, __T("Format"));
         auto Format_V = File->MI.Get(Stream_Video, 0, __T("Format"));
         format Format;

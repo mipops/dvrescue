@@ -42,6 +42,20 @@ elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
   DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
 elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
   DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+elif [[ -f "/usr/share/fonts/liberation/LiberationSans-Regular.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/liberation/LiberationSans-Regular.ttf"
+elif [[ -f "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/dejavu/DejaVuSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/dejavu/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/TTF/DejaVuSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/TTF/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/truetype/freefont/FreeSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+elif [[ -f "/usr/share/fonts/gnu-free/FreeSans.ttf" ]] ; then
+  DEFAULTFONT="/usr/share/fonts/gnu-free/FreeSans.ttf"
 else
   _report -wt "$(basename "${0}") can't find a preferred font to use, please report this error to https://github.com/mipops/dvrescue/issues"
 fi

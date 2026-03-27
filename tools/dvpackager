@@ -157,7 +157,7 @@ if [ "${1}" = "--version" ] || [ "${1}" = "-version" ] ; then
 fi
 
 _maketemp(){
-    mktemp -q -t "$(basename "${0}").XXXXXX"
+    mktemp "${TMPDIR:-/tmp}/$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
         exit 1

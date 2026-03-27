@@ -82,11 +82,21 @@ _report(){
 }
 
 _maketemp(){
-    mktemp -q -t "$(basename "${0}").XXXXXX"
+    mktemp "${TMPDIR:-/tmp}/$(basename "${0}").XXXXXX"
     if [ "${?}" -ne 0 ]; then
         echo "${0}: Can't create temp file, exiting..."
         exit 1
     fi
+}
+
+_ff_escape(){
+    # Escape special characters for ffmpeg drawtext filter option values.
+    # Colons, backslashes, and single quotes must be escaped.
+    local s="${1}"
+    s="${s//\\/\\\\}"
+    s="${s//:/\\:}"
+    s="${s//\'/\\'}"
+    echo "${s}"
 }
 
 OPTIND=1
@@ -133,6 +143,13 @@ if [[ ! -f "${FFMPEG_PATH}" ]] ; then
     _report -d "Please install a ffmpeg CLI  or provide a path to ffmpeg with the -F argument."
 else
     FFPLAY_PATH="$(dirname "${FFMPEG_PATH}")/ffplay"
+    if [[ ! -f "${FFPLAY_PATH}" ]] ; then
+        FFPLAY_PATH="$(which ffplay 2>/dev/null)"
+    fi
+    if [[ -z "${FFPLAY_PATH}" ]] || [[ ! -f "${FFPLAY_PATH}" ]] ; then
+        _report -w "The ffplay command-line tool is not found, but needed for visual playback."
+        _report -w "Please install ffplay (usually part of the ffmpeg package)."
+    fi
     # the minimum recommanded version of libavformat, otherwise will use a hack to visualize errors
     LAVF_MAJ_REQ=59
     LAVF_MIN_REQ=19
@@ -444,9 +461,24 @@ elif [[ -f "/Library/Fonts/LetterGothicStd.otf" ]] ; then
     DEFAULTFONT="/Library/Fonts/LetterGothicStd.otf"
 elif [[ -f "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf" ]] ; then
     DEFAULTFONT="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
+elif [[ -f "/usr/share/fonts/liberation/LiberationSans-Regular.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/liberation/LiberationSans-Regular.ttf"
+elif [[ -f "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/dejavu/DejaVuSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/dejavu/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/TTF/DejaVuSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/TTF/DejaVuSans.ttf"
+elif [[ -f "/usr/share/fonts/truetype/freefont/FreeSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+elif [[ -f "/usr/share/fonts/gnu-free/FreeSans.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/gnu-free/FreeSans.ttf"
 else
     _report -w "$(basename "${0}") can't find a preferred font to use :("
 fi
+FONTFILE="$(_ff_escape "${DEFAULTFONT}")"
 
 DV_YELLOW="5206ff1216ff9016ff"
 DV_RED="d106ff7016ffda16ff"
@@ -594,13 +626,13 @@ while [[ "${@}" != "" ]] ; do
                 MAP_COUNTER=$((MAP_COUNTER+1))
                 MAP_SET+=(-map "${MAP_COUNTER}:v")
                 MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=${COLOR[$INPUT_COUNTER]}")
-                FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
+                FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${FONTFILE}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER}',drawtext=fontfile=${FONTFILE}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}") @ ${INPUTFILE_OFFSET[${INPUT_COUNTER}]}'[v${INPUT_COUNTER}];"
             else
                 # if missing frame then just use the first one and blank it out with a missing frame warning
                  v="||8" ; 
                 INPUT_SET+=(-skip_initial_bytes "${INPUTFILE_OFFSET[${FIRST_NON_EMPTY_OFFSET}]}" -i "${INPUTFILE_PATH[${FIRST_NON_EMPTY_OFFSET}]}")
                 MAP_SET+=(-map "${MAP_COUNTER}:v")
-                FILTER_SET+="[0:v:${MAP_COUNTER}]lutyuv=y=0,drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER} - MISSING FRAME',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}")'[v${INPUT_COUNTER}];"
+                FILTER_SET+="[0:v:${MAP_COUNTER}]lutyuv=y=0,drawtext=fontfile=${FONTFILE}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merge Input \#${INPUT_COUNTER} - MISSING FRAME',drawtext=fontfile=${FONTFILE}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${INPUTFILE_PATH[${INPUT_COUNTER}]}")'[v${INPUT_COUNTER}];"
             fi
             FILTER_OUTS+="[v${INPUT_COUNTER}]"
             MAP_COUNTER=$((MAP_COUNTER+1))
@@ -614,7 +646,7 @@ while [[ "${@}" != "" ]] ; do
         MAP_COUNTER=$((MAP_COUNTER+1))
         MAP_SET+=(-map "${MAP_COUNTER}:v")
         MAP_SET+=("-bsf:v:${MAP_COUNTER}" "dv_error_marker=color=white")
-        FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${DEFAULTFONT}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merged Output',drawtext=fontfile=${DEFAULTFONT}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${DVFILE}") @ ${OFFSET}',drawbox=color=white[v${INPUT_COUNTER}];"
+        FILTER_SET+="[0:v:${MAP_COUNTER}]blend=all_expr='if(eq(mod(X,4),mod(Y,4)),B,A)',drawtext=fontfile=${FONTFILE}:fontsize=24:x=8:y=8:fontcolor=white:shadowx=1:shadowy=2:text='Merged Output',drawtext=fontfile=${FONTFILE}:fontsize=18:x=8:y=34:fontcolor=white:shadowx=1:shadowy=2:text='$(basename "${DVFILE}") @ ${OFFSET}',drawbox=color=white[v${INPUT_COUNTER}];"
         FILTER_OUTS+="[v${INPUT_COUNTER}]"
         INPUT_COUNTER=$((INPUT_COUNTER+1))
         MAP_COUNTER=$((MAP_COUNTER+1))
@@ -697,13 +729,13 @@ while [[ "${@}" != "" ]] ; do
             fi
             if [[ "${BITSTREAM_FILTER_METHOD}" == "ffmpeg" ]] ; then
                 "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -bsf dv_error_marker -c:v copy -f rawvideo - | \
-                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
+                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${FONTFILE}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
             else
                 "${FFMPEG_PATH}" -nostdin -ss "${PTS}" -i "${DVFILE}" -vframes:v 1 -c:v copy -f rawvideo - | \
                 xxd -p -c 80 | \
                 perl -pe "s|${FIND}|${FILL}|g" | \
                 xxd -r -p | \
-                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${DEFAULTFONT}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
+                "${FFMPEG_PATH}" -nostdin -y -i - -vf "pad=w=iw:h=ih+24:x=0:y=24:color=gray,drawbox=t=fill:w=iw*(${N}/${TOTAL_FRAMES}):h=24:c=silver:x=0:y=0,drawtext=fontfile=${FONTFILE}:y=4:x=4:text='PTS=${PTS_E} TC=${TC_E} Frame=${N}'" "${DVPLAY_OUTPUT}"
             fi
             ((COUNTER=COUNTER+1))
         done

@@ -111,7 +111,7 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
             {
                 TimeCode Previous = FramesInfo.frames.back().tc;
                 TimeCode Current = Frame->TC;
-                Previous.FramesPerSecond = (FramesInfo.video_rate_num / FramesInfo.video_rate_num) + (FramesInfo.video_rate_num % FramesInfo.video_rate_num);
+                Previous.FramesPerSecond = (FramesInfo.video_rate_num / FramesInfo.video_rate_den) + (FramesInfo.video_rate_num % FramesInfo.video_rate_den ? 1 : 0);
                 Previous.FramesPerSecond_Is1001 = FramesInfo.video_rate_den == 1001;
                 Current.FramesPerSecond = Previous.FramesPerSecond;
                 Current.FramesPerSecond_Is1001 = Previous.FramesPerSecond_Is1001;
@@ -190,7 +190,8 @@ void FileWrapper::Parse_Buffer(const uint8_t *Buffer, size_t Buffer_Size)
 
     if (File)
     {
-        File->Speed_After = File->Capture->GetSpeed();
+        if (File->Capture)
+            File->Speed_After = File->Capture->GetSpeed();
         File->Parse_Buffer(Buffer, Buffer_Size);
     }
 }
