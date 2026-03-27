@@ -171,6 +171,11 @@ namespace
             return Data.empty();
         }
 
+        size_t size()
+        {
+            return Data.size();
+        }
+
         void clear()
         {
             while (!empty())
@@ -2147,5 +2152,12 @@ void dv_merge_private::AddFrameData(size_t InputPos, const uint8_t* Buffer, size
     auto& Input = Inputs[InputPos + Input_Rewind_Pos];
     if (!Input->DV_Data)
         Input->DV_Data = new dv_data;
+
+    // OOM prevention (#987): limit buffered frame data to ~2GB per input
+    // (approximately 14000 DV frames at 144000 bytes each). If the merge
+    // consumer falls behind the producer, drop oldest frames rather than OOM.
+    static const size_t MaxBufferedFrames = 14000;
+    while (Input->DV_Data->size() > MaxBufferedFrames)
+        Input->DV_Data->pop_front();
     Input->DV_Data->push_back(Buffer, Buffer_Size);
 }

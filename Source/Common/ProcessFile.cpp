@@ -1107,6 +1107,24 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
     }
     PerFrame.push_back(ToPush);
 
+    // OOM prevention (#987): periodically free deep-copied sub-arrays from older
+    // frames. The base struct is kept for XML output iteration, but the heap-
+    // allocated Errors/Video_STA_Errors/Audio_Data_Errors/MoreData strings can
+    // consume GBs on long captures. We trim frames older than 1000 back.
+    if (PerFrame.size() > 1100)
+    {
+        size_t TrimEnd = PerFrame.size() - 1000;
+        for (size_t i = TrimEnd > 100 ? TrimEnd - 100 : 0; i < TrimEnd; i++)
+        {
+            auto& F = PerFrame[i];
+            if (!F) continue;
+            if (F->Errors) { delete[] F->Errors; F->Errors = nullptr; }
+            if (F->Video_STA_Errors) { delete[] F->Video_STA_Errors; F->Video_STA_Errors = nullptr; F->Video_STA_Errors_Count = 0; }
+            if (F->Audio_Data_Errors) { delete[] F->Audio_Data_Errors; F->Audio_Data_Errors = nullptr; F->Audio_Data_Errors_Count = 0; }
+            if (F->MoreData) { delete[] (uint8_t*)F->MoreData; F->MoreData = nullptr; }
+        }
+    }
+
     coherency_flags Coherency(FrameData);
     if (!no_sourceorcontrol_aud_set_in_first_frame && !(Coherency.no_pack_aud() || !Coherency.no_sourceorcontrol_aud()))
     {
