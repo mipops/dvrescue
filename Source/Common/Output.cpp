@@ -214,6 +214,8 @@ bool computed_errors::Compute(const MediaInfo_Event_DvDif_Analysis_Frame_1& Fram
         if (Frame.Video_STA_Errors)
         {
             auto DseqSta = (Dseq << Sta_Bits) | Sta;
+            if ((size_t)DseqSta >= Frame.Video_STA_Errors_Count)
+                continue; // Bounds guard (#993)
             const auto n = Frame.Video_STA_Errors[DseqSta];
             if (n)
             {

@@ -127,7 +127,7 @@ return_value Core::Process()
     if (Device_Command)
         return ToReturn;
 
-    if (!Merge_Out.empty() && !TsMergeUsed)
+    if (!Merge_Out.empty() && !TsMergeUsed && !PerFile.empty())
     {
         PerFile[0]->Merge_Finish();
         if (!XmlFile)
