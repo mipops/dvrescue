@@ -496,6 +496,19 @@ elif [[ -f "/usr/share/fonts/truetype/freefont/FreeSans.ttf" ]] ; then
     DEFAULTFONT="/usr/share/fonts/truetype/freefont/FreeSans.ttf"
 elif [[ -f "/usr/share/fonts/gnu-free/FreeSans.ttf" ]] ; then
     DEFAULTFONT="/usr/share/fonts/gnu-free/FreeSans.ttf"
+elif [[ -f "/usr/share/fonts/noto/NotoSans-Regular.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/noto/NotoSans-Regular.ttf"
+elif [[ -f "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf" ]] ; then
+    DEFAULTFONT="/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf"
+elif command -v fc-match > /dev/null 2>&1 ; then
+    DEFAULTFONT="$(fc-match -f '%{file}' monospace 2>/dev/null)"
+    if [[ ! -f "${DEFAULTFONT}" ]] ; then
+        DEFAULTFONT="$(fc-match -f '%{file}' 2>/dev/null)"
+    fi
+    if [[ ! -f "${DEFAULTFONT}" ]] ; then
+        unset DEFAULTFONT
+        _report -w "$(basename "${0}") can't find a preferred font to use :("
+    fi
 else
     _report -w "$(basename "${0}") can't find a preferred font to use :("
 fi
