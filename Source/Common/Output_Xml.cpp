@@ -828,6 +828,20 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                     Text += chroma_subsampling[Change->VideoChromaSubsampling];
                     Text += '\"';
                 }
+                if (Change->VideoScanType)
+                {
+                    Text += " scan_type=\"";
+                    switch (Change->VideoScanType)
+                    {
+                        case 1: Text += "T"; break;    // Top field first
+                        case 2: Text += "TT"; break;   // Top field only
+                        case 3: Text += "B"; break;     // Bottom field first
+                        case 4: Text += "BB"; break;    // Bottom field only
+                        case 5: Text += "P"; break;     // Progressive
+                        default: Text += to_string(Change->VideoScanType); break;
+                    }
+                    Text += '\"';
+                }
                 if (Change->VideoRatio_N)
                 {
                     Text += " aspect_ratio=\"";
