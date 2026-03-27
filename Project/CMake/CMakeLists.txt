@@ -21,6 +21,7 @@ set(dvrescue_SRCS
   ${dvrescue_SOURCES_PATH}/CLI/DVRescue.rc
   ${dvrescue_SOURCES_PATH}/Common/Core.cpp
   ${dvrescue_SOURCES_PATH}/Common/Merge.cpp
+  ${dvrescue_SOURCES_PATH}/Common/MergeTs.cpp
   ${dvrescue_SOURCES_PATH}/Common/Output.cpp
   ${dvrescue_SOURCES_PATH}/Common/Output_Webvtt.cpp
   ${dvrescue_SOURCES_PATH}/Common/Output_Xml.cpp

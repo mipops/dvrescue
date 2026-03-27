@@ -11,6 +11,7 @@
 #include "Common/Output_Captions_Scc.h"
 #include "Common/Output_Xml.h"
 #include "Common/Output_Webvtt.h"
+#include "Common/MergeTs.h"
 #include "ZenLib/Ztring.h"
 #include <future>
 #include <mutex>
@@ -63,6 +64,34 @@ return_value Core::Process()
 {
     return_value ToReturn = ReturnValue_OK;
 
+    // MPEG-TS merge path: if merge is requested and all inputs are MPEG-TS,
+    // use the TS packet-level merge instead of the DV block-level merge.
+    bool TsMergeUsed = false;
+    if (!Merge_Out.empty() && !Merge_OutputFileNames.empty() && Inputs.size() >= 2)
+    {
+        bool AllMpegTs = true;
+        for (const auto& Input : Inputs)
+        {
+            if (!ts_merge::IsMpegTs(Ztring(Input).To_Local()))
+            {
+                AllMpegTs = false;
+                break;
+            }
+        }
+        if (AllMpegTs)
+        {
+            std::vector<std::string> InputPaths;
+            for (const auto& Input : Inputs)
+                InputPaths.push_back(Ztring(Input).To_Local());
+
+            ostream* MergeLog = MergeInfo_Out ? MergeInfo_Out : (Err ? Err : &cerr);
+            TsMergeUsed = ts_merge::Process(InputPaths, Merge_OutputFileNames, MergeLog, Verbosity);
+
+            if (!TsMergeUsed && Err)
+                *Err << "Warning: MPEG-TS merge failed, falling back to normal analysis." << endl;
+        }
+    }
+
     // Analyze files (asynchronous)
     PerFile_Clear();
     PerFile.reserve(Inputs.size());
@@ -98,7 +127,7 @@ return_value Core::Process()
     if (Device_Command)
         return ToReturn;
 
-    if (!Merge_Out.empty())
+    if (!Merge_Out.empty() && !TsMergeUsed)
     {
         PerFile[0]->Merge_Finish();
         if (!XmlFile)

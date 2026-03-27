@@ -551,11 +551,10 @@ return_value file::Parse(const String& FileName)
         {
             auto Caps = Capture->GetCapabilities();
             if (Caps.Probed && Caps.CassetteType == 0x41) // MicroMV cassette
-                cerr << "Note: MicroMV cassette detected. Capture will proceed but merge is not available for MPEG-2 streams." << endl;
+                cerr << "Note: MicroMV cassette detected. MPEG-TS capture active." << endl;
             // OUTPUT_SIGNAL_MODE: 0x02=HD-DVCR/1125-60, 0x06=HD-DVCR/1250-50
             if (Caps.Probed && (Caps.OutputSignalMode == 0x02 || Caps.OutputSignalMode == 0x06))
-                cerr << "Note: Device reports HD signal mode (" << Caps.SignalMode << ")." << endl
-                     << "HDV capture mode active. Merge is not available for MPEG-2 streams." << endl;
+                cerr << "Note: Device reports HD signal mode (" << Caps.SignalMode << "). HDV capture mode active." << endl;
         }
         MI.Open_Buffer_Init();
         Capture->TerminateFlag = &TerminateRequested; // Enable responsive Ctrl-C (#783)
