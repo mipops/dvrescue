@@ -310,8 +310,14 @@ return_value Help(ostream& Out, const char* Name, bool Full)
         "    Analyze an HDV file (.m2t) and save XML:\n"
         "        dvrescue input.m2t -x output.dvrescue.xml\n"
         "\n"
+        "    Extract closed captions as SCC:\n"
+        "        dvrescue input.dv --cc-format scc --cc-output captions.scc\n"
+        "\n"
         "    Extract closed captions as SRT:\n"
         "        dvrescue input.dv --cc-format srt -c captions.srt\n"
+        "\n"
+        "    Extract subtitles as WebVTT:\n"
+        "        dvrescue input.dv --webvtt-output output.vtt\n"
         "\n"
         << endl;
     

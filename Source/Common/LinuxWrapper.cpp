@@ -112,19 +112,18 @@ void LinuxWrapper::Init()
          for (int Node = 0; Node < Nodes - 1 /* last node is the control node */; Node++)
          {
              rom1394_directory Directory;
-             if (rom1394_get_directory(Handle, Node, &Directory) >= 0 &&
-                 rom1394_get_node_type(&Directory) == ROM1394_NODE_TYPE_AVC &&
-                 avc1394_check_subunit_type(Handle, Node, AVC1394_SUBUNIT_TYPE_VCR))
+             memset(&Directory, 0, sizeof(Directory));
+             if (rom1394_get_directory(Handle, Node, &Directory) < 0)
+                 continue;
+             bool isVCR = rom1394_get_node_type(&Directory) == ROM1394_NODE_TYPE_AVC &&
+                          avc1394_check_subunit_type(Handle, Node, AVC1394_SUBUNIT_TYPE_VCR);
+             if (isVCR)
              {
-                 rom1394_get_directory(Handle, Node, &Directory);
-                 //TODO: it is mapping standard?
                  string Vendor = Directory.nr_textual_leafs > 0 ? Directory.textual_leafs[0] : "Unknown vendor";
                  string Model = Directory.nr_textual_leafs > 1 ? Directory.textual_leafs[1] : "Unknown model";
                  octlet_t UUID = rom1394_get_guid(Handle, Node);
 
                  Devices.push_back(device(Port, (nodeid_t)Node, UUID, Vendor, Model));
-                 rom1394_free_directory(&Directory);
-                 // Continue scanning for more VCR devices on this port (#935)
              }
              rom1394_free_directory(&Directory);
         }

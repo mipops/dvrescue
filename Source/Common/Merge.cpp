@@ -1037,7 +1037,33 @@ bool dv_merge_private::Process(float Speed)
                     {
                         uint8_t section = RefFrame.Buffer.Data[b * 80] >> 5;
                         bool mismatch = memcmp(RefFrame.Buffer.Data + b * 80, Frame.Buffer.Data + b * 80, 80) != 0;
-                        if (section <= 1) // Header or subcode
+                        if (section == 1) // Subcode: tolerate 0xFF dropout differences (#929)
+                        {
+                            if (mismatch)
+                            {
+                                // Only count as a real mismatch if both blocks have
+                                // non-dropout data that differs. 0xFF fill bytes in
+                                // subcode packs indicate dropouts; ignore those bytes.
+                                size_t realDiffs = 0;
+                                auto* refBlk = RefFrame.Buffer.Data + b * 80;
+                                auto* curBlk = Frame.Buffer.Data + b * 80;
+                                for (size_t byte = 3; byte < 80; byte++) // skip ID bytes 0-2
+                                {
+                                    if (refBlk[byte] != curBlk[byte] &&
+                                        refBlk[byte] != 0xFF && curBlk[byte] != 0xFF)
+                                        realDiffs++;
+                                }
+                                if (realDiffs > 0)
+                                {
+                                    StructCompare++;
+                                    StructMismatch++;
+                                }
+                                // else: difference is only in dropout bytes, skip
+                            }
+                            else
+                                StructCompare++;
+                        }
+                        else if (section == 0) // Header
                         {
                             StructCompare++;
                             if (mismatch) StructMismatch++;
@@ -1485,8 +1511,39 @@ bool dv_merge_private::Process(float Speed)
                         }
                     }
                 }
+                // For subcode blocks, prefer the source with the fewest 0xFF
+                // dropout bytes (#929). This improves timecode reliability when
+                // subcodes have partial dropouts across captures.
+                if (RefData && ((RefData[b * 80] >> 5) == 1) && Input_Count > 1)
+                {
+                    size_t fewest_ff = SIZE_MAX;
+                    size_t best_sub = BestInput;
+                    for (size_t i = 0; i < Input_Count; i++)
+                    {
+                        auto& Inp = Inputs[i];
+                        if (Inp->DoNotUseFile) continue;
+                        auto& Fr = Inp->Segments[Segment_Pos].Frames[Frame_Pos];
+                        if (!Fr.Buffer.Data || Fr.Status[Status_FrameMissing]) continue;
+                        if (Fr.Status[Status_BlockIssue] && Fr.BlockStatus && Fr.BlockStatus[b] == BlockStatus_NOK)
+                            continue;
+                        size_t ff_count = 0;
+                        for (size_t byte = 3; byte < 80; byte++)
+                            if (Fr.Buffer.Data[b * 80 + byte] == 0xFF) ff_count++;
+                        if (ff_count < fewest_ff)
+                        {
+                            fewest_ff = ff_count;
+                            best_sub = i;
+                        }
+                    }
+                    if (best_sub != (size_t)Priorities[0])
+                    {
+                        auto* SubData = Inputs[best_sub]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data;
+                        if (SubData)
+                            memcpy(Output.OutputBuffer + b * 80, SubData + b * 80, 80);
+                    }
+                }
                 // Copy block from best source if it differs from the base frame
-                if (NoIssue && BestInput != (size_t)Priorities[0])
+                else if (NoIssue && BestInput != (size_t)Priorities[0])
                 {
                     auto* BestData = Inputs[BestInput]->Segments[Segment_Pos].Frames[Frame_Pos].Buffer.Data;
                     if (BestData) // Guard against null buffer (#388)

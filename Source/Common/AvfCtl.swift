@@ -113,6 +113,23 @@ private let VCR_SPD_X7: UInt8 = 0x07
     private var powerAssertionID: IOPMAssertionID = IOPMAssertionID(0)
     private var activityToken: NSObjectProtocol?
 
+    // MARK: - macOS Tahoe FireWire Warning
+
+    private static let fireWireWarningMessage =
+        "Warning: macOS Tahoe (26.x) removed FireWire driver support. " +
+        "DV capture via FireWire requires macOS 15 (Sequoia) or earlier. " +
+        "See https://github.com/mrmidi/ASFireWire for a potential third-party driver."
+
+    private static var isMacOSTahoeOrLater: Bool {
+        return ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 26
+    }
+
+    @objc public static func logTahoeFireWireWarningIfNeeded() {
+        if isMacOSTahoeOrLater {
+            NSLog("%@", fireWireWarningMessage)
+        }
+    }
+
     // MARK: - Static Device Enumeration
 
     private static func muxedDevices() -> [AVCaptureDevice] {
@@ -120,7 +137,11 @@ private let VCR_SPD_X7: UInt8 = 0x07
     }
 
     @objc public static func getDeviceCount() -> Int {
-        return muxedDevices().count
+        let count = muxedDevices().count
+        if count == 0 {
+            logTahoeFireWireWarningIfNeeded()
+        }
+        return count
     }
 
     @objc public static func getDeviceName(_ index: Int) -> String {
@@ -257,7 +278,10 @@ private let VCR_SPD_X7: UInt8 = 0x07
 
     @objc public init?(deviceIndex index: Int, controller extCtl: AnyObject?) {
         let devices = AVFCtl.muxedDevices()
-        guard index < devices.count else { return nil }
+        guard index < devices.count else {
+            AVFCtl.logTahoeFireWireWarningIfNeeded()
+            return nil
+        }
 
         super.init()
         device = devices[index]
@@ -290,7 +314,10 @@ private let VCR_SPD_X7: UInt8 = 0x07
                 break
             }
         }
-        guard device != nil else { return nil }
+        guard device != nil else {
+            AVFCtl.logTahoeFireWireWarningIfNeeded()
+            return nil
+        }
 
         oldMode = device!.transportControlsPlaybackMode
         oldSpeed = device!.transportControlsSpeed

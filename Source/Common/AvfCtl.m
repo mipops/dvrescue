@@ -90,9 +90,23 @@
     id<NSObject> activityToken;
 }
 
++ (void) logTahoeFireWireWarningIfNeeded
+{
+    NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+    if (version.majorVersion >= 26) {
+        NSLog(@"Warning: macOS Tahoe (26.x) removed FireWire driver support. "
+               "DV capture via FireWire requires macOS 15 (Sequoia) or earlier. "
+               "See https://github.com/mrmidi/ASFireWire for a potential third-party driver.");
+    }
+}
+
 + (NSUInteger) getDeviceCount
 {
-    return [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count];
+    NSUInteger count = [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count];
+    if (count == 0) {
+        [self logTahoeFireWireWarningIfNeeded];
+    }
+    return count;
 }
 
 + (NSString*) getDeviceName:(NSUInteger) index
@@ -218,8 +232,10 @@
 
 - (id) initWithDeviceIndex:(NSUInteger) index controller:(id) extCtl
 {
-    if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count])
+    if (index >= [[AVCaptureDevice devicesWithMediaType:AVMediaTypeMuxed] count]) {
+        [AVFCtl logTahoeFireWireWarningIfNeeded];
         return nil;
+    }
 
     self = [super init];
     if (self) {
@@ -264,8 +280,10 @@
             }
         }
 
-        if (!_device)
+        if (!_device) {
+            [AVFCtl logTahoeFireWireWarningIfNeeded];
             return nil;
+        }
 
         avcDevice = NULL;
         _old_mode  = [_device transportControlsPlaybackMode];

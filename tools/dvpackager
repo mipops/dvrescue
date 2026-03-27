@@ -1349,8 +1349,12 @@ if [[ -f "${DVFILE}" ]] ; then
                     AUD_STREAM_COUNT=($("${MEDIAINFO_PATH}" -f --Output="General;%AudioCount%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
                     _report -v "AUD_STREAM_COUNT=(${AUD_STREAM_COUNT})"
                     if [[ -n "${AUD_STREAM_COUNT}" ]] ; then
-                        VID_DUR=($("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
-                        AUD_DUR=($("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | head -n 1 | sed 's/\r//' | awk '{printf "%s", $0}'))
+                        VID_DUR=($("${MEDIAINFO_PATH}" -f --Output="Video;%Duration%\n" "${OUTPUT_FILE}" | tr '\r' '\n' | grep -m 1 -oE '[0-9]+(\.[0-9]+)?' | head -n 1))
+                        # Use head -n 1 and tr to handle multiple audio tracks (#927):
+                        # mediainfo outputs one duration per audio track, but they may
+                        # concatenate into a single line. Convert \r to \n so each
+                        # track value lands on its own line, then take only the first.
+                        AUD_DUR=($("${MEDIAINFO_PATH}" -f --Output="Audio;%Duration%\n" "${OUTPUT_FILE}" | tr '\r' '\n' | grep -m 1 -oE '[0-9]+(\.[0-9]+)?' | head -n 1))
                         if [[ -n "${VID_DUR}" ]] && [[ -n "${AUD_DUR}" ]] ; then
                             DUR_DIFF=($(echo "${VID_DUR} - ${AUD_DUR}" | bc 2>/dev/null | awk '{printf "%f", $0}'))
                             _report -v "VID_DUR=(${VID_DUR}), AUD_DUR=(${AUD_DUR}), DUR_DIFF=(${DUR_DIFF})"
