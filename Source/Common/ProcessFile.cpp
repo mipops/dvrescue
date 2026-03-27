@@ -701,6 +701,8 @@ void file::RewindToTimeCode(TimeCode TC)
     RewindMode=Rewind_Mode_TimeCode;
     RewindTo_TC=TC;
     RewindPassNumber++;
+    Rewind_FrameCount = 0;
+    Rewind_NoTC_Count = 0;
 
     // Multi-speed rewind: cycle through configured speeds across passes
     // for different head-tape contact angles, improving block recovery diversity.
@@ -814,6 +816,7 @@ void file::AddChange(const MediaInfo_Event_DvDif_Change_0* FrameData)
     #endif
 
     FrameNumber++; // Event FrameCount is currently wrong
+    PendingChangeIsNull = true; // May be cleared by AddFrameAnalysis if frame is not null
 
     // Check if there is a change we support
     if (!PerChange.empty())
@@ -1041,9 +1044,32 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
                 }
                 return; //Continue in rewind mode
             }
+            Rewind_NoTC_Count = 0; // TC was valid, reset no-TC counter
+            Rewind_FrameCount++;
+            // Safety: abort rewind if too many frames without reaching target (#936)
+            if (RewindMode == Rewind_Mode_TimeCode && Rewind_FrameCount > 20000)
+            {
+                if (Verbosity >= 3)
+                    cerr << "Rewind: exceeded 20000 frames without reaching target TC, aborting rewind" << endl;
+                RewindTo_TC = TimeCode();
+                RewindMode = Rewind_Mode_None;
+                return;
+            }
         }
         else
+        {
+            // No timecode: blank tape or unrecorded section (#936)
+            Rewind_NoTC_Count++;
+            if (Rewind_NoTC_Count > 500)
+            {
+                if (Verbosity >= 3)
+                    cerr << "Rewind: 500 consecutive frames with no timecode (blank tape?), aborting rewind" << endl;
+                RewindTo_TC = TimeCode();
+                RewindMode = Rewind_Mode_None;
+                return;
+            }
             return; //Continue in rewind mode
+        }
     }
     else if (RewindMode==Rewind_Mode_Abst)
     {
@@ -1075,6 +1101,35 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
             return; //Continue in rewind mode
     }
     #endif
+
+    // Skip null DAT frames (#970): frames that are entirely null/zero bytes
+    // are not meaningful and should be excluded from analysis output and
+    // duration calculations. The no_data() flag is set by MediaInfo for such
+    // frames. When skipping, also undo the FrameNumber increment from the
+    // preceding AddChange call and remove any PerChange entry added for this
+    // frame so that frame numbering stays consistent.
+    coherency_flags CoherencyCheck(FrameData);
+    if (CoherencyCheck.no_data())
+    {
+        if (PendingChangeIsNull)
+        {
+            // AddChange already incremented FrameNumber for this frame; undo it
+            if (FrameNumber)
+                FrameNumber--;
+            // If a PerChange entry was created for this null frame, remove it
+            if (!PerChange.empty() && PerChange.back()->FrameNumber == FrameNumber)
+            {
+                if (PerChange.back()->MoreData)
+                    delete[] (uint8_t*)PerChange.back()->MoreData;
+                delete PerChange.back();
+                PerChange.pop_back();
+            }
+            PendingChangeIsNull = false;
+        }
+        return;
+    }
+    PendingChangeIsNull = false;
+
     MediaInfo_Event_DvDif_Analysis_Frame_1* ToPush = new MediaInfo_Event_DvDif_Analysis_Frame_1();
     std::memcpy(ToPush, FrameData, sizeof(MediaInfo_Event_DvDif_Analysis_Frame_1));
     if (FrameData->Errors)

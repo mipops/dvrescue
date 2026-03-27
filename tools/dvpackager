@@ -871,6 +871,11 @@ else
             _report -w "Please update ffmpeg."
             _report -w "Using this current install of ffmpeg may result in out of sync audio."
         fi
+        # Warn about MOV stsd header bug in ffmpeg 6.1-7.x (#950, FFmpeg ticket #11339)
+        if [[ ${LAVFversion_maj} -ge 60 ]] && [[ ${LAVFversion_maj} -le 61 ]] ; then
+            _report -w "Note: ffmpeg versions 6.1 through 7.x may produce MOV files with broken stsd headers."
+            _report -w "If MOV output is needed, consider using ffmpeg 6.0 or MKV output format as a workaround."
+        fi
     done
 fi
 

@@ -374,6 +374,10 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
             }
             MergeInfo_OutputFileName = argv_ansi[i];
         }
+        else if (!strcmp(argv_ansi[i], "--errors-only") || !strcmp(argv_ansi[i], "-e"))
+        {
+            C.Options.set(Option_ErrorsOnly, true);
+        }
         else if (!strcmp(argv_ansi[i], "--merge-output-speed"))
         {
             OutputFrames_Speed = true;

@@ -13,6 +13,7 @@
 enum options_t
 {
     Option_CaptionPresenceChange,
+    Option_ErrorsOnly,
     Option_Max,
 };
 

@@ -185,6 +185,7 @@ private:
     size_t Merge_FilePos;
     dv_merge Merge;
     bool no_sourceorcontrol_aud_set_in_first_frame = false;
+    bool PendingChangeIsNull = false; // Track null DAT frames to undo AddChange
 
     #if defined(ENABLE_CAPTURE) || defined(ENABLE_SIMULATOR)
 public:
@@ -200,6 +201,8 @@ public:
     int DelayedPlay = 0;
     size_t TimeCode2_FrameCount = 0;
     int64_t TimeCode2_PrevTC = -1;
+    size_t Rewind_FrameCount = 0;       // Frames seen during Rewind_Mode_TimeCode
+    size_t Rewind_NoTC_Count = 0;       // Consecutive frames with no TC during rewind
     bool TerminateRequested = false;
     bool TimeOutReached = false;
     capture_mode CaptureMode = Capture_Mode_DV;

@@ -938,6 +938,12 @@ return_value Output_Xml(ostream& Out, std::vector<file*>& PerFile, bitset<Option
                 ShowFrame = true;
             }
 
+            // Filter out non-error frames when --errors-only is set
+            if (ShowFrame && Options[Option_ErrorsOnly] && !Frame_HasErrors(Frame))
+            {
+                ShowFrame = false;
+            }
+
             if (ShowFrame)
             {
                 auto TimeStamp = Frame->PTS / 1000000000.0;
