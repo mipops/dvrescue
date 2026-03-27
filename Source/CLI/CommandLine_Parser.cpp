@@ -580,6 +580,53 @@ return_value Parse(Core &C, int argc, const char* argv_ansi[], const MediaInfoNa
                 continue;
             }
         }
+        else if (!strcmp(argv_ansi[i], "--decklink-pixel-format"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing pixel format after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            if (!strcmp(argv_ansi[i], "uyvy") || !strcmp(argv_ansi[i], "uyvy422"))
+                DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_8BitYUV;
+            else if (!strcmp(argv_ansi[i], "v210") || !strcmp(argv_ansi[i], "yuv422p10"))
+                DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_10BitYUV;
+            else if (!strcmp(argv_ansi[i], "argb"))
+                DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_8BitARGB;
+            else if (!strcmp(argv_ansi[i], "bgra"))
+                DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_8BitBGRA;
+            else if (!strcmp(argv_ansi[i], "r210") || !strcmp(argv_ansi[i], "rgb10"))
+                DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_10BitRGB;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: unknown decklink pixel format " << argv_ansi[i] << ". Options: uyvy, v210 (default), argb, bgra, r210.\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
+        else if (!strcmp(argv_ansi[i], "--decklink-audio-channels"))
+        {
+            if (++i >= argc)
+            {
+                if (C.Err)
+                    *C.Err << "Error: missing channel count after " << argv_ansi[i - 1] << ".\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+            int ch = atoi(argv_ansi[i]);
+            if (ch == 2 || ch == 8 || ch == 16)
+                DeckLinkAudioChannels = (uint8_t)ch;
+            else
+            {
+                if (C.Err)
+                    *C.Err << "Error: invalid decklink audio channel count " << argv_ansi[i] << ". Options: 2 (default), 8, 16.\n";
+                ReturnValue = ReturnValue_ERROR;
+                continue;
+            }
+        }
         #endif
         else if (!strcmp(argv_ansi[i], "--device") || !strcmp(argv_ansi[i], "-device"))
         {

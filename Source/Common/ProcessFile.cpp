@@ -43,7 +43,8 @@ bool DeckLinkNativeControl = false;
 uint8_t DeckLinkVideoMode = (uint8_t)Decklink_Video_Mode_NTSC;
 uint8_t DeckLinkVideoSource = (uint8_t)Decklink_Video_Source_SDI;
 uint8_t DeckLinkAudioSource = (uint8_t)Decklink_Audio_Source_Embedded;
-uint8_t DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_Unspecified;
+uint8_t DeckLinkPixelFormat = (uint8_t)Decklink_Pixel_Format_10BitYUV;
+uint8_t DeckLinkAudioChannels = 2;
 uint8_t DeckLinkTimecodeFormat = (uint8_t)Decklink_Timecode_Format_VITC;
 #endif
 bool InControl = false;
@@ -398,7 +399,9 @@ return_value file::Parse(const String& FileName)
                                               (decklink_audio_source)DeckLinkAudioSource,
                                               (decklink_timecode_format)DeckLinkTimecodeFormat,
                                               Controller,
-                                              DeckLinkNativeControl);
+                                              DeckLinkNativeControl,
+                                              (decklink_pixel_format)DeckLinkPixelFormat,
+                                              DeckLinkAudioChannels);
             }
             else if (DecklinkWrapper::GetDeviceIndex(Device) != (size_t)-1)
             {
@@ -409,7 +412,9 @@ return_value file::Parse(const String& FileName)
                                               (decklink_audio_source)DeckLinkAudioSource,
                                               (decklink_timecode_format)DeckLinkTimecodeFormat,
                                               Controller,
-                                              DeckLinkNativeControl);
+                                              DeckLinkNativeControl,
+                                              (decklink_pixel_format)DeckLinkPixelFormat,
+                                              DeckLinkAudioChannels);
             }
             #endif
             #ifdef ENABLE_LNX1394

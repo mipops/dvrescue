@@ -50,7 +50,7 @@ class DecklinkWrapper : public BaseWrapper {
     class CaptureDelegate : public IDeckLinkInputCallback {
     public:
         // Constructor/Destructor
-        CaptureDelegate(FileWrapper* Wrapper, const uint32_t TimecodeFormat);
+        CaptureDelegate(FileWrapper* Wrapper, const uint32_t TimecodeFormat, uint8_t AudioChannels = 2);
 
         // Functions
         ULONG AddRef();
@@ -62,6 +62,7 @@ class DecklinkWrapper : public BaseWrapper {
     private:
         FileWrapper* Wrapper;
         uint32_t TimecodeFormat;
+        uint8_t AudioChannels;
     };
 
     class StatusDelegate : public IDeckLinkDeckControlStatusCallback
@@ -87,14 +88,18 @@ class DecklinkWrapper : public BaseWrapper {
                     decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
                     decklink_timecode_format TimecodeFormat = Decklink_Timecode_Format_VITC,
                     ControllerBaseWrapper* Controller = nullptr,
-                    bool Native = false);
+                    bool Native = false,
+                    decklink_pixel_format PixelFmt = Decklink_Pixel_Format_10BitYUV,
+                    uint8_t AudioChannels = 2);
     DecklinkWrapper(std::string DeviceID,
                     decklink_video_mode Mode = Decklink_Video_Mode_NTSC,
                     decklink_video_source VideoSrc = Decklink_Video_Source_Composite,
                     decklink_audio_source AudioSrc = Decklink_Audio_Source_Analog,
                     decklink_timecode_format TimecodeFormat = Decklink_Timecode_Format_VITC,
                     ControllerBaseWrapper* Controller = nullptr,
-                    bool Native = false);
+                    bool Native = false,
+                    decklink_pixel_format PixelFmt = Decklink_Pixel_Format_10BitYUV,
+                    uint8_t AudioChannels = 2);
     ~DecklinkWrapper();
 
     // Functions
@@ -133,6 +138,8 @@ private:
     uint32_t DeckLinkVideoSource;
     uint32_t DeckLinkAudioSource;
     uint32_t DeckLinkTimecodeFormat;
+    uint32_t DeckLinkPixelFmt;
+    uint8_t  DeckLinkAudioCh;
 
     // Control
     ControllerBaseWrapper* Controller = nullptr;
