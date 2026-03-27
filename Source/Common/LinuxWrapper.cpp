@@ -635,7 +635,7 @@ void LinuxWrapper::SetPlaybackMode(playback_mode Mode, float Speed)
             else if (Speed > 0.0f) // slow speed
                 Code=AVC1394_VCR_OPERAND_PLAY_SLOW_FORWARD_6;
             else if (Speed == 0.0f)
-                Code = AVC1394_VCR_OPERAND_PLAY_FORWARD_PAUSE; //TODO: Use PLAY_REVERSE_PAUSE if current direction is reverse
+                Code = (GetSpeed() < 0.0f) ? AVC1394_VCR_OPERAND_PLAY_REVERSE_PAUSE : AVC1394_VCR_OPERAND_PLAY_FORWARD_PAUSE;
             else if (Speed > -1.0f) // normal speed, reverse
                 Code=AVC1394_VCR_OPERAND_PLAY_SLOW_REVERSE_6;
             else if (Speed == -1.0f) // normal speed, reverse
