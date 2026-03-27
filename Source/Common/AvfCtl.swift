@@ -8,6 +8,7 @@ import AVFoundation
 import Foundation
 import IOKit
 import IOKit.avc
+import IOKit.pwr_mgt
 
 // MARK: - AV/C Protocol Constants
 
@@ -109,6 +110,8 @@ private let VCR_SPD_X7: UInt8 = 0x07
     private var receiverInstance: ReceiverTimer?
     private var externalController: AnyObject?
     private var avcDevice: UnsafeMutablePointer<UnsafeMutablePointer<IOFireWireAVCLibUnitInterface>?>?
+    private var powerAssertionID: IOPMAssertionID = IOPMAssertionID(0)
+    private var activityToken: NSObjectProtocol?
 
     // MARK: - Static Device Enumeration
 
@@ -309,6 +312,8 @@ private let VCR_SPD_X7: UInt8 = 0x07
     }
 
     deinit {
+        allowSleep() // Release power assertions if still held
+
         if let device = device {
             device.removeObserver(self, forKeyPath: "transportControlsPlaybackMode")
             device.removeObserver(self, forKeyPath: "transportControlsSpeed")
@@ -413,6 +418,7 @@ private let VCR_SPD_X7: UInt8 = 0x07
     }
 
     @objc public func startCaptureSession() {
+        preventSleep()
         session?.startRunning()
     }
 
@@ -422,6 +428,47 @@ private let VCR_SPD_X7: UInt8 = 0x07
             receiver.perform(Selector(("invalidateWrapper")))
         }
         session?.stopRunning()
+        allowSleep()
+    }
+
+    // MARK: - Power Management
+    // Prevent display and system sleep during capture. macOS suspends GCD dispatch
+    // queues servicing AVCaptureVideoDataOutput when the display sleeps, causing
+    // frames to buffer in the kernel and flush all at once on wake — producing a
+    // fast-forward effect in the captured file. Taking an IOPMAssertion for
+    // PreventUserIdleDisplaySleep keeps the display (and thus the capture pipeline)
+    // alive for the duration of the session.
+
+    private func preventSleep() {
+        // IOKit power assertion: prevents both display and system idle sleep
+        let reason = "DVRescue: DV capture session active" as CFString
+        let result = IOPMAssertionCreateWithName(
+            kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString,
+            IOPMAssertionLevel(kIOPMAssertionLevelOn),
+            reason,
+            &powerAssertionID
+        )
+        if result != kIOReturnSuccess {
+            NSLog("Warning: could not create power assertion to prevent display sleep (IOReturn %d)", result)
+        }
+
+        // NSProcessInfo activity: prevents App Nap and sudden termination
+        activityToken = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .idleDisplaySleepDisabled, .idleSystemSleepDisabled],
+            reason: "DV capture session active"
+        )
+    }
+
+    private func allowSleep() {
+        if powerAssertionID != IOPMAssertionID(0) {
+            IOPMAssertionRelease(powerAssertionID)
+            powerAssertionID = IOPMAssertionID(0)
+        }
+
+        if let token = activityToken {
+            ProcessInfo.processInfo.endActivity(token)
+            activityToken = nil
+        }
     }
 
     // MARK: - Playback Mode

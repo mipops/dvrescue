@@ -9,6 +9,7 @@
 #import <IOKit/IOKitLib.h>
 #import <IOKit/IOCFPlugIn.h>
 #import <IOKit/avc/IOFireWireAVCLib.h>
+#import <IOKit/pwr_mgt/IOPMLib.h>
 
 #define VCR_CTL                      0x00
 
@@ -85,6 +86,8 @@
 
 @implementation AVFCtl {
     IOFireWireAVCLibUnitInterface **avcDevice;
+    IOPMAssertionID powerAssertionID;
+    id<NSObject> activityToken;
 }
 
 + (NSUInteger) getDeviceCount
@@ -292,6 +295,8 @@
 
 - (void) dealloc
 {
+    [self allowSleep]; // Release power assertions if still held
+
     NSString *keyPath = nil;
 
     keyPath = NSStringFromSelector(@selector(transportControlsPlaybackMode));
@@ -418,10 +423,45 @@
     receiverInstance = receiver;
 }
 
+- (void) preventSleep
+{
+    // Prevent display and system sleep during capture.
+    // macOS suspends GCD dispatch queues servicing AVCaptureVideoDataOutput when
+    // the display sleeps, causing frames to buffer in the kernel and flush all at
+    // once on wake — producing a fast-forward effect in the captured file.
+    IOReturn result = IOPMAssertionCreateWithName(
+        kIOPMAssertionTypePreventUserIdleDisplaySleep,
+        kIOPMAssertionLevelOn,
+        CFSTR("DVRescue: DV capture session active"),
+        &powerAssertionID);
+    if (result != kIOReturnSuccess) {
+        NSLog(@"Warning: could not create power assertion to prevent display sleep (IOReturn %d)", result);
+    }
+
+    activityToken = [[NSProcessInfo processInfo]
+        beginActivityWithOptions:(NSActivityUserInitiated |
+                                  NSActivityIdleDisplaySleepDisabled |
+                                  NSActivityIdleSystemSleepDisabled)
+        reason:@"DV capture session active"];
+}
+
+- (void) allowSleep
+{
+    if (powerAssertionID) {
+        IOPMAssertionRelease(powerAssertionID);
+        powerAssertionID = 0;
+    }
+
+    if (activityToken) {
+        [[NSProcessInfo processInfo] endActivity:activityToken];
+        activityToken = nil;
+    }
+}
+
 - (void) startCaptureSession
 {
+    [self preventSleep];
     [_session startRunning];
-
 }
 
 - (void) stopCaptureSession
@@ -432,6 +472,7 @@
         [receiverInstance performSelector:@selector(invalidateWrapper)];
     }
     [_session stopRunning];
+    [self allowSleep];
 }
 
 - (void) setPlaybackMode:(AVCaptureDeviceTransportControlsPlaybackMode)theMode speed:(AVCaptureDeviceTransportControlsSpeed) theSpeed
