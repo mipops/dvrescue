@@ -20,6 +20,38 @@
 #include "CLI/CLI_Help.h"
 using namespace ZenLib;
 uint64_t VariableSize(const uint8_t* Buffer, size_t& Buffer_Offset, size_t Buffer_Size);
+
+// Tee streambuf: writes to two ostreams simultaneously (#389)
+class tee_streambuf : public std::streambuf
+{
+public:
+    tee_streambuf(std::ostream& a, std::ostream& b) : a_(a), b_(b) {}
+protected:
+    int overflow(int c) override
+    {
+        if (c == EOF) return !EOF;
+        a_.put((char)c);
+        b_.put((char)c);
+        return c;
+    }
+    std::streamsize xsputn(const char* s, std::streamsize n) override
+    {
+        a_.write(s, n);
+        b_.write(s, n);
+        return n;
+    }
+    int sync() override
+    {
+        a_.flush();
+        b_.flush();
+        return 0;
+    }
+private:
+    std::ostream& a_;
+    std::ostream& b_;
+};
+static tee_streambuf* Tee_Buf = nullptr;
+static ostream* Tee_Stream = nullptr;
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
@@ -392,7 +424,18 @@ bool dv_merge_private::Init()
         else
             Output.Copies.push_back(Merge_Out[Pos]);
     }
-    Log = MergeInfo_Out ? MergeInfo_Out : (Merge_OutputFileNames_IncludesStdOut ? &cerr : &cout);
+    if (MergeInfo_Out)
+    {
+        // Tee merge log to both the log file and stderr (#389)
+        auto& Fallback = Merge_OutputFileNames_IncludesStdOut ? cerr : cout;
+        delete Tee_Stream;
+        delete Tee_Buf;
+        Tee_Buf = new tee_streambuf(*MergeInfo_Out, Fallback);
+        Tee_Stream = new ostream(Tee_Buf);
+        Log = Tee_Stream;
+    }
+    else
+        Log = Merge_OutputFileNames_IncludesStdOut ? &cerr : &cout;
 
     Merge_Help();
 
@@ -2225,6 +2268,16 @@ bool dv_merge_private::Stats()
         }
     }
     *Log << flush;
+
+    // Clean up tee stream
+    if (Tee_Stream)
+    {
+        delete Tee_Stream;
+        Tee_Stream = nullptr;
+        delete Tee_Buf;
+        Tee_Buf = nullptr;
+        Log = nullptr;
+    }
 
     if (Output.F_Pos)
         Merge_Out_Size = Output.F_Pos;
