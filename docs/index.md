@@ -8,4 +8,4 @@ DVRescue is cross-platform archivist made and designed software for the advanced
 
 Its [project development](https://github.com/mipops/dvrescue) page can be found on Github and it can be downloaded for various systems from the [MediaArea DVRescue](https://mediaarea.net/DVRescue) page.
 
-
+[Donate today](https://campaigns.donately.com/t001/cmp?account_subdomain=mipops&campaign_id=cmp_f2b48b8319bf&draft_id=dft_4220992f733c) to help support future development work on the DVRescue project.
