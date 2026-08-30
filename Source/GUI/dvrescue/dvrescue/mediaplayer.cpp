@@ -110,11 +110,10 @@ void MediaPlayer::setVideoOutput(QQuickItem *newVideoOutput)
         videoSink->setVideoFrame(videoFrame);
     });
 #endif //
-
     QObject::connect(player, &QAVPlayer::audioFrame, player, [this](const QAVAudioFrame &frame) {
         if(enableAudio())
             audioOutput->play(frame);
-    });
+    }, Qt::DirectConnection);
 
     Q_EMIT videoOutputChanged();
 }
