@@ -156,6 +156,14 @@ char uint4_to_hex4(int Value);
 bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1& Frame);
 inline bool Frame_HasErrors(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame) { return Frame_HasErrors(*Frame); }
 
+// Frames per second a frame's timecode counts: 25 for 625/50, whose frames are 12 DIF sequences of 150 blocks
+// (24 for DV50), and 30 (drop-frame or not) for 525/60
+inline uint8_t timecode_fps(const MediaInfo_Event_DvDif_Analysis_Frame_1* Frame)
+{
+    auto DseqCount = Frame->BlockStatus_Count / 150;
+    return (DseqCount && !(DseqCount % 12)) ? 25 : 30;
+}
+
 class computed_errors
 {
 public:

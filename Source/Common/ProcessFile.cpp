@@ -678,7 +678,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), timecode_fps(FrameData), TC_Temp.DropFrame());
             if (Verbosity == 10)
             {
                 cerr << "Rewind ";
@@ -706,7 +706,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), timecode_fps(FrameData), TC_Temp.DropFrame());
             if (RewindMode==Rewind_Mode_TimeCode && TC.ToFrames()<RewindTo_TC.ToFrames())
             {
                 if (Verbosity == 10)
@@ -791,7 +791,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), timecode_fps(FrameData), TC_Temp.DropFrame());
             if (TC.ToFrames()<RewindTo_TC.ToFrames())
                 return;
             RewindTo_TC = TimeCode();
@@ -884,7 +884,7 @@ void file::AddFrameAnalysis(const MediaInfo_Event_DvDif_Analysis_Frame_1* FrameD
         timecode TC_Temp(FrameData);
         if (TC_Temp.HasValue())
         {
-            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+            TimeCode TC(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), timecode_fps(FrameData), TC_Temp.DropFrame());
             Text += ' ';
             Text += TC.ToString();
         }

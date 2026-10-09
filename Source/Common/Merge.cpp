@@ -509,14 +509,16 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
 
     // Time code jumps - after first frame
     timecode TC_Temp(FrameData);
-    if (TC_Temp.HasValue())
-        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), 30 /*TEMP*/, TC_Temp.DropFrame());
+    auto FramesPerSecond = timecode_fps(FrameData);
+    if (TC_Temp.HasValue() && TC_Temp.Frames() < FramesPerSecond && TC_Temp.TimeInSeconds() < 24 * 60 * 60) // Else out of range (damaged subcode), so handled as missing
+        CurrentFrame.TC = TimeCode(TC_Temp.TimeInSeconds() / 3600, (TC_Temp.TimeInSeconds() / 60) % 60, TC_Temp.TimeInSeconds() % 60, TC_Temp.Frames(), FramesPerSecond, TC_Temp.DropFrame());
     if (!Frames.empty() && Frames.back().TC.HasValue())
     {
         TimeCode TC_Previous(Frames.back().TC);
         if (CurrentFrame.TC.HasValue())
         {
-            if (CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
+            if (CurrentFrame.TC.FramesPerSecond != TC_Previous.FramesPerSecond // Another frame rate, so another shot
+             || CurrentFrame.TC.ToFrames() < TC_Previous.ToFrames())
             {
                 Input->Segments.resize(Input->Segments.size() + 1);
                 Input->Segments.back().Frames.emplace_back(move(CurrentFrame));
@@ -524,7 +526,7 @@ bool dv_merge_private::AppendFrameToList(size_t InputPos, const MediaInfo_Event_
             }
             if (CurrentFrame.TC.ToFrames() != TC_Previous.ToFrames()) // Accept repeated frames
                 TC_Previous++;
-            while (TC_Previous != CurrentFrame.TC)
+            while (TC_Previous.ToFrames() < CurrentFrame.TC.ToFrames()) // Not "!=": a field the count doesn't produce (e.g. a drop-frame flag read differently) must not stop it ending
             {
                 Frames.emplace_back(Status_FrameMissing, TC_Previous, nullptr, BlockStatus_Count);
                 Input->Count_Blocks_Missing += BlockStatus_Count;
